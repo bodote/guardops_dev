@@ -17,15 +17,15 @@ const Projects = () => {
       <div>
         <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
           <div className="flex items-center gap-[5px]">
-            <h1 className="font-[Archivo] text-[12px] font-normal text-[#000]">
-              COAL
+            <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
+            COAI
             </h1>
             <RightIcon />
-            <h1 className="font-[Archivo] text-[12px] font-normal text-[#000]">
+            <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
               Projects
             </h1>
             <RightIcon />
-            <h1 className="font-[Archivo] text-[12px] font-normal text-[#000]">
+            <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
               Dias Assistant
             </h1>
           </div>
@@ -33,7 +33,7 @@ const Projects = () => {
         </div>
 
         <div className=" sm:px-[22px] px-[16px] py-[9px] flex items-center justify-between flex-wrap">
-          <div className="flex w-fit">
+          <div className="flex sm:w-[370px] w-auto">
             <button
               id="dropdown-button-2"
               data-dropdown-toggle="dropdown-search-city"

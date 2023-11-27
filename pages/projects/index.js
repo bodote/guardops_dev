@@ -7,41 +7,124 @@ import {
   ThreeDotsIcon,
   UpDownIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Projectstabledata from "../../components/Projectsdetails/Projectstabledata";
 import { RiFilter2Fill } from "react-icons/ri";
-import ProjectsChart from "@/components/Projectsdetails/ProjectsChart";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import DonutChart from "@/components/Projectsdetails/DonutChart";
+import BarChart from "@/components/Projectsdetails/BarChart";
 
-const Projects = () => {
+const Projects = ({ open, setOpen }) => {
   return (
     <>
       <div className="flex">
         <Sidebar />
-        <div className="w-full">
+        <div className="w-full h-screen overflow-y-auto  ml-[96px]">
           <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
             <div className="flex items-center gap-[5px]">
-              <h1 className="font-[Archivo] text-[12px] font-normal text-[#000]">
-                COAL
+              <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
+              COAI
               </h1>
               <RightIcon />
-              <h1 className="font-[Archivo] text-[12px] font-normal text-[#000]">
+              <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
                 Projects
               </h1>
               <RightIcon />
-              <h1 className="font-[Archivo] text-[12px] font-normal text-[#000]">
+              <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
                 Dias Assistant
               </h1>
             </div>
             <LockIcon />
           </div>
 
-          <div>
-            <ProjectsChart />
+          <div className="flex lg:flex-row flex-col my-[14px] sm:pl-[22px] pl-[16px] sm:pr-[35px] pr-[16px] xl:gap-[52px] gap-[20px]">
+            <div className="grid sm:grid-cols-2 grid-cols-1 bg-[#f5f5f5] sm:p-[8px_16px_8px_0] p-[0_10px_10px_10px] rounded-xl xl:min-w-[350px] sm:min-w-[230px] h-fit">
+              <div>
+                <h1 className="font-Inter text-[14px] text-center font-normal text-[#000000] ">
+                  Critical Traces
+                </h1>
+                <DonutChart />
+              </div>
+              <div>
+                <div className="grid grid-cols-2 gap-[10px]">
+                  <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
+                    Pass Trough
+                  </h1>
+                  <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
+                    23.456
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 my-[10px]">
+                  <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
+                    Filtered
+                  </h1>
+                  <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#0D859A] ">
+                    2
+                  </button>
+                </div>
+                <div className="grid grid-cols-2">
+                  <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
+                    Blocked
+                  </h1>
+                  <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
+                    1
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="bg-[#f5f5f5] rounded-xl w-full">
+              <h1 className="font-Inter text-[12px]  font-normal text-[#000000] ">
+                Traces per month
+              </h1>
+              <BarChart />
+            </div>
+            <div className="bg-[#f5f5f5] p-[2px_16px_15px_8px] rounded-xl lg:min-w-[285px]">
+              <h1 className="font-Inter text-[14px] font-normal text-[#000000] ">
+                Latenztime & Tokens
+              </h1>
+              <div className="">
+                <div className="flex sm:flex-nowrap flex-wrap pl-[8px] gap-[20px] mt-[11px] mb-[15px]">
+                  <div className="flex items-center gap-[20px] ">
+                    <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
+                      Inputtokens
+                    </h1>
+                    <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
+                      1,234 T
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-[10px] ">
+                    <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
+                      P55
+                    </h1>
+                    <button className="w-[56px] py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#0D859A] ">
+                      2,55
+                    </button>
+                  </div>
+                </div>
+                <div className="flex sm:flex-nowrap flex-wrap pl-[8px] gap-[20px]">
+                  <div className="flex items-center gap-[10px]">
+                    <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
+                      Outputtokens
+                    </h1>
+                    <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
+                      2,345 T
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-[10px]">
+                    <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
+                      P99
+                    </h1>
+                    <button className="w-[56px] py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#0D859A] ">
+                      2,55
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className=" sm:px-[22px] px-[16px] py-[9px] flex items-center justify-between flex-wrap">
-            <div className="flex w-fit">
+          <div className=" sm:px-[22px] px-[16px] py-[9px] flex items-center justify-between flex-wrap gap-[20px]">
+            <div className="flex sm:w-[370px] w-auto">
               <button
                 id="dropdown-button-2"
                 data-dropdown-toggle="dropdown-search-city"
@@ -59,15 +142,15 @@ const Projects = () => {
                 <input
                   type="text"
                   id="voice-search"
-                  className="border border-gray-300 text-gray-900 text-sm rounded-lg  block w-full ps-10 p-2.5  border-s-gray-50   "
+                  className="border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full ps-10 p-2.5  border-s-gray-50   "
                   placeholder="Search"
                   required
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 end-0 flex items-center pe-3 "
+                  className="absolute inset-y-0 end-0 flex me-3 bg-[#E9EDF5] w-[16px] h-[16px] rounded justify-center items-center translate-y-[-50%] top-[50%]"
                 >
-                  <DivisionIcon className="bg-[#E9EDF5]" />
+                  <DivisionIcon className="" />
                 </button>
               </div>
             </div>
