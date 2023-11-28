@@ -1,10 +1,10 @@
 import Apimanagement from "@/components/Pageprofiledata/Apimanagement";
 import Billing from "@/components/Pageprofiledata/Billing";
 import Profile from "@/components/Pageprofiledata/Profile";
-import Usage from "@/components/Pageprofiledata/Usage";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { LockIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useState } from "react";
+import PlaygroundSettings from "@/components/Pageprofiledata/PlaygroundSettings";
 
 const Pageprofile = () => {
   const [tab, setTab] = useState("Profile");
@@ -53,14 +53,14 @@ const Pageprofile = () => {
                 API-Management
               </button>
               <button
-                onClick={() => setTab("Usage")}
+                onClick={() => setTab("PlaygroundSettings")}
                 className={`${
-                  tab === "Usage"
+                  tab === "PlaygroundSettings"
                     ? "font-bold border-[#0D859A] sm:text-[14px] text-[12px] text-[#0D859A]"
                     : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
                 } pb-3  border-b-2`}
               >
-                Usage
+                Playground Settings
               </button>
               <button
                 onClick={() => setTab("Billing")}
@@ -76,7 +76,7 @@ const Pageprofile = () => {
             <div className="sm:mt-[34px] mt-[10px] w-full overflow-x-auto">
               {tab === "Profile" && <Profile />}
               {tab === "Apimanagement" && <Apimanagement />}
-              {tab === "Usage" && <Usage />}
+              {tab === "PlaygroundSettings" && <PlaygroundSettings />}
               {tab === "Billing" && <Billing />}
             </div>
           </div>

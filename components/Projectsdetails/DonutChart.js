@@ -7,7 +7,6 @@ const DonutChart = () => {
     options: {
       chart: {
         type: "donut",
-        width: 1000,
       },
 
       legend: {
@@ -23,7 +22,7 @@ const DonutChart = () => {
           breakpoint: 1024,
           options: {
             chart: {
-              width: 150,
+              width: 50,
             },
           },
         },
@@ -42,6 +41,7 @@ const DonutChart = () => {
             options={chartState.options}
             series={chartState.series}
             type="donut"
+            width={130}
           />
         ) : null}
       </div>

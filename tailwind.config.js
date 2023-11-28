@@ -15,6 +15,7 @@ module.exports = {
         Archivo: "Archivo, sans-serif",
         Inter: "Inter, sans-serif",
         Rubik: "Rubik, sans-serif",
+        Exo: "Exo, sans-serif",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

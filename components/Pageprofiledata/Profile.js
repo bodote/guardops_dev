@@ -61,7 +61,7 @@ const Profile = () => {
         </div>
 
         <div class="flex sm:justify-start justify-center">
-          <button className="bg-[#D4DB33] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[50px] rounded-md">
+          <button className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[50px] rounded-md">
             Save
           </button>
         </div>

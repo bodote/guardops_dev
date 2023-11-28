@@ -14,7 +14,7 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import DonutChart from "@/components/Projectsdetails/DonutChart";
 import BarChart from "@/components/Projectsdetails/BarChart";
 
-const Projects = ({ open, setOpen }) => {
+const Projects = () => {
   return (
     <>
       <div className="flex">
@@ -23,7 +23,7 @@ const Projects = ({ open, setOpen }) => {
           <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
             <div className="flex items-center gap-[5px]">
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-              COAI
+                COAI
               </h1>
               <RightIcon />
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
@@ -38,7 +38,7 @@ const Projects = ({ open, setOpen }) => {
           </div>
 
           <div className="flex lg:flex-row flex-col my-[14px] sm:pl-[22px] pl-[16px] sm:pr-[35px] pr-[16px] xl:gap-[52px] gap-[20px]">
-            <div className="grid sm:grid-cols-2 grid-cols-1 bg-[#f5f5f5] sm:p-[8px_16px_8px_0] p-[0_10px_10px_10px] rounded-xl xl:min-w-[350px] sm:min-w-[230px] h-fit">
+            <div className="grid sm:grid-cols-2 grid-cols-1 bg-[#f5f5f5] sm:p-[8px_16px_8px_0] p-[0_10px_10px_10px] rounded-xl xl:min-w-[350px] sm:min-w-[230px]">
               <div>
                 <h1 className="font-Inter text-[14px] text-center font-normal text-[#000000] ">
                   Critical Traces
@@ -128,7 +128,7 @@ const Projects = ({ open, setOpen }) => {
               <button
                 id="dropdown-button-2"
                 data-dropdown-toggle="dropdown-search-city"
-                className="gap-[8px] flex-shrink-0 z-10 inline-flex items-center py-2.5 px-4  text-[#464F60] border border-gray-300 rounded-s-lg "
+                className="gap-[8px] flex-shrink-0 inline-flex items-center py-2.5 px-4  text-[#464F60] border border-gray-300 rounded-s-lg "
                 type="button"
               >
                 <RiFilter2Fill />
@@ -142,7 +142,7 @@ const Projects = ({ open, setOpen }) => {
                 <input
                   type="text"
                   id="voice-search"
-                  className="border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full ps-10 p-2.5  border-s-gray-50   "
+                  className="border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
                   placeholder="Search"
                   required
                 />

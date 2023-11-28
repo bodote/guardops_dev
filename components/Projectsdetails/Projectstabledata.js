@@ -14,6 +14,9 @@ import {
 import React, { useEffect, useState, useRef } from "react";
 import { FiPlus } from "react-icons/fi";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
+import Info from "./Info";
+import Response from "./Response";
+import SignalsConcepts from "./SignalsConcepts";
 const data = [
   {
     id: "1",
@@ -162,6 +165,7 @@ const data = [
 ];
 
 const Projectstabledata = () => {
+  const [tab, setTab] = useState("Info");
   const [open, setopen] = useState(true);
   const [click, setClick] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -252,7 +256,7 @@ const Projectstabledata = () => {
             {data.map((val, i) => (
               <tr
                 key={i}
-                className="align-middle border-b border-[#334851] border-opacity-[0.1]"
+                className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
                 onClick={openModal}
               >
                 <td className="py-[14px] px-[10px]  text-center">
@@ -268,13 +272,13 @@ const Projectstabledata = () => {
                 <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center">
                   {val.id}
                 </td>
-                <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
+                <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
                   {val.kind}
                 </td>
-                <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
+                <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
                   {val.input}
                 </td>
-                <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
+                <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
                   {val.output}
                 </td>
                 <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center">
@@ -318,8 +322,8 @@ const Projectstabledata = () => {
                     <h1 className="text-[32px] font-Archivo font-normal text-[#000000] ">
                       Trace Details
                     </h1>
-                    <div className=" mb-[18px] mt-[24px] relative">
-                      <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center">
+                    <div className=" mb-[18px] mt-[24px] relative ">
+                      <div className="border border-[#CCCCCC] hover:bg-[#fffbeb] rounded-2xl w-fit h-[24px] overflow-clip flex items-center">
                         <div className="p-[7px_10px_7px_16px]">
                           <DocumentIcon />
                         </div>
@@ -348,7 +352,7 @@ const Projectstabledata = () => {
                     </div>
                     <div className="flex  mb-[18px] ml-[33px] items-center relative">
                       <LineverticalIcon className="absolute left-[-10px]" />
-                      <div className=" border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center">
+                      <div className=" border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb]">
                         <div className="md:p-[7px_10px_7px_16px] p-[8px]">
                           <DocumentIcon />
                         </div>
@@ -377,7 +381,7 @@ const Projectstabledata = () => {
                     </div>
                     <div className="flex mb-[18px] ml-[71px] items-center relative">
                       <LinesmallIcon className="absolute top-[-18px] left-[-13px]" />
-                      <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center ">
+                      <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
                         <div className="p-[7px_10px_7px_16px]">
                           <DocumentIcon />
                         </div>
@@ -405,7 +409,7 @@ const Projectstabledata = () => {
                     </div>
                     <div className="flex  mb-[18px] ml-[33px] items-center relative">
                       <LineverticalIcon className="absolute left-[-10px]" />
-                      <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center ">
+                      <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
                         <div className="p-[7px_10px_7px_16px]">
                           <DocumentIcon />
                         </div>
@@ -435,7 +439,7 @@ const Projectstabledata = () => {
                     <div className="flex mb-[18px] ml-[71px] items-center relative">
                       <LinesmallIcon className="absolute top-[-18px] left-[-13px]" />
                       <LineverticalbigIcon className="absolute left-[-13px]" />
-                      <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center ">
+                      <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
                         <div className="p-[7px_10px_7px_16px]">
                           <DocumentIcon />
                         </div>
@@ -465,44 +469,63 @@ const Projectstabledata = () => {
                 </div>
                 <div className="lg:w-[557px]  w-full">
                   <div className="border-b border-b-[#CCCCCC]">
-                    <div className="h-[42px]"></div>
-                  </div>
-                  <hr className="sm:mt-[73px] mt-[30px] sm:mb-[76px] mb-[30px] border-[rgb(204_204_204_/_var(--tw-border-opacity))]" />
-                  <div className="lg:m-[76px_45px_10px_49px] m-[20px_16px_20px_16px]">
-                    <div
-                      onClick={() => setClick(!click)}
-                      className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] "
-                    >
-                      <div className="flex gap-[13px] items-center p-[13px_23px_15px_23px] ">
-                        <ArrowDownIcon className="fill-[#334851]" />
-                        <h1 className="text-[18px] font-Archivo font-normal text-[#000000]">
-                          Input
-                        </h1>
-                      </div>
-                      {click && (
-                        <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
-                          Can I ask something to the model?
-                        </div>
-                      )}
+                    <div className="h-[42px] flex items-center justify-end gap-[12px] px-[16px]">
+                      <button className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[35px] rounded-md">
+                        Add to dataset
+                      </button>
+                      <button className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[35px] rounded-md">
+                        Open in playground
+                      </button>
                     </div>
                   </div>
-                  <div className="lg:m-[39px_45px_10px_49px] m-[0px_16px_0px_16px]">
-                    <div
-                      onClick={() => setopen(!open)}
-                      className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] bg-[rgba(13,133,150,0.2)]"
-                    >
-                      <div className="flex gap-[13px] items-center p-[13px_23px_15px_23px] ">
-                        <ArrowDownIcon className="fill-[#334851]" />
-                        <h1 className="text-[18px] font-Archivo font-normal text-[#000000]">
-                          Output
-                        </h1>
-                      </div>
-                      {open && (
-                        <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
-                          Sure you can ask details on this information.
-                        </div>
-                      )}
+                  <div className="px-[23px] pt-[8px] pb-[5px] border-b border-b-[#ccc]">
+                    <div className="gap-[13px] flex">
+                      <button className="bg-[#D4DB33]  text-[#2F2C53] font-bold text-[14px] font-Exo rounded-full px-[9px]">
+                        Chain
+                      </button>
+                      <button className="  text-[#000000] font-bold text-[14px] font-Exo ">
+                        query
+                      </button>
                     </div>
+                    <div className=" ">
+                      <div className="mt-[18px] flex  gap-[23px] items-center sm:justify-start justify-between">
+                        <button
+                          onClick={() => setTab("Info")}
+                          className={`${
+                            tab === "Info"
+                              ? "font-bold border-[#0D859A] sm:text-[14px] px-[10px] text-[12px] text-[#0D859A]"
+                              : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
+                          } pb-2  border-b-2`}
+                        >
+                          Info
+                        </button>
+                        <button
+                          onClick={() => setTab("Response")}
+                          className={`${
+                            tab === "Response"
+                              ? "font-bold border-[#0D859A] sm:text-[14px]  px-[10px]  text-[12px] text-[#0D859A]"
+                              : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
+                          } pb-2  border-b-2`}
+                        >
+                          Full Response
+                        </button>
+                        <button
+                          onClick={() => setTab("SignalsConcepts")}
+                          className={`${
+                            tab === "SignalsConcepts"
+                              ? "font-bold border-[#0D859A] sm:text-[14px]  px-[10px]  text-[12px] text-[#0D859A]"
+                              : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
+                          } pb-2  border-b-2`}
+                        >
+                          Signals/Concepts
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-full overflow-x-auto">
+                    {tab === "Info" && <Info />}
+                    {tab === "Response" && <Response />}
+                    {tab === "SignalsConcepts" && <SignalsConcepts />}
                   </div>
                 </div>
               </div>

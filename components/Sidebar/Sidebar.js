@@ -10,6 +10,8 @@ import {
 } from "@/public/Assets/Icons/Allsvg";
 
 const Sidebar = () => {
+  const [open, setOpen] = useState(false);
+  console.log(open, "=================>");
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseEnter = () => {
@@ -31,39 +33,61 @@ const Sidebar = () => {
         >
           <img src="/Assets/Images/Logo.png" alt="Logo" />
           <div className=" trans">
-            <div className="sm:px-[21px] px-[16px] group-hover:pr-[45px] trans">
-              <div className="flex gap-[10px] items-center mt-[27px]">
+            {/* <div className="sm:px-[21px] px-[16px] group-hover:pr-[45px] trans"> */}
+            <div
+              className={
+                open
+                  ? "sm:px-[21px] px-[16px] group-hover:pr-[45px] trans opened"
+                  : "sm:px-[21px] px-[16px] group-hover:pr-[45px] trans"
+              }
+            >
+              <button
+                onClick={() => setOpen(!open)}
+                className="flex gap-[10px] items-center mt-[27px]"
+              >
                 <LeftIcon className="w-[24px] rotate-[180deg] group-hover:hidden trans" />
                 <LeftIcon className="w-[24px]  group-hover:block hidden" />
                 <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
                   Close
                 </p>
-              </div>
+              </button>
               <div>
-                <div className="flex gap-[10px] items-center mt-[47px]">
+                <a
+                  href="intro"
+                  className="flex gap-[10px] items-center mt-[47px]"
+                >
                   <HomeIcon className="w-[24px]" />
                   <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                   <a href="intro">Home</a> 
+                    Home
                   </p>
-                </div>
-                <div className="flex gap-[10px] items-center mt-[30px]">
+                </a>
+                <a
+                  href="/projects"
+                  className="flex gap-[10px] items-center mt-[30px]"
+                >
                   <ProjectIcon className="w-[24px]" />
                   <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                    <a href="/projects">Projects</a>
+                    Projects
                   </p>
-                </div>
-                <div className="flex gap-[10px] items-center mt-[30px]">
+                </a>
+                <a
+                  href="/datasets"
+                  className="flex gap-[10px] items-center mt-[30px]"
+                >
                   <DatasetIcon className="w-[24px]" />
                   <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                    <a href="/datasets">Datasets</a>
+                    Datasets
                   </p>
-                </div>
-                <div className="flex gap-[10px] items-center mt-[30px]">
+                </a>
+                <a
+                  href="/playground"
+                  className="flex gap-[10px] items-center mt-[30px]"
+                >
                   <TraceIcon className="w-[24px]" />
                   <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                  <a href="/playground">Playground</a>
+                    Playground
                   </p>
-                </div>
+                </a>
               </div>
             </div>
           </div>
@@ -73,13 +97,20 @@ const Sidebar = () => {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <div className="mb-[50px] sm:px-[21px] px-[16px] group-hover:pr-[45px] trans">
-            <div className="flex gap-[10px] items-center">
+          {/* <div className="mb-[50px] sm:px-[21px] px-[16px] group-hover:pr-[45px] trans"> */}
+          <div
+            className={
+              open
+                ? "mb-[50px] sm:px-[21px] px-[16px] group-hover:pr-[45px] trans opened"
+                : "mb-[50px] sm:px-[21px] px-[16px] group-hover:pr-[45px] trans"
+            }
+          >
+            <a href="/pageprofile" className="flex gap-[10px] items-center">
               <UserIcon className="w-[24px]" />
               <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
                 Account
               </p>
-            </div>
+            </a>
             <div className="flex gap-[10px] items-center mt-[30px]">
               <SaleIcon className="w-[24px]" />
               <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">

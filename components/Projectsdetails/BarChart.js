@@ -5,7 +5,7 @@ const BarChart = () => {
   const [chartState] = useState({
     options: {
       chart: {
-        width: 10,
+        width: 100,
         id: "basic-bar",
       },
       plotOptions: {
@@ -42,7 +42,7 @@ const BarChart = () => {
           options: {
             plotOptions: {
               bar: {
-                columnWidth: "30%",
+                columnWidth: "8px",
                 dataLabels: {
                   enabled: false, // Set to false to hide the data labels on top of the bars
                 },
@@ -56,7 +56,7 @@ const BarChart = () => {
       {
         name: "series-1",
         data: [
-          "11",
+          "9",
           "12",
           "13",
           "14",
