@@ -27,7 +27,9 @@ const Pageprofile = () => {
                 User 1
               </h1>
             </div>
-            <LockIcon />
+            <a href="/">
+        <LockIcon />
+        </a>
           </div>
 
           <div className="sm:px-[22px] px-[16px] ">

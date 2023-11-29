@@ -11,7 +11,6 @@ import {
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
-  console.log(open, "=================>");
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseEnter = () => {
@@ -25,15 +24,14 @@ const Sidebar = () => {
   const dynamicClassName = `trans ${isHovered ? "hovered-class" : ""}`;
   return (
     <div>
-      <div className="p-[12px] flex flex-col justify-between h-screen border-r-[#CCCCCC] border-r-[1px] w-fit cursor-pointer trans absolute left-0 bg-[#fff]">
+      <div className="p-[12px] flex flex-col justify-between h-screen border-r-[#CCCCCC] border-r-[1px] w-fit cursor-pointer trans absolute left-0 bg-[#fff] z-10">
         <div
           className={dynamicClassName}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
           <img src="/Assets/Images/Logo.png" alt="Logo" />
-          <div className=" trans">
-            {/* <div className="sm:px-[21px] px-[16px] group-hover:pr-[45px] trans"> */}
+          <div className=" trans group">
             <div
               className={
                 open
@@ -46,7 +44,7 @@ const Sidebar = () => {
                 className="flex gap-[10px] items-center mt-[27px]"
               >
                 <LeftIcon className="w-[24px] rotate-[180deg] group-hover:hidden trans" />
-                <LeftIcon className="w-[24px]  group-hover:block hidden" />
+                <LeftIcon className="w-[24px] rotate-[0] group-hover:block hidden" />
                 <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
                   Close
                 </p>
@@ -97,7 +95,6 @@ const Sidebar = () => {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {/* <div className="mb-[50px] sm:px-[21px] px-[16px] group-hover:pr-[45px] trans"> */}
           <div
             className={
               open

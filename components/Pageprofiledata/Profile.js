@@ -15,7 +15,7 @@ const Profile = () => {
             type="text"
             name="emailaddress"
             id="emailaddress"
-            className="h-10  border border-[#EAEBF0] my-[6px] rounded  w-full   font-normal text-[15px] font-Inter"
+            className="h-10  border border-[#EAEBF0] my-[6px] rounded  w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0]  font-normal text-[15px] font-Inter"
             placeholder="User 1"
           />
           <p className="text-[#68727D] font-normal text-[14px] font-Inter">
@@ -33,7 +33,7 @@ const Profile = () => {
             type="text"
             name="emailaddresss"
             id="emailaddresss"
-            className="h-10  border border-[#EAEBF0] my-[6px] rounded  w-full font-normal text-[15px] font-Inter placeholder:text-[#68727D]"
+            className="h-10  border border-[#EAEBF0] my-[6px] rounded  w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter placeholder:text-[#68727D]"
             placeholder="mail@gmail.com"
           />
           <p className="text-[#68727D] font-normal text-[14px] font-Inter">
@@ -52,7 +52,7 @@ const Profile = () => {
             type="number"
             name="phoneno"
             id="phoneno"
-            className="h-10  border border-[#EAEBF0] my-[6px] rounded  w-full font-normal text-[15px] font-Inter placeholder:text-[#68727D]"
+            className="h-10  border border-[#EAEBF0] my-[6px] rounded  w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter placeholder:text-[#68727D]"
             placeholder="+49 1525 235548324"
           />
           <p className="text-[#68727D] font-normal text-[14px] font-Inter">

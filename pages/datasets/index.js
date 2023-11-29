@@ -17,7 +17,9 @@ const Datasets = () => {
           Dataset
           </h1>
         </div>
+        <a href="/">
         <LockIcon />
+        </a>
       </div>
       </div></div>
     </>

@@ -1,13 +1,5 @@
-import {
-  DivisionIcon,
-  DownIcon,
-  LockIcon,
-  RightIcon,
-  SearchIcon,
-  ThreeDotsIcon,
-  UpDownIcon,
-} from "@/public/Assets/Icons/Allsvg";
-import React, { useEffect, useState, useRef } from "react";
+import {DivisionIcon,DownIcon,LockIcon,RightIcon,SearchIcon} from "@/public/Assets/Icons/Allsvg";
+import React from "react";
 import Projectstabledata from "../../components/Projectsdetails/Projectstabledata";
 import { RiFilter2Fill } from "react-icons/ri";
 import Sidebar from "@/components/Sidebar/Sidebar";
@@ -122,7 +114,7 @@ const Projects = () => {
               </div>
             </div>
           </div>
-
+                 
           <div className=" sm:px-[22px] px-[16px] py-[9px] flex items-center justify-between flex-wrap gap-[20px]">
             <div className="flex sm:w-[370px] w-auto">
               <button
@@ -142,7 +134,7 @@ const Projects = () => {
                 <input
                   type="text"
                   id="voice-search"
-                  className="border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
+                  className="focus:ring-0 focus:outline-none focus:!border-gray-300  border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
                   placeholder="Search"
                   required
                 />
@@ -154,63 +146,71 @@ const Projects = () => {
                 </button>
               </div>
             </div>
-
-            <div className="flex gap-[24px] flex-wrap sm:mt-0 mt-[10px]">
-              <div className=" border-b-2 border-[#0D859A] ">
-                <div className="mb-[8px] flex gap-[6px] ">
-                  <h1 className="text-[14px] font-bold font-Inter text-[#0D859A]">
-                    All
-                  </h1>
-                  <p className="text-[10px] font-medium font-Inter text-[#0D859A] px-[6px] py-[3px] bg-[#EDEDFC] rounded-full">
-                    27
-                  </p>
+            <div className="flex gap-[48px] flex-wrap sm:mt-0 mt-[10px]">
+              <div className="flex gap-[24px] flex-wrap sm:mt-0 mt-[10px]">
+                <div className=" border-b-2 border-[#0D859A] ">
+                  <div className="mb-[8px] flex gap-[6px] ">
+                    <h1 className="text-[14px] font-bold font-Inter text-[#0D859A]">
+                      All
+                    </h1>
+                    <p className="text-[10px] font-medium font-Inter text-[#0D859A] px-[6px] py-[3px] bg-[#EDEDFC] rounded-full">
+                      27
+                    </p>
+                  </div>
+                </div>
+                <div className=" hover:border-b-2 border-[#000] group">
+                  <div className="mb-[8px] flex gap-[6px] ">
+                    <h1 className=" text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
+                      Risk
+                    </h1>
+                    <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
+                      4
+                    </p>
+                  </div>
+                </div>
+                <div className=" hover:border-b-2 border-[#000] group">
+                  <div className="mb-[8px] flex gap-[6px]">
+                    <h1 className="text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
+                      On hold
+                    </h1>
+                    <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
+                      4
+                    </p>
+                  </div>
+                </div>
+                <div className=" hover:border-b-2 border-[#000] group">
+                  <div className="mb-[8px] flex gap-[6px]">
+                    <h1 className="text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
+                      Potential risk
+                    </h1>
+                    <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
+                      7
+                    </p>
+                  </div>
+                </div>
+                <div className=" hover:border-b-2 border-[#000] group">
+                  <div className="mb-[8px] flex gap-[6px] ">
+                    <h1 className="text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
+                      On track
+                    </h1>
+                    <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
+                      12
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className=" hover:border-b-2 border-[#0D859A] ">
-                <div className="mb-[8px] flex gap-[6px] ">
-                  <h1 className="text-[14px] font-bold font-Inter text-[#464F60]">
-                    Risk
+              <div className=" hover:border-b-2 border-[#000] group relative after:content-[''] after:h-[16px] after:w-[1px] after:absolute after:bg-[#D5DBE5] after:top-[3px] after:left-[-24px]">
+                <div className="mb-[8px] flex gap-[6px]">
+                  <h1 className="text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
+                    Archived
                   </h1>
                   <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                    4
+                    9
                   </p>
                 </div>
-              </div>
-              <div className="mb-[8px] flex gap-[6px]">
-                <h1 className="text-[14px] font-bold font-Inter text-[#464F60]">
-                  On hold
-                </h1>
-                <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                  4
-                </p>
-              </div>
-              <div className="mb-[8px] flex gap-[6px]">
-                <h1 className="text-[14px] font-bold font-Inter text-[#464F60]">
-                  Potential risk
-                </h1>
-                <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                  7
-                </p>
-              </div>
-              <div className="mb-[8px] flex gap-[6px] border-r border-[#D5DBE5]">
-                <h1 className="text-[14px] font-bold font-Inter text-[#464F60]">
-                  On track
-                </h1>
-                <p className="text-[10px] mr-[24px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                  12
-                </p>
-              </div>
-              <div className="mb-[8px] flex gap-[6px] ">
-                <h1 className="text-[14px] font-bold font-Inter text-[#464F60]">
-                  Archived
-                </h1>
-                <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                  9
-                </p>
               </div>
             </div>
           </div>
-
           <div>
             <Projectstabledata />
           </div>

@@ -1,8 +1,7 @@
 import { DeteleIcon } from "@/public/Assets/Icons/Allsvg";
 import { FiPlus } from "react-icons/fi";
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 const data = [
   {
@@ -126,11 +125,11 @@ const Apimanagement = () => {
                   <Dialog.Panel className="relative transform overflow-hidden rounded-lg border border-[#ccc] bg-white text-left transition-all sm:my-8 sm:w-full sm:max-w-lg">
                     <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto z-50 outline-none ">
                       <div className="relative w-full  mx-auto max-w-[470px]">
-                        <div className="rounded-lg  relative flex flex-col w-full bg-white outline-none focus:outline-none  px-[41px]">
+                        <div className="rounded-lg  relative flex flex-col w-full bg-white outline-none focus:outline-none  sm:px-[41px] px-[15px]">
                           <h3 className="text-[14px] font-medium font-Inter text-[#000000] py-[10px] text-center">
                             Delete selected API-Key
                           </h3>
-                          <p className="text-left text-[16px] font-light font-Inter text-[#454B54] ">
+                          <p className="text-left sm:text-[16px] text-[13px] font-light font-Inter text-[#454B54] ">
                             The selected api-key will be deleted. All
                             application with this key will not be traced
                             anymore.
@@ -143,7 +142,7 @@ const Apimanagement = () => {
                             placeholder="coai-....-err3"
                           />
 
-                          <div className="flex justify-center my-[18px] gap-[36px]">
+                          <div className="flex justify-center my-[18px] sm:gap-[36px] gap-[15px] flex-wrap">
                             <button
                               onClick={() => setOpen(false)}
                               className=" bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
@@ -194,11 +193,11 @@ const Apimanagement = () => {
                   <Dialog.Panel className="relative transform overflow-hidden rounded-lg border border-[#ccc] bg-white text-left transition-all sm:my-8 sm:w-full sm:max-w-lg">
                     <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto z-50 outline-none ">
                       <div className="relative w-full  mx-auto max-w-[470px]">
-                        <div className="rounded-lg  relative flex flex-col w-full bg-white outline-none focus:outline-none  px-[41px]">
+                        <div className="rounded-lg  relative flex flex-col w-full bg-white outline-none focus:outline-none  sm:px-[41px] px-[15px]">
                           <h3 className="text-[14px] font-medium font-Inter text-[#000000] py-[10px] text-center">
                             Generated API-KEY
                           </h3>
-                          <p className="text-left text-[16px] font-light font-Inter text-[#454B54] ">
+                          <p className="text-left sm:text-[16px] text-[13px] font-light font-Inter text-[#454B54] ">
                             The following API-KEY was created. Be Sure that this
                             key will only be shown once. Copy it. If you forget
                             it, please recreate a new one.
@@ -211,7 +210,7 @@ const Apimanagement = () => {
                             placeholder="coai-ske234fsf3-4refrwqr-213-err3"
                           />
 
-                          <div className="flex justify-center my-[18px] gap-[36px]">
+                          <div className="flex justify-center my-[18px] sm:gap-[36px] gap-[15px] flex-wrap">
                             <button
                               onClick={() => setModal(false)}
                               className=" bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"

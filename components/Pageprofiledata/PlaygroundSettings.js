@@ -28,7 +28,7 @@ const PlaygroundSettings = () => {
                   name="password"
                   id="password"
                   placeholder="****************************"
-                  class="h-10  border border-[#EAEBF0] my-[6px] rounded  w-full   font-normal text-[15px] font-Inter"
+                  className="h-10 border border-[#EAEBF0] my-[6px] rounded w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter"
                   required=""
                 />
               </div>
@@ -57,7 +57,7 @@ const PlaygroundSettings = () => {
                   name="password"
                   id="password"
                   placeholder="****************************"
-                  class="h-10  border border-[#EAEBF0] my-[6px] rounded  w-full   font-normal text-[15px] font-Inter"
+                  className="h-10 border border-[#EAEBF0] my-[6px] rounded w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter"
                   required=""
                 />
               </div>
@@ -86,8 +86,8 @@ const PlaygroundSettings = () => {
                   name="password"
                   id="password"
                   placeholder="****************************"
-                  class="h-10  border border-[#EAEBF0] my-[6px] rounded  w-full   font-normal text-[15px] font-Inter"
-                  required=""
+                  className="h-10 border border-[#EAEBF0] my-[6px] rounded w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter"
+                 required=""
                 />
               </div>
               <button

@@ -29,7 +29,7 @@ const Login = () => {
                   type="email"
                   name="email"
                   id="email"
-                  className="w-full border-none bg-[#F2F2F2] font-[Roboto] text-[15px] font-normal rounded-lg py-[14px] px-[16px] outline-none placeholder:text-[#808080]"
+                  className="focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] w-full border-none bg-[#F2F2F2] font-[Roboto] text-[15px] font-normal rounded-lg py-[14px] px-[16px] outline-none placeholder:text-[#808080]"
                   placeholder="Email or phone number"
                   required=""
                 />
@@ -45,7 +45,7 @@ const Login = () => {
                   <input
                     id="password"
                     type="password"
-                    className="w-full border-none bg-[#F2F2F2] font-[Roboto] text-[15px] font-normal rounded-lg py-[14px] px-[16px] outline-none placeholder:text-[#808080]"
+                    className="focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] w-full border-none bg-[#F2F2F2] font-[Roboto] text-[15px] font-normal rounded-lg py-[14px] px-[16px] outline-none placeholder:text-[#808080]"
                     placeholder="Enter password"
                     required=""
                   />
@@ -71,10 +71,10 @@ const Login = () => {
                   Forgot password?
                 </a>
               </div>
-              <div className="text-center mt-[32px] mb-[65px]">
+              <div className="text-center mt-[32px] mb-[65px] w-full block bg-[#0D859A] font-[Roboto] py-[10px] text-[#fff]  rounded-[6px] text-[15px] font-bold tracking-wider">
                 <a
                   href="/intro"
-                  className="w-full bg-[#0D859A] font-[Roboto] py-[10px] text-[#fff]  rounded-[6px] text-[15px] font-bold tracking-wider"
+                  className="w-full"
                   type="submit"
                 >
                   Sign in
