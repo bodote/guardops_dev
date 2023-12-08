@@ -6,194 +6,166 @@ import {
   LineverticalbigIcon,
   RightcircleIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import Info from "./Info";
 import Response from "./Response";
 import SignalsConcepts from "./SignalsConcepts";
 
-const TraceDetails = () => {
+const TraceDetails = ({ traceProject, setIsModalOpen }) => {
   const [tab, setTab] = useState("Info");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const modalRef = useRef();
+  const [traceProjectDetails, setTraceProjectDetails] = useState([]);
+  let [height, setHeight] = useState(null);
+  let t1 = "7b0ad838-1eae-4b28-b148-9bc8aaaaab03";
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+  const getProjectDetails = async () => {
+    try {
+      const response = await fetch(`/api/manageProjectTrace?project_id=${t1}`, {
+        method: "GET",
+      });
 
-  const handleOutsideClick = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
-      closeModal();
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.traces) {
+          setTraceProjectDetails(responseData.traces);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
     }
   };
 
   useEffect(() => {
-    if (isModalOpen) {
-      document.addEventListener("mousedown", handleOutsideClick);
-    } else {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    }
+    getProjectDetails();
+  }, []);
 
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, [isModalOpen]);
-
+  const divref = useRef();
+  const divStyle = {
+    "&::after": {
+      content: `''`,
+      display: "block",
+      height: `${height}px !important`,
+    },
+  };
   return (
     <>
-      <div className="lg:w-[424px] w-full border-r border-r-[#CCCCCC]">
-        <div className="border-b border-b-[#CCCCCC]">
-          <button
-            onClick={() => setIsModalOpen(false)}
-            className="py-[9px] px-[11px] border-r border-r-[#CCCCCC]"
-          >
-            <RightcircleIcon />
-          </button>
-        </div>
-        <div className="px-[11px]">
-          <h1 className="text-[32px] font-Archivo font-normal text-[#000000] ">
-            Trace Details
-          </h1>
-          <div className=" mb-[18px] mt-[24px] relative ">
-            <div className="border border-[#CCCCCC] hover:bg-[#fffbeb] rounded-2xl w-fit h-[24px] overflow-clip flex items-center">
-              <div className="p-[7px_10px_7px_16px]">
-                <DocumentIcon />
-              </div>
-              <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  chain
-                </h1>
-              </div>
-              <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  query
-                </h1>
-              </div>
-              <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2456 T
-                </h1>
-              </div>
-              <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2.55 s
-                </h1>
-              </div>
-            </div>
-            <LinebigIcon className="absolute left-[23px]" />
+      <div className="trace-scroll">
+        <div className="lg:w-[424px] w-full overflow-y-auto h-screen scroll-auto border-r border-r-[#CCCCCC]">
+          <div className="border-b border-b-[#CCCCCC]">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="py-[9px] px-[11px] border-r border-r-[#CCCCCC] "
+            >
+              <RightcircleIcon />
+            </button>
           </div>
-          <div className="flex  mb-[18px] ml-[33px] items-center relative">
-            <LineverticalIcon className="absolute left-[-10px]" />
-            <div className=" border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb]">
-              <div className="md:p-[7px_10px_7px_16px] p-[8px]">
-                <DocumentIcon />
+          <div className="px-[11px]">
+            <h1 className="text-[32px] font-Archivo font-normal text-[#000000] ">
+              Trace Details
+            </h1>
+            <div className="relative trace-detail">
+              <div className="flex mb-[18px] ml-[35px] items-center relative">
+                <LinesmallIcon className="absolute top-[-18px] left-[-13px]" />
+                <LineverticalbigIcon className="absolute left-[-13px]" />
+                <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
+                  <div className="p-[7px_10px_7px_16px]">
+                    <DocumentIcon />
+                  </div>
+                  <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
+                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                      chain
+                    </h1>
+                  </div>
+                  <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
+                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                      query
+                    </h1>
+                  </div>
+                  <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
+                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                      2456 T
+                    </h1>
+                  </div>
+                  <div className="md:p-[7px_13px_8px_6px] p-[8px]">
+                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                      2.55 s
+                    </h1>
+                  </div>
+                </div>
               </div>
-              <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  chain
-                </h1>
-              </div>
-              <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  query
-                </h1>
-              </div>
-              <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2456 T
-                </h1>
-              </div>
-              <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2.55 s
-                </h1>
-              </div>
-            </div>
-            <LineverticalbigIcon className="absolute bottom-[-33px] left-[25px]" />
-          </div>
-          <div className="flex mb-[18px] ml-[71px] items-center relative">
-            <LinesmallIcon className="absolute top-[-18px] left-[-13px]" />
-            <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
-              <div className="p-[7px_10px_7px_16px]">
-                <DocumentIcon />
-              </div>
-              <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  chain
-                </h1>
-              </div>
-              <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  query
-                </h1>
-              </div>
-              <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2456 T
-                </h1>
-              </div>
-              <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2.55 s
-                </h1>
-              </div>
-            </div>
-          </div>
-          <div className="flex  mb-[18px] ml-[33px] items-center relative">
-            <LineverticalIcon className="absolute left-[-10px]" />
-            <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
-              <div className="p-[7px_10px_7px_16px]">
-                <DocumentIcon />
-              </div>
-              <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  chain
-                </h1>
-              </div>
-              <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  query
-                </h1>
-              </div>
-              <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2456 T
-                </h1>
-              </div>
-              <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2.55 s
-                </h1>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex mb-[18px] ml-[71px] items-center relative">
-            <LinesmallIcon className="absolute top-[-18px] left-[-13px]" />
-            <LineverticalbigIcon className="absolute left-[-13px]" />
-            <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
-              <div className="p-[7px_10px_7px_16px]">
-                <DocumentIcon />
-              </div>
-              <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  chain
-                </h1>
-              </div>
-              <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  query
-                </h1>
-              </div>
-              <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2456 T
-                </h1>
-              </div>
-              <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                  2.55 s
-                </h1>
-              </div>
+              {traceProjectDetails.length &&
+              traceProjectDetails.map((parentEle,key) => {
+                return (
+                  <div key={key} ref={divref} className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[46px] after:top-[-27px] after:absolute after:w-[1px] ">
+                    <div style={divStyle}  className={`flex  mb-[18px] ml-[60px] items-center relative`}>
+                      {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
+                      <LineverticalbigIcon className="absolute left-[-13px]" />
+                      <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
+                        <div className="p-[7px_10px_7px_16px]">
+                          <DocumentIcon />
+                        </div>
+                        <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
+                          <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                            chain
+                          </h1>
+                        </div>
+                        <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
+                          <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                            query
+                          </h1>
+                        </div>
+                        <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
+                          <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                            2456 T
+                          </h1>
+                        </div>
+                        <div className="md:p-[7px_13px_8px_6px] p-[8px]">
+                          <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                            2.55 s
+                          </h1>
+                        </div>
+                      </div>
+                    </div>
+                    {parentEle.length &&
+                      parentEle.map((subParent, key) => {
+                        return (
+                          <div >
+                            <div className="flex mb-[18px] ml-[80px] items-center relative after:content-[''] after:bg-[#d1d1d1] after:h-[40px] after:left-[-14px] after:top-[-29px] after:absolute after:w-[1px]">
+                              {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
+                              <LineverticalbigIcon className="absolute left-[-13px]" />
+                              <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
+                                <div className="p-[7px_10px_7px_16px]">
+                                  <DocumentIcon />
+                                </div>
+                                <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
+                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                    chain
+                                  </h1>
+                                </div>
+                                <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
+                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                    query
+                                  </h1>
+                                </div>
+                                <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
+                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                    2456 T
+                                  </h1>
+                                </div>
+                                <div className="md:p-[7px_13px_8px_6px] p-[8px]">
+                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                    2.55 s
+                                  </h1>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
