@@ -2,67 +2,10 @@ import { ThreeDotsIcon, UpDownIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useEffect, useState, useRef } from "react";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
 import TraceDetails from "./TraceDetails";
+import { RiAddBoxLine } from "react-icons/ri";
+import { MdDeleteOutline } from "react-icons/md";
+
 const data = [
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
   {
     id: "1",
     kind: "Chain",
@@ -151,19 +94,18 @@ const data = [
 
 const Projectstabledata = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [projectList, setProjectList] = useState([]);
+  const [traceProject, setTraceProject] = useState([]);
+  const [option, setOption] = useState(false);
   const modalRef = useRef();
 
   const openModal = () => {
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
+    !isModalOpen && setIsModalOpen(true);
   };
 
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
-      closeModal();
+      // closeModal();
     }
   };
 
@@ -239,7 +181,6 @@ const Projectstabledata = () => {
               <tr
                 key={i}
                 className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
-                onClick={openModal}
               >
                 <td className="py-[14px] px-[10px]  text-center">
                   <input
@@ -254,7 +195,10 @@ const Projectstabledata = () => {
                 <td className="py-[14px] px-[10px] text-[14px] text-[#171C26] font-medium font-Inter text-center">
                   {val.id}
                 </td>
-                <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
+                <td
+                  className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center"
+                  onClick={openModal}
+                >
                   <a href="#" className="hover:underline">
                     {val.kind}
                   </a>
@@ -288,16 +232,31 @@ const Projectstabledata = () => {
                   {val.status}
                 </td>
                 <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter ">
-                  <ThreeDotsIcon />
+                  <div className="flex gap-[5px] items-center relative">
+                    {/* {option && 
+                      
+                    <div className="absolute top-[18px] right-[10px] bg-[#d8d8d9] border-[1px] border-[#868fa0] rounded-[5px] p-[3px]">
+                      <div className="flex items-center"><RiAddBoxLine className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Add</span></div>
+                      <div className="flex items-center"><MdDeleteOutline className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Delete</span></div>
+                      </div>
+                    } */}
+                    <div onClick={() => setOption(!option)}>
+                      <ThreeDotsIcon />
+                    </div>
+                  </div>
                 </td>
               </tr>
             ))}
             {isModalOpen && (
               <div
                 ref={modalRef}
-                className="modal lg:w-[981px] w-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto z-20 sm:flex-row flex-col"
+                className="modal lg:w-[981px] w-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 sm:flex-row flex-col"
               >
-                <TraceDetails />
+                <TraceDetails
+                  traceProject={traceProject}
+                  isModalOpen={isModalOpen}
+                  setIsModalOpen={setIsModalOpen}
+                />
               </div>
             )}
           </tbody>

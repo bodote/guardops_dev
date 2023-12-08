@@ -121,3 +121,14 @@
   top: 0px;
   left: -7px;
 }
+/* .trace-detail >div:last-child >div:first-child::after{
+  content: '';
+  top: -23px;
+  left: -14px;
+  width: 1px;
+  height: 36px;
+  background-color: #d1d1d1;
+} */
+.trace-detail >div:last-child::after{
+  display: none;
+}
