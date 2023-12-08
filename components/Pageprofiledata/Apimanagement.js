@@ -1,32 +1,94 @@
 import { DeteleIcon } from "@/public/Assets/Icons/Allsvg";
 import { FiPlus } from "react-icons/fi";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-
-const data = [
-  {
-    name: "Key1",
-    key: "coai-...errr3",
-    created: "10.3.2023",
-    lastused: "18.11.23",
-  },
-  {
-    name: "Key2",
-    key: "coai-...dewr",
-    created: "6.9.2022",
-    lastused: "15.9.2022",
-  },
-  {
-    name: "Key3",
-    key: "coai-...dztr",
-    created: "15.12.22",
-    lastused: "20.12.22",
-  },
-];
 
 const Apimanagement = () => {
   const [open, setOpen] = useState(false);
   const [modal, setModal] = useState(false);
+  const [keyDetails, setkeyDetails] = useState([]);
+  const [latestGeneratedKey, setLatestGeneratedKey] = useState("");
+  const [deletedKey, setDeletedKey] = useState("");
+
+  const getUserKeyDetails = async () => {
+    const formData = {
+      user_id: "test",
+    };
+
+    try {
+      const response = await fetch(
+        `/api/manageKeys?user_id=${formData.user_id}`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.keys) {
+          setkeyDetails(responseData.keys);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+  
+  const ganerateNewKey = async () => {
+    const formData = {
+      user_id: "test",
+    };
+
+    try {
+      const response = await fetch("/api/manageKeys", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData) {
+          setLatestGeneratedKey(responseData);
+          getUserKeyDetails();
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  const handleDeleteKey = async () => {
+    const formData = {
+      user_id: "test",
+      key_hash: deletedKey.hash,
+    };
+    try {
+      const response = await fetch("/api/manageKeys", {
+        method: "DELETE",
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData) {
+          setLatestGeneratedKey(responseData);
+          getUserKeyDetails();
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  useEffect(() => {
+    getUserKeyDetails();
+  }, []);
   return (
     <>
       <div>
@@ -60,37 +122,46 @@ const Apimanagement = () => {
               </tr>
             </thead>
             <tbody>
-              {data.map((val, i) => (
-                <tr
-                  key={i}
-                  className="align-middle border-b border-[#334851] border-opacity-[0.1]"
-                >
-                  <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
-                    {val.name}
-                  </td>
-                  <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
-                    {val.key}
-                  </td>
-                  <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
-                    {val.created}
-                  </td>
-                  <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
-                    {val.lastused}
-                  </td>
-                  <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
-                    <button onClick={() => setOpen(true)}>
-                      <DeteleIcon />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {keyDetails &&
+                keyDetails.map((val, i) => (
+                  <tr
+                    key={i}
+                    className="align-middle border-b border-[#334851] border-opacity-[0.1]"
+                  >
+                    <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
+                      {`key ${i}`}
+                    </td>
+                    <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
+                      {val.hint}
+                    </td>
+                    <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
+                      {val.created}
+                    </td>
+                    <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
+                      {val.lastused}
+                    </td>
+                    <td className="py-[14px] px-[16px] text-[16px] font-light font-Roboto text-[#454B54] text-center">
+                      <button
+                        onClick={() => {
+                          setOpen(true);
+                          setDeletedKey(val);
+                        }}
+                      >
+                        <DeteleIcon />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
 
         <div className="sm:mt-[64px] mt-[30px] flex sm:justify-start justify-center">
           <button
-            onClick={() => setModal(true)}
+            onClick={() => {
+              setModal(true);
+              ganerateNewKey();
+            }}
             className="bg-[#D4DB33] text-[#FFFFFF] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center sm:gap-[10px] gap-[5px]"
           >
             <FiPlus />
@@ -138,13 +209,17 @@ const Apimanagement = () => {
                             type="text"
                             name="emailaddresss"
                             id="emailaddresss"
+                            value={deletedKey.hint}
+                            disabled
                             className="h-10 bg-[#F7F7F8] border border-[#EAEBF0] mt-[6px] rounded  w-full font-normal text-[15px] font-Inter placeholder:text-[#000000]"
-                            placeholder="coai-....-err3"
                           />
 
                           <div className="flex justify-center my-[18px] sm:gap-[36px] gap-[15px] flex-wrap">
                             <button
-                              onClick={() => setOpen(false)}
+                              onClick={() => {
+                                setOpen(false);
+                                handleDeleteKey();
+                              }}
                               className=" bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
                             >
                               Delete Key forever
@@ -206,6 +281,7 @@ const Apimanagement = () => {
                             type="text"
                             name="emailaddresss"
                             id="emailaddresss"
+                            value={latestGeneratedKey}
                             className="h-10 bg-[#F7F7F8] border border-[#EAEBF0] mt-[6px] rounded  w-full font-normal text-[15px] font-Inter placeholder:text-[#000000]"
                             placeholder="coai-ske234fsf3-4refrwqr-213-err3"
                           />
