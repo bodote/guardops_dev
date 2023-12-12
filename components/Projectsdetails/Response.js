@@ -1,7 +1,7 @@
 import { ArrowDownIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useState } from "react";
 
-const Response = () => {
+const Response = ({traceProject}) => {
   const [click, setClick] = useState(true);
   return (
     <>
@@ -19,27 +19,7 @@ const Response = () => {
           {click && (
             <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
               <p>
-                {`
-    "id": "chatcmpl-abc123",
-    "object": "chat.completion",
-    "created": 1677858242,
-    "model": "gpt-3.5-turbo-1106",
-    "usage": {
-        "prompt_tokens": 13,
-        "completion_tokens": 7,
-        "total_tokens": 20
-    },
-    "choices": [
-        {
-            "message": {
-                "role": "assistant",
-                "content": "\n\nThis is a test!"
-            },
-            "finish_reason": "stop",
-            "index": 0
-        }
-    ]
-`}
+                {`${traceProject?.attributes?.response}`}
               </p>
             </div>
           )}

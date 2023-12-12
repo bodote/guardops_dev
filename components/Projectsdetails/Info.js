@@ -1,7 +1,7 @@
 import { ArrowDownIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useState } from "react";
 
-const Info = () => {
+const Info = ({traceProject}) => {
   const [open, setopen] = useState(true);
   const [click, setClick] = useState(true);
   return (
@@ -19,7 +19,7 @@ const Info = () => {
           </div>
           {click && (
             <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
-              Can I ask something to the model?
+              {traceProject?.attributes?.prompt}
             </div>
           )}
         </div>
@@ -37,7 +37,7 @@ const Info = () => {
           </div>
           {open && (
             <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
-              Sure you can ask details on this information.
+              {traceProject?.attributes?.content}
             </div>
           )}
         </div>
