@@ -4,109 +4,51 @@ import { IoChevronForwardCircleOutline } from "react-icons/io5";
 import TraceDetails from "./TraceDetails";
 import { RiAddBoxLine } from "react-icons/ri";
 import { MdDeleteOutline } from "react-icons/md";
-
-const data = [
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-  {
-    id: "1",
-    kind: "Chain",
-    input: "Was ist im Dias Projekt zu beachten?",
-    output: "Was ist im Dias Projekt zu beachten?",
-    starttime: "15 Mar 2021",
-    datetime: "12:47 PM",
-    latency: "2.55",
-    totaltokens: "4589",
-    status: "",
-    action: "",
-  },
-];
+import { dummyData } from "@/pages/dummy_data/dummy_span";
 
 const Projectstabledata = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectList, setProjectList] = useState([]);
-  const [traceProject, setTraceProject] = useState([]);
+  const [traceProject, setTraceProject] = useState(null);
   const [option, setOption] = useState(false);
   const modalRef = useRef();
+  const SpanListing = dummyData.filter((data) => data.parent_id == null);
 
-  const openModal = () => {
-    !isModalOpen && setIsModalOpen(true);
+  const openModal = (value) => {
+    if (!isModalOpen) {
+      setIsModalOpen(true);
+      setTraceProject(value);
+    }
   };
 
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
-      // closeModal();
     }
+  };
+
+  const handleLatency = (startTime, endTime) => {
+    const TempStartTime = new Date(startTime);
+    const TempendTime = new Date(endTime);
+    const latency = TempendTime - TempStartTime;
+    return latency;
+  };
+
+  const handleSpanStartTime = (startTime) => {
+    const startDate = new Date(startTime);
+    const formattedDate = startDate.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+
+    // Format time
+    const formattedTime = startDate.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const FormatedTime = `${formattedDate} ${formattedTime}`;
+    return FormatedTime;
   };
 
   useEffect(() => {
@@ -165,21 +107,22 @@ const Projectstabledata = () => {
                   </a>
                 </div>
               </th>
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] ">
+              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] min-w-[100px]">
                 Latency
               </th>
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] ">
+              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] min-w-[100px]">
                 total tokens
               </th>
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] ">
+              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] min-w-[100px]">
                 status
               </th>
             </tr>
           </thead>
           <tbody>
-            {data.map((val, i) => (
+            {SpanListing.map((val, i) => (
               <tr
                 key={i}
+                onClick={() => openModal(val)}
                 className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
               >
                 <td className="py-[14px] px-[10px]  text-center">
@@ -193,43 +136,39 @@ const Projectstabledata = () => {
                 </td>
 
                 <td className="py-[14px] px-[10px] text-[14px] text-[#171C26] font-medium font-Inter text-center">
-                  {val.id}
+                  {i}
                 </td>
-                <td
-                  className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center"
-                  onClick={openModal}
-                >
+                <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
                   <a href="#" className="hover:underline">
                     {val.kind}
                   </a>
                 </td>
-                <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                  <a href="#" className="hover:underline">
-                    {val.input}
+                <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center min-w-[300px]">
+                  <a href="#" className="hover:underline line-clamp">
+                    {val.attributes?.prompt}
                   </a>
                 </td>
                 <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                  <a href="#" className="hover:underline">
-                    {val.output}
+                  <a href="#" className="hover:underline line-clamp">
+                    {val.attributes?.content}
                   </a>
                 </td>
-                <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center">
-                  {val.starttime}
+                <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
+                  {handleSpanStartTime(val.start_time)}
                   <br />
-                  {val.datetime}
                 </td>
                 <td className="py-[14px] px-[10px] text-[14px] font-normal font-Inter text-[#464F60] text-center">
                   <button className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
-                    {val.latency}
+                    {handleLatency(val.start_time, val.end_time)}
                   </button>
                 </td>
                 <td className="py-[14px] px-[10px] text-[12px] font-medium font-Inter text-[#464F60] text-center">
                   <button className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
-                    {val.totaltokens}
+                    {val.attributes?.total_tokens}
                   </button>
                 </td>
                 <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                  {val.status}
+                  {val?.status.status_code}
                 </td>
                 <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter ">
                   <div className="flex gap-[5px] items-center relative">

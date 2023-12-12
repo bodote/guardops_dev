@@ -19,9 +19,14 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
 
   const getProjectDetails = async () => {
     try {
-      const response = await fetch(`/api/manageProjectTrace?project_id=${t1}`, {
-        method: "GET",
-      });
+      const urlParams = new URLSearchParams(traceProject?.attributes?.http_url);
+      const project_id = urlParams.get("project__id");
+      const response = await fetch(
+        `/api/manageProjectTrace?project_id=${project_id}`,
+        {
+          method: "GET",
+        }
+      );
 
       if (response.ok) {
         const responseData = await response.json();
@@ -95,77 +100,84 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
                 </div>
               </div>
               {traceProjectDetails.length &&
-              traceProjectDetails.map((parentEle,key) => {
-                return (
-                  <div key={key} ref={divref} className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[46px] after:top-[-27px] after:absolute after:w-[1px] ">
-                    <div style={divStyle}  className={`flex  mb-[18px] ml-[60px] items-center relative`}>
-                      {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
-                      <LineverticalbigIcon className="absolute left-[-13px]" />
-                      <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
-                        <div className="p-[7px_10px_7px_16px]">
-                          <DocumentIcon />
-                        </div>
-                        <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                          <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                            chain
-                          </h1>
-                        </div>
-                        <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                          <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                            query
-                          </h1>
-                        </div>
-                        <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                          <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                            2456 T
-                          </h1>
-                        </div>
-                        <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                          <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                            2.55 s
-                          </h1>
+                traceProjectDetails.map((parentEle, key) => {
+                  return (
+                    <div
+                      key={key}
+                      ref={divref}
+                      className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[46px] after:top-[-27px] after:absolute after:w-[1px] "
+                    >
+                      <div
+                        style={divStyle}
+                        className={`flex  mb-[18px] ml-[60px] items-center relative`}
+                      >
+                        {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
+                        <LineverticalbigIcon className="absolute left-[-13px]" />
+                        <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
+                          <div className="p-[7px_10px_7px_16px]">
+                            <DocumentIcon />
+                          </div>
+                          <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
+                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                              chain
+                            </h1>
+                          </div>
+                          <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
+                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                              query
+                            </h1>
+                          </div>
+                          <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
+                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                              2456 T
+                            </h1>
+                          </div>
+                          <div className="md:p-[7px_13px_8px_6px] p-[8px]">
+                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                              2.55 s
+                            </h1>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    {parentEle.length &&
-                      parentEle.map((subParent, key) => {
-                        return (
-                          <div >
-                            <div className="flex mb-[18px] ml-[80px] items-center relative after:content-[''] after:bg-[#d1d1d1] after:h-[40px] after:left-[-14px] after:top-[-29px] after:absolute after:w-[1px]">
-                              {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
-                              <LineverticalbigIcon className="absolute left-[-13px]" />
-                              <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
-                                <div className="p-[7px_10px_7px_16px]">
-                                  <DocumentIcon />
-                                </div>
-                                <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                    chain
-                                  </h1>
-                                </div>
-                                <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                    query
-                                  </h1>
-                                </div>
-                                <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                    2456 T
-                                  </h1>
-                                </div>
-                                <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                    2.55 s
-                                  </h1>
+                      {parentEle.length &&
+                        parentEle.map((subParent, key) => {
+                          return (
+                            <div key={key}>
+                              <div className="flex mb-[18px] ml-[80px] items-center relative after:content-[''] after:bg-[#d1d1d1] after:h-[40px] after:left-[-14px] after:top-[-29px] after:absolute after:w-[1px]">
+                                {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
+                                <LineverticalbigIcon className="absolute left-[-13px]" />
+                                <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
+                                  <div className="p-[7px_10px_7px_16px]">
+                                    <DocumentIcon />
+                                  </div>
+                                  <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
+                                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                      chain
+                                    </h1>
+                                  </div>
+                                  <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
+                                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                      query
+                                    </h1>
+                                  </div>
+                                  <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
+                                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                      2456 T
+                                    </h1>
+                                  </div>
+                                  <div className="md:p-[7px_13px_8px_6px] p-[8px]">
+                                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                      2.55 s
+                                    </h1>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                );
-              })}
+                          );
+                        })}
+                    </div>
+                  );
+                })}
             </div>
           </div>
         </div>
@@ -232,8 +244,8 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
           </div>
         </div>
         <div className="w-full overflow-x-auto">
-          {tab === "Info" && <Info />}
-          {tab === "Response" && <Response />}
+          {tab === "Info" && <Info traceProject = {traceProject}  />}
+          {tab === "Response" && <Response traceProject = {traceProject} />}
           {tab === "SignalsConcepts" && <SignalsConcepts />}
         </div>
       </div>
