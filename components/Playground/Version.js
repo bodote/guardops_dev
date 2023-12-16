@@ -13,7 +13,8 @@ import { Fragment, useState } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 
-const people = [
+
+const models = [
   {
     id: 1,
     name: "Open Al - GPT-3.5",
@@ -50,8 +51,13 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-const Version = ({ addVersion, removeVersion }) => {
-  const [selected, setSelected] = useState(people[1]);
+const Version = ({ addVersion, removeVersion, message, versionId }) => {
+  const [selected, setSelected] = useState(models[1]);
+
+  // Function for upperCase later for generating output content
+  const displayText = message ? message.toUpperCase() : "";
+
+
   return (
     <div>
       <div className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] lg:h-screen h-auto">
@@ -84,10 +90,10 @@ const Version = ({ addVersion, removeVersion }) => {
                     leaveTo="opacity-0"
                   >
                     <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                      {people.map((person) => (
+                      {models.map((model) => (
                         <Listbox.Option
-                          key={person.id}
-                          id={person.id1}
+                          key={model.id}
+                          id={model.id1}
                           className={({ active }) =>
                             classNames(
                               active
@@ -96,7 +102,7 @@ const Version = ({ addVersion, removeVersion }) => {
                               "relative cursor-default select-none py-2 pl-[30px] pr-9"
                             )
                           }
-                          value={person}
+                          value={model}
                         >
                           <div className="flex items-center ">
                             <span
@@ -107,7 +113,7 @@ const Version = ({ addVersion, removeVersion }) => {
                                 "block truncate"
                               )}
                             >
-                              {person.name}
+                              {model.name}
                             </span>
                           </div>
                           <div className="ml-[220px] p-[16px] bg-white text-base border border-[#cccccc] rounded-lg w-[350px] hidden show absolute">
@@ -164,13 +170,9 @@ const Version = ({ addVersion, removeVersion }) => {
         </div>
         <div className="flex justify-center sm:mt-[38px] mt-[20px]">
           <p className="font-Inter text-[12px] text-[#000000] font-light mr-[4px] ml-[16px] ">
-            To install the Vercel SDK, you can use npm or yarn package managers.
-            Open your command line interface and run "npm install -g vercel" or
-            "yarn global add vercel". Once installed, you can authenticate by
-            running "vercel login" and following the prompts. To create a new
-            project, navigate to your project directory and run "vercel init".
-            Finally, deploy your application using the command "vercel --prod"
-            to generate a unique URL for accessing it.
+            {versionId}
+            {displayText || "Output will be generated as soon as you press \"Run Playground\" and a model is selected."}
+            {selected && <span> - Selected Model ID: {selected.id1}</span>}
           </p>
         </div>
         <div className="flex gap-[10px] justify-center my-[17px]">

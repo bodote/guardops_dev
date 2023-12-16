@@ -39,6 +39,20 @@ function classNames(...classes) {
 }
 
 const index = () => {
+  // Add state to manage text area content
+  const [message, setMessage] = useState("");
+
+  // Function to handle text change in text area
+  const handleTextChange = (e) => {
+    setMessage(e.target.value);
+  };
+
+  // Function to transform text and pass to Version component
+  const runPlayground = () => {
+    // Pass the uppercaseMessage to each Version component
+    setVersions(versions.map(v => ({ ...v, message: message })));
+  };
+
   const [proname, setProname] = useState(projectname[1]);
 
   // State to manage versions
@@ -176,6 +190,8 @@ const index = () => {
                   className="h-[180px] border-0 rounded  w-full  font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none "
                   placeholder=" Start entering your prompt for the selected models. Press
                   Button Run Playground or Shift + Return to get the results."
+                  value={message}
+                  onChange={handleTextChange}
                 />
               </div>
               <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center">
@@ -185,7 +201,9 @@ const index = () => {
                 <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
                   Clear
                 </button>
-                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
+                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                onClick={runPlayground}
+                >
                   Run Playground
                 </button>
               </div>
@@ -216,6 +234,8 @@ const index = () => {
               React.cloneElement(version.component, {
                 addVersion,
                 removeVersion: () => removeVersion(version.id),
+                message: version.message, // pass the message here
+                versionId: version.id, // pass the version ID here
                 key: version.id
               })
             ))}
