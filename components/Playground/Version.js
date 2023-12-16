@@ -156,7 +156,7 @@ const Version = ({ addVersion, removeVersion }) => {
           </Listbox>
           <div className="flex gap-[17px] sm:mt-0 mt-[20px]">
             <EditIcon />
-            <MinusIcon onClick={removeVersion} />
+            <MinusIcon onClick={() => removeVersion()} />
             <PlusRectangleIcon onClick={addVersion}/>
             <ShareIcon />
             <SettingIcon />

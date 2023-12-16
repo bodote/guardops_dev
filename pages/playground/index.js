@@ -42,16 +42,17 @@ const index = () => {
   const [proname, setProname] = useState(projectname[1]);
 
   // State to manage versions
-  const [versions, setVersions] = useState([<Version key={1} addVersion={() => {}} removeVersion={() => {}} />]);
+  const [versions, setVersions] = useState([{ id: 1, component: <Version key={1} /> }]);
 
   // Function to add a new version
   const addVersion = () => {
-    setVersions(versions => [...versions, <Version key={versions.length + 1} addVersion={addVersion} removeVersion={removeVersion} />]);
+    const newId = versions.length > 0 ? versions[versions.length - 1].id + 1 : 1;
+    setVersions([...versions, { id: newId, component: <Version key={newId} /> }]);
   };
 
   // Function to remove a version
-  const removeVersion = () => {
-    setVersions(versions => versions.length > 1 ? versions.slice(0, -1) : versions);
+  const removeVersion = (id) => {
+    setVersions(versions.filter(version => version.id !== id));
   };
 
   // Calculate grid columns based on number of versions
@@ -211,8 +212,12 @@ const index = () => {
               </ul>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))` }} className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}>
-            {versions.map((version, index) => (
-              React.cloneElement(version, { addVersion, removeVersion, key: index })
+            {versions.map((version) => (
+              React.cloneElement(version.component, {
+                addVersion,
+                removeVersion: () => removeVersion(version.id),
+                key: version.id
+              })
             ))}
             </div>
           </div>
