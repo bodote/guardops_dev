@@ -167,3 +167,12 @@
 .response-output {
   display: block; /* Ensures that children are laid out as blocks */
 }
+
+.run-link {
+  text-decoration: none; /* Underline like a typical link */
+  cursor: pointer; /* Cursor changes to a pointer on hover */
+}
+
+.run-link:hover {
+  text-decoration: underline; /* Remove underline on hover for a change */
+}

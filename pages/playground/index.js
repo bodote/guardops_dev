@@ -42,6 +42,14 @@ const index = () => {
   // Add state to manage text area content
   const [message, setMessage] = useState("");
 
+  // Code for VersionsHistory:
+  const [runsHistory, setRunsHistory] = useState([]);
+
+  const handleRunClick = (runMessage) => {
+    setMessage(runMessage);
+  };
+  
+
   // Function to clear the message text area
   const clearMessage = () => {
     setMessage("");
@@ -65,6 +73,12 @@ const index = () => {
     // Pass the uppercaseMessage to each Version component
     setVersions(versions.map(v => ({ ...v, message: message })));
     setRunPressed(true);
+
+      // New logic to add the current message to runs history
+    setRunsHistory(prevRuns => [
+      ...prevRuns, 
+      { id: prevRuns.length + 1, message: message }
+      ]);
   };
 
   // Function to append text to message
@@ -92,6 +106,9 @@ const index = () => {
 
   // Calculate grid columns based on number of versions
   const gridCols = `grid-cols-${versions.length > 1 ? versions.length : 1}`;
+
+
+
 
   return (
     <>
@@ -238,18 +255,14 @@ const index = () => {
                 Versions
               </h1>
               <ul className="list-disc px-[8px]">
-                <li className="text-[#656565] text-[12px] font-Inter font-medium mt-[10px]">
-                  Run 1
-                </li>
-                <li className="text-[#656565] text-[12px] font-Inter font-medium mt-[10px]">
-                  Run 2
-                </li>
-                <li className="text-[#656565] text-[12px] font-Inter font-medium mt-[10px]">
-                  Run 3
-                </li>
-                <li className="text-[#656565] text-[12px] font-Inter font-medium mt-[10px]">
-                  Run 4
-                </li>
+                {runsHistory.map(run => (
+                  <li 
+                    key={run.id} 
+                    className="run-link text-[#656565] text-[12px] font-Inter font-medium mt-[10px]"
+                    onClick={() => handleRunClick(run.message)}>
+                      Run {run.id}: {run.message.length > 20 ? run.message.substring(0, 20) + '...' : run.message}
+                  </li>
+                ))}
               </ul>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))` }} className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}>
