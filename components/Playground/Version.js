@@ -12,6 +12,8 @@ import {
 import { Fragment, useState, useEffect } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
+import ReactMarkdown from 'react-markdown';
+import gfm from 'remark-gfm';
 
 
 const models = [
@@ -129,8 +131,49 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
   }, [message, selected.id1, fireworksAIKey, runPressed, resetRunPressed]);
   
   
+  // Format OutputResponse for Code
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      console.log('Text copied to clipboard');
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+    });
+  };
+  
+  const CodeBox = ({ code }) => {
+    return (
+      <div className="code-box-container my-2">
+        <pre className="code-box">{code}</pre>
+        <button className="copy-button" onClick={() => copyToClipboard(code)}>Copy</button>
+      </div>
+    );
+  };
 
+  const parseApiResponse = (apiResponse) => {
+    const segments = [];
+    const regex = /```(.*?)```/gs;
+    let lastIndex = 0;
+  
+    apiResponse.replace(regex, (match, codeBlock, index) => {
+      // Add the text segment before the code block
+      if (index > lastIndex) {
+        segments.push({ type: 'text', content: apiResponse.slice(lastIndex, index) });
+      }
+      // Add the code block
+      segments.push({ type: 'code', content: codeBlock });
+      lastIndex = index + match.length;
+    });
+  
+    // Add any remaining text after the last code block
+    if (lastIndex < apiResponse.length) {
+      segments.push({ type: 'text', content: apiResponse.slice(lastIndex) });
+    }
+  
+    return segments;
+  };
+  
 
+  const segments = parseApiResponse(apiResponse);
 
   return (
     <div>
@@ -242,12 +285,19 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
             <SettingIcon />
           </div>
         </div>
-        <div className="flex justify-center sm:mt-[38px] mt-[20px]">
-          <p className="font-Inter text-[12px] text-[#000000] font-light mr-[4px] ml-[16px] ">
-
-            {isLoading ? <p>Loading...</p> : apiResponse ? <p>{apiResponse}</p> : error ? <p>Error: {error}</p> : null}
-          </p>
+        <div className="response-output justify-center sm:mt-[38px] mt-[20px]">
+          {isLoading ? <p>Loading...</p> : apiResponse ? (
+            parseApiResponse(apiResponse).map((segment, index) => (
+              segment.type === 'code' ? (
+                <CodeBox key={index} code={segment.content} />
+              ) : (
+                <ReactMarkdown remarkPlugins={[gfm]} key={index} children={segment.content} />
+              )
+            ))
+          ) : error ? <p>Error: {error}</p> : null}
         </div>
+
+
         <div className="flex gap-[10px] justify-center my-[17px]">
           <CopyIcon onClick={handleCopyClick} />
           <DownArrowIcon />
