@@ -1,107 +1,58 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FiPlus } from "react-icons/fi";
+import APIKeyInput from './APIKeyInput'; // Adjust the path as necessary
+
 
 const PlaygroundSettings = () => {
+  // State for API keys
+  const [openAIKey, setOpenAIKey] = useState('');
+  const [huggingfaceKey, setHuggingfaceKey] = useState('');
+  const [togetherAIKey, setTogetherAIKey] = useState('');
+  const [fireworksAIKey, setFireworksAIKey] = useState('');
+
+  // Load keys from Local Storage
+  useEffect(() => {
+    setOpenAIKey(localStorage.getItem('openAIKey') || '');
+    setHuggingfaceKey(localStorage.getItem('huggingfaceKey') || '');
+    setTogetherAIKey(localStorage.getItem('togetherAIKey') || '');
+    setFireworksAIKey(localStorage.getItem('fireworksAIKey') || '');
+  }, []);
+
+  // Save API key to Local Storage
+  const saveApiKey = (keyName, keyValue) => {
+    localStorage.setItem(keyName, keyValue);
+  };
+
   return (
     <>
       <div>
-        <p className="sm:text-[16px] text-[14px] font-normal font-Archivo text-[#000000] mt-[10px] max-w-[820px]">
-          Enter the API keys of each Model Provider, which you want to use in
-          the the playground of coai monitoring solution. The API keys are not
-          stored server side, rather are stored on client side. The api will be
-          directly provided to the model provider not to coai. Only the Input
-          and Response is stored on coai servers for tracing and versioning.
-        </p>
-
-        <div className="sm:w-[465px] w-auto mt-[60px]">
-          <div className="">
-            <label
-              for="name"
-              className="text-[#252525] font-medium text-[14px] font-Inter"
-            >
-              OPENAI
-            </label>
-            <div className="flex items-center sm:gap-[22px] gap-[0px] flex-wrap ">
-              <div className="sm:w-[360px] w-full">
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="****************************"
-                  className="h-10 border border-[#EAEBF0] my-[6px] rounded w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter"
-                  required=""
-                />
-              </div>
-              <button
-                className="flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#FFFFFF] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
-              >
-                <FiPlus /> Save
-              </button>
-            </div>
-
-            <p className="text-[#68727D] font-normal text-[14px] font-Inter">
-              Enter the API-Key for openAI.
-            </p>
-          </div>
-          <div className="my-[31px]">
-            <label
-              for="name"
-              className="text-[#252525] font-medium text-[14px] font-Inter"
-            >
-              Huggingface
-            </label>
-            <div className="flex items-center sm:gap-[22px] gap-[0px] flex-wrap">
-              <div className="sm:w-[360px]  w-full">
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="****************************"
-                  className="h-10 border border-[#EAEBF0] my-[6px] rounded w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter"
-                  required=""
-                />
-              </div>
-                <button
-                className="flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#FFFFFF] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
-              >
-                <FiPlus /> Save
-              </button>
-            </div>
-
-            <p className="text-[#68727D] font-normal text-[14px] font-Inter">
-              Enter the API-Key for Huggingface.
-            </p>
-          </div>
-          <div className="">
-            <label
-              for="name"
-              className="text-[#252525] font-medium text-[14px] font-Inter"
-            >
-              Together.ai
-            </label>
-            <div className="flex items-center sm:gap-[22px] gap-[0px] flex-wrap">
-              <div className="sm:w-[360px]  w-full">
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  placeholder="****************************"
-                  className="h-10 border border-[#EAEBF0] my-[6px] rounded w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter"
-                 required=""
-                />
-              </div>
-              <button
-                className="flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#FFFFFF] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
-              >
-                <FiPlus /> Save
-              </button>
-            </div>
-
-            <p className="text-[#68727D] font-normal text-[14px] font-Inter">
-              Enter the API-Key for Togehter.ai.
-            </p>
-          </div>
-        </div>
+        {/* ... */}
+        <APIKeyInput 
+          apiKey={openAIKey} 
+          setApiKey={setOpenAIKey} 
+          saveApiKey={() => saveApiKey('openAIKey', openAIKey)}
+          label="OPENAI" 
+        />
+        <APIKeyInput 
+          apiKey={huggingfaceKey} 
+          setApiKey={setHuggingfaceKey} 
+          saveApiKey={() => saveApiKey('huggingfaceKey', huggingfaceKey)}
+          label="Huggingface" 
+        />
+        <APIKeyInput 
+          apiKey={togetherAIKey} 
+          setApiKey={setTogetherAIKey} 
+          saveApiKey={() => saveApiKey('togetherAIKey', togetherAIKey)}
+          label="Together.ai" 
+        />
+        <APIKeyInput 
+          apiKey={fireworksAIKey} 
+          setApiKey={setFireworksAIKey} 
+          saveApiKey={() => saveApiKey('fireworksAIKey', fireworksAIKey)}
+          label="Fireworks.ai" 
+        />
+        
+        {/* ... */}
       </div>
     </>
   );
