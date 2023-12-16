@@ -50,7 +50,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-const Version = () => {
+const Version = ({ addVersion, removeVersion }) => {
   const [selected, setSelected] = useState(people[1]);
   return (
     <div>
@@ -156,8 +156,8 @@ const Version = () => {
           </Listbox>
           <div className="flex gap-[17px] sm:mt-0 mt-[20px]">
             <EditIcon />
-            <MinusIcon />
-            <PlusRectangleIcon />
+            <MinusIcon onClick={removeVersion} />
+            <PlusRectangleIcon onClick={addVersion}/>
             <ShareIcon />
             <SettingIcon />
           </div>

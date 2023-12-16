@@ -1,6 +1,7 @@
+import React, { useState } from 'react';
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { LockIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { FiPlus } from "react-icons/fi";
@@ -39,6 +40,22 @@ function classNames(...classes) {
 
 const index = () => {
   const [proname, setProname] = useState(projectname[1]);
+
+  // State to manage versions
+  const [versions, setVersions] = useState([<Version key={1} addVersion={() => {}} removeVersion={() => {}} />]);
+
+  // Function to add a new version
+  const addVersion = () => {
+    setVersions(versions => [...versions, <Version key={versions.length + 1} addVersion={addVersion} removeVersion={removeVersion} />]);
+  };
+
+  // Function to remove a version
+  const removeVersion = () => {
+    setVersions(versions => versions.length > 1 ? versions.slice(0, -1) : versions);
+  };
+
+  // Calculate grid columns based on number of versions
+  const gridCols = `grid-cols-${versions.length > 1 ? versions.length : 1}`;
 
   return (
     <>
@@ -193,9 +210,10 @@ const index = () => {
                 </li>
               </ul>
             </div>
-            <div className=" grid lg:grid-cols-2 grid-cols-1  w-full lg:flex-row flex-col bg-[#F7F7F7]">
-              <Version />
-              <Version />
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))` }} className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}>
+            {versions.map((version, index) => (
+              React.cloneElement(version, { addVersion, removeVersion, key: index })
+            ))}
             </div>
           </div>
         </div>

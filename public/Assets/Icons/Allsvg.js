@@ -739,10 +739,11 @@ export const EditIcon = ({ className }) => {
   );
 };
 
-export const MinusIcon = ({ className }) => {
+export const MinusIcon = ({ className, onClick }) => {
   return (
     <svg
       className={className}
+      onClick={onClick}
       width="17"
       height="17"
       viewBox="0 0 17 17"
@@ -841,10 +842,11 @@ export const SettingIcon = ({ className }) => {
   );
 };
 
-export const PlusRectangleIcon = ({ className }) => {
+export const PlusRectangleIcon = ({ className, onClick }) => {
   return (
     <svg
       className={className}
+      onClick={onClick}
       width="17"
       height="17"
       viewBox="0 0 17 17"
