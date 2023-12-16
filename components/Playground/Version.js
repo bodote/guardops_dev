@@ -51,14 +51,16 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-const Version = ({ addVersion, removeVersion, message, versionId, runPressed, resetRunPressed }) => {
+const Version = ({ addVersion, removeVersion, message, versionId, runPressed, resetRunPressed, appendToMessage }) => {
   const [selected, setSelected] = useState(models[1]);
   const [apiResponse, setApiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Function for upperCase later for generating output content
-  const displayText = message ? message.toUpperCase() : "";
+  // Function to append apiResponse to message
+  const handleCopyClick = () => {
+    appendToMessage(apiResponse);
+  };
 
     // Function to call the API
   const fetchApiResponse = async () => {
@@ -224,7 +226,7 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
           </p>
         </div>
         <div className="flex gap-[10px] justify-center my-[17px]">
-          <CopyIcon />
+          <CopyIcon onClick={handleCopyClick} />
           <DownArrowIcon />
           <UpArrowIcon />
           <PenIcon />

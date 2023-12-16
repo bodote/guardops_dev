@@ -42,6 +42,11 @@ const index = () => {
   // Add state to manage text area content
   const [message, setMessage] = useState("");
 
+  // Function to clear the message text area
+  const clearMessage = () => {
+    setMessage("");
+  };
+
   // State to track the runPlayground button has been pressed
   const [runPressed, setRunPressed] = useState(false);
 
@@ -61,6 +66,13 @@ const index = () => {
     setVersions(versions.map(v => ({ ...v, message: message })));
     setRunPressed(true);
   };
+
+  // Function to append text to message
+  const appendToMessage = (text) => {
+    setMessage((prevMessage) => `${prevMessage} ${text}`);
+  };
+
+
 
   const [proname, setProname] = useState(projectname[1]);
 
@@ -207,7 +219,9 @@ const index = () => {
                 <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
                   Prompt Templates
                 </button>
-                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
+                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                onClick={clearMessage}
+                >
                   Clear
                 </button>
                 <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
@@ -247,6 +261,7 @@ const index = () => {
                 versionId: version.id, // pass the version ID here
                 runPressed: runPressed,
                 resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
+                appendToMessage: appendToMessage, // pass the appendToMessage function here
                 key: version.id
               })
             ))}

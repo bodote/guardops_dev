@@ -877,10 +877,11 @@ export const PlusRectangleIcon = ({ className, onClick }) => {
   );
 };
 
-export const CopyIcon = ({ className }) => {
+export const CopyIcon = ({ className, onClick }) => {
   return (
     <svg
       className={className}
+      onClick={onClick}
       width="18"
       height="17"
       viewBox="0 0 18 17"
