@@ -56,6 +56,14 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
   const [apiResponse, setApiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [fireworksAIKey, setFireworksAIKey] = useState(''); // State for the API key
+
+  // Load API key from Local Storage
+
+  useEffect(() => {
+    const key = localStorage.getItem('fireworksAIKey') || '';
+    setFireworksAIKey(key);
+  }, []);
 
   // Function to append apiResponse to message
   const handleCopyClick = () => {
@@ -73,7 +81,7 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_FIREWORKS_API}`,
+          'Authorization': `Bearer ${fireworksAIKey}`,
         },
         body: JSON.stringify({
           model: selected.id1,
