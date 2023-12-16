@@ -42,6 +42,14 @@ const index = () => {
   // Add state to manage text area content
   const [message, setMessage] = useState("");
 
+  // State to track the runPlayground button has been pressed
+  const [runPressed, setRunPressed] = useState(false);
+
+  // Function to reset the runPressed flag
+  const resetRunPressed = () => {
+    setRunPressed(false);
+  };
+
   // Function to handle text change in text area
   const handleTextChange = (e) => {
     setMessage(e.target.value);
@@ -51,6 +59,7 @@ const index = () => {
   const runPlayground = () => {
     // Pass the uppercaseMessage to each Version component
     setVersions(versions.map(v => ({ ...v, message: message })));
+    setRunPressed(true);
   };
 
   const [proname, setProname] = useState(projectname[1]);
@@ -236,6 +245,8 @@ const index = () => {
                 removeVersion: () => removeVersion(version.id),
                 message: version.message, // pass the message here
                 versionId: version.id, // pass the version ID here
+                runPressed: runPressed,
+                resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
                 key: version.id
               })
             ))}

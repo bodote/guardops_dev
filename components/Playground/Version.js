@@ -9,7 +9,7 @@ import {
   ShareIcon,
   UpArrowIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 
@@ -27,13 +27,13 @@ const models = [
   },
   {
     id: 3,
-    name: "Open Al - GPT 4",
-    id1: "open3",
+    name: "FW - LLama 2 34B",
+    id1: "accounts/fireworks/models/llama-v2-34b-code-instruct",
   },
   {
     id: 4,
-    name: "HF - Mistral 7b",
-    id1: "open4",
+    name: "FW - Mixtral7bx8",
+    id1: "accounts/fireworks/models/mixtral-8x7b-instruct",
   },
   {
     id: 5,
@@ -51,11 +51,60 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-const Version = ({ addVersion, removeVersion, message, versionId }) => {
+const Version = ({ addVersion, removeVersion, message, versionId, runPressed, resetRunPressed }) => {
   const [selected, setSelected] = useState(models[1]);
+  const [apiResponse, setApiResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Function for upperCase later for generating output content
   const displayText = message ? message.toUpperCase() : "";
+
+    // Function to call the API
+  const fetchApiResponse = async () => {
+    setIsLoading(true);
+    setError(null);
+    console.log(process.env.FIREWORKS_API);
+    try {
+      const response = await fetch(`https://api.fireworks.ai/inference/v1/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_FIREWORKS_API}`,
+        },
+        body: JSON.stringify({
+          model: selected.id1,
+          messages: [{ "role": "user", "content": message }],
+          stream: false,
+          n: 1,
+          max_tokens: 150,
+          temperature: 0,
+          top_p: 0.9
+        }),
+      });
+      const data = await response.json();
+      if (data.choices && data.choices.length > 0 && data.choices[0].message) {
+        setApiResponse(data.choices[0].message.content); // Extracting the content
+      } else {
+        setApiResponse("No content available");
+      }
+    } catch (err) {
+      console.log(err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (message && selected.id1 && runPressed) {
+      fetchApiResponse().then(() => {
+        resetRunPressed(); // Reset runPressed after fetchApiResponse is called
+      });
+    }
+  }, [message, selected.id1, runPressed, resetRunPressed]);
+
 
 
   return (
@@ -170,9 +219,8 @@ const Version = ({ addVersion, removeVersion, message, versionId }) => {
         </div>
         <div className="flex justify-center sm:mt-[38px] mt-[20px]">
           <p className="font-Inter text-[12px] text-[#000000] font-light mr-[4px] ml-[16px] ">
-            {versionId}
-            {displayText || "Output will be generated as soon as you press \"Run Playground\" and a model is selected."}
-            {selected && <span> - Selected Model ID: {selected.id1}</span>}
+
+            {isLoading ? <p>Loading...</p> : apiResponse ? <p>{apiResponse}</p> : error ? <p>Error: {error}</p> : null}
           </p>
         </div>
         <div className="flex gap-[10px] justify-center my-[17px]">
