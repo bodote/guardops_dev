@@ -108,12 +108,27 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
   };
 
   useEffect(() => {
-    if (message && selected.id1 && runPressed) {
+    const isValidModelSelected = selected.id1 && selected.id1 !== "open2"; // Adjust condition as necessary
+  
+    if (message && isValidModelSelected && fireworksAIKey && runPressed) {
       fetchApiResponse().then(() => {
-        resetRunPressed(); // Reset runPressed after fetchApiResponse is called
+        resetRunPressed(); // Reset runPressed after the API call
+      }).catch((error) => {
+        console.error("Error fetching API response:", error);
+        setError("Error: " + error.message); // Set error state
       });
+    } else if (runPressed) {
+      let missingItems = [];
+      if (!message) missingItems.push("message");
+      if (!isValidModelSelected) missingItems.push("valid model selection");
+      if (!fireworksAIKey) missingItems.push("API key");
+  
+      setApiResponse(`Please provide the following: ${missingItems.join(", ")}.`); // Set error message in apiResponse
+      resetRunPressed();
     }
-  }, [message, selected.id1, runPressed, resetRunPressed]);
+  }, [message, selected.id1, fireworksAIKey, runPressed, resetRunPressed]);
+  
+  
 
 
 
