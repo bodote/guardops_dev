@@ -14,8 +14,6 @@ import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
-import OpenAI from "openai";
-
 
 const models = [
   {
@@ -69,6 +67,7 @@ const models = [
   }
 ];
 
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -90,6 +89,19 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
     setOpenaiKey(key1);
   }, []);
 
+  const providerConfig = {
+    openai: {
+      endpoint: 'https://api.openai.com/v1/chat/completions',
+      getKey: () => openaiKey,
+    },
+    fireworks: {
+      endpoint: 'https://api.fireworks.ai/inference/v1/chat/completions',
+      getKey: () => fireworksAIKey,
+    },
+    // Add more providers here as needed
+  };
+  
+
   // Function to append apiResponse to message
   const handleCopyClick = () => {
     appendToMessage(apiResponse);
@@ -99,21 +111,30 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
   const fetchApiResponse = async () => {
     setIsLoading(true);
     setError(null);
-    console.log(process.env.FIREWORKS_API);
+
+    const providerInfo = providerConfig[selected.provider];
+    if (!providerInfo) {
+      setError(`Provider ${selected.provider} is not supported.`);
+      setIsLoading(false);
+      return;
+    }
+
+    const apiEndpoint = providerInfo.endpoint;
+    const authKey = `Bearer ${providerInfo.getKey()}`;
+
     try {
-      const response = await fetch(`https://api.fireworks.ai/inference/v1/chat/completions`, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream',
-          'Authorization': `Bearer ${fireworksAIKey}`,
+          'Authorization': authKey,
         },
         body: JSON.stringify({
           model: selected.id1,
           messages: [{ "role": "user", "content": message }],
           stream: false,
           n: 1,
-          max_tokens: 150,
           temperature: 0,
           top_p: 0.9
         }),
@@ -133,9 +154,11 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
   };
 
   useEffect(() => {
-    const isValidModelSelected = selected.id1 && selected.id1 !== "None"; // Adjust condition as necessary
+    const isValidModelSelected = selected.id1 && selected.id1 !== "None";
+    const providerInfo = providerConfig[selected.provider];
+    const apiKey = providerInfo ? providerInfo.getKey() : null;
   
-    if (message && isValidModelSelected && fireworksAIKey && runPressed) {
+    if (message && isValidModelSelected && apiKey && runPressed) {
       fetchApiResponse().then(() => {
         resetRunPressed(); // Reset runPressed after the API call
       }).catch((error) => {
@@ -146,7 +169,7 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
       let missingItems = [];
       if (!message) missingItems.push("message");
       if (!isValidModelSelected) missingItems.push("valid model selection");
-      if (!fireworksAIKey) missingItems.push("API key");
+      if (!apiKey) missingItems.push("API key");
   
       setApiResponse(`Please provide the following: ${missingItems.join(", ")}.`); // Set error message in apiResponse
       resetRunPressed();
