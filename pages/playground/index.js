@@ -49,8 +49,6 @@ const index = () => {
     setMessage(runMessage);
   };
 
-  
-  // Add useEffect to listen for keydown events
   // Add useEffect to listen for keydown events
   useEffect(() => {
     const handleKeyDown = (event) => {

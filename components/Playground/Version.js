@@ -14,39 +14,59 @@ import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
+import OpenAI from "openai";
 
 
 const models = [
   {
     id: 1,
-    name: "Open Al - GPT-3.5",
-    id1: "open1",
+    name: "Select an option",
+    id1: "None",
+    provider: null,
+    context: null
   },
   {
     id: 2,
-    name: "Select an option",
-    id1: "open2",
+    name: "OpenAI - GPT-3.5-Turbo",
+    id1: "gpt-3.5-turbo-1106",
+    provider: "openai",
+    context: "16385"
   },
   {
     id: 3,
-    name: "FW - LLama 2 34B",
-    id1: "accounts/fireworks/models/llama-v2-34b-code-instruct",
+    name: "OpenAI - GPT-4-Turbo",
+    id1: "gpt-4-1106-preview",
+    provider: "openai",
+    context: "128000"
   },
   {
     id: 4,
-    name: "FW - Mixtral7bx8",
-    id1: "accounts/fireworks/models/mixtral-8x7b-instruct",
+    name: "FW - LLama 2 34B",
+    id1: "accounts/fireworks/models/llama-v2-34b-code-instruct",
+    provider: "fireworks",
+    context: null
   },
   {
     id: 5,
-    name: "HF - Bloom",
-    id1: "open5",
+    name: "FW - Mixtral7bx8",
+    id1: "accounts/fireworks/models/mixtral-8x7b-instruct",
+    provider: "fireworks",
+    context: null
   },
   {
     id: 6,
-    name: "Anthropic Claude2",
-    id1: "open6",
+    name: "FW - LLama 2 Code 13B",
+    id1: "accounts/fireworks/models/llama-v2-13b-code-instruct",
+    provider: "fireworks",
+    context: null
   },
+  {
+    id: 7,
+    name: "FW - Mixtral-7b-Instruct",
+    id1: "accounts/fireworks/models/mistral-7b-instruct-4k",
+    provider: "fireworks",
+    context: null
+  }
 ];
 
 function classNames(...classes) {
@@ -54,17 +74,20 @@ function classNames(...classes) {
 }
 
 const Version = ({ addVersion, removeVersion, message, versionId, runPressed, resetRunPressed, appendToMessage }) => {
-  const [selected, setSelected] = useState(models[1]);
+  const [selected, setSelected] = useState(models[0]);
   const [apiResponse, setApiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [fireworksAIKey, setFireworksAIKey] = useState(''); // State for the API key
+  const [openaiKey, setOpenaiKey] = useState(''); // State for the API key
 
   // Load API key from Local Storage
 
   useEffect(() => {
     const key = localStorage.getItem('fireworksAIKey') || '';
     setFireworksAIKey(key);
+    const key1 = localStorage.getItem('openAIKey') || '';
+    setOpenaiKey(key1);
   }, []);
 
   // Function to append apiResponse to message
@@ -110,7 +133,7 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
   };
 
   useEffect(() => {
-    const isValidModelSelected = selected.id1 && selected.id1 !== "open2"; // Adjust condition as necessary
+    const isValidModelSelected = selected.id1 && selected.id1 !== "None"; // Adjust condition as necessary
   
     if (message && isValidModelSelected && fireworksAIKey && runPressed) {
       fetchApiResponse().then(() => {
