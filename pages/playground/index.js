@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { LockIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
 import { Fragment } from "react";
@@ -48,7 +48,26 @@ const index = () => {
   const handleRunClick = (runMessage) => {
     setMessage(runMessage);
   };
+
   
+  // Add useEffect to listen for keydown events
+  // Add useEffect to listen for keydown events
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        runPlayground();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [message]); // Depend on 'message' to ensure it's captured in the closure
+
 
   // Function to clear the message text area
   const clearMessage = () => {
