@@ -1,0 +1,19 @@
+# .gitignore
+
+# Ignore next.js build output
+.next/
+
+# Ignore Node.js build output
+node_modules/
+
+# Ignore environment files
+.env*
+
+# Ignore log files
+*.log
+
+# Ignore Mac system files
+.DS_Store
+
+# Ignore Visual Studio Code settings
+.vscode/
