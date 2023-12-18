@@ -813,10 +813,11 @@ export const ShareIcon = ({ className }) => {
   );
 };
 
-export const SettingIcon = ({ className }) => {
+export const SettingIcon = ({ className, onClick }) => {
   return (
     <svg
       className={className}
+      onClick={onClick}
       width="17"
       height="17"
       viewBox="0 0 17 17"

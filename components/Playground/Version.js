@@ -14,6 +14,8 @@ import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import ReactMarkdown from 'react-markdown';
 import gfm from 'remark-gfm';
+import ModelSettings from "./modelSettings"; // Import the settings component
+
 
 const models = [
   {
@@ -122,6 +124,8 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
     const apiEndpoint = providerInfo.endpoint;
     const authKey = `Bearer ${providerInfo.getKey()}`;
 
+    console.log("maxTokens", settings.maxTokens)
+    console.log("temperature", settings.temperature)
     try {
       const response = await fetch(apiEndpoint, {
         method: 'POST',
@@ -135,8 +139,9 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
           messages: [{ "role": "user", "content": message }],
           stream: false,
           n: 1,
-          temperature: 0,
-          top_p: 0.9
+          max_tokens: 1024,
+          temperature: settings.temperature,
+          top_p: settings.topP,
         }),
       });
       const data = await response.json();
@@ -220,6 +225,30 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
   
 
   const segments = parseApiResponse(apiResponse);
+
+  // Settings Modal Window
+  // State to manage settings visibility
+  const [showSettings, setShowSettings] = useState(false);
+
+  // State for settings values
+  const [settings, setSettings] = useState({
+    maxTokens: 150,
+    temperature: 0.70,
+    topP: 1,
+    topK: 1,
+    frequencyPenalty: 1,
+    presencePenalty: 1,
+  });
+
+  // Toggle settings visibility
+  const toggleSettings = () => {
+    setShowSettings(!showSettings);
+  };
+
+  // Handle settings change
+  const handleSettingsChange = (settingName, value) => {
+    setSettings({ ...settings, [settingName]: value });
+  };
 
   return (
     <div>
@@ -328,8 +357,11 @@ const Version = ({ addVersion, removeVersion, message, versionId, runPressed, re
             <MinusIcon onClick={() => removeVersion()} />
             <PlusRectangleIcon onClick={addVersion}/>
             <ShareIcon />
-            <SettingIcon />
+            <SettingIcon onClick={toggleSettings} /> {/* Attach the click handler */}
           </div>
+
+            {/* Conditionally render the settings component */}
+            {showSettings && <ModelSettings onSettingsChange={handleSettingsChange} settings={settings} />}
         </div>
         <div className="response-output justify-center sm:mt-[38px] mt-[20px]">
           {isLoading ? <p>Loading...</p> : apiResponse ? (
