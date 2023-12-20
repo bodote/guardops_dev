@@ -5,14 +5,12 @@ import TraceDetails from "./TraceDetails";
 import { RiAddBoxLine } from "react-icons/ri";
 import { MdDeleteOutline } from "react-icons/md";
 
-
 const Projectstabledata = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectList, setProjectList] = useState([]);
   const [traceProject, setTraceProject] = useState(null);
   const [option, setOption] = useState(false);
   const modalRef = useRef();
-  
 
   const openModal = (value) => {
     if (!isModalOpen) {
@@ -29,7 +27,7 @@ const Projectstabledata = () => {
   const handleLatency = (startTime, endTime) => {
     const TempStartTime = new Date(startTime);
     const TempendTime = new Date(endTime);
-    const latency = (TempendTime - TempStartTime)/1000;
+    const latency = (TempendTime - TempStartTime) / 1000;
     return latency;
   };
 
@@ -140,9 +138,8 @@ const Projectstabledata = () => {
                 return (
                   val.parent_id == null && (
                     <tr
-                      ajay={data.length}
                       key={innerEle}
-                      onClick={() => openModal(val)}
+                      onClick={() => openModal(data)}
                       className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
                     >
                       <td className="py-[14px] px-[10px]  text-center">

@@ -60,7 +60,7 @@ const Sidebar = () => {
                   </p>
                 </a>
                 <a
-                  href="/projects"
+                  href="/projectlist"
                   className="flex gap-[10px] items-center mt-[30px]"
                 >
                   <ProjectIcon className="w-[24px]" />

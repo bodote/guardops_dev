@@ -13,36 +13,7 @@ import SignalsConcepts from "./SignalsConcepts";
 
 const TraceDetails = ({ traceProject, setIsModalOpen }) => {
   const [tab, setTab] = useState("Info");
-  const [traceProjectDetails, setTraceProjectDetails] = useState([]);
   let [height, setHeight] = useState(null);
-
-  const getProjectDetails = async () => {
-    try {
-      const urlParams = new URLSearchParams(traceProject?.attributes?.http_url);
-      const project_id = urlParams.get("project__id");
-      const response = await fetch(
-        `/api/manageProjectTrace?project_id=${project_id}`,
-        {
-          method: "GET",
-        }
-      );
-
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData.traces) {
-          setTraceProjectDetails(responseData.traces);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
-
-  useEffect(() => {
-    getProjectDetails();
-  }, [traceProject]);
 
   const divref = useRef();
   const divStyle = {
@@ -69,118 +40,83 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
               Trace Details
             </h1>
             <div className="relative trace-detail">
-              <div className="flex mb-[18px] ml-[35px] items-center relative">
-                <LinesmallIcon className="absolute top-[12px] left-[-13px]" />
-                <LineverticalbigIcon className="absolute left-[-13px]" />
-                <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
-                  <div className="p-[7px_10px_7px_16px]">
-                    <DocumentIcon />
-                  </div>
-                  <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                      chain
-                    </h1>
-                  </div>
-                  <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                      query
-                    </h1>
-                  </div>
-                  <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                      2456 T
-                    </h1>
-                  </div>
-                  <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                      2.55 s
-                    </h1>
-                  </div>
-                </div>
-              </div>
-              {traceProjectDetails.length &&
-                traceProjectDetails.map((parentEle, outerEleIndx) => {
-                  // console.log("check elel++++", traceProjectDetails)
+              <div className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[22px] after:top-[-27px] after:absolute after:w-[1px]">
+                {traceProject.map((innerEle, innerEleIndx) => {
                   return (
-                    <div className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[22px] after:top-[-27px] after:absolute after:w-[1px]">
-                      {parentEle.map((innerEle, innerEleIndx) => {
-                        return (
-                          innerEle.parent_id == null && (
-                            <div
-                              key={innerEleIndx}
-                              className="flex mb-[18px] ml-[35px] items-center relative"
-                            >
-                              {/* <LinesmallIcon className="absolute top-[12px] left-[-13px]" /> */}
-                              <LineverticalbigIcon className="absolute left-[-13px]" />
-                              <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
-                                <div className="p-[7px_10px_7px_16px]">
-                                  <DocumentIcon />
-                                </div>
-                                <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                    chain
-                                  </h1>
-                                </div>
-                                <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                    query
-                                  </h1>
-                                </div>
-                                <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                    2456 T
-                                  </h1>
-                                </div>
-                                <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                    2.55 s
-                                  </h1>
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        );
-                      })}
-                      {parentEle.map((innerEle, innerEleIndx) => {
-                        return (
-                          innerEle.parent_id !== null && (
-                            <div key={innerEleIndx} >
-                              <div className="flex mb-[18px] ml-[58px] items-center relative after:content-[''] after:bg-[#d1d1d1] after:h-[40px] after:left-[-14px] after:top-[-29px] after:absolute after:w-[1px]">
-                                {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
-                                <LineverticalbigIcon className="absolute left-[-13px]" />
-                                <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
-                                  <div className="p-[7px_10px_7px_16px]">
-                                    <DocumentIcon />
-                                  </div>
-                                  <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                      chain
-                                    </h1>
-                                  </div>
-                                  <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                      query
-                                    </h1>
-                                  </div>
-                                  <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                      2456 T
-                                    </h1>
-                                  </div>
-                                  <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                                    <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                      2.55 s
-                                    </h1>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        );
-                      })}
-                    </div>
+                    innerEle.parent_id == null && (
+                      <div
+                        key={innerEleIndx}
+                        className="flex mb-[18px] ml-[20px] items-center relative bg-[#fff] z-[9]"
+                      >
+                        {/* <LinesmallIcon className="absolute top-[12px] left-[-13px]" /> */}
+                        {/* <LineverticalbigIcon className="absolute left-[-13px]" /> */}
+                        <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
+                          <div className="p-[7px_10px_7px_16px]">
+                            <DocumentIcon />
+                          </div>
+                          <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
+                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                              chain
+                            </h1>
+                          </div>
+                          <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
+                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                              query
+                            </h1>
+                          </div>
+                          <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
+                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                              2456 T
+                            </h1>
+                          </div>
+                          <div className="md:p-[7px_13px_8px_6px] p-[8px]">
+                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                              2.55 s
+                            </h1>
+                          </div>
+                        </div>
+                      </div>
+                    )
                   );
                 })}
+                {traceProject.map((innerEle, innerEleIndx) => {
+                  return (
+                    innerEle.parent_id !== null && (
+                      <div key={innerEleIndx}>
+                        <div className="flex mb-[18px] ml-[58px] items-center relative after:content-[''] after:bg-[#d1d1d1] after:h-[44px] after:left-[-14px] after:top-[-32px] after:absolute after:w-[1px]">
+                          {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
+                          <LineverticalbigIcon className="absolute left-[-13px]" />
+                          <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
+                            <div className="p-[7px_10px_7px_16px]">
+                              <DocumentIcon />
+                            </div>
+                            <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
+                              <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                chain
+                              </h1>
+                            </div>
+                            <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
+                              <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                query
+                              </h1>
+                            </div>
+                            <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
+                              <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                2456 T
+                              </h1>
+                            </div>
+                            <div className="md:p-[7px_13px_8px_6px] p-[8px]">
+                              <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
+                                2.55 s
+                              </h1>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
