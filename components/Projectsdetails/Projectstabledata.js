@@ -1,9 +1,9 @@
-import { ThreeDotsIcon, UpDownIcon } from "@/public/Assets/Icons/Allsvg";
-import React, { useEffect, useState, useRef } from "react";
-import { IoChevronForwardCircleOutline } from "react-icons/io5";
-import TraceDetails from "./TraceDetails";
-import { RiAddBoxLine } from "react-icons/ri";
-import { MdDeleteOutline } from "react-icons/md";
+import { ThreeDotsIcon, UpDownIcon } from '@/public/Assets/Icons/Allsvg';
+import React, { useEffect, useState, useRef } from 'react';
+import { IoChevronForwardCircleOutline } from 'react-icons/io5';
+import TraceDetails from './TraceDetails';
+import { RiAddBoxLine } from 'react-icons/ri';
+import { MdDeleteOutline } from 'react-icons/md';
 
 const Projectstabledata = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,11 +19,6 @@ const Projectstabledata = () => {
     }
   };
 
-  const handleOutsideClick = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
-    }
-  };
-
   const handleLatency = (startTime, endTime) => {
     const TempStartTime = new Date(startTime);
     const TempendTime = new Date(endTime);
@@ -33,17 +28,17 @@ const Projectstabledata = () => {
 
   const handleSpanStartTime = (startTime) => {
     const startDate = new Date(startTime);
-    const formattedDate = startDate.toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
+    const formattedDate = startDate.toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
     });
 
     // Format time
-    const formattedTime = startDate.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
+    const formattedTime = startDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
     });
     const FormatedTime = `${formattedDate} ${formattedTime}`;
     return FormatedTime;
@@ -52,11 +47,11 @@ const Projectstabledata = () => {
   const getProjectDetails = async () => {
     try {
       // const urlParams = new URLSearchParams(traceProject?.attributes?.http_url);
-      const project_id = "7b0ad838-1eae-4b28-b148-9bc8aaaaab03";
+      const project_id = '7b0ad838-1eae-4b28-b148-9bc8aaaaab03';
       const response = await fetch(
         `/api/manageProjectTrace?project_id=${project_id}`,
         {
-          method: "GET",
+          method: 'GET',
         }
       );
 
@@ -66,10 +61,10 @@ const Projectstabledata = () => {
           setProjectList(responseData.traces);
         }
       } else {
-        console.error("API request failed:", response.statusText);
+        console.error('API request failed:', response.statusText);
       }
     } catch (error) {
-      console.error("Error during API request:", error);
+      console.error('Error during API request:', error);
     }
   };
 
@@ -189,8 +184,8 @@ const Projectstabledata = () => {
                       </td>
                       <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter ">
                         <div className="flex gap-[5px] items-center relative">
-                          {/* {option && 
-                        
+                          {/* {option &&
+
                       <div className="absolute top-[18px] right-[10px] bg-[#d8d8d9] border-[1px] border-[#868fa0] rounded-[5px] p-[3px]">
                         <div className="flex items-center"><RiAddBoxLine className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Add</span></div>
                         <div className="flex items-center"><MdDeleteOutline className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Delete</span></div>
@@ -208,7 +203,7 @@ const Projectstabledata = () => {
             )}
             {isModalOpen && (
               <div
-                ref={modalRef}
+                // ref={modalRef}
                 className="modal lg:w-[981px] w-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 sm:flex-row flex-col"
               >
                 <TraceDetails

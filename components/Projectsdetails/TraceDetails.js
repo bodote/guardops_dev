@@ -10,23 +10,63 @@ import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import Info from "./Info";
 import Response from "./Response";
 import SignalsConcepts from "./SignalsConcepts";
+import { Tooltip } from "react-tooltip";
 
 const TraceDetails = ({ traceProject, setIsModalOpen }) => {
+  const [open, setOpen] = useState(true)
+  const [selectedProject, setSelectedProject] = useState(null)
+  const [currentRootTrace, setCurrentRootTrace] = useState(null)
   const [tab, setTab] = useState("Info");
-  let [height, setHeight] = useState(null);
 
-  const divref = useRef();
-  const divStyle = {
-    "&::after": {
-      content: `''`,
-      display: "block",
-      height: `${height}px !important`,
-    },
+  const handleLatency = (startTime, endTime) => {
+    const TempStartTime = new Date(startTime);
+    const TempendTime = new Date(endTime);
+    const latency = (TempendTime - TempStartTime) / 1000;
+    return latency;
   };
+
+
+
+  const handleSpanStartTime = (startTime) => {
+    const startDate = new Date(startTime);
+    const formattedDate = startDate.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+
+    // Format time
+    const formattedTime = startDate.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const FormatedTime = `${formattedDate} ${formattedTime}`;
+    return FormatedTime;
+  };
+
+  const handleTreeRowClick = (e, val, parent = false) => {
+    if (parent) {
+      setOpen(!open)
+    }
+    e.preventDefault()
+    setSelectedProject(val)
+  }
+
+  useEffect(() => {
+    traceProject.map((trace) => {
+      if (trace.parent_id == null) {
+        console.log("trace+++", trace);
+        setCurrentRootTrace(trace)
+      }
+    })
+  }, [])
+
+
   return (
     <>
       <div className="trace-scroll">
-        <div className="lg:w-[424px] w-full overflow-y-auto h-screen scroll-auto border-r border-r-[#CCCCCC]">
+        <div className="lg:w-[509px] w-full overflow-y-auto h-screen scroll-auto border-r border-r-[#CCCCCC]">
           <div className="border-b border-b-[#CCCCCC]">
             <button
               onClick={() => setIsModalOpen(false)}
@@ -41,37 +81,37 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
             </h1>
             <div className="relative trace-detail">
               <div className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[22px] after:top-[-27px] after:absolute after:w-[1px]">
-                {traceProject.map((innerEle, innerEleIndx) => {
+                {traceProject.map((outerEle, innerEleIndx) => {
                   return (
-                    innerEle.parent_id == null && (
-                      <div
+                    outerEle.parent_id == null && (
+                      <div onClick={(e) => handleTreeRowClick(e, outerEle, true)}
                         key={innerEleIndx}
-                        className="flex mb-[18px] ml-[20px] items-center relative bg-[#fff] z-[9]"
+                        className="flex mb-[18px] ml-[20px] items-center relative bg-[#fff] z-[9] max-w-[466px]"
                       >
                         {/* <LinesmallIcon className="absolute top-[12px] left-[-13px]" /> */}
                         {/* <LineverticalbigIcon className="absolute left-[-13px]" /> */}
-                        <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
+                        <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb]  ">
                           <div className="p-[7px_10px_7px_16px]">
                             <DocumentIcon />
                           </div>
-                          <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                              chain
+                          <div className="md:p-[4px_0px_4px_6px] p-[8px] border-x">
+                            <h1 data-tooltip-id="my-tooltip" data-tooltip-content={outerEle.kind} className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]">
+                              {outerEle.kind}
                             </h1>
                           </div>
-                          <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                              query
+                          <div className="md:p-[4px_0px_4px_6px] pl-[2px] border-r">
+                            <h1 data-tooltip-id="my-tooltip" data-tooltip-content={outerEle.name} className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]">
+                              {outerEle.name}
                             </h1>
                           </div>
-                          <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                              2456 T
+                          <div className="md:p-[4px_0px_4px_6px] p-[8px] border-r">
+                            <h1 data-tooltip-id="my-tooltip" data-tooltip-content={handleSpanStartTime(outerEle.start_time)} className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]">
+                              {handleSpanStartTime(outerEle.start_time)}
                             </h1>
                           </div>
-                          <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                            <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                              2.55 s
+                          <div className="md:p-[4px_0px_4px_6px] p-[8px]">
+                            <h1 data-tooltip-id="my-tooltip" className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]">
+                              {handleLatency(outerEle.start_time, outerEle.end_time)} s
                             </h1>
                           </div>
                         </div>
@@ -82,45 +122,50 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
                 {traceProject.map((innerEle, innerEleIndx) => {
                   return (
                     innerEle.parent_id !== null && (
-                      <div key={innerEleIndx}>
-                        <div className="flex mb-[18px] ml-[58px] items-center relative after:content-[''] after:bg-[#d1d1d1] after:h-[44px] after:left-[-14px] after:top-[-32px] after:absolute after:w-[1px]">
-                          {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
-                          <LineverticalbigIcon className="absolute left-[-13px]" />
-                          <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] ">
-                            <div className="p-[7px_10px_7px_16px]">
-                              <DocumentIcon />
-                            </div>
-                            <div className="md:p-[6px_19px_7px_15px] p-[8px] border-x">
-                              <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                chain
-                              </h1>
-                            </div>
-                            <div className="md:p-[6px_74px_7px_12px] p-[8px] border-r">
-                              <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                query
-                              </h1>
-                            </div>
-                            <div className="md:p-[7px_20px_8px_8px] p-[8px] border-r">
-                              <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                2456 T
-                              </h1>
-                            </div>
-                            <div className="md:p-[7px_13px_8px_6px] p-[8px]">
-                              <h1 className="text-[10px] font-Archivo font-normal text-[#000000]">
-                                2.55 s
-                              </h1>
+                      <div key={innerEleIndx} >
+                        {open &&
+                          <div key={innerEleIndx} onClick={(e) => handleTreeRowClick(e, innerEle)} >
+                            <div className="flex mb-[18px] ml-[58px] items-center relative after:content-[''] after:bg-[#d1d1d1] after:h-[44px] after:left-[-14px] after:top-[-32px] after:absolute after:w-[1px]">
+                              {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
+                              <LineverticalbigIcon className="absolute left-[-13px]" />
+                              <div className="border border-[#CCCCCC] rounded-2xl h-[24px] flex items-center hover:bg-[#fffbeb]">
+                                <div className="p-[7px_10px_7px_16px]">
+                                  <DocumentIcon />
+                                </div>
+                                <div className="md:p-[4px_0px_4px_6px] p-[8px] border-x">
+                                  <h1 data-tooltip-id="my-tooltip" data-tooltip-content={innerEle.kind} className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px] ">
+                                    {innerEle.kind}
+                                  </h1>
+                                </div>
+                                <div className="md:p-[4px_0px_4px_6px] p-[8px] border-r">
+                                  <h1 data-tooltip-id="my-tooltip" data-tooltip-content={innerEle.name} className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]">
+                                    {innerEle.name}
+                                  </h1>
+                                </div>
+                                <div className="md:p-[4px_0px_4px_6px] p-[8px] border-r">
+                                  <h1 data-tooltip-id="my-tooltip" data-tooltip-content={handleSpanStartTime(innerEle.start_time)} className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]">
+                                    {handleSpanStartTime(innerEle.start_time)}
+                                  </h1>
+                                </div>
+                                <div className="md:p-[4px_0px_4px_6px] p-[8px]">
+                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[60px]">
+                                    {handleLatency(innerEle.start_time, innerEle.end_time)} s
+                                  </h1>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        }
                       </div>
                     )
                   );
                 })}
+
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </div >
       <div className="lg:w-[557px]  w-full">
         <div className="border-b border-b-[#CCCCCC]">
           <div className="h-[42px] flex items-center justify-end gap-[12px] px-[16px]">
@@ -146,11 +191,10 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
               <div className="group">
                 <button
                   onClick={() => setTab("Info")}
-                  className={`${
-                    tab === "Info"
-                      ? "font-semibold border-b-[#0D859A] text-[#0D859A] border-b-2"
-                      : "group-hover:text-[#000] group-hover:border-b-[#000] font-bold text-[#464F60] border-b-transparent border-b-2"
-                  } pb-2 font-Inter sm:text-[14px] text-[12px] px-[10px]`}
+                  className={`${tab === "Info"
+                    ? "font-semibold border-b-[#0D859A] text-[#0D859A] border-b-2"
+                    : "group-hover:text-[#000] group-hover:border-b-[#000] font-bold text-[#464F60] border-b-transparent border-b-2"
+                    } pb-2 font-Inter sm:text-[14px] text-[12px] px-[10px]`}
                 >
                   Info
                 </button>
@@ -158,11 +202,10 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
               <div className="group">
                 <button
                   onClick={() => setTab("Response")}
-                  className={`${
-                    tab === "Response"
-                      ? "font-semibold  border-b-[#0D859A] text-[#0D859A] border-b-2"
-                      : " group-hover:text-[#000] group-hover:border-b-[#000] font-bold text-[#464F60] border-b-transparent border-b-2"
-                  } pb-2 font-Inter sm:text-[14px] text-[12px] px-[10px] `}
+                  className={`${tab === "Response"
+                    ? "font-semibold  border-b-[#0D859A] text-[#0D859A] border-b-2"
+                    : " group-hover:text-[#000] group-hover:border-b-[#000] font-bold text-[#464F60] border-b-transparent border-b-2"
+                    } pb-2 font-Inter sm:text-[14px] text-[12px] px-[10px] `}
                 >
                   Full Response
                 </button>
@@ -170,11 +213,10 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
               <div className="group">
                 <button
                   onClick={() => setTab("SignalsConcepts")}
-                  className={`${
-                    tab === "SignalsConcepts"
-                      ? "font-semibold border-b-[#0D859A] text-[#0D859A] border-b-2"
-                      : "group-hover:text-[#000] group-hover:border-b-[#000] font-bold text-[#464F60] border-b-transparent border-b-2"
-                  } pb-2 font-Inter sm:text-[14px] text-[12px] px-[10px]`}
+                  className={`${tab === "SignalsConcepts"
+                    ? "font-semibold border-b-[#0D859A] text-[#0D859A] border-b-2"
+                    : "group-hover:text-[#000] group-hover:border-b-[#000] font-bold text-[#464F60] border-b-transparent border-b-2"
+                    } pb-2 font-Inter sm:text-[14px] text-[12px] px-[10px]`}
                 >
                   Signals/Concepts
                 </button>
@@ -183,11 +225,12 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
           </div>
         </div>
         <div className="w-full overflow-x-auto">
-          {tab === "Info" && <Info traceProject={traceProject} />}
-          {tab === "Response" && <Response traceProject={traceProject} />}
+          {tab === "Info" && <Info traceProject={selectedProject?.attributes} />}
+          {tab === "Response" && <Response traceProject={currentRootTrace?.attributes} />}
           {tab === "SignalsConcepts" && <SignalsConcepts />}
         </div>
       </div>
+      <Tooltip id="my-tooltip" />
     </>
   );
 };
