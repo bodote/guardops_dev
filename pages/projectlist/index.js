@@ -1,15 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import {
-  LockIcon,
-  PlusIcon,
-  RightIcon,
-} from "@/public/Assets/Icons/Allsvg";
+import { LockIcon, PlusIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
+import Intromodel from "@/components/modal/AddProjectModal";
+import Link from "next/link";
 import ProjectSection from "@/components/ProjectSection/ProjectSection";
-import DatasetSection from "@/components/DatasetSection/DatasetSection";
-import EvaluationSection from "@/components/EvaluationSection/EvaluationSection";
 
-const projects = () => {
+const ProjectList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
 
@@ -51,22 +47,18 @@ const projects = () => {
               </h1>
               <RightIcon />
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                Home
+                Projects
               </h1>
             </div>
             <a href="/api/auth/logout">
               <LockIcon />
             </a>
           </div>
-          <div className="">
-            <ProjectSection/>
-            <DatasetSection/>
-            <EvaluationSection/>
-          </div>
+          <ProjectSection/>      
         </div>
       </div>
     </>
   );
 };
 
-export default projects;
+export default ProjectList;

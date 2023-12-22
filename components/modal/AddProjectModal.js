@@ -6,7 +6,7 @@ import makeAnimated from "react-select/animated";
 
 const animatedComponents = makeAnimated();
 
-const Intromodel = () => {
+const AddProjectModal = ({updateProjectList}) => {
   const [projectData, setProjectData] = useState({
     project_name: "",
     project_description: "",
@@ -36,7 +36,7 @@ const Intromodel = () => {
     const projectFormData = {
       ...projectData,
       project_tags: selected.map((option) => option.value),
-      user_id: "test",
+      user_id: "demouser1",
     };
 
     const formData = {
@@ -61,6 +61,7 @@ const Intromodel = () => {
           project_retention: 0,
         });
         setSelected([]);
+        updateProjectList()
       } else {
         console.error("API request failed:", response.statusText);
       }
@@ -80,9 +81,7 @@ const Intromodel = () => {
   return (
     <>
       <div className="border-b border-b-[#CCCCCC]">
-        <button
-          className="py-[9px] px-[11px] border-r border-r-[#CCCCCC]"
-        >
+        <button className="py-[9px] px-[11px] border-r border-r-[#CCCCCC]">
           <RightcircleIcon />
         </button>
       </div>
@@ -216,4 +215,4 @@ const Intromodel = () => {
   );
 };
 
-export default Intromodel;
+export default AddProjectModal;
