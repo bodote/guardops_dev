@@ -12,7 +12,7 @@ const Apimanagement = () => {
 
   const getUserKeyDetails = async () => {
     const formData = {
-      user_id: "test",
+      user_id: "demouser1",
     };
 
     try {
@@ -35,10 +35,10 @@ const Apimanagement = () => {
       console.error("Error during API request:", error);
     }
   };
-  
+
   const ganerateNewKey = async () => {
     const formData = {
-      user_id: "test",
+      user_id: "demouser1",
     };
 
     try {
@@ -63,7 +63,7 @@ const Apimanagement = () => {
 
   const handleDeleteKey = async () => {
     const formData = {
-      user_id: "test",
+      user_id: "demouser1",
       key_hash: deletedKey.hash,
     };
     try {

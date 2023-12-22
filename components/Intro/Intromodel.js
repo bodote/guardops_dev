@@ -36,7 +36,7 @@ const Intromodel = () => {
     const projectFormData = {
       ...projectData,
       project_tags: selected.map((option) => option.value),
-      user_id: "test",
+      user_id: "demouser1",
     };
 
     const formData = {
@@ -80,9 +80,7 @@ const Intromodel = () => {
   return (
     <>
       <div className="border-b border-b-[#CCCCCC]">
-        <button
-          className="py-[9px] px-[11px] border-r border-r-[#CCCCCC]"
-        >
+        <button className="py-[9px] px-[11px] border-r border-r-[#CCCCCC]">
           <RightcircleIcon />
         </button>
       </div>

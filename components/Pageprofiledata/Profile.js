@@ -6,7 +6,7 @@ const Profile = () => {
       <div className="sm:w-[360px] w-auto">
         <div className="">
           <label
-            for="name"
+            htmlFor="name"
             className="text-[#252525] font-medium text-[14px] font-Inter"
           >
             Name
@@ -24,7 +24,7 @@ const Profile = () => {
         </div>
         <div className=" my-[28px]">
           <label
-            for="email"
+            htmlFor="email"
             className="text-[#252525] font-medium text-[14px] font-Inter"
           >
             Email address
@@ -43,7 +43,7 @@ const Profile = () => {
 
         <div className=" my-[28px]">
           <label
-            for="phoneno"
+            htmlFor="phoneno"
             className="text-[#252525] font-medium text-[14px] font-Inter"
           >
             Phone number
@@ -60,7 +60,7 @@ const Profile = () => {
           </p>
         </div>
 
-        <div class="flex sm:justify-start justify-center">
+        <div className="flex sm:justify-start justify-center">
           <button className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[50px] rounded-md">
             Save
           </button>

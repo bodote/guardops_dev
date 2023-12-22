@@ -55,9 +55,9 @@ const Intro = () => {
                 Home
               </h1>
             </div>
-            <a href="/">
-        <LockIcon />
-        </a>
+            <a href="/api/auth/logout">
+              <LockIcon />
+            </a>
           </div>
           <div className="sm:px-[55px] px-[16px]">
             <div>

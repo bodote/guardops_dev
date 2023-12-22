@@ -160,15 +160,15 @@ const index = () => {
             <div className="px-[16px] pt-[12px] w-full">
               <div className="flex justify-between w-full sm:flex-row flex-col">
                 <label
-                  for="name"
+                  htmlFor="name"
                   className="font-Archivo text-[12px] font-normal text-[#000]"
                 >
                   Prompt
                 </label>
                 <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start sm:mt-0 mt-[10px]">
                   <label
-                    for="project"
-                    class="block font-Archivo text-[12px] text-[#000000] font-normal"
+                    htmlFor="project"
+                    className="block font-Archivo text-[12px] text-[#000000] font-normal"
                   >
                     Input Tokens: 245
                   </label>
