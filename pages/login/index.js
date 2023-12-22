@@ -117,7 +117,7 @@ const Login = () => {
       router.push("/api/auth/login");
     }
     if (user) {
-      router.push("/intro");
+      router.push("/projects");
     }
   }, [isLoading, user, router]);
 

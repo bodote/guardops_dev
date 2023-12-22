@@ -6,7 +6,7 @@ import makeAnimated from "react-select/animated";
 
 const animatedComponents = makeAnimated();
 
-const Intromodel = () => {
+const AddProjectModal = ({updateProjectList}) => {
   const [projectData, setProjectData] = useState({
     project_name: "",
     project_description: "",
@@ -61,6 +61,7 @@ const Intromodel = () => {
           project_retention: 0,
         });
         setSelected([]);
+        updateProjectList()
       } else {
         console.error("API request failed:", response.statusText);
       }
@@ -214,4 +215,4 @@ const Intromodel = () => {
   );
 };
 
-export default Intromodel;
+export default AddProjectModal;

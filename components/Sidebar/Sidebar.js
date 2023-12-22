@@ -51,7 +51,7 @@ const Sidebar = () => {
               </button>
               <div>
                 <a
-                  href="intro"
+                  href="/projects"
                   className="flex gap-[10px] items-center mt-[47px]"
                 >
                   <HomeIcon className="w-[24px]" />
@@ -69,7 +69,7 @@ const Sidebar = () => {
                   </p>
                 </a>
                 <a
-                  href="/datasets"
+                  href="/datasetlist"
                   className="flex gap-[10px] items-center mt-[30px]"
                 >
                   <DatasetIcon className="w-[24px]" />

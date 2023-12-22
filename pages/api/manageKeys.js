@@ -16,6 +16,7 @@ export default async function handler(req, res) {
       Url = `${baseUrl}api/get_keys`;
       queryParams = new URLSearchParams({
         user_id: req.query.user_id,
+        
       });
       urlWithParams = `${Url}?${queryParams}`;
       try {
