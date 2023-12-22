@@ -1,6 +1,7 @@
+import React, { useState, useEffect } from 'react';
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { LockIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { FiPlus } from "react-icons/fi";
@@ -38,7 +39,93 @@ function classNames(...classes) {
 }
 
 const index = () => {
+  // Add state to manage text area content
+  const [message, setMessage] = useState("");
+
+  // Code for VersionsHistory:
+  const [runsHistory, setRunsHistory] = useState([]);
+
+  const handleRunClick = (runMessage) => {
+    setMessage(runMessage);
+  };
+
+  // Add useEffect to listen for keydown events
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        runPlayground();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [message]); // Depend on 'message' to ensure it's captured in the closure
+
+
+  // Function to clear the message text area
+  const clearMessage = () => {
+    setMessage("");
+  };
+
+  // State to track the runPlayground button has been pressed
+  const [runPressed, setRunPressed] = useState(false);
+
+  // Function to reset the runPressed flag
+  const resetRunPressed = () => {
+    setRunPressed(false);
+  };
+
+  // Function to handle text change in text area
+  const handleTextChange = (e) => {
+    setMessage(e.target.value);
+  };
+
+  // Function to transform text and pass to Version component
+  const runPlayground = () => {
+    // Pass the uppercaseMessage to each Version component
+    setVersions(versions.map(v => ({ ...v, message: message })));
+    setRunPressed(true);
+
+      // New logic to add the current message to runs history
+    setRunsHistory(prevRuns => [
+      ...prevRuns, 
+      { id: prevRuns.length + 1, message: message }
+      ]);
+  };
+
+  // Function to append text to message
+  const appendToMessage = (text) => {
+    setMessage((prevMessage) => `${prevMessage} ${text}`);
+  };
+
+
+
   const [proname, setProname] = useState(projectname[1]);
+
+  // State to manage versions
+  const [versions, setVersions] = useState([{ id: 1, component: <Version key={1} /> }]);
+
+  // Function to add a new version
+  const addVersion = () => {
+    const newId = versions.length > 0 ? versions[versions.length - 1].id + 1 : 1;
+    setVersions([...versions, { id: newId, component: <Version key={newId} /> }]);
+  };
+
+  // Function to remove a version
+  const removeVersion = (id) => {
+    setVersions(versions.filter(version => version.id !== id));
+  };
+
+  // Calculate grid columns based on number of versions
+  const gridCols = `grid-cols-${versions.length > 1 ? versions.length : 1}`;
+
+
+
 
   return (
     <>
@@ -158,16 +245,22 @@ const index = () => {
                   className="h-[180px] border-0 rounded  w-full  font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none "
                   placeholder=" Start entering your prompt for the selected models. Press
                   Button Run Playground or Shift + Return to get the results."
+                  value={message}
+                  onChange={handleTextChange}
                 />
               </div>
               <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center">
                 <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
                   Prompt Templates
                 </button>
-                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
+                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                onClick={clearMessage}
+                >
                   Clear
                 </button>
-                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
+                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                onClick={runPlayground}
+                >
                   Run Playground
                 </button>
               </div>
@@ -179,23 +272,29 @@ const index = () => {
                 Versions
               </h1>
               <ul className="list-disc px-[8px]">
-                <li className="text-[#656565] text-[12px] font-Inter font-medium mt-[10px]">
-                  Run 1
-                </li>
-                <li className="text-[#656565] text-[12px] font-Inter font-medium mt-[10px]">
-                  Run 2
-                </li>
-                <li className="text-[#656565] text-[12px] font-Inter font-medium mt-[10px]">
-                  Run 3
-                </li>
-                <li className="text-[#656565] text-[12px] font-Inter font-medium mt-[10px]">
-                  Run 4
-                </li>
+                {runsHistory.map(run => (
+                  <li 
+                    key={run.id} 
+                    className="run-link text-[#656565] text-[12px] font-Inter font-medium mt-[10px]"
+                    onClick={() => handleRunClick(run.message)}>
+                      Run {run.id}: {run.message.length > 20 ? run.message.substring(0, 20) + '...' : run.message}
+                  </li>
+                ))}
               </ul>
             </div>
-            <div className=" grid lg:grid-cols-2 grid-cols-1  w-full lg:flex-row flex-col bg-[#F7F7F7]">
-              <Version />
-              <Version />
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))` }} className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}>
+            {versions.map((version) => (
+              React.cloneElement(version.component, {
+                addVersion,
+                removeVersion: () => removeVersion(version.id),
+                message: version.message, // pass the message here
+                versionId: version.id, // pass the version ID here
+                runPressed: runPressed,
+                resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
+                appendToMessage: appendToMessage, // pass the appendToMessage function here
+                key: version.id
+              })
+            ))}
             </div>
           </div>
         </div>

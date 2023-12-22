@@ -139,3 +139,40 @@
   -webkit-box-orient: vertical;  
   overflow: hidden;
 }
+
+.code-box-container {
+  position: relative; /* Relative positioning for the container */
+}
+
+.code-box {
+  background-color: black;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: 'Courier New', Courier, monospace;
+  white-space: pre;
+  overflow-x: auto;
+  display: block; /* Ensure block-level display */
+  margin-bottom: 0; /* Remove margin-bottom if there is any */
+}
+
+.copy-button {
+  position: absolute; /* Absolute positioning for the button */
+  bottom: 10px; /* Position it 10px from the bottom */
+  right: 10px; /* Position it 10px from the right */
+  z-index: 10; /* Ensure it's above the code box */
+  color: white; 
+}
+
+.response-output {
+  display: block; /* Ensures that children are laid out as blocks */
+}
+
+.run-link {
+  text-decoration: none; /* Underline like a typical link */
+  cursor: pointer; /* Cursor changes to a pointer on hover */
+}
+
+.run-link:hover {
+  text-decoration: underline; /* Remove underline on hover for a change */
+}

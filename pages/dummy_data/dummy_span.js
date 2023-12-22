@@ -1,3 +1,5 @@
+import React from 'react';
+
 export const dummyData = [{
     "_id": {
         "$oid": "65608c080e4be8797abd73f4"
@@ -8203,3 +8205,9 @@ export const dummyData = [{
         "schema_url": ""
     }
 }]
+
+const DummyDataPage = () => {
+    return <div>Some content or just an empty div</div>;
+};
+
+export default DummyDataPage;
