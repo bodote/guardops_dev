@@ -56,7 +56,6 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
   useEffect(() => {
     traceProject.map((trace) => {
       if (trace.parent_id == null) {
-        console.log("trace+++", trace);
         setCurrentRootTrace(trace)
       }
     })
@@ -79,7 +78,7 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
             <h1 className="text-[32px] font-Archivo font-normal text-[#000000] ">
               Trace Details
             </h1>
-            <div className="relative trace-detail">
+            <div className="relative trace-detail cursor-pointer">
               <div className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[22px] after:top-[-27px] after:absolute after:w-[1px]">
                 {traceProject.map((outerEle, innerEleIndx) => {
                   return (

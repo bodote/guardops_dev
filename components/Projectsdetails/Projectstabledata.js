@@ -5,7 +5,7 @@ import TraceDetails from './TraceDetails';
 import { RiAddBoxLine } from 'react-icons/ri';
 import { MdDeleteOutline } from 'react-icons/md';
 
-const Projectstabledata = () => {
+const Projectstabledata = ({ currentProjectID }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectList, setProjectList] = useState([]);
   const [traceProject, setTraceProject] = useState(null);
@@ -47,9 +47,12 @@ const Projectstabledata = () => {
   const getProjectDetails = async () => {
     try {
       // const urlParams = new URLSearchParams(traceProject?.attributes?.http_url);
-      const project_id = '7b0ad838-1eae-4b28-b148-9bc8aaaaab03';
+      // const project_id = '7b0ad838-1eae-4b28-b148-9bc8aaaaab03';
+      const url = new URL( window.location.href);
+      const projectId = url.pathname.split('/').pop()
+  
       const response = await fetch(
-        `/api/manageProjectTrace?project_id=${project_id}`,
+        `/api/manageProjectTrace?project_id=${projectId}`,
         {
           method: 'GET',
         }
