@@ -6,7 +6,7 @@ import makeAnimated from "react-select/animated";
 
 const animatedComponents = makeAnimated();
 
-const AddDatasetModal = ({ updateProjectList }) => {
+const AddDatasetModal = ({ updateProjectList , dataset_status }) => {
   const [datasetData, setDatasetData] = useState({
     dataset_name : "",
     dataset_description : "",
@@ -69,7 +69,7 @@ const AddDatasetModal = ({ updateProjectList }) => {
       </div>
       <div className="sm:px-[35px] px-[16px] py-[29px]">
         <h1 className="sm:text-[32px] text-[22px] font-normal font-Archivo text-[#000] ">
-          Create New Dataset
+          {dataset_status == "new" ? "Create New Dataset" : "Edit Dataset" }
         </h1>
         <div className="sm:mt-[53px] mt-[10px]">
           <label

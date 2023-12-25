@@ -17,6 +17,7 @@ const Projectstabledata = ({ currentProjectID }) => {
       setIsModalOpen(true);
       setTraceProject(value);
     }
+
   };
 
   const handleLatency = (startTime, endTime) => {
