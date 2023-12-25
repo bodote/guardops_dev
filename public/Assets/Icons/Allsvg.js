@@ -1001,3 +1001,27 @@ export const DownBigIcon = ({ className }) => {
     </svg>
   );
 };
+
+
+export const EditBlackIcon = ({ className }) => {
+  return (
+    <svg className={className} width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19 11V15C19 17.7614 16.7614 20 14 20H6C3.23858 20 1 17.7614 1 15V7C1 4.23858 3.23858 2 6 2H10" stroke="black" stroke-linecap="round"/>
+    <path d="M11.2958 4.87469L14.7466 1.4187C15.527 0.637062 16.7929 0.636583 17.5739 1.41763L19.2334 3.07712C20.0078 3.85151 20.0158 5.10516 19.2514 5.88943L11.8225 13.5116C11.258 14.0907 10.4839 14.4172 9.67557 14.4172L7.40335 14.4171C6.76642 14.4171 6.25776 13.8861 6.28454 13.2493V13.2493L6.33366 12.0815L6.38278 10.9137V10.9137C6.41437 10.1627 6.72651 9.4509 7.25744 8.91917L8.86385 7.31032" stroke="black" stroke-linecap="round"/>
+    <path d="M15.8644 5.60687L17.5719 7.29297" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    
+  );
+};
+
+export const DeleteBlackIcon = ({ className }) => {
+  return (
+    <svg className={className} width="18" height="21" viewBox="0 0 18 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M3 11V9.58228C3 8.5552 2.66688 7.55584 2.05063 6.73418V6.73418C1.20573 5.60763 2.00954 4 3.41772 4H14.5823C15.9905 4 16.7943 5.60763 15.9494 6.73418V6.73418C15.3331 7.55584 15 8.5552 15 9.58228V16C15 18.2091 13.2091 20 11 20H7C4.79086 20 3 18.2091 3 16V15" stroke="black" stroke-linecap="round"/>
+<path d="M11 15L11 9" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7 15L7 9" stroke="black" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M11.6368 1.31557C11.3222 1.11415 10.9504 1 10.5585 1H7.44152C7.04964 1 6.67777 1.11415 6.36322 1.31557" stroke="black" stroke-linecap="round"/>
+</svg>
+
+  );
+};

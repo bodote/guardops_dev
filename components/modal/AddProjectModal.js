@@ -6,7 +6,7 @@ import makeAnimated from "react-select/animated";
 
 const animatedComponents = makeAnimated();
 
-const AddProjectModal = ({updateProjectList}) => {
+const AddProjectModal = ({updateProjectList , project_status }) => {
   const [projectData, setProjectData] = useState({
     project_name: "",
     project_description: "",
@@ -87,7 +87,7 @@ const AddProjectModal = ({updateProjectList}) => {
       </div>
       <div className="sm:px-[35px] px-[16px] py-[29px]">
         <h1 className="sm:text-[32px] text-[22px] font-normal font-Archivo text-[#000] ">
-          Create New Project
+           { project_status == "new" ? "Create New Project" : "Edit project details" }
         </h1>
         <div className="sm:mt-[53px] mt-[10px]">
           <label

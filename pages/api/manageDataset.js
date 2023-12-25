@@ -18,7 +18,7 @@ export default async function handler(req, res) {
                 user_id: req.query.user_id,
             });
             urlWithParams = `${Url}?${queryParams}`;
-            console.log("new+++++++++++", urlWithParams);
+            
             try {
                 const response = await fetch(urlWithParams, {
                     method: "GET",
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
                 });
                 
                 const data = await response.json();
-                console.log("new+++++++++++", data);
+                
                 res.status(response.status).json(data);
             } catch (error) {
                 console.error("Error during API request:", error);

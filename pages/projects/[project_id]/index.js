@@ -1,20 +1,82 @@
-import {DivisionIcon,DownIcon,LockIcon,RightIcon,SearchIcon} from "@/public/Assets/Icons/Allsvg";
-import { useRouter } from 'next/router';
-import React, { useEffect, useState } from "react";
+import {
+  DivisionIcon,
+  DownIcon,
+  LockIcon,
+  RightIcon,
+  SearchIcon,
+} from "@/public/Assets/Icons/Allsvg";
+import { useRouter } from "next/router";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import Projectstabledata from "@/components/Projectsdetails/Projectstabledata";
 import { RiFilter2Fill } from "react-icons/ri";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import DonutChart from "@/components/Projectsdetails/DonutChart";
 import BarChart from "@/components/Projectsdetails/BarChart";
+import { IoAdd, IoChevronDownOutline } from "react-icons/io5";
+import { MdOutlineAdd } from "react-icons/md";
+import { Dialog, Listbox, Transition } from "@headlessui/react";
 
-const ProjectDetails = () => {  
-  const [currentProject, setCurrentProject] = useState("")
-  useEffect(()=>{
-    const url = new URL( window.location.href);
-    const projectId = url.pathname.split('/').pop()
+const people = [
+  {
+    id: 1,
+    name: "Select a dataset",
+  },
+  {
+    id: 2,
+    name: "DIAS Assistant",
+  },
+  {
+    id: 3,
+    name: "Simon Marius GPT",
+  },
+  {
+    id: 4,
+    name: "PlantUML GPT",
+  },
+  {
+    id: 5,
+    name: "MDZ",
+  },
+  {
+    id: 6,
+    name: "New Project ...",
+  },
+];
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
+
+const ProjectDetails = () => {
+  const [active, setActive] = useState(false);
+  const [selected, setSelected] = useState(people[0]);
+  const cancelButtonRef = useRef(null);
+  const [currentProject, setCurrentProject] = useState("");
+  const modalRef = useRef();
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const projectId = url.pathname.split("/").pop();
     console.log("avaleu+++++++", projectId);
     // projectId && setCurrentProject(projectId)
-  },[])
+  }, []);
+
+  const handleOutsideClick = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      setActive(false);
+    }
+  };
+
+  useEffect(() => {
+    if (active) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    } else {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [active]);
 
   return (
     <>
@@ -123,36 +185,143 @@ const ProjectDetails = () => {
               </div>
             </div>
           </div>
-                 
+
           <div className=" sm:px-[22px] px-[16px] py-[9px] flex items-center justify-between flex-wrap gap-[20px]">
-            <div className="flex sm:w-[370px] w-auto">
-              <button
-                id="dropdown-button-2"
-                data-dropdown-toggle="dropdown-search-city"
-                className="gap-[8px] flex-shrink-0 inline-flex items-center py-2.5 px-4  text-[#464F60] border border-gray-300 rounded-s-lg "
-                type="button"
-              >
-                <RiFilter2Fill />
-                <h1 className="text-[14px] font-medium font-Inter ">All</h1>
-                <DownIcon />
-              </button>
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                  <SearchIcon />
-                </div>
-                <input
-                  type="text"
-                  id="voice-search"
-                  className="focus:ring-0 focus:outline-none focus:!border-gray-300  border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
-                  placeholder="Search"
-                  required
-                />
+            <div className="flex gap-[40px] ">
+              <div className="flex sm:w-[370px] w-auto">
                 <button
+                  id="dropdown-button-2"
+                  data-dropdown-toggle="dropdown-search-city"
+                  className="gap-[8px] flex-shrink-0 inline-flex items-center py-2.5 px-4  text-[#464F60] border border-gray-300 rounded-s-lg "
                   type="button"
-                  className="absolute inset-y-0 end-0 flex me-3 bg-[#E9EDF5] w-[16px] h-[16px] rounded justify-center items-center translate-y-[-50%] top-[50%]"
                 >
-                  <DivisionIcon className="" />
+                  <RiFilter2Fill />
+                  <h1 className="text-[14px] font-medium font-Inter ">All</h1>
+                  <DownIcon />
                 </button>
+                <div className="relative w-full">
+                  <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <SearchIcon />
+                  </div>
+                  <input
+                    type="text"
+                    id="voice-search"
+                    className="focus:ring-0 focus:outline-none focus:!border-gray-300  border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
+                    placeholder="Search"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 end-0 flex me-3 bg-[#E9EDF5] w-[16px] h-[16px] rounded justify-center items-center translate-y-[-50%] top-[50%]"
+                  >
+                    <DivisionIcon className="" />
+                  </button>
+                </div>
+              </div>
+              <div className="relative">
+                <button
+                  onClick={() => setActive(!active)}
+                  className="bg-[#cce037] hover:bg-[#15839a] active:bg-[#6f4bdb] text-white rounded-lg flex gap-2 items-center p-[10px_14px]"
+                >
+                  <MdOutlineAdd className="text-[26px] text-white" />
+                  Add to Dataset
+                </button>
+                {active && (
+                  <div
+                    ref={modalRef}
+                    className="p-[16px] absolute border-[1px] border-[#ccc] w-[380px] bg-white"
+                  >
+                    <h1 className="text-[14px] text-black text-center font-medium mb-3 mt-[10px]">
+                      Select Dataset to add to
+                    </h1>
+                    <Listbox value={selected} onChange={setSelected}>
+                      {({ open }) => (
+                        <>
+                          <div className="relative mt-2 max-w-[290px] w-full mx-auto">
+                            <Listbox.Button className="relative w-full cursor-default rounded-[7px] bg-white pl-3 pr-10 text-left text-gray-900 border-[1px] border-[#ccc] sm:text-sm sm:leading-6 ">
+                              <span className="flex items-center">
+                                <span className="ml-2 block truncate text-[12px]">
+                                  {selected.name}
+                                </span>
+                              </span>
+                              <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                <IoChevronDownOutline
+                                  className="text-[14px] text-black"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            </Listbox.Button>
+
+                            <Transition
+                              show={open}
+                              as={Fragment}
+                              leave="transition ease-in duration-100"
+                              leaveFrom="opacity-100"
+                              leaveTo="opacity-0"
+                            >
+                              <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-[8px] bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border-[1px] border-[#ccc] shadow-none">
+                                {people.map((person) => (
+                                  <Listbox.Option
+                                    key={person.id}
+                                    className={({ active }) =>
+                                      classNames(
+                                        active ? "bg-[#eee]" : "text-gray-900",
+                                        "relative cursor-default select-none py-[4px] pl-3 pr-9 text-[12px]"
+                                      )
+                                    }
+                                    value={person}
+                                  >
+                                    {({ selected, active }) => (
+                                      <>
+                                        <div className="flex items-center">
+                                          <span
+                                            className={classNames(
+                                              selected
+                                                ? "font-semibold"
+                                                : "font-normal",
+                                              "ml-3 block truncate"
+                                            )}
+                                          >
+                                            {person.name}
+                                          </span>
+                                        </div>
+
+                                        {selected ? (
+                                          <span
+                                            className={classNames(
+                                              active
+                                                ? "text-white"
+                                                : "text-indigo-600",
+                                              "absolute inset-y-0 right-0 flex items-center pr-4"
+                                            )}
+                                          ></span>
+                                        ) : null}
+                                      </>
+                                    )}
+                                  </Listbox.Option>
+                                ))}
+                              </Listbox.Options>
+                            </Transition>
+                          </div>
+                        </>
+                      )}
+                    </Listbox>
+                    <div className="max-w-[290px] w-full flex justify-between items-center mx-auto mt-[30px]">
+                      <button
+                        onClick={() => setActive(false)}
+                        className=" bg-[#E33B32] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
+                      >
+                        cancel
+                      </button>
+                      <button
+                        onClick={() => setActive(false)}
+                        className=" bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
+                      >
+                        Confirm
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex gap-[48px] flex-wrap sm:mt-0 mt-[10px]">
@@ -221,9 +390,7 @@ const ProjectDetails = () => {
             </div>
           </div>
           <div>
-            <Projectstabledata
-              currentProjectID = {currentProject}
-            />
+            <Projectstabledata currentProjectID={currentProject} />
           </div>
         </div>
       </div>
