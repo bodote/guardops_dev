@@ -229,7 +229,7 @@ const ProjectDetails = () => {
                 {active && (
                   <div
                     ref={modalRef}
-                    className="p-[16px] absolute border-[1px] border-[#ccc] w-[380px] bg-white"
+                    className="p-[16px] absolute border-[1px] border-[#ccc] w-[380px] bg-white z-[1]"
                   >
                     <h1 className="text-[14px] text-black text-center font-medium mb-3 mt-[10px]">
                       Select Dataset to add to

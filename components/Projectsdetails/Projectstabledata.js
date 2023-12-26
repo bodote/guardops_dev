@@ -13,11 +13,8 @@ const Projectstabledata = ({ currentProjectID }) => {
   const modalRef = useRef();
 
   const openModal = (value) => {
-    if (!isModalOpen) {
       setIsModalOpen(true);
       setTraceProject(value);
-    }
-
   };
 
   const handleLatency = (startTime, endTime) => {
