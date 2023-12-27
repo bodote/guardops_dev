@@ -1,16 +1,13 @@
-import React, { useEffect, useState, useRef, Fragment } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   DeleteBlackIcon,
   EditBlackIcon,
-  LockIcon,
   PlusIcon,
-  RightIcon,
 } from "@/public/Assets/Icons/Allsvg";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import AddProjectModal from "@/components/modal/AddProjectModal";
 import { useRouter } from "next/navigation";
 import AddDatasetModal from "@/components/modal/AddDatasetModal";
-import { Dialog, Transition } from "@headlessui/react";
+import DeleteDatasetModal from "../modal/DeleteDatasetModal";
 
 const DatasetSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,7 +18,6 @@ const DatasetSection = () => {
   const { user } = useUser();
   const router = useRouter();
   const modalRef = useRef();
-  const cancelButtonRef = useRef(null);
   const [open, setOpen] = useState(false);
 
   const handleOutsideClick = (event) => {
@@ -135,12 +131,20 @@ const DatasetSection = () => {
                       <button
                         onClick={() => {
                           setSelectedDatasetForDelete(ele);
-                          setOpen(!open);
+                          setOpen(true);
                         }}
                       >
                         <DeleteBlackIcon />
                       </button>
-                      <Transition.Root show={open} as={Fragment}>
+                      {open && (
+                        <DeleteDatasetModal
+                          open={open}
+                          setOpen={setOpen}
+                          selectedProjectForDelete={selectedDatasetForDelete}
+                          handleProjectDelete={handleDatasetDelete}
+                        />
+                      )}
+                      {/* <Transition.Root show={open} as={Fragment}>
                         <Dialog
                           as="div"
                           className="relative z-10"
@@ -224,7 +228,7 @@ const DatasetSection = () => {
                             </div>
                           </div>
                         </Dialog>
-                      </Transition.Root>
+                      </Transition.Root> */}
                     </div>
                   </div>
                   <div className="flex gap-[14px] pt-[8px] pb-[6px]">
