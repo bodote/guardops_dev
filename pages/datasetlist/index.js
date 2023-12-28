@@ -54,7 +54,7 @@ const DatasetList = () => {
               <LockIcon />
             </a>
           </div>
-              <DatasetSection/>
+          <DatasetSection />
         </div>
       </div>
     </>

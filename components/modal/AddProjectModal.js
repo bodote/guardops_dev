@@ -3,17 +3,27 @@ import React, { useEffect, useState } from "react";
 import { FiPlus } from "react-icons/fi";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
+import { toast } from "react-toastify";
 
 const animatedComponents = makeAnimated();
 
-const AddProjectModal = ({updateProjectList , project_status }) => {
+const AddProjectModal = ({
+  updateProjectList,
+  setIsModalOpen,
+  project_status,
+  values,
+}) => {
   const [projectData, setProjectData] = useState({
-    project_name: "",
-    project_description: "",
-    project_retention: 0,
+    project_name: values ? values.name : "",
+    project_description: values ? values.description : "",
+    project_retention: values ? values.retention : 0,
   });
-  const [showRange, setShowRange] = useState(false);
-  const [selected, setSelected] = useState([]);
+  const [selected, setSelected] = useState(
+    values ? values.tags.map((tag) => ({ label: tag, value: tag })) : []
+  );
+  const [showRange, setShowRange] = useState(
+    values?.retention > 0 ? true : false
+  );
 
   const data = [
     { label: " LAW ", value: "LAW" },
@@ -39,59 +49,88 @@ const AddProjectModal = ({updateProjectList , project_status }) => {
       user_id: "demouser1",
     };
 
+    if(projectFormData.project_name == "" || projectFormData.project_description == ""){
+      toast.error("Please Enter required fields !!")
+      return false
+    }
+
     const formData = {
       user_id: projectFormData.user_id,
       project_name: projectFormData.project_name,
       project_description: projectFormData.project_description,
       project_retention: projectFormData.project_retention,
       project_tags: selected.map((e) => e.value),
+      project_id: values ? values.project_id : "",
     };
 
     try {
-      const response = await fetch("/api/manageProjects", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        setProjectData({
-          project_name: "",
-          project_description: "",
-          project_retention: 0,
+      if (project_status == "new") {
+        const response = await fetch("/api/manageProjects", {
+          method: "POST",
+          body: JSON.stringify(formData),
         });
-        setSelected([]);
-        updateProjectList()
+        if (response.ok) {
+          toast.success("Project created successfully !!");
+          const responseData = await response.json();
+          setProjectData({
+            project_name: "",
+            project_description: "",
+            project_retention: 0,
+          });
+          setSelected([]);
+          setIsModalOpen(false);
+          updateProjectList();
+        } else {
+          toast.error("API request failed");
+          console.error("API request failed:", response.statusText);
+        }
       } else {
-        console.error("API request failed:", response.statusText);
+        const response = await fetch("/api/manageProjects", {
+          method: "PATCH",
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          toast.success("Project updated successfully !!");
+          const responseData = await response.json();
+          setProjectData({
+            project_name: "",
+            project_description: "",
+            project_retention: 0,
+          });
+          setSelected([]);
+          setIsModalOpen(false);
+          updateProjectList();
+        } else {
+          toast.error("API request failed");
+          console.error("API request failed:", response.statusText);
+        }
       }
     } catch (error) {
+      toast.error(`${error.message}`);
       console.error("Error during API request:", error);
     }
   };
-  useEffect(() => {
-    if (!showRange) {
-      setProjectData((prevState) => ({
-        ...prevState,
-        project_retention: 0,
-      }));
-    }
-  }, [showRange]);
 
   return (
     <>
       <div className="border-b border-b-[#CCCCCC]">
-        <button className="py-[9px] px-[11px] border-r border-r-[#CCCCCC]">
+        <button
+          className="py-[9px] px-[11px] border-r border-r-[#CCCCCC]"
+          onClick={() => setIsModalOpen(false)}
+        >
           <RightcircleIcon />
         </button>
       </div>
       <div className="sm:px-[35px] px-[16px] py-[29px]">
         <h1 className="sm:text-[32px] text-[22px] font-normal font-Archivo text-[#000] ">
-           { project_status == "new" ? "Create New Project" : "Edit project details" }
+          {project_status == "new"
+            ? "Create New Project"
+            : "Edit project details"}
         </h1>
         <div className="sm:mt-[53px] mt-[10px]">
           <label
-            for="name"
+            htmlFor="name"
             className="text-[#252525] font-medium text-[14px] font-Inter"
           >
             Name of Project
@@ -111,7 +150,7 @@ const AddProjectModal = ({updateProjectList , project_status }) => {
         </div>
         <div className="mt-[36px]">
           <label
-            for="name"
+            htmlFor="description"
             className="text-[#252525] font-medium text-[14px] font-Inter"
           >
             Description of Project
@@ -132,7 +171,7 @@ const AddProjectModal = ({updateProjectList , project_status }) => {
         <div className="sm:mt-[45px] mt-[35px] sm:mb-[61px] mb-[30px]">
           <div className="flex items-center justify-between mb-1">
             <label
-              for="tag"
+              htmlFor="tag"
               className="text-[#252525] font-medium text-[14px] font-Inter"
             >
               Tags
@@ -190,9 +229,9 @@ const AddProjectModal = ({updateProjectList , project_status }) => {
                 name="project_retention"
                 min="1"
                 max="100"
-                defaultValue="0"
                 className="slider"
                 id="myRange"
+                value={projectData.project_retention}
                 onChange={handleOnChange}
               />
               <p className="text-[#68727D] font-medium text-[14px] pl-[34px] mt-[4px] font-Inter">
@@ -204,10 +243,10 @@ const AddProjectModal = ({updateProjectList , project_status }) => {
         <div className="flex justify-center sm:mt-[77px] mt-[50px]">
           <button
             className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
-            onClick={handleSaveProject}
+            onClick={() => handleSaveProject(values)}
           >
             <FiPlus />
-            Save Project
+            {project_status == "new" ? "Save Project" : "Save Changes"}
           </button>
         </div>
       </div>

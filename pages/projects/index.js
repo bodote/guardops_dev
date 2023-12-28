@@ -59,9 +59,9 @@ const projects = () => {
             </a>
           </div>
           <div className="">
-            <ProjectSection/>
-            <DatasetSection/>
-            <EvaluationSection/>
+            <ProjectSection />
+            <DatasetSection />
+            <EvaluationSection />
           </div>
         </div>
       </div>
