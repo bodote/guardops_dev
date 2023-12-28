@@ -61,7 +61,6 @@ export default async function handler(req, res) {
       break;
     case "PATCH":
       bodyData = JSON.parse(req.body);
-      console.log("teet patch ", bodyData);
       Url = `${baseUrl}api/update_project`;
       queryParams = new URLSearchParams({
         project_id: bodyData.project_id,

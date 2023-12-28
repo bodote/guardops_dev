@@ -1,8 +1,9 @@
 import { RightcircleIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useEffect, useState } from "react";
 import { FiPlus } from "react-icons/fi";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import makeAnimated from "react-select/animated";
+import Creatable from "react-select/creatable";
 import { toast } from "react-toastify";
 
 const animatedComponents = makeAnimated();
@@ -38,6 +39,20 @@ const AddProjectModal = ({
       [name]: value,
     }));
   };
+
+  const CustomOption = (props) => (
+    <components.Option {...props}>{props.data.label}</components.Option>
+  );
+
+  const CreatableSelect = (props) => (
+    <Creatable
+      components={{ ...animatedComponents, Option: CustomOption }}
+      isMulti
+      {...props}
+    />
+  );
+
+
   const handleSelectChange = (selectedOptions) => {
     setSelected(selectedOptions);
   };
@@ -49,9 +64,12 @@ const AddProjectModal = ({
       user_id: "demouser1",
     };
 
-    if(projectFormData.project_name == "" || projectFormData.project_description == ""){
-      toast.error("Please Enter required fields !!")
-      return false
+    if (
+      projectFormData.project_name == "" ||
+      projectFormData.project_description == ""
+    ) {
+      toast.error("Please Enter required fields !!");
+      return false;
     }
 
     const formData = {
@@ -184,10 +202,8 @@ const AddProjectModal = ({
             </p>
           </div>
           <div>
-            <Select
-              closeMenuOnSelect={true}
-              components={{ ...animatedComponents, ClearIndicator: null }}
-              isMulti
+            <CreatableSelect
+              closeMenuOnSelect={false}
               options={data}
               value={selected}
               onChange={handleSelectChange}

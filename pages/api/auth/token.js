@@ -16,7 +16,6 @@ export default async function handler(req, res) {
       options
     );
     const data = await response.json();
-    console.log("check valiue token", data);
 
     res.status(response.status).json(data);
   } catch (error) {
