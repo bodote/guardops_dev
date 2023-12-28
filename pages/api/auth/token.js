@@ -3,17 +3,16 @@ export default async function handler(req, res) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      client_id: "K0JYM4VcOtVAcOsQikuhdkxWCVh5ka78",
-      client_secret:
-        "yU0IyBHKkQAyuxuNmXFijObknCkEZnNjKVFtZwvWiy0Q4wk6mmymUj8yv1avmuPz",
-      audience: "https://lm3.hs-ansbach.de/tracing/",
+      client_id: process.env.AUTH0_TRACEAPI_CLIENT_ID,
+      client_secret:process.env.AUTH0_TRACEAPI_CLIENT_SECRET,
+      audience: process.env.TRACEAPI_AUDIENCE,
       grant_type: "client_credentials",
     }),
   };
 
   try {
     const response = await fetch(
-      "https://coai.eu.auth0.com/oauth/token",
+      `${process.env.AUTH0_TRACEAPI}`,
       options
     );
     const data = await response.json();

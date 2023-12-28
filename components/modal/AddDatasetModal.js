@@ -3,16 +3,20 @@ import React, { useEffect, useState } from "react";
 import { FiPlus } from "react-icons/fi";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
+import { toast } from "react-toastify";
 
 const animatedComponents = makeAnimated();
 
-const AddDatasetModal = ({ updateProjectList }) => {
+const AddDatasetModal = ({
+  updateProjectList,
+  isModalOpen,
+  dataset_status,
+  values,
+}) => {
   const [datasetData, setDatasetData] = useState({
-    dataset_name : "",
-    dataset_description : "",
+    dataset_name: values ? values.name : "",
+    dataset_description: values ? values.description : "",
   });
-  const [selected, setSelected] = useState([]);
-
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -21,55 +25,84 @@ const AddDatasetModal = ({ updateProjectList }) => {
       [name]: value,
     }));
   };
-  const handleSelectChange = (selectedOptions) => {
-    setSelected(selectedOptions);
-  };
 
-  const handleSaveProject = async () => {
-    const projectFormData = {
+  const handleSaveDataset = async () => {
+    const datasetFormData = {
       ...datasetData,
       user_id: "demouser1",
     };
+    if(datasetFormData.dataset_name == "" || datasetFormData.dataset_description == ""){
+      toast.error("Please Enter required fields !!")
+      return false
+    }
 
     const formData = {
-      user_id: projectFormData.user_id,
-      dataset_name: projectFormData.dataset_name,
-      dataset_description: projectFormData.dataset_description,
+      user_id: datasetFormData.user_id,
+      dataset_name: datasetFormData.dataset_name,
+      dataset_description: datasetFormData.dataset_description,
+      dataset_id: values ? values.dataset_id : "",
     };
 
     try {
-      const response = await fetch("/api/manageDataset", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        setDatasetData({
-          dataset_name : "",
-          dataset_description : "",
+      if (dataset_status == "new") {
+        const response = await fetch("/api/manageDataset", {
+          method: "POST",
+          body: JSON.stringify(formData),
         });
-        setSelected([]);
-        updateProjectList();
+
+        if (response.ok) {
+          const responseData = await response.json();
+          toast.success("Dataset created successfully !!");
+          setDatasetData({
+            dataset_name: "",
+            dataset_description: "",
+          });
+          isModalOpen(false);
+          updateProjectList();
+        } else {
+          toast.error("API request failed !!");
+          console.error("API request failed:", response.statusText);
+        }
       } else {
-        console.error("API request failed:", response.statusText);
+        const response = await fetch("/api/manageDataset", {
+          method: "PATCH",
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          toast.success("Dataset updated successfully !!");
+          const responseData = await response.json();
+          setDatasetData({
+            dataset_name: "",
+            dataset_description: "",
+          });
+          isModalOpen(false);
+          updateProjectList();
+        } else {
+          toast.error("API request failed !!");
+          console.error("API request failed:", response.statusText);
+        }
       }
     } catch (error) {
+      toast.error(`${error.message}`);
       console.error("Error during API request:", error);
     }
   };
-
+  useEffect(() => {}, [values]);
 
   return (
     <>
       <div className="border-b border-b-[#CCCCCC]">
-        <button className="py-[9px] px-[11px] border-r border-r-[#CCCCCC]">
+        <button
+          className="py-[9px] px-[11px] border-r border-r-[#CCCCCC]"
+          onClick={() => isModalOpen(false)}
+        >
           <RightcircleIcon />
         </button>
       </div>
       <div className="sm:px-[35px] px-[16px] py-[29px]">
         <h1 className="sm:text-[32px] text-[22px] font-normal font-Archivo text-[#000] ">
-          Create New Dataset
+          {dataset_status == "new" ? "Create New Dataset" : "Edit Dataset"}
         </h1>
         <div className="sm:mt-[53px] mt-[10px]">
           <label
@@ -115,9 +148,10 @@ const AddDatasetModal = ({ updateProjectList }) => {
         <div className="flex justify-center sm:mt-[77px] mt-[50px]">
           <button
             className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
-            onClick={handleSaveProject}
+            onClick={handleSaveDataset}
           >
             <FiPlus />
+            {dataset_status == "new" ? "Save Dataset" : "Save Changes"}
             Save Project
           </button>
         </div>

@@ -14,7 +14,6 @@ const Profile = () => {
 
   useEffect(() => {
     if (user) {
-      console.log("test++++", user);
       setUserInfo({
         name: user.name || "",
         email: user.email || "",

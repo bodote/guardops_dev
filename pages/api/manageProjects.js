@@ -58,13 +58,41 @@ export default async function handler(req, res) {
         console.error("Error during API request:", error);
         res.status(500).json({ error: "Internal Server Error" });
       }
+      break;
+    case "PATCH":
+      bodyData = JSON.parse(req.body);
+      Url = `${baseUrl}api/update_project`;
+      queryParams = new URLSearchParams({
+        project_id: bodyData.project_id,
+        user_id: bodyData.user_id,
+        project_name: bodyData.project_name,
+        project_description: bodyData.project_description,
+        project_retention: bodyData.project_retention,
+        project_tags: bodyData.project_tags.join(","),
+      });
+      urlWithParams = `${Url}?${queryParams}`;
+      try {
+        const response = await fetch(urlWithParams, {
+          method: "PATCH",
+          headers: new Headers({
+            authorization: `Bearer ${token}`,
+          }),
+        });
+
+        const data = await response.json();
+        res.status(response.status).json(data);
+      } catch (error) {
+        console.error("Error during API request:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+      break;
     case "DELETE":
       bodyData = JSON.parse(req.body);
       Url = `${baseUrl}api/delete_project`;
       queryParams = new URLSearchParams({
         user_id: bodyData.user_id,
         project_id: bodyData.project_id,
-        cascade: bodyData.cascade,
+        cascade: true,
       });
 
       urlWithParams = `${Url}?${queryParams}`;

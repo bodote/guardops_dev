@@ -1,9 +1,9 @@
-import { ThreeDotsIcon, UpDownIcon } from '@/public/Assets/Icons/Allsvg';
-import React, { useEffect, useState, useRef } from 'react';
-import { IoChevronForwardCircleOutline } from 'react-icons/io5';
-import TraceDetails from './TraceDetails';
-import { RiAddBoxLine } from 'react-icons/ri';
-import { MdDeleteOutline } from 'react-icons/md';
+import { ThreeDotsIcon, UpDownIcon } from "@/public/Assets/Icons/Allsvg";
+import React, { useEffect, useState, useRef } from "react";
+import { IoChevronForwardCircleOutline } from "react-icons/io5";
+import TraceDetails from "./TraceDetails";
+import { RiAddBoxLine } from "react-icons/ri";
+import { MdDeleteOutline } from "react-icons/md";
 
 const Projectstabledata = ({ currentProjectID }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -13,10 +13,8 @@ const Projectstabledata = ({ currentProjectID }) => {
   const modalRef = useRef();
 
   const openModal = (value) => {
-    if (!isModalOpen) {
-      setIsModalOpen(true);
-      setTraceProject(value);
-    }
+    setIsModalOpen(true);
+    setTraceProject(value);
   };
 
   const handleLatency = (startTime, endTime) => {
@@ -28,17 +26,17 @@ const Projectstabledata = ({ currentProjectID }) => {
 
   const handleSpanStartTime = (startTime) => {
     const startDate = new Date(startTime);
-    const formattedDate = startDate.toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
+    const formattedDate = startDate.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
 
     // Format time
-    const formattedTime = startDate.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+    const formattedTime = startDate.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
     const FormatedTime = `${formattedDate} ${formattedTime}`;
     return FormatedTime;
@@ -48,13 +46,13 @@ const Projectstabledata = ({ currentProjectID }) => {
     try {
       // const urlParams = new URLSearchParams(traceProject?.attributes?.http_url);
       // const project_id = '7b0ad838-1eae-4b28-b148-9bc8aaaaab03';
-      const url = new URL( window.location.href);
-      const projectId = url.pathname.split('/').pop()
-  
+      const url = new URL(window.location.href);
+      const projectId = url.pathname.split("/").pop();
+
       const response = await fetch(
         `/api/manageProjectTrace?project_id=${projectId}`,
         {
-          method: 'GET',
+          method: "GET",
         }
       );
 
@@ -64,15 +62,16 @@ const Projectstabledata = ({ currentProjectID }) => {
           setProjectList(responseData.traces);
         }
       } else {
-        console.error('API request failed:', response.statusText);
+        console.error("API request failed:", response.statusText);
       }
     } catch (error) {
-      console.error('Error during API request:', error);
+      console.error("Error during API request:", error);
     }
   };
 
   useEffect(() => {
     getProjectDetails();
+    // setProjectList(dummydata)
   }, []);
 
   return (
