@@ -46,6 +46,7 @@ const ProjectSection = () => {
   const [projectList, setProjectList] = useState([]);
   const [selectedProjectForDelete, setSelectedProjectForDelete] = useState("");
   const [selectedProjectForEdit, setSelectedProjectForEdit] = useState("");
+  const [loader, setLoader] = useState(false);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(people[0]);
 
@@ -89,6 +90,7 @@ const ProjectSection = () => {
   };
 
   const getProjectList = async () => {
+    setLoader(true)
     try {
       const user_id = "demouser1";
       const response = await fetch(`/api/manageProjects?user_id=${user_id}`, {
@@ -96,6 +98,7 @@ const ProjectSection = () => {
       });
 
       if (response.ok) {
+        setLoader(false)
         const responseData = await response.json();
         if (responseData.projects) {
           setProjectList(responseData.projects);
@@ -104,6 +107,7 @@ const ProjectSection = () => {
         console.error("API request failed:", response.statusText);
       }
     } catch (error) {
+      setLoader(false)
       console.error("Error during API request:", error);
     }
   };
@@ -137,8 +141,8 @@ const ProjectSection = () => {
         <h1 className="font-Archivo sm:text-[32px] text-[28px] font-thin text-[#000] sm:py-[26px] py-[20px]">
           Projects
         </h1>
-        <div className="flex xl:gap-[45px] sm:gap-[30px] gap-[10px] flex-wrap ">
-          {projectList.length &&
+        <div className="flex xl:gap-[45px] sm:gap-[30px] gap-[10px] items-center flex-wrap w-full">
+          {!loader ? (
             projectList.map((ele, i) => {
               return (
                 <div
@@ -200,7 +204,14 @@ const ProjectSection = () => {
                   </p>
                 </div>
               );
-            })}
+            })
+          ) : (
+            <div className="flex">
+              <div class="dot-loader"></div>
+              <div class="dot-loader dot-loader--2"></div>
+              <div class="dot-loader dot-loader--3"></div>
+            </div>
+          )}
 
           <div
             onClick={() => {

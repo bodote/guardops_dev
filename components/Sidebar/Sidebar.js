@@ -30,13 +30,17 @@ const Sidebar = () => {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <img src="/Assets/Images/Logo.png" alt="Logo" />
+          <img
+            src="/Assets/Images/Logo.png"
+            alt="Logo"
+            className="sm:w-auto w-[60px]"
+          />
           <div className=" trans group">
             <div
               className={
                 open
-                  ? "sm:px-[21px] px-[16px] group-hover:pr-[45px] trans opened"
-                  : "sm:px-[21px] px-[16px] group-hover:pr-[45px] trans"
+                  ? "sm:px-[21px] px-[12px] group-hover:pr-[45px] trans opened"
+                  : "sm:px-[21px] px-[12px] group-hover:pr-[45px] trans"
               }
             >
               <button

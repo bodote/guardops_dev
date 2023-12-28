@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { LockIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
 import { Fragment } from "react";
@@ -6,33 +6,7 @@ import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { FiPlus } from "react-icons/fi";
 import Version from "@/components/Playground/Version";
-
-const projectname = [
-  {
-    id: 1,
-    name: "DIAS Assitant",
-  },
-  {
-    id: 2,
-    name: "Select a project to store",
-  },
-  {
-    id: 3,
-    name: "PlantUML GPT",
-  },
-  {
-    id: 4,
-    name: "Simon Marius GPT",
-  },
-  {
-    id: 5,
-    name: "MDZ",
-  },
-  {
-    id: 6,
-    name: "New Project.....",
-  },
-];
+import PromptTemplates from "@/components/modal/PromptTemplates";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -40,7 +14,11 @@ function classNames(...classes) {
 
 const index = () => {
   // Add state to manage text area content
+  const [projectList, setProjectList] = useState([]);
   const [message, setMessage] = useState("");
+  const [copiedContent, setCopiedContent] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const modalRef = useRef();
 
   // Code for VersionsHistory:
   const [runsHistory, setRunsHistory] = useState([]);
@@ -49,23 +27,51 @@ const index = () => {
     setMessage(runMessage);
   };
 
+  const handleAddToPrompt = (content) => {
+    setCopiedContent(content);
+    setIsModalOpen(false);
+  };
+
+  const getProjectList = async () => {
+    try {
+      const user_id = "demouser1";
+      const response = await fetch(`/api/manageProjects?user_id=${user_id}`, {
+        method: "GET",
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.projects) {
+          setProjectList(responseData.projects);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
   // Add useEffect to listen for keydown events
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
         runPlayground();
       }
     };
 
     // Add event listener
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
     // Cleanup
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [message]); // Depend on 'message' to ensure it's captured in the closure
 
+  useEffect(() => {
+    getProjectList();
+  }, []);
 
   // Function to clear the message text area
   const clearMessage = () => {
@@ -88,14 +94,14 @@ const index = () => {
   // Function to transform text and pass to Version component
   const runPlayground = () => {
     // Pass the uppercaseMessage to each Version component
-    setVersions(versions.map(v => ({ ...v, message: message })));
+    setVersions(versions.map((v) => ({ ...v, message: message })));
     setRunPressed(true);
 
-      // New logic to add the current message to runs history
-    setRunsHistory(prevRuns => [
-      ...prevRuns, 
-      { id: prevRuns.length + 1, message: message }
-      ]);
+    // New logic to add the current message to runs history
+    setRunsHistory((prevRuns) => [
+      ...prevRuns,
+      { id: prevRuns.length + 1, message: message },
+    ]);
   };
 
   // Function to append text to message
@@ -103,29 +109,34 @@ const index = () => {
     setMessage((prevMessage) => `${prevMessage} ${text}`);
   };
 
-
-
-  const [proname, setProname] = useState(projectname[1]);
+  const t1 = {
+    id: 999,
+    name: "Select a Project",
+  };
+  const [proname, setProname] = useState(t1);
 
   // State to manage versions
-  const [versions, setVersions] = useState([{ id: 1, component: <Version key={1} /> }]);
+  const [versions, setVersions] = useState([
+    { id: 1, component: <Version key={1} /> },
+  ]);
 
   // Function to add a new version
   const addVersion = () => {
-    const newId = versions.length > 0 ? versions[versions.length - 1].id + 1 : 1;
-    setVersions([...versions, { id: newId, component: <Version key={newId} /> }]);
+    const newId =
+      versions.length > 0 ? versions[versions.length - 1].id + 1 : 1;
+    setVersions([
+      ...versions,
+      { id: newId, component: <Version key={newId} /> },
+    ]);
   };
 
   // Function to remove a version
   const removeVersion = (id) => {
-    setVersions(versions.filter(version => version.id !== id));
+    setVersions(versions.filter((version) => version.id !== id));
   };
 
   // Calculate grid columns based on number of versions
   const gridCols = `grid-cols-${versions.length > 1 ? versions.length : 1}`;
-
-
-
 
   return (
     <>
@@ -143,8 +154,8 @@ const index = () => {
               </h1>
             </div>
             <a href="/">
-        <LockIcon />
-        </a>
+              <LockIcon />
+            </a>
           </div>
           <div className=" flex sm:flex-row flex-col border-b border-b-[#CCCCCC]">
             <div className="px-[16px] pt-[12px] sm:w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] ">
@@ -179,15 +190,15 @@ const index = () => {
                           <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
                             <span className="flex items-center">
                               <span className=" block truncate">
-                                {proname.name}
+                                {proname?.name}
                               </span>
                             </span>
                             <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
                               <MdKeyboardArrowUp
                                 className={
                                   open
-                                    ? "h-5 w-5 text-gray-400 rotate-[180deg]"
-                                    : "h-5 w-5 text-gray-400 rotate-[0]"
+                                    ? "h-5 w-5 text-gray-400 rotate-[0]"
+                                    : "h-5 w-5 text-gray-400 rotate-[180deg]"
                                 }
                                 aria-hidden="true"
                               />
@@ -202,9 +213,9 @@ const index = () => {
                             leaveTo="opacity-0"
                           >
                             <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                              {projectname.map((person) => (
+                              {projectList.map((project) => (
                                 <Listbox.Option
-                                  key={person.id}
+                                  key={project.project_id}
                                   className={({ active }) =>
                                     classNames(
                                       active
@@ -213,7 +224,7 @@ const index = () => {
                                       "relative cursor-default select-none py-2 pl-[30px] pr-9"
                                     )
                                   }
-                                  value={person}
+                                  value={project}
                                 >
                                   <div className="flex items-center ">
                                     <span
@@ -224,7 +235,7 @@ const index = () => {
                                         "block truncate"
                                       )}
                                     >
-                                      {person.name}
+                                      {project.name}
                                     </span>
                                   </div>
                                 </Listbox.Option>
@@ -245,25 +256,41 @@ const index = () => {
                   className="h-[180px] border-0 rounded  w-full  font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none "
                   placeholder=" Start entering your prompt for the selected models. Press
                   Button Run Playground or Shift + Return to get the results."
-                  value={message}
+                  value={copiedContent}
                   onChange={handleTextChange}
                 />
               </div>
               <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center">
-                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                >
                   Prompt Templates
                 </button>
-                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
-                onClick={clearMessage}
+                <button
+                  className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                  onClick={clearMessage}
                 >
                   Clear
                 </button>
-                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
-                onClick={runPlayground}
+                <button
+                  className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                  onClick={runPlayground}
                 >
                   Run Playground
                 </button>
               </div>
+              {isModalOpen && (
+                <div
+                  ref={modalRef}
+                  className="modal z-[2] sm:w-[600px] w-auto absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto"
+                >
+                  <PromptTemplates
+                    setIsModalOpen={setIsModalOpen}
+                    onPromptOpen={handleAddToPrompt}
+                  />
+                </div>
+              )}
             </div>
           </div>
           <div className=" flex sm:flex-row flex-col h-screen">
@@ -272,29 +299,39 @@ const index = () => {
                 Versions
               </h1>
               <ul className="list-disc px-[8px]">
-                {runsHistory.map(run => (
-                  <li 
-                    key={run.id} 
+                {runsHistory.map((run) => (
+                  <li
+                    key={run.id}
                     className="run-link text-[#656565] text-[12px] font-Inter font-medium mt-[10px]"
-                    onClick={() => handleRunClick(run.message)}>
-                      Run {run.id}: {run.message.length > 20 ? run.message.substring(0, 20) + '...' : run.message}
+                    onClick={() => handleRunClick(run.message)}
+                  >
+                    Run {run.id}:{" "}
+                    {run.message.length > 20
+                      ? run.message.substring(0, 20) + "..."
+                      : run.message}
                   </li>
                 ))}
               </ul>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))` }} className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}>
-            {versions.map((version) => (
-              React.cloneElement(version.component, {
-                addVersion,
-                removeVersion: () => removeVersion(version.id),
-                message: version.message, // pass the message here
-                versionId: version.id, // pass the version ID here
-                runPressed: runPressed,
-                resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
-                appendToMessage: appendToMessage, // pass the appendToMessage function here
-                key: version.id
-              })
-            ))}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))`,
+              }}
+              className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}
+            >
+              {versions.map((version) =>
+                React.cloneElement(version.component, {
+                  addVersion,
+                  removeVersion: () => removeVersion(version.id),
+                  message: version.message, // pass the message here
+                  versionId: version.id, // pass the version ID here
+                  runPressed: runPressed,
+                  resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
+                  appendToMessage: appendToMessage, // pass the appendToMessage function here
+                  key: version.id,
+                })
+              )}
             </div>
           </div>
         </div>

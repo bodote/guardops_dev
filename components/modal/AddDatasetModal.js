@@ -1,5 +1,5 @@
-import { RightcircleIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useEffect, useState } from "react";
+import { RightcircleIcon } from "@/public/Assets/Icons/Allsvg";
 import { FiPlus } from "react-icons/fi";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
@@ -31,9 +31,12 @@ const AddDatasetModal = ({
       ...datasetData,
       user_id: "demouser1",
     };
-    if(datasetFormData.dataset_name == "" || datasetFormData.dataset_description == ""){
-      toast.error("Please Enter required fields !!")
-      return false
+    if (
+      datasetFormData.dataset_name == "" ||
+      datasetFormData.dataset_description == ""
+    ) {
+      toast.error("Please Enter required fields !!");
+      return false;
     }
 
     const formData = {
@@ -152,7 +155,6 @@ const AddDatasetModal = ({
           >
             <FiPlus />
             {dataset_status == "new" ? "Save Dataset" : "Save Changes"}
-            Save Project
           </button>
         </div>
       </div>
