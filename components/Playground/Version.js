@@ -244,12 +244,12 @@ const Version = ({
 
   // State for settings values
   const [settings, setSettings] = useState({
-    maxTokens: 150,
-    temperature: 0.7,
-    topP: 1,
-    topK: 1,
-    frequencyPenalty: 1,
-    presencePenalty: 1,
+    maxTokens: 500,
+    temperature: 0.6,
+    topP: 0.2,
+    topK: 0.3,
+    frequencyPenalty: 0.3,
+    presencePenalty: 0.3,
   });
 
   // Toggle settings visibility
@@ -265,7 +265,7 @@ const Version = ({
   return (
     <div>
       <div className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] lg:h-screen h-auto">
-        <div className="flex items-center justify-between sm:flex-row flex-col">
+        <div className="flex sm:items-center items-end justify-between sm:flex-row flex-col relative">
           <Listbox value={selected} onChange={setSelected}>
             {({ open }) => (
               <>
@@ -278,8 +278,8 @@ const Version = ({
                       <MdKeyboardArrowUp
                         className={
                           open
-                            ? "h-5 w-5 text-gray-400 rotate-[180deg]"
-                            : "h-5 w-5 text-gray-400 rotate-[0]"
+                            ? "h-5 w-5 text-gray-400 rotate-[0]"
+                            : "h-5 w-5 text-gray-400 rotate-[180deg]"
                         }
                         aria-hidden="true"
                       />
@@ -293,7 +293,7 @@ const Version = ({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                   >
-                    <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
+                    <Listbox.Options className="absolute z-10 mt-1 max-h-56 overflow-auto w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
                       {models.map((model) => (
                         <Listbox.Option
                           key={model.id}
@@ -369,7 +369,10 @@ const Version = ({
             <MinusIcon onClick={() => removeVersion()} />
             <PlusRectangleIcon onClick={addVersion} />
             <ShareIcon />
-            <SettingIcon onClick={toggleSettings} />{" "}
+            <SettingIcon
+              onClick={toggleSettings}
+              className="cursor-pointer"
+            />{" "}
             {/* Attach the click handler */}
           </div>
 
@@ -400,7 +403,15 @@ const Version = ({
             <p>Error: {error}</p>
           ) : null}
         </div>
-
+        <div>
+          To install the Vercel SDK, you can use npm or yarn package managers.
+          Open your command line interface and run "npm install -g vercel" or
+          "yarn global add vercel". Once installed, you can authenticate by
+          running "vercel login" and following the prompts. To create a new
+          project, navigate to your project directory and run "vercel init".
+          Finally, deploy your application using the command "vercel --prod" to
+          generate a unique URL for accessing it.
+        </div>
         <div className="flex gap-[10px] justify-center my-[17px]">
           <CopyIcon onClick={handleCopyClick} />
           <DownArrowIcon />
