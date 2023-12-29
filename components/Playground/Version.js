@@ -23,48 +23,64 @@ const models = [
     id1: "None",
     provider: null,
     context: null,
+    input_price: null,
+    output_price: null,
+    model_description: null,
   },
   {
     id: 2,
-    name: "OpenAI - GPT-3.5-Turbo",
-    id1: "gpt-3.5-turbo-1106",
+    name: "OpenAI - GPT-3-Curie",
+    id1: "text-curie-001",
+    id2: "open1",
     provider: "openai",
-    context: "16385",
+    context: "2,049",
+    input_price: "0.003 / 1000 Tokens",
+    output_price: "0.005 / 1000 Tokens",
+    model_description: "Model is capable for all kind of tasks",
   },
   {
     id: 3,
-    name: "OpenAI - GPT-4-Turbo",
-    id1: "gpt-4-1106-preview",
+    name: "OpenAI - GPT-3-Davinci",
+    id1: "davinci",
+    id2: "open2",
     provider: "openai",
-    context: "128000",
+    context: "2,049",
+    input_price: "0.002 / 1000 Tokens",
+    output_price: "0.005 / 1000 Tokens",
+    model_description: "Model is capable for all kind of tasks",
   },
   {
     id: 4,
-    name: "FW - LLama 2 34B",
-    id1: "accounts/fireworks/models/llama-v2-34b-code-instruct",
+    name: "FW - Mixtral MoE 8x7B Instruct",
+    id1: "mixtral-8x7b-instruct",
+    id2: "open3",
     provider: "fireworks",
-    context: null,
+    context: "128000",
+    input_price: "0.002 / 1000 Tokens",
+    output_price: "0.005 / 1000 Tokens",
+    model_description: "Model is capable for all kind of tasks",
   },
   {
     id: 5,
-    name: "FW - Mixtral7bx8",
-    id1: "accounts/fireworks/models/mixtral-8x7b-instruct",
+    name: "FW - Fireworks Function Call 34B v0",
+    id1: "fw-function-call-34b-v0",
+    id2: "open4",
     provider: "fireworks",
-    context: null,
+    context: "128000",
+    input_price: "0.002 / 1000 Tokens",
+    output_price: "0.005 / 1000 Tokens",
+    model_description: "Model is capable for all kind of tasks",
   },
   {
     id: 6,
-    name: "FW - LLama 2 Code 13B",
-    id1: "accounts/fireworks/models/llama-v2-13b-code-instruct",
+    name: "FW - Qwen 72B Chat",
+    id1: "qwen-72b-chat",
+    id2: "open5",
     provider: "fireworks",
-    context: null,
-  },
-  {
-    id: 7,
-    name: "FW - Mixtral-7b-Instruct",
-    id1: "accounts/fireworks/models/mistral-7b-instruct-4k",
-    provider: "fireworks",
-    context: null,
+    context: "128000",
+    input_price: "0.002 / 1000 Tokens",
+    output_price: "0.005 / 1000 Tokens",
+    model_description: "Model is capable for all kind of tasks",
   },
 ];
 
@@ -76,6 +92,7 @@ const Version = ({
   addVersion,
   removeVersion,
   message,
+  versions,
   versionId,
   runPressed,
   resetRunPressed,
@@ -87,7 +104,6 @@ const Version = ({
   const [error, setError] = useState(null);
   const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
-
   // Load API key from Local Storage
 
   useEffect(() => {
@@ -115,7 +131,7 @@ const Version = ({
   };
 
   // Function to call the API
-  const fetchApiResponse = async () => {
+  const fetchApiResponseFromOpenai = async () => {
     setIsLoading(true);
     setError(null);
 
@@ -129,33 +145,69 @@ const Version = ({
     const apiEndpoint = providerInfo.endpoint;
     const authKey = `Bearer ${providerInfo.getKey()}`;
 
-    try {
-      const response = await fetch(apiEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "text/event-stream",
-          Authorization: authKey,
-        },
-        body: JSON.stringify({
-          model: selected.id1,
-          messages: [{ role: "user", content: message }],
-          stream: false,
-          n: 1,
-          max_tokens: 1024,
-          temperature: settings.temperature,
-          top_p: settings.topP,
-        }),
-      });
-      const data = await response.json();
-      if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-        setApiResponse(data.choices[0].message.content); // Extracting the content
+    const formData = {
+      settings: settings,
+      modal: selected,
+    };
+    const response = await fetch(`/api/open-ai-completion`, {
+      method: "POST",
+      body: JSON.stringify(formData),
+    });
+
+    // const response = await fetch(`/api/fireworks-completion`, {
+    //   method: "POST",
+    //   body: JSON.stringify(formData),
+    // });
+
+    if (response.ok) {
+      const messageResponse = await response.json();
+      if (messageResponse.content) {
+        setApiResponse(messageResponse.content);
+        setIsLoading(false);
       } else {
         setApiResponse("No content available");
+        setIsLoading(false);
       }
-    } catch (err) {
-      setError(err.message);
-    } finally {
+    } else {
+      console.error("API request failed:", response.statusText);
+      setIsLoading(false);
+    }
+  };
+  const fetchApiResponseFromFireworks = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    const providerInfo = providerConfig[selected.provider];
+    if (!providerInfo) {
+      setError(`Provider ${selected.provider} is not supported.`);
+      setIsLoading(false);
+      return;
+    }
+
+    const apiEndpoint = providerInfo.endpoint;
+    const authKey = `Bearer ${providerInfo.getKey()}`;
+
+    const formData = {
+      settings: settings,
+      modal: selected,
+    };
+
+    const response = await fetch(`/api/fireworks-completion`, {
+      method: "POST",
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      const messageResponse = await response.json();
+      if (messageResponse.content) {
+        setApiResponse(messageResponse.content);
+        setIsLoading(false);
+      } else {
+        setApiResponse("No content available");
+        setIsLoading(false);
+      }
+    } else {
+      console.error("API request failed:", response.statusText);
       setIsLoading(false);
     }
   };
@@ -163,17 +215,40 @@ const Version = ({
   useEffect(() => {
     const isValidModelSelected = selected.id1 && selected.id1 !== "None";
     const providerInfo = providerConfig[selected.provider];
-    const apiKey = providerInfo ? providerInfo.getKey() : null;
+    // const apiKey = providerInfo ? providerInfo.getKey() : null;
 
-    if (message && isValidModelSelected && apiKey && runPressed) {
-      fetchApiResponse()
-        .then(() => {
-          resetRunPressed(); // Reset runPressed after the API call
-        })
-        .catch((error) => {
-          console.error("Error fetching API response:", error);
-          setError("Error: " + error.message); // Set error state
-        });
+    if (message && isValidModelSelected && runPressed) {
+      if (selected.provider == "openai") {
+        fetchApiResponseFromOpenai()
+          .then(() => {
+            resetRunPressed(); // Reset runPressed after the API call
+          })
+          .catch((error) => {
+            console.error("Error fetching API response:", error);
+            setError("Error: " + error.message); // Set error state
+          });
+      } else {
+        fetchApiResponseFromFireworks()
+          .then(() => {
+            resetRunPressed(); // Reset runPressed after the API call
+          })
+          .catch((error) => {
+            console.error("Error fetching API response:", error);
+            setError("Error: " + error.message); // Set error state
+          });
+      }
+
+      // // fetchApiResponseFromFireworks
+      // //fetchApiResponseFromOpenai
+
+      //   fetchApiResponseFromOpenai()
+      //   .then(() => {
+      //     resetRunPressed(); // Reset runPressed after the API call
+      //   })
+      //   .catch((error) => {
+      //     console.error("Error fetching API response:", error);
+      //     setError("Error: " + error.message); // Set error state
+      //   });
     } else if (runPressed) {
       let missingItems = [];
       if (!message) missingItems.push("message");
@@ -263,161 +338,153 @@ const Version = ({
   };
 
   return (
-    <div>
-      <div className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] lg:h-screen h-auto">
-        <div className="flex sm:items-center items-end justify-between sm:flex-row flex-col relative">
-          <Listbox value={selected} onChange={setSelected}>
-            {({ open }) => (
-              <>
-                <div className="relative mt-2  sm:w-[237px] w-full">
-                  <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[20px] py-[3px] ">
-                    <span className="flex items-center">
-                      <span className=" block truncate">{selected.name}</span>
-                    </span>
-                    <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                      <MdKeyboardArrowUp
-                        className={
-                          open
-                            ? "h-5 w-5 text-gray-400 rotate-[0]"
-                            : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                        }
-                        aria-hidden="true"
-                      />
-                    </span>
-                  </Listbox.Button>
+    <div
+      // className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC]"
+      className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] bg-[#F7F7F7] ${
+        versions > 2 ? "min-h-[500px] overflow-y-auto" : ""
+      }`}
+    >
+      <div className="flex sm:items-center items-end justify-between sm:flex-row flex-col relative">
+        <Listbox value={selected} onChange={setSelected}>
+          {({ open }) => (
+            <>
+              <div className="relative mt-2  sm:w-[237px] w-full">
+                <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[20px] py-[3px] ">
+                  <span className="flex items-center">
+                    <span className=" block truncate">{selected.name}</span>
+                  </span>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                    <MdKeyboardArrowUp
+                      className={
+                        open
+                          ? "h-5 w-5 text-gray-400 rotate-[0]"
+                          : "h-5 w-5 text-gray-400 rotate-[180deg]"
+                      }
+                      aria-hidden="true"
+                    />
+                  </span>
+                </Listbox.Button>
 
-                  <Transition
-                    show={open}
-                    as={Fragment}
-                    leave="transition ease-in duration-100"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                  >
-                    <Listbox.Options className="absolute z-10 mt-1 max-h-56 overflow-auto w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                      {models.map((model) => (
-                        <Listbox.Option
-                          key={model.id}
-                          id={model.id1}
-                          className={({ active }) =>
-                            classNames(
-                              active
-                                ? "bg-[#f0efef]  rounded-[6px]"
-                                : "text-[#000]",
-                              "relative cursor-default select-none py-2 pl-[30px] pr-9"
-                            )
-                          }
-                          value={model}
-                        >
-                          <div className="flex items-center ">
-                            <span
-                              className={classNames(
-                                selected
-                                  ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                  : "font-normal",
-                                "block truncate"
-                              )}
-                            >
-                              {model.name}
-                            </span>
-                          </div>
-                          <div className="ml-[220px] p-[16px] bg-white text-base border border-[#cccccc] rounded-lg w-[350px] hidden show absolute">
-                            <h1 className="text-[#656565] text-[12px] font-Inter font-medium ">
-                              Modelname 2
-                            </h1>
-                            <p className="font-Archivo text-[12px] font-normal text-[#CCCCCC] leading-normal mt-[5px]">
-                              Short description to this model.What is especially
-                              for this model.Eventually more information of the
-                              company.What the model is capable off.
-                            </p>
-                            <div className="my-[10px]">
-                              <div className="grid grid-cols-2 border-b border-b-[#ccc] py-[5px]">
-                                <p className="text-[#000] text-[12px] font-Inter font-medium ">
-                                  Context length:
-                                </p>
-                                <p className="text-[#656565] text-[12px] font-Inter font-medium ">
-                                  128.000 tokens
-                                </p>
-                              </div>
-                              <div className="grid grid-cols-2 border-b border-b-[#ccc] py-[5px]">
-                                <p className="text-[#000] text-[12px] font-Inter font-medium ">
-                                  Input pricing:
-                                </p>
-                                <p className="text-[#656565] text-[12px] font-Inter font-medium ">
-                                  0.003 / 1000 tokens
-                                </p>
-                              </div>
-                              <div className="grid grid-cols-2  py-[5px]">
-                                <p className="text-[#000] text-[12px] font-Inter font-medium ">
-                                  Output princing:
-                                </p>
-                                <p className="text-[#656565] text-[12px] font-Inter font-medium ">
-                                  0.005 / 1000 tokens
-                                </p>
-                              </div>
+                <Transition
+                  show={open}
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px]">
+                    {models.map((model) => (
+                      <Listbox.Option
+                        key={model.id}
+                        id={model.id2}
+                        className={({ active }) =>
+                          classNames(
+                            active
+                              ? "bg-[#f0efef]  rounded-[6px]"
+                              : "text-[#000]",
+                            "relative cursor-default select-none lg:py-2 py-1 xl:px-[30px] px-[10px]"
+                          )
+                        }
+                        value={model}
+                      >
+                        <div className="flex items-center ">
+                          <span
+                            className={classNames(
+                              selected
+                                ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                : "font-normal",
+                              "block truncate"
+                            )}
+                          >
+                            {model.name}
+                          </span>
+                        </div>
+                        <div className="xl:ml-[220px] sm:ml-[187px] p-[16px] bg-white text-base border border-[#cccccc] rounded-lg 2xl:w-[350px] sm:w-[270px] w-[230px] hidden show absolute z-[2]">
+                          <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
+                            {model.name}
+                          </h1>
+                          <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#CCCCCC] leading-normal mt-[5px]">
+                            {model.model_description}
+                          </p>
+                          <div className="my-[10px]">
+                            <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+                              <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                Context length:
+                              </p>
+                              <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                {model.context} tokens
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+                              <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                Input pricing:
+                              </p>
+                              <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                {model.input_price}
+                              </p>
+                            </div>
+                            <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
+                              <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                Output princing:
+                              </p>
+                              <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                {model.output_price}
+                              </p>
                             </div>
                           </div>
-                        </Listbox.Option>
-                      ))}
-                    </Listbox.Options>
-                  </Transition>
-                </div>
-              </>
-            )}
-          </Listbox>
-          <div className="flex gap-[17px] sm:mt-0 mt-[20px]">
-            <EditIcon />
-            <MinusIcon onClick={() => removeVersion()} />
-            <PlusRectangleIcon onClick={addVersion} />
-            <ShareIcon />
-            <SettingIcon
-              onClick={toggleSettings}
-              className="cursor-pointer"
-            />{" "}
-            {/* Attach the click handler */}
-          </div>
-
-          {/* Conditionally render the settings component */}
-          {showSettings && (
-            <ModelSettings
-              onSettingsChange={handleSettingsChange}
-              settings={settings}
-            />
+                        </div>
+                      </Listbox.Option>
+                    ))}
+                  </Listbox.Options>
+                </Transition>
+              </div>
+            </>
           )}
+        </Listbox>
+        <div className="flex gap-[17px] sm:mt-0 mt-[20px]">
+          <EditIcon />
+          <MinusIcon onClick={() => removeVersion()} />
+          <PlusRectangleIcon onClick={addVersion} />
+          <ShareIcon />
+          <SettingIcon
+            onClick={toggleSettings}
+            className="cursor-pointer"
+          />{" "}
+          {/* Attach the click handler */}
         </div>
-        <div className="response-output justify-center sm:mt-[38px] mt-[20px]">
-          {isLoading ? (
-            <p>Loading...</p>
-          ) : apiResponse ? (
-            parseApiResponse(apiResponse).map((segment, index) =>
-              segment.type === "code" ? (
-                <CodeBox key={index} code={segment.content} />
-              ) : (
-                <ReactMarkdown
-                  remarkPlugins={[gfm]}
-                  key={index}
-                  children={segment.content}
-                />
-              )
+
+        {/* Conditionally render the settings component */}
+        {showSettings && (
+          <ModelSettings
+            onSettingsChange={handleSettingsChange}
+            settings={settings}
+          />
+        )}
+      </div>
+      <div className="response-output justify-center sm:mt-[38px] mt-[20px]">
+        {isLoading ? (
+          <p>Loading...</p>
+        ) : apiResponse ? (
+          parseApiResponse(apiResponse).map((segment, index) =>
+            segment.type === "code" ? (
+              <CodeBox key={index} code={segment.content} />
+            ) : (
+              <ReactMarkdown
+                remarkPlugins={[gfm]}
+                key={index}
+                children={segment.content}
+              />
             )
-          ) : error ? (
-            <p>Error: {error}</p>
-          ) : null}
-        </div>
-        <div>
-          To install the Vercel SDK, you can use npm or yarn package managers.
-          Open your command line interface and run "npm install -g vercel" or
-          "yarn global add vercel". Once installed, you can authenticate by
-          running "vercel login" and following the prompts. To create a new
-          project, navigate to your project directory and run "vercel init".
-          Finally, deploy your application using the command "vercel --prod" to
-          generate a unique URL for accessing it.
-        </div>
-        <div className="flex gap-[10px] justify-center my-[17px]">
-          <CopyIcon onClick={handleCopyClick} />
-          <DownArrowIcon />
-          <UpArrowIcon />
-          <PenIcon />
-        </div>
+          )
+        ) : error ? (
+          <p>Error: {error}</p>
+        ) : null}
+      </div>
+      <div className="flex gap-[10px] justify-center my-[17px]">
+        <CopyIcon onClick={handleCopyClick} />
+        <DownArrowIcon />
+        <UpArrowIcon />
+        <PenIcon />
       </div>
     </div>
   );

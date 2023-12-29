@@ -16,7 +16,6 @@ const index = () => {
   // Add state to manage text area content
   const [projectList, setProjectList] = useState([]);
   const [message, setMessage] = useState("");
-  const [copiedContent, setCopiedContent] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
 
@@ -28,13 +27,28 @@ const index = () => {
   };
 
   const handleAddToPrompt = (content) => {
-    setCopiedContent(content);
+    setMessage(content);
     setIsModalOpen(false);
   };
+  const handleOutsideClick = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      setIsModalOpen(false);
+    }
+  };
+  useEffect(() => {
+    if (isModalOpen) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    } else {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [isModalOpen]);
 
   const getProjectList = async () => {
     try {
-      const user_id = "demouser1";
+      const user_id = "demouser2";
       const response = await fetch(`/api/manageProjects?user_id=${user_id}`, {
         method: "GET",
       });
@@ -134,7 +148,6 @@ const index = () => {
   const removeVersion = (id) => {
     setVersions(versions.filter((version) => version.id !== id));
   };
-
   // Calculate grid columns based on number of versions
   const gridCols = `grid-cols-${versions.length > 1 ? versions.length : 1}`;
 
@@ -142,7 +155,7 @@ const index = () => {
     <>
       <div className="flex">
         <Sidebar />
-        <div className="w-full h-screen overflow-y-auto  ml-[96px]">
+        <div className="w-full h-screen overflow-y-auto sm:ml-[96px] ml-[72px]">
           <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
             <div className="flex items-center gap-[5px]">
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
@@ -256,7 +269,7 @@ const index = () => {
                   className="h-[180px] border-0 rounded  w-full  font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none "
                   placeholder=" Start entering your prompt for the selected models. Press
                   Button Run Playground or Shift + Return to get the results."
-                  value={copiedContent}
+                  value={message}
                   onChange={handleTextChange}
                 />
               </div>
@@ -293,7 +306,7 @@ const index = () => {
               )}
             </div>
           </div>
-          <div className=" flex sm:flex-row flex-col h-screen">
+          <div className=" flex sm:flex-row flex-col h-full">
             <div className="px-[16px] py-[12px] sm:w-[182px] w-full min-w-[117px] sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
               <h1 className="text-[#000000] font-medium text-[12px] font-Inter">
                 Versions
@@ -314,11 +327,16 @@ const index = () => {
               </ul>
             </div>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))`,
-              }}
-              className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}
+              // style={{
+              //   display: "grid",
+              //   gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))`,
+              // }}
+              // className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}
+              className={`grid w-full lg:flex-row flex-col ${
+                versions.length > 1
+                  ? "xl:grid-cols-2 grid-cols-1 h-full"
+                  : "grid-cols-1"
+              }`}
             >
               {versions.map((version) =>
                 React.cloneElement(version.component, {
@@ -327,6 +345,7 @@ const index = () => {
                   message: version.message, // pass the message here
                   versionId: version.id, // pass the version ID here
                   runPressed: runPressed,
+                  versions: versions.length,
                   resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
                   appendToMessage: appendToMessage, // pass the appendToMessage function here
                   key: version.id,

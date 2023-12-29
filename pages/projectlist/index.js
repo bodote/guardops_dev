@@ -39,7 +39,7 @@ const ProjectList = () => {
     <>
       <div className="flex">
         <Sidebar />
-        <div className="h-screen overflow-y-auto ml-[96px] w-full">
+        <div className="h-screen overflow-y-auto sm:ml-[96px] ml-[72px] w-full">
           <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
             <div className="flex items-center gap-[5px]">
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
@@ -54,7 +54,7 @@ const ProjectList = () => {
               <LockIcon />
             </a>
           </div>
-          <ProjectSection/>      
+          <ProjectSection />
         </div>
       </div>
     </>
