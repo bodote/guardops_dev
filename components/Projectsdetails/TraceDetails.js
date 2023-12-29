@@ -25,7 +25,7 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
   const [open, setOpen] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
   const [currentRootTrace, setCurrentRootTrace] = useState(null);
-  const [isDatasetModelOpen , setIsDatasetModelOpen] = useState(false)
+  const [isDatasetModelOpen, setIsDatasetModelOpen] = useState(false);
   const [tab, setTab] = useState("Info");
 
   const handleLatency = (startTime, endTime) => {
@@ -65,9 +65,10 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
     traceProject.map((trace) => {
       if (trace.parent_id == null) {
         setCurrentRootTrace(trace);
+        setSelectedProject(trace);
       }
     });
-  }, []);
+  }, [traceProject]);
 
   return (
     <>
@@ -229,9 +230,12 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
               Open in playground
             </button>
           </div>
-          {isDatasetModelOpen &&
-            <SelectDatasetModal isDatasetModelOpen ={isDatasetModelOpen} setIsDatasetModelOpen ={setIsDatasetModelOpen} />
-          }
+          {isDatasetModelOpen && (
+            <SelectDatasetModal
+              isDatasetModelOpen={isDatasetModelOpen}
+              setIsDatasetModelOpen={setIsDatasetModelOpen}
+            />
+          )}
         </div>
         <div className="px-[23px] pt-[8px] pb-[5px] border-b border-b-[#ccc]">
           <div className="gap-[13px] flex">

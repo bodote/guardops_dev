@@ -12,7 +12,7 @@ const Pageprofile = () => {
     <>
       <div className="flex">
         <Sidebar />
-        <div className="w-full h-screen overflow-y-auto  ml-[96px]">
+        <div className="w-full h-screen overflow-y-auto  sm:ml-[96px] ml-[72px]">
           <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
             <div className="flex items-center gap-[5px]">
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
@@ -28,8 +28,8 @@ const Pageprofile = () => {
               </h1>
             </div>
             <a href="/">
-        <LockIcon />
-        </a>
+              <LockIcon />
+            </a>
           </div>
 
           <div className="sm:px-[22px] px-[16px] ">

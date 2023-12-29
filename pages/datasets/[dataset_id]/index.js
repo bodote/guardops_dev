@@ -1,5 +1,11 @@
-import {DivisionIcon,DownIcon,LockIcon,RightIcon,SearchIcon} from "@/public/Assets/Icons/Allsvg";
-import { useRouter } from 'next/router';
+import {
+  DivisionIcon,
+  DownIcon,
+  LockIcon,
+  RightIcon,
+  SearchIcon,
+} from "@/public/Assets/Icons/Allsvg";
+import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import Projectstabledata from "@/components/Projectsdetails/Projectstabledata";
 import { RiFilter2Fill } from "react-icons/ri";
@@ -7,8 +13,8 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import DonutChart from "@/components/Projectsdetails/DonutChart";
 import BarChart from "@/components/Projectsdetails/BarChart";
 
-const ProjectDetails = () => {  
-  const [currentProject, setCurrentProject] = useState("")
+const ProjectDetails = () => {
+  const [currentProject, setCurrentProject] = useState("");
   // useEffect(()=>{
   //   // const url = new URL( window.location.href);
   //   // const projectId = url.pathname.split('/').pop()
@@ -20,7 +26,7 @@ const ProjectDetails = () => {
     <>
       <div className="flex">
         <Sidebar />
-        <div className="w-full h-screen overflow-y-auto  ml-[96px]">
+        <div className="w-full h-screen overflow-y-auto  sm:ml-[96px] ml-[72px]">
           <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
             <div className="flex items-center gap-[5px]">
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
@@ -123,7 +129,7 @@ const ProjectDetails = () => {
               </div>
             </div>
           </div>
-                 
+
           <div className=" sm:px-[22px] px-[16px] py-[9px] flex items-center justify-between flex-wrap gap-[20px]">
             <div className="flex sm:w-[370px] w-auto">
               <button
@@ -221,9 +227,7 @@ const ProjectDetails = () => {
             </div>
           </div>
           <div>
-            <Projectstabledata
-              currentProjectID = {currentProject}
-            />
+            <Projectstabledata currentProjectID={currentProject} />
           </div>
         </div>
       </div>

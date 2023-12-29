@@ -119,6 +119,13 @@
   top: 0px;
   left: -7px;
 }
+@media (max-width: 640px) {
+  #open1:hover .show ,#open2:hover .show,
+    #open3:hover .show,#open4:hover .show,
+      #open5:hover .show,#open6:hover .show{
+    top: 32px;
+  }
+}
 /* .trace-detail >div:last-child >div:first-child::after{
   content: '';
   top: -23px;
