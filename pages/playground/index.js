@@ -7,6 +7,7 @@ import { MdKeyboardArrowUp } from "react-icons/md";
 import { FiPlus } from "react-icons/fi";
 import Version from "@/components/Playground/Version";
 import PromptTemplates from "@/components/modal/PromptTemplates";
+import { Switch } from "@headlessui/react";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -18,6 +19,7 @@ const index = () => {
   const [message, setMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
+  const [enabled, setEnabled] = useState(false);
 
   // Code for VersionsHistory:
   const [runsHistory, setRunsHistory] = useState([]);
@@ -171,8 +173,8 @@ const index = () => {
             </a>
           </div>
           <div className=" flex sm:flex-row flex-col border-b border-b-[#CCCCCC]">
-            <div className="px-[16px] pt-[12px] sm:w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] ">
-              <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
+            <div className="px-[16px] pt-[12px] sm:w-[156px] w-full  sm:border-r border-0 border-r-[#CCCCCC] ">
+              <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[11px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]">
                 <FiPlus /> New Prompt
               </button>
               <ul className="list-disc px-[8px]">
@@ -189,76 +191,100 @@ const index = () => {
                 >
                   Prompt
                 </label>
-                <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start sm:mt-0 mt-[10px]">
-                  <label
-                    htmlFor="project"
-                    className="block font-Archivo text-[12px] text-[#000000] font-normal"
-                  >
-                    Input Tokens: 245
-                  </label>
-                  <Listbox value={proname} onChange={setProname}>
-                    {({ open }) => (
-                      <>
-                        <div className="relative sm:w-[180px] w-full">
-                          <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
-                            <span className="flex items-center">
-                              <span className=" block truncate">
-                                {proname?.name}
+                <div className="flex items-center gap-[20px]">
+                  <div className="flex items-center gap-[5px]">
+                    <Switch
+                      checked={enabled}
+                      onChange={setEnabled}
+                      className={classNames(
+                        enabled ? "bg-indigo-600" : "bg-gray-200",
+                        "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+                      )}
+                    >
+                      <span className="sr-only">Use setting</span>
+                      <span
+                        aria-hidden="true"
+                        className={classNames(
+                          enabled ? "translate-x-[11px]" : "translate-x-0",
+                          "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                        )}
+                      />
+                    </Switch>
+                    <label className="text-[#252525] text-[12px] font-medium">
+                      PII checker
+                    </label>
+                  </div>
+                  <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start sm:mt-0 mt-[10px]">
+                    <label
+                      htmlFor="project"
+                      className="block font-Archivo text-[12px] text-[#000000] font-normal"
+                    >
+                      Input Tokens: 245
+                    </label>
+                    <Listbox value={proname} onChange={setProname}>
+                      {({ open }) => (
+                        <>
+                          <div className="relative sm:w-[180px] w-full">
+                            <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
+                              <span className="flex items-center">
+                                <span className=" block truncate">
+                                  {proname?.name}
+                                </span>
                               </span>
-                            </span>
-                            <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                              <MdKeyboardArrowUp
-                                className={
-                                  open
-                                    ? "h-5 w-5 text-gray-400 rotate-[0]"
-                                    : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                                }
-                                aria-hidden="true"
-                              />
-                            </span>
-                          </Listbox.Button>
-
-                          <Transition
-                            show={open}
-                            as={Fragment}
-                            leave="transition ease-in duration-100"
-                            leaveFrom="opacity-100"
-                            leaveTo="opacity-0"
-                          >
-                            <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                              {projectList.map((project) => (
-                                <Listbox.Option
-                                  key={project.project_id}
-                                  className={({ active }) =>
-                                    classNames(
-                                      active
-                                        ? "bg-[#f0efef]  rounded-[6px]"
-                                        : "text-[#000]",
-                                      "relative cursor-default select-none py-2 pl-[30px] pr-9"
-                                    )
+                              <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                <MdKeyboardArrowUp
+                                  className={
+                                    open
+                                      ? "h-5 w-5 text-gray-400 rotate-[0]"
+                                      : "h-5 w-5 text-gray-400 rotate-[180deg]"
                                   }
-                                  value={project}
-                                >
-                                  <div className="flex items-center ">
-                                    <span
-                                      className={classNames(
-                                        proname
-                                          ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                          : "font-normal",
-                                        "block truncate"
-                                      )}
-                                    >
-                                      {project.name}
-                                    </span>
-                                  </div>
-                                </Listbox.Option>
-                              ))}
-                            </Listbox.Options>
-                          </Transition>
-                        </div>
-                      </>
-                    )}
-                  </Listbox>
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            </Listbox.Button>
+
+                            <Transition
+                              show={open}
+                              as={Fragment}
+                              leave="transition ease-in duration-100"
+                              leaveFrom="opacity-100"
+                              leaveTo="opacity-0"
+                            >
+                              <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
+                                {projectList.map((project) => (
+                                  <Listbox.Option
+                                    key={project.project_id}
+                                    className={({ active }) =>
+                                      classNames(
+                                        active
+                                          ? "bg-[#f0efef]  rounded-[6px]"
+                                          : "text-[#000]",
+                                        "relative cursor-default select-none py-2 pl-[30px] pr-9"
+                                      )
+                                    }
+                                    value={project}
+                                  >
+                                    <div className="flex items-center ">
+                                      <span
+                                        className={classNames(
+                                          proname
+                                            ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                            : "font-normal",
+                                          "block truncate"
+                                        )}
+                                      >
+                                        {project.name}
+                                      </span>
+                                    </div>
+                                  </Listbox.Option>
+                                ))}
+                              </Listbox.Options>
+                            </Transition>
+                          </div>
+                        </>
+                      )}
+                    </Listbox>
+                  </div>
                 </div>
               </div>
               <div>
@@ -306,8 +332,12 @@ const index = () => {
               )}
             </div>
           </div>
-          <div className=" flex sm:flex-row flex-col h-full">
-            <div className="px-[16px] py-[12px] sm:w-[182px] w-full min-w-[117px] sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
+          <div
+            className={`flex sm:flex-row flex-col h-full
+              ${versions.length > 4 && "h-auto"}
+              `}
+          >
+            <div className="px-[16px] py-[12px] sm:w-[157px] sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
               <h1 className="text-[#000000] font-medium text-[12px] font-Inter">
                 Versions
               </h1>
@@ -332,11 +362,13 @@ const index = () => {
               //   gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))`,
               // }}
               // className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}
-              className={`grid w-full lg:flex-row flex-col ${
-                versions.length > 1
-                  ? "xl:grid-cols-2 grid-cols-1 h-full"
-                  : "grid-cols-1"
-              }`}
+              className={`grid w-full
+              ${versions.length > 1 && "lg:grid-cols-2"}
+              ${versions.length > 2 && "xl:grid-cols-3"}
+              ${versions.length > 3 && "2xl:!grid-cols-4"}
+              ${versions.length > 4 && "3xl:!grid-cols-5"}
+              `}
+              // className="flex"
             >
               {versions.map((version) =>
                 React.cloneElement(version.component, {
