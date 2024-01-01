@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const { settings, modal} = JSON.parse(req.body);
+  const { settings, modal } = JSON.parse(req.body);
 
   try {
     const response = await fetch(
@@ -43,8 +43,9 @@ export default async function handler(req, res) {
 
       // Do something with the accumulated chunks, e.g., log or send as a response
       const parsedData = JSON.parse(accumulatedChunks);
+      const tokens = parsedData.usage;
       const content = parsedData.choices[0].message.content;
-      res.status(response.status).send({ content, status:true});
+      res.status(response.status).send({ content, tokens, status: true });
     } else {
       console.error("Request failed with status:", response.status);
       res.status(response.status).send("Request failed");

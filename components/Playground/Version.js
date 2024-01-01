@@ -9,11 +9,12 @@ import {
   ShareIcon,
   UpArrowIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
+import { Tooltip } from "react-tooltip";
 import ModelSettings from "./modelSettings"; // Import the settings component
 
 const models = [
@@ -102,8 +103,10 @@ const Version = ({
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [tokens, setTokens] = useState();
   const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
+  const modalRef = useRef();
   // Load API key from Local Storage
 
   useEffect(() => {
@@ -163,6 +166,7 @@ const Version = ({
       const messageResponse = await response.json();
       if (messageResponse.content) {
         setApiResponse(messageResponse.content);
+        setTokens(messageResponse.tokens);
         setIsLoading(false);
       } else {
         setApiResponse("No content available");
@@ -201,6 +205,7 @@ const Version = ({
       const messageResponse = await response.json();
       if (messageResponse.content) {
         setApiResponse(messageResponse.content);
+        setTokens(messageResponse.tokens);
         setIsLoading(false);
       } else {
         setApiResponse("No content available");
@@ -215,7 +220,7 @@ const Version = ({
   useEffect(() => {
     const isValidModelSelected = selected.id1 && selected.id1 !== "None";
     const providerInfo = providerConfig[selected.provider];
-    // const apiKey = providerInfo ? providerInfo.getKey() : null;
+    const apiKey = providerInfo ? providerInfo.getKey() : null;
 
     if (message && isValidModelSelected && runPressed) {
       if (selected.provider == "openai") {
@@ -237,18 +242,6 @@ const Version = ({
             setError("Error: " + error.message); // Set error state
           });
       }
-
-      // // fetchApiResponseFromFireworks
-      // //fetchApiResponseFromOpenai
-
-      //   fetchApiResponseFromOpenai()
-      //   .then(() => {
-      //     resetRunPressed(); // Reset runPressed after the API call
-      //   })
-      //   .catch((error) => {
-      //     console.error("Error fetching API response:", error);
-      //     setError("Error: " + error.message); // Set error state
-      //   });
     } else if (runPressed) {
       let missingItems = [];
       if (!message) missingItems.push("message");
@@ -327,166 +320,217 @@ const Version = ({
     presencePenalty: 0.3,
   });
 
-  // Toggle settings visibility
-  const toggleSettings = () => {
-    setShowSettings(!showSettings);
-  };
-
   // Handle settings change
   const handleSettingsChange = (settingName, value) => {
     setSettings({ ...settings, [settingName]: value });
   };
-
+  const handleOutsideClick = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      setShowSettings(false);
+    }
+  };
+  useEffect(() => {
+    if (showSettings) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    } else {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [showSettings]);
   return (
-    <div
-      // className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC]"
-      className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] bg-[#F7F7F7] ${
-        versions > 2 ? "min-h-[500px] overflow-y-auto" : ""
-      }`}
-    >
-      <div className="flex sm:items-center items-end justify-between sm:flex-row flex-col relative">
-        <Listbox value={selected} onChange={setSelected}>
-          {({ open }) => (
-            <>
-              <div className="relative mt-2  sm:w-[237px] w-full">
-                <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[20px] py-[3px] ">
-                  <span className="flex items-center">
-                    <span className=" block truncate">{selected.name}</span>
-                  </span>
-                  <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                    <MdKeyboardArrowUp
-                      className={
-                        open
-                          ? "h-5 w-5 text-gray-400 rotate-[0]"
-                          : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                      }
-                      aria-hidden="true"
-                    />
-                  </span>
-                </Listbox.Button>
+    <>
+      <div
+        // className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC]"
+        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col ${
+          versions > 4 ? "sm:min-h-[500px] min-h-[520px] sm:!pr-[10px]" : ""
+        }`}
+      >
+        <div>
+          <div className="flex sm:items-center items-end justify-between sm:flex-row flex-col relative">
+            <Listbox value={selected} onChange={setSelected}>
+              {({ open }) => (
+                <>
+                  <div className="relative">
+                    <Listbox.Button
+                      className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
+                        versions > 2 ? "sm:!w-[140px]" : ""
+                      }`}
+                    >
+                      <span className="flex items-center">
+                        <span className=" block truncate">{selected.name}</span>
+                      </span>
+                      <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                        <MdKeyboardArrowUp
+                          className={
+                            open
+                              ? "h-5 w-5 text-gray-400 rotate-[0]"
+                              : "h-5 w-5 text-gray-400 rotate-[180deg]"
+                          }
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </Listbox.Button>
 
-                <Transition
-                  show={open}
-                  as={Fragment}
-                  leave="transition ease-in duration-100"
-                  leaveFrom="opacity-100"
-                  leaveTo="opacity-0"
-                >
-                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px]">
-                    {models.map((model) => (
-                      <Listbox.Option
-                        key={model.id}
-                        id={model.id2}
-                        className={({ active }) =>
-                          classNames(
-                            active
-                              ? "bg-[#f0efef]  rounded-[6px]"
-                              : "text-[#000]",
-                            "relative cursor-default select-none lg:py-2 py-1 xl:px-[30px] px-[10px]"
-                          )
-                        }
-                        value={model}
-                      >
-                        <div className="flex items-center ">
-                          <span
-                            className={classNames(
-                              selected
-                                ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                : "font-normal",
-                              "block truncate"
-                            )}
+                    <Transition
+                      show={open}
+                      as={Fragment}
+                      leave="transition ease-in duration-100"
+                      leaveFrom="opacity-100"
+                      leaveTo="opacity-0"
+                    >
+                      <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px]">
+                        {models.map((model) => (
+                          <Listbox.Option
+                            key={model.id}
+                            id={model.id}
+                            className={({ active }) =>
+                              classNames(
+                                active
+                                  ? "bg-[#f0efef]  rounded-[6px]"
+                                  : "text-[#000]",
+                                "relative cursor-default select-none lg:py-2 py-1 px-[10px]"
+                              )
+                            }
+                            value={model}
                           >
-                            {model.name}
-                          </span>
-                        </div>
-                        <div className="xl:ml-[220px] sm:ml-[187px] p-[16px] bg-white text-base border border-[#cccccc] rounded-lg 2xl:w-[350px] sm:w-[270px] w-[230px] hidden show absolute z-[2]">
-                          <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
-                            {model.name}
-                          </h1>
-                          <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#CCCCCC] leading-normal mt-[5px]">
-                            {model.model_description}
-                          </p>
-                          <div className="my-[10px]">
-                            <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                              <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                Context length:
-                              </p>
-                              <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                {model.context} tokens
-                              </p>
+                            <div
+                              className="flex items-center tooltip-main"
+                              data-tooltip-id={
+                                model.id > 1
+                                  ? `my-tooltip-${model.id}`
+                                  : undefined
+                              }
+                            >
+                              <span
+                                className={classNames(
+                                  selected
+                                    ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                    : "font-normal",
+                                  "block truncate"
+                                )}
+                              >
+                                {model.name}
+                              </span>
+                              <Tooltip
+                                className="tooltip-show-data"
+                                id={`my-tooltip-${model.id}`}
+                                place="right"
+                              >
+                                <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[2] ml-[10px] 2xl:!w-[270px] w-[230px]">
+                                  <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
+                                    {model.name}
+                                  </h1>
+                                  <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#aaa] leading-normal mt-[5px]">
+                                    {model.model_description}
+                                  </p>
+                                  <div className="my-[10px]">
+                                    <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+                                      <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                        Context length:
+                                      </p>
+                                      <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                        {model.context} tokens
+                                      </p>
+                                    </div>
+                                    <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+                                      <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                        Input pricing:
+                                      </p>
+                                      <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                        {model.input_price}
+                                      </p>
+                                    </div>
+                                    <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
+                                      <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                        Output princing:
+                                      </p>
+                                      <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                        {model.output_price}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </Tooltip>
                             </div>
-                            <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                              <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                Input pricing:
-                              </p>
-                              <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                {model.input_price}
-                              </p>
-                            </div>
-                            <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
-                              <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                Output princing:
-                              </p>
-                              <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                {model.output_price}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </Listbox.Option>
-                    ))}
-                  </Listbox.Options>
-                </Transition>
-              </div>
-            </>
-          )}
-        </Listbox>
-        <div className="flex gap-[17px] sm:mt-0 mt-[20px]">
-          <EditIcon />
-          <MinusIcon onClick={() => removeVersion()} />
-          <PlusRectangleIcon onClick={addVersion} />
-          <ShareIcon />
-          <SettingIcon
-            onClick={toggleSettings}
-            className="cursor-pointer"
-          />{" "}
-          {/* Attach the click handler */}
-        </div>
+                          </Listbox.Option>
+                        ))}
+                      </Listbox.Options>
+                    </Transition>
+                  </div>
+                </>
+              )}
+            </Listbox>
+            <div
+              className={`flex gap-[17px] sm:mt-0 mt-[20px] ${
+                versions > 2 ? "!gap-[10px]" : ""
+              }`}
+            >
+              <EditIcon />
+              <MinusIcon onClick={() => removeVersion()} />
+              <PlusRectangleIcon onClick={addVersion} />
+              <ShareIcon />
+              <SettingIcon
+                onClick={() => setShowSettings(true)}
+                className="cursor-pointer"
+              />{" "}
+              {/* Attach the click handler */}
+            </div>
 
-        {/* Conditionally render the settings component */}
-        {showSettings && (
-          <ModelSettings
-            onSettingsChange={handleSettingsChange}
-            settings={settings}
-          />
+            {/* Conditionally render the settings component */}
+            {showSettings && (
+              <div
+                ref={modalRef}
+                className="max-w-[285px] w-full mx-auto bg-white shadow-lg rounded-lg absolute sm:top-[40px] top-[80px] right-0 p-[13px_23px_17px_25px]"
+              >
+                <ModelSettings
+                  onSettingsChange={handleSettingsChange}
+                  settings={settings}
+                />
+              </div>
+            )}
+          </div>
+          <div
+            className={`response-output justify-center sm:mt-[38px] mt-[20px]  overflow-auto ${
+              versions > 4 ? "max-h-[330px]" : ""
+            }`}
+          >
+            {isLoading ? (
+              <p>Loading...</p>
+            ) : apiResponse ? (
+              parseApiResponse(apiResponse).map((segment, index) =>
+                segment.type === "code" ? (
+                  <CodeBox key={index} code={segment.content} />
+                ) : (
+                  <ReactMarkdown
+                    remarkPlugins={[gfm]}
+                    key={index}
+                    children={segment.content}
+                  />
+                )
+              )
+            ) : error ? (
+              <p>Error: {error}</p>
+            ) : null}
+          </div>
+          <div className="flex gap-[10px] justify-center my-[17px]">
+            <CopyIcon onClick={handleCopyClick} />
+            <DownArrowIcon />
+            <UpArrowIcon />
+            <PenIcon />
+          </div>
+        </div>
+        {tokens && (
+          <div>
+            <p className="text-[12px] text-black text-center font-normal">
+              Total Tokens: {tokens.total_tokens} - Input Tokens:{" "}
+              {tokens.prompt_tokens} - Output Tokens: {tokens.completion_tokens}
+            </p>
+          </div>
         )}
       </div>
-      <div className="response-output justify-center sm:mt-[38px] mt-[20px]">
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : apiResponse ? (
-          parseApiResponse(apiResponse).map((segment, index) =>
-            segment.type === "code" ? (
-              <CodeBox key={index} code={segment.content} />
-            ) : (
-              <ReactMarkdown
-                remarkPlugins={[gfm]}
-                key={index}
-                children={segment.content}
-              />
-            )
-          )
-        ) : error ? (
-          <p>Error: {error}</p>
-        ) : null}
-      </div>
-      <div className="flex gap-[10px] justify-center my-[17px]">
-        <CopyIcon onClick={handleCopyClick} />
-        <DownArrowIcon />
-        <UpArrowIcon />
-        <PenIcon />
-      </div>
-    </div>
+    </>
   );
 };
 

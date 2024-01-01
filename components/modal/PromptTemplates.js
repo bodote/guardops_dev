@@ -38,10 +38,10 @@ const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
             Choose Template to fill
           </h1>
           <div>
-            {promptTemplateData.map((data,i) => (
+            {promptTemplateData.map((data, ind) => (
               <Templates
-              key={i}
                 data={data}
+                key={ind}
                 setIsModalOpen={setIsModalOpen}
                 onPromptOpen={onPromptOpen}
               />

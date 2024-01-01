@@ -89,51 +89,7 @@
 .opened p {
   display: none;
 }
-#open1:hover .show {
-  display: block;
-  top: -5px;
-  left: -7px;
-}
-#open2:hover .show {
-  display: block;
-  top: 0px;
-  left: -7px;
-}
-#open3:hover .show {
-  display: block;
-  top: 0px;
-  left: -7px;
-}
-#open4:hover .show {
-  display: block;
-  top: 0px;
-  left: -7px;
-}
-#open5:hover .show {
-  display: block;
-  top: 0px;
-  left: -7px;
-}
-#open6:hover .show {
-  display: block;
-  top: 0px;
-  left: -7px;
-}
-@media (max-width: 640px) {
-  #open1:hover .show ,#open2:hover .show,
-    #open3:hover .show,#open4:hover .show,
-      #open5:hover .show,#open6:hover .show{
-    top: 32px;
-  }
-}
-/* .trace-detail >div:last-child >div:first-child::after{
-  content: '';
-  top: -23px;
-  left: -14px;
-  width: 1px;
-  height: 36px;
-  background-color: #d1d1d1;
-} */
+
 .trace-detail > div:last-child::after {
   display: none;
 }
@@ -261,4 +217,9 @@
     -webkit-transform: scale(1);
     transform: scale(1);
   }
+}
+
+.tooltip-main .tooltip-show-data{
+  background-color:transparent;
+  /* left: -10px !important; */
 }
