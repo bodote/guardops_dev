@@ -118,7 +118,7 @@ const Version = ({
 
   const providerConfig = {
     openai: {
-      endpoint: "https://api.openai.com/v1/chat/completions",
+      endpoint: "https://api.openai.com/v1/completions",
       getKey: () => openaiKey,
     },
     fireworks: {
@@ -151,16 +151,14 @@ const Version = ({
     const formData = {
       settings: settings,
       modal: selected,
+      apiEndpoint:apiEndpoint,
+      authKey:authKey,
+      message:message
     };
     const response = await fetch(`/api/open-ai-completion`, {
       method: "POST",
       body: JSON.stringify(formData),
     });
-
-    // const response = await fetch(`/api/fireworks-completion`, {
-    //   method: "POST",
-    //   body: JSON.stringify(formData),
-    // });
 
     if (response.ok) {
       const messageResponse = await response.json();
@@ -194,6 +192,9 @@ const Version = ({
     const formData = {
       settings: settings,
       modal: selected,
+      apiEndpoint:apiEndpoint,
+      authKey:authKey,
+      message:message
     };
 
     const response = await fetch(`/api/fireworks-completion`, {
@@ -222,7 +223,7 @@ const Version = ({
     const providerInfo = providerConfig[selected.provider];
     const apiKey = providerInfo ? providerInfo.getKey() : null;
 
-    if (message && isValidModelSelected && runPressed) {
+    if (message && isValidModelSelected && apiKey && runPressed) {
       if (selected.provider == "openai") {
         fetchApiResponseFromOpenai()
           .then(() => {
@@ -343,12 +344,12 @@ const Version = ({
     <>
       <div
         // className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC]"
-        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col ${
-          versions > 4 ? "sm:min-h-[500px] min-h-[520px] sm:!pr-[10px]" : ""
+        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:mih-h-0 sm:!min-h-[500px] !min-h-[400px] ${
+          versions > 4 ? "!min-h-[500px] sm:!pr-[10px]" : ""
         }`}
       >
         <div>
-          <div className="flex sm:items-center items-end justify-between sm:flex-row flex-col relative">
+          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative">
             <Listbox value={selected} onChange={setSelected}>
               {({ open }) => (
                 <>

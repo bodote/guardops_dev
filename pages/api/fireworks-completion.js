@@ -1,22 +1,22 @@
 export default async function handler(req, res) {
-  const { settings, modal } = JSON.parse(req.body);
-
+  const { settings, modal,apiEndpoint,authKey,message } = JSON.parse(req.body);
+  
   try {
     const response = await fetch(
-      "https://api.fireworks.ai/inference/v1/chat/completions",
+      `${apiEndpoint}`,
       {
         method: "POST",
         headers: new Headers({
           "Content-Type": "application/json",
           Accept: "text/event-stream",
-          Authorization: `Bearer ${process.env.FIREWORKS_KEY}`,
+          Authorization: authKey,
         }),
         body: JSON.stringify({
           model: `accounts/fireworks/models/${modal.id1}`,
           messages: [
             {
               role: "user",
-              content: "test user",
+              content: message,
             },
           ],
           stream: false,

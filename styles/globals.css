@@ -89,7 +89,6 @@
 .opened p {
   display: none;
 }
-
 .trace-detail > div:last-child::after {
   display: none;
 }
@@ -221,5 +220,5 @@
 
 .tooltip-main .tooltip-show-data{
   background-color:transparent;
-  /* left: -10px !important; */
+  margin-top:76px
 }
