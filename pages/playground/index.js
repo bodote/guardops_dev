@@ -148,6 +148,10 @@ const index = () => {
 
   // Function to remove a version
   const removeVersion = (id) => {
+    if (versions.length === 1) {
+      // If there's only one version, do not remove it
+      return;
+    }
     setVersions(versions.filter((version) => version.id !== id));
   };
   // Calculate grid columns based on number of versions
@@ -191,8 +195,8 @@ const index = () => {
                 >
                   Prompt
                 </label>
-                <div className="flex items-center gap-[20px]">
-                  <div className="flex items-center gap-[5px]">
+                <div className="md:flex items-center gap-[20px]">
+                  <div className="flex items-center gap-[5px] sm:mt-0 mt-2">
                     <Switch
                       checked={enabled}
                       onChange={setEnabled}
@@ -259,7 +263,7 @@ const index = () => {
                                         active
                                           ? "bg-[#f0efef]  rounded-[6px]"
                                           : "text-[#000]",
-                                        "relative cursor-default select-none py-2 pl-[30px] pr-9"
+                                        "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
                                       )
                                     }
                                     value={project}
@@ -337,7 +341,7 @@ const index = () => {
               ${versions.length > 4 && "h-auto"}
               `}
           >
-            <div className="px-[16px] py-[12px] sm:w-[157px] sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
+            <div className="px-[16px] py-[12px] sm:min-w-[144.5px] sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
               <h1 className="text-[#000000] font-medium text-[12px] font-Inter">
                 Versions
               </h1>
@@ -357,18 +361,12 @@ const index = () => {
               </ul>
             </div>
             <div
-              // style={{
-              //   display: "grid",
-              //   gridTemplateColumns: `repeat(${versions.length}, minmax(0, 1fr))`,
-              // }}
-              // className={`grid ${gridCols} w-full lg:flex-row flex-col bg-[#F7F7F7]`}
               className={`grid w-full
               ${versions.length > 1 && "lg:grid-cols-2"}
               ${versions.length > 2 && "xl:grid-cols-3"}
               ${versions.length > 3 && "2xl:!grid-cols-4"}
               ${versions.length > 4 && "3xl:!grid-cols-5"}
               `}
-              // className="flex"
             >
               {versions.map((version) =>
                 React.cloneElement(version.component, {

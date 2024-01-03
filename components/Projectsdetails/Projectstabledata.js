@@ -5,7 +5,7 @@ import TraceDetails from "./TraceDetails";
 import { RiAddBoxLine } from "react-icons/ri";
 import { MdDeleteOutline } from "react-icons/md";
 
-const Projectstabledata = ({ currentProjectID }) => {
+const Projectstabledata = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectList, setProjectList] = useState([]);
   const [traceProject, setTraceProject] = useState(null);

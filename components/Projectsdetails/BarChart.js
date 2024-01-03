@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 
-const BarChart = () => {
+const BarChart = ({ tracesNumber }) => {
   const [chartState] = useState({
     options: {
       chart: {
@@ -22,7 +22,7 @@ const BarChart = () => {
           "Feb",
           "Mar",
           "Apr",
-          "Mai",
+          "May",
           "Jun",
           "Jul",
           "Aug",
@@ -55,20 +55,7 @@ const BarChart = () => {
     series: [
       {
         name: "series-1",
-        data: [
-          "9",
-          "12",
-          "13",
-          "14",
-          "15",
-          "16",
-          "17",
-          "18",
-          "19",
-          "11",
-          "12",
-          "13",
-        ],
+        data: tracesNumber,
       },
     ],
   });

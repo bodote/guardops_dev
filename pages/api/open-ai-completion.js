@@ -1,23 +1,22 @@
 export default async function handler(req, res) {
-  const { settings, modal } = JSON.parse(req.body);
+  const {settings, modal,apiEndpoint,authKey,message } = JSON.parse(req.body);
 
   // config request
-  const url = "https://api.openai.com/v1/completions";
   const fetchOptions = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_KEY}`,
+      Authorization: authKey,
     },
     body: JSON.stringify({
       model: modal.id1,
-      prompt: settings.message,
+      prompt: message,
       max_tokens: Number(settings.maxTokens),
     }),
   };
   // make request
   try {
-    const response = await fetch(url, fetchOptions);
+    const response = await fetch(apiEndpoint, fetchOptions);
     if (response.ok) {
       const reader = response.body.getReader();
       let accumulatedChunks = "";
