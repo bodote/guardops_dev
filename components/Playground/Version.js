@@ -30,22 +30,20 @@ const models = [
   },
   {
     id: 2,
-    name: "OpenAI - GPT-3-Curie",
-    id1: "text-curie-001",
-    id2: "open1",
+    name: "OpenAI - GPT-3.5-Turbo",
+    id1: "gpt-3.5-turbo",
     provider: "openai",
-    context: "2,049",
+    context: "4,096",
     input_price: "0.003 / 1000 Tokens",
     output_price: "0.005 / 1000 Tokens",
     model_description: "Model is capable for all kind of tasks",
   },
   {
     id: 3,
-    name: "OpenAI - GPT-3-Davinci",
-    id1: "davinci",
-    id2: "open2",
+    name: "OpenAI - GPT-3.5-1106",
+    id1: "gpt-3.5-turbo-1106",
     provider: "openai",
-    context: "2,049",
+    context: "16,385",
     input_price: "0.002 / 1000 Tokens",
     output_price: "0.005 / 1000 Tokens",
     model_description: "Model is capable for all kind of tasks",
@@ -54,7 +52,6 @@ const models = [
     id: 4,
     name: "FW - Mixtral MoE 8x7B Instruct",
     id1: "mixtral-8x7b-instruct",
-    id2: "open3",
     provider: "fireworks",
     context: "128000",
     input_price: "0.002 / 1000 Tokens",
@@ -65,7 +62,6 @@ const models = [
     id: 5,
     name: "FW - Fireworks Function Call 34B v0",
     id1: "fw-function-call-34b-v0",
-    id2: "open4",
     provider: "fireworks",
     context: "128000",
     input_price: "0.002 / 1000 Tokens",
@@ -76,7 +72,6 @@ const models = [
     id: 6,
     name: "FW - Qwen 72B Chat",
     id1: "qwen-72b-chat",
-    id2: "open5",
     provider: "fireworks",
     context: "128000",
     input_price: "0.002 / 1000 Tokens",
@@ -118,7 +113,7 @@ const Version = ({
 
   const providerConfig = {
     openai: {
-      endpoint: "https://api.openai.com/v1/completions",
+      endpoint: "https://api.openai.com/v1/chat/completions",
       getKey: () => openaiKey,
     },
     fireworks: {
@@ -133,11 +128,9 @@ const Version = ({
     appendToMessage(apiResponse);
   };
 
-  // Function to call the API
-  const fetchApiResponseFromOpenai = async () => {
+  const fetchApiResponse = async () => {
+    setApiResponse("");
     setIsLoading(true);
-    setError(null);
-
     const providerInfo = providerConfig[selected.provider];
     if (!providerInfo) {
       setError(`Provider ${selected.provider} is not supported.`);
@@ -151,69 +144,47 @@ const Version = ({
     const formData = {
       settings: settings,
       modal: selected,
-      apiEndpoint:apiEndpoint,
-      authKey:authKey,
-      message:message
-    };
-    const response = await fetch(`/api/open-ai-completion`, {
-      method: "POST",
-      body: JSON.stringify(formData),
-    });
-
-    if (response.ok) {
-      const messageResponse = await response.json();
-      if (messageResponse.content) {
-        setApiResponse(messageResponse.content);
-        setTokens(messageResponse.tokens);
-        setIsLoading(false);
-      } else {
-        setApiResponse("No content available");
-        setIsLoading(false);
-      }
-    } else {
-      console.error("API request failed:", response.statusText);
-      setIsLoading(false);
-    }
-  };
-  const fetchApiResponseFromFireworks = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    const providerInfo = providerConfig[selected.provider];
-    if (!providerInfo) {
-      setError(`Provider ${selected.provider} is not supported.`);
-      setIsLoading(false);
-      return;
-    }
-
-    const apiEndpoint = providerInfo.endpoint;
-    const authKey = `Bearer ${providerInfo.getKey()}`;
-
-    const formData = {
-      settings: settings,
-      modal: selected,
-      apiEndpoint:apiEndpoint,
-      authKey:authKey,
-      message:message
+      apiEndpoint: apiEndpoint,
+      authKey: authKey,
+      message: message,
     };
 
-    const response = await fetch(`/api/fireworks-completion`, {
-      method: "POST",
-      body: JSON.stringify(formData),
-    });
+    try {
+      const res = await fetch("/api/open-ai-completion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-    if (response.ok) {
-      const messageResponse = await response.json();
-      if (messageResponse.content) {
-        setApiResponse(messageResponse.content);
-        setTokens(messageResponse.tokens);
+      if (!res.ok) {
         setIsLoading(false);
-      } else {
         setApiResponse("No content available");
-        setIsLoading(false);
+        throw new Error(res.statusText);
       }
-    } else {
-      console.error("API request failed:", response.statusText);
+
+      const data = res.body;
+      if (!data) {
+        setApiResponse("No content available");
+        return;
+      }
+      setIsLoading(false);
+
+      const reader = data.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunkValue = decoder.decode(value);
+        setApiResponse((prev) => prev + chunkValue);
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.error("API request failed:", error.message);
+      setError("Error: " + error.message);
       setIsLoading(false);
     }
   };
@@ -224,25 +195,14 @@ const Version = ({
     const apiKey = providerInfo ? providerInfo.getKey() : null;
 
     if (message && isValidModelSelected && apiKey && runPressed) {
-      if (selected.provider == "openai") {
-        fetchApiResponseFromOpenai()
-          .then(() => {
-            resetRunPressed(); // Reset runPressed after the API call
-          })
-          .catch((error) => {
-            console.error("Error fetching API response:", error);
-            setError("Error: " + error.message); // Set error state
-          });
-      } else {
-        fetchApiResponseFromFireworks()
-          .then(() => {
-            resetRunPressed(); // Reset runPressed after the API call
-          })
-          .catch((error) => {
-            console.error("Error fetching API response:", error);
-            setError("Error: " + error.message); // Set error state
-          });
-      }
+      fetchApiResponse()
+        .then(() => {
+          resetRunPressed(); // Reset runPressed after the API call
+        })
+        .catch((error) => {
+          console.error("Error fetching API response:", error);
+          setError("Error: " + error.message); // Set error state
+        });
     } else if (runPressed) {
       let missingItems = [];
       if (!message) missingItems.push("message");
@@ -360,7 +320,9 @@ const Version = ({
                       }`}
                     >
                       <span className="flex items-center">
-                        <span className=" block truncate">{selected.name}</span>
+                        <span className=" block truncate pr-[20px]">
+                          {selected.name}
+                        </span>
                       </span>
                       <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
                         <MdKeyboardArrowUp

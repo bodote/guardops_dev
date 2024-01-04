@@ -1,46 +1,46 @@
+import { ModalAIStream } from "@/utils/ModalAIStream";
+
 export default async function handler(req, res) {
-  const {settings, modal,apiEndpoint,authKey,message } = JSON.parse(req.body);
-
-  // config request
-  const fetchOptions = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: authKey,
-    },
-    body: JSON.stringify({
-      model: modal.id1,
-      prompt: message,
-      max_tokens: Number(settings.maxTokens),
-    }),
-  };
-  // make request
+  const { settings, modal, apiEndpoint, authKey, message } = req.body;
   try {
-    const response = await fetch(apiEndpoint, fetchOptions);
-    if (response.ok) {
-      const reader = response.body.getReader();
-      let accumulatedChunks = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-        const textChunk = new TextDecoder().decode(value);
-        accumulatedChunks += textChunk;
-      }
+    // Set appropriate headers for streaming data
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Cache-Control", "no-cache");
 
-      // Do something with the accumulated chunks, e.g., log or send as a response
-      const parsedData = JSON.parse(accumulatedChunks);
-      const tokens = parsedData.usage;
-      const content = parsedData.choices[0].text;
-      res.status(response.status).send({ content, tokens, status: true });
-    } else {
-      console.error("Request failed with status:", response.status);
-      res.status(response.status).send("Request failed");
-    }
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message,
+    const stream = await ModalAIStream({
+      settings,
+      modal,
+      apiEndpoint,
+      authKey,
+      message,
     });
+
+    // Manually handle writing chunks to the response
+    const reader = stream.getReader();
+
+    const pump = async () => {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            res.end(); 
+            break;
+          }
+          res.write(value);
+          res.flush();
+        }
+      } catch (error) {
+        console.error("Error streaming data:", error);
+        res.status(500).end("Internal Server Error");
+      } finally {
+        reader.releaseLock();
+        res.end(); // Ensure response is closed even in case of an error
+      }
+    };
+
+    pump();
+  } catch (error) {
+    console.error("Error streaming data:", error);
+    res.status(500).end("Internal Server Error");
   }
 }
