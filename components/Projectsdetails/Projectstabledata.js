@@ -9,6 +9,7 @@ const Projectstabledata = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectList, setProjectList] = useState([]);
   const [traceProject, setTraceProject] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
   const [option, setOption] = useState(false);
   const modalRef = useRef();
 
@@ -69,9 +70,34 @@ const Projectstabledata = () => {
     }
   };
 
+  const sortData = () => {
+    const sortedProjectList = [...projectList];
+
+    sortedProjectList.sort((a, b) => {
+      const nullParentA = a.find((obj) => obj.parent_id === null);
+      const nullParentB = b.find((obj) => obj.parent_id === null);
+
+      if (nullParentA && nullParentB) {
+        const comparisonResult =
+          new Date(nullParentA.start_time) - new Date(nullParentB.start_time);
+
+        return sortOrder === "asc" ? comparisonResult : -comparisonResult;
+      } else if (nullParentA) {
+        return -1;
+      } else if (nullParentB) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+
+    setProjectList(sortedProjectList);
+  };
+
   useEffect(() => {
     getProjectDetails();
-    // setProjectList(dummydata)
   }, []);
 
   return (
@@ -113,9 +139,9 @@ const Projectstabledata = () => {
               <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] ">
                 <div className="flex items-center justify-center">
                   start Time
-                  <a href="">
+                  <div onClick={sortData} className="cursor-pointer">
                     <UpDownIcon />
-                  </a>
+                  </div>
                 </div>
               </th>
               <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] min-w-[100px]">
