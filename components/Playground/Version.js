@@ -304,8 +304,14 @@ const Version = ({
     <>
       <div
         // className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC]"
-        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:mih-h-0 sm:!min-h-[500px] !min-h-[400px] ${
-          versions > 4 ? "!min-h-[500px] sm:!pr-[10px]" : ""
+        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[476px] !min-h-[400px] overflow-auto ${
+          versions > 4
+            ? "sm:min-h-0 !min-h-[464px] sm:h-auto h-[464px] sm:!pr-[10px]"
+            : ""
+        } ${
+          versions <= 5
+            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[600px] sm:!min-h-[600px]"
+            : ""
         }`}
       >
         <div>
@@ -381,7 +387,7 @@ const Version = ({
                                 id={`my-tooltip-${model.id}`}
                                 place="right"
                               >
-                                <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[2] ml-[10px] 2xl:!w-[270px] w-[230px]">
+                                <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[9] ml-[10px] 2xl:!w-[270px] w-[230px opacity-100">
                                   <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
                                     {model.name}
                                   </h1>
@@ -455,8 +461,8 @@ const Version = ({
             )}
           </div>
           <div
-            className={`response-output justify-center sm:mt-[38px] mt-[20px]  overflow-auto ${
-              versions > 4 ? "max-h-[330px]" : ""
+            className={`response-output justify-center mt-[20px]  overflow-auto ${
+              versions > 4 ? "sm:max-h-auto sm:max-h-[360px] max-h-[310px]" : ""
             }`}
           >
             {isLoading ? (

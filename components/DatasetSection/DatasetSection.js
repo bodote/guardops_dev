@@ -106,13 +106,13 @@ const DatasetSection = () => {
         <h1 className="font-Archivo sm:text-[32px] text-[28px] font-thin text-[#000] sm:py-[26px] py-[20px]">
           Datasets
         </h1>
-        <div className="flex xl:gap-[40px] sm:gap-[30px] gap-[10px] flex-wrap w-full items-center">
+        <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full items-center">
           {!loader ? (
             datasetList.map((ele, i) => {
               return (
                 <div
                   key={i}
-                  className="hover:border-[#000] hover:bg-[#f2f2f2] xl:w-[calc(34%_-_45px)] sm:w-[calc(50%_-_15px)] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px] cursor-pointer"
+                  className="hover:border-[#000] hover:bg-[#f2f2f2] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px] cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
                     <div
@@ -180,7 +180,7 @@ const DatasetSection = () => {
               setCreateDatasetStatus("new");
               setIsModalOpen(true);
             }}
-            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group xl:w-[calc(34%_-_45px)] sm:w-[calc(50%_-_15px)] w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
+            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
           >
             <div className="flex items-center gap-[8px]">
               <PlusIcon className="stroke-[#12131A] group-hover:stroke-white" />
