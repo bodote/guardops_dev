@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { LockIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
 import { Fragment } from "react";
@@ -8,6 +8,9 @@ import { FiPlus } from "react-icons/fi";
 import Version from "@/components/Playground/Version";
 import PromptTemplates from "@/components/modal/PromptTemplates";
 import { Switch } from "@headlessui/react";
+import debounce from "lodash/debounce";
+import axios from "axios";
+import styles from "@/styles/TextHighlighter.module.css";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -17,6 +20,7 @@ const index = () => {
   // Add state to manage text area content
   const [projectList, setProjectList] = useState([]);
   const [message, setMessage] = useState("");
+  const [piiData, setPiiData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
   const [enabled, setEnabled] = useState(false);
@@ -36,6 +40,48 @@ const index = () => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
       setIsModalOpen(false);
     }
+  };
+  const getParsedText = () => {
+    const elements = [];
+    let lastIndex = 0;
+
+    piiData.forEach((annotation, index) => {
+      elements.push(message.substring(lastIndex, annotation.start));
+
+      elements.push(
+        <span
+          key={index}
+          className={`${styles[annotation.entity_type]} ${styles.highlight}`}
+        >
+          {message.substring(annotation.start, annotation.end)}
+          <span className={styles.category}>{annotation.entity_type}</span>
+        </span>
+      );
+      lastIndex = annotation.end;
+    });
+    elements.push(message.substring(lastIndex));
+
+    return elements;
+  };
+
+  const debouncedSendText = useCallback(
+    debounce(async (inputText) => {
+      try {
+        const response = await axios.post(
+          "https://lm3.hs-ansbach.de/tracing/api/detect_pii",
+          { text: inputText }
+        );
+        setPiiData(response.data);
+      } catch (error) {
+        console.error("Error sending text to API:", error);
+      }
+    }, 1000),
+    []
+  );
+  // Function to handle text change in text area
+  const handleTextChange = (e) => {
+    setMessage(e.target.value);
+    debouncedSendText(e.target.value);
   };
   useEffect(() => {
     if (isModalOpen) {
@@ -100,11 +146,6 @@ const index = () => {
   // Function to reset the runPressed flag
   const resetRunPressed = () => {
     setRunPressed(false);
-  };
-
-  // Function to handle text change in text area
-  const handleTextChange = (e) => {
-    setMessage(e.target.value);
   };
 
   // Function to transform text and pass to Version component
@@ -177,7 +218,7 @@ const index = () => {
             </a>
           </div>
           <div className=" flex sm:flex-row flex-col border-b border-b-[#CCCCCC]">
-            <div className="px-[16px] pt-[12px] sm:w-[156px] w-full  sm:border-r border-0 border-r-[#CCCCCC] ">
+            <div className="px-[16px] pt-[12px] sm:w-[156px] sm:min-w-[156px] w-full  sm:border-r border-0 border-r-[#CCCCCC] ">
               <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[11px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]">
                 <FiPlus /> New Prompt
               </button>
@@ -201,8 +242,8 @@ const index = () => {
                       checked={enabled}
                       onChange={setEnabled}
                       className={classNames(
-                        enabled ? "bg-indigo-600" : "bg-gray-200",
-                        "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+                        enabled ? "bg-[#0074fb]" : "bg-gray-200",
+                        "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                       )}
                     >
                       <span className="sr-only">Use setting</span>
@@ -291,19 +332,24 @@ const index = () => {
                   </div>
                 </div>
               </div>
-              <div>
+              <div className="lg:flex">
                 <textarea
                   type="text"
                   name="message"
                   id="message"
-                  className="h-[180px] border-0 rounded  w-full  font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none "
+                  className="h-[180px] border-0 rounded  w-full  font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none"
                   placeholder=" Start entering your prompt for the selected models. Press
                   Button Run Playground or Shift + Return to get the results."
                   value={message}
                   onChange={handleTextChange}
                 />
+                {enabled && (
+                  <div className="h-[180px] w-full font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto">
+                    {getParsedText()}
+                  </div>
+                )}
               </div>
-              <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center">
+              <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center mt-3">
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
@@ -337,11 +383,11 @@ const index = () => {
             </div>
           </div>
           <div
-            className={`flex sm:flex-row flex-col h-full
+            className={`flex sm:flex-row flex-col
               ${versions.length > 4 && "h-auto"}
               `}
           >
-            <div className="px-[16px] py-[12px] sm:min-w-[144.5px] sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
+            <div className="px-[16px] py-[12px] sm:w-[158px] sm:min-w-[156px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
               <h1 className="text-[#000000] font-medium text-[12px] font-Inter">
                 Versions
               </h1>
@@ -354,7 +400,7 @@ const index = () => {
                   >
                     Run {run.id}:{" "}
                     {run.message.length > 20
-                      ? run.message.substring(0, 20) + "..."
+                      ? run.message.substring(0, 16) + "..."
                       : run.message}
                   </li>
                 ))}

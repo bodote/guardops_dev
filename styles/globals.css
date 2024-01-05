@@ -136,11 +136,7 @@
 .run-link:hover {
   text-decoration: underline; /* Remove underline on hover for a change */
 }
-.react-tooltip {
-  font-size: 12px !important;
-  padding: 5px !important;
-  z-index: 999;
-}
+
 
 .slidecontainer-main {
   width: 100%;
@@ -217,8 +213,12 @@
     transform: scale(1);
   }
 }
-
+.react-tooltip {
+  font-size: 12px !important;
+  padding: 5px !important;
+  z-index: 999;
+}
 .tooltip-main .tooltip-show-data{
   background-color:transparent;
-  margin-top:76px
+  /* margin-top:76px */
 }
