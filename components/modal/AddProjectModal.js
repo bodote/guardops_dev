@@ -52,7 +52,6 @@ const AddProjectModal = ({
     />
   );
 
-
   const handleSelectChange = (selectedOptions) => {
     setSelected(selectedOptions);
   };
@@ -61,7 +60,7 @@ const AddProjectModal = ({
     const projectFormData = {
       ...projectData,
       project_tags: selected.map((option) => option.value),
-      user_id: "demouser1",
+      user_id: "demouser2",
     };
 
     if (

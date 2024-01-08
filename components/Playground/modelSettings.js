@@ -1,91 +1,149 @@
 export default function ModelSettings({ settings, onSettingsChange }) {
-    return (
-        <div className="max-w-md mx-auto p-8 bg-white shadow-lg rounded-lg">
-            <div className="flex flex-col space-y-6">
-                <div className="flex items-center justify-between">
-                    <label className="font-semibold" htmlFor="max-tokens">Max Tokens</label>
-                    <input
-                        className="w-full"
-                        id="max-tokens"
-                        max="4000"
-                        min="0"
-                        type="range"
-                        value={settings.maxTokens}
-                        onChange={(e) => onSettingsChange('maxTokens', e.target.value)}
-                    />
-                    <span className="font-semibold">{settings.maxTokens}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                    <label className="font-semibold" htmlFor="temperature">Temperature</label>
-                    <input
-                        className="w-full"
-                        id="temperature"
-                        max="1"
-                        min="0"
-                        step="0.01"
-                        type="range"
-                        value={settings.temperature}
-                        onChange={(e) => onSettingsChange('temperature', e.target.value)}
-                    />
-                    <span className="font-semibold">{settings.temperature}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                    <label className="font-semibold" htmlFor="top-p">Top P</label>
-                    <input
-                        className="w-full"
-                        id="top-p"
-                        max="1"
-                        min="0"
-                        step="0.01"
-                        type="range"
-                        value={settings.topP}
-                        onChange={(e) => onSettingsChange('topP', e.target.value)}
-                    />
-                    <span className="font-semibold">{settings.topP}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                    <label className="font-semibold" htmlFor="top-k">Top K</label>
-                    <input
-                        className="w-full"
-                        id="top-k"
-                        max="1"
-                        min="0"
-                        step="0.01"
-                        type="range"
-                        value={settings.topK}
-                        onChange={(e) => onSettingsChange('topK', e.target.value)}
-                    />
-                    <span className="font-semibold">{settings.topK}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                    <label className="font-semibold" htmlFor="frequency-penalty">Frequency Penalty</label>
-                    <input
-                        className="w-full"
-                        id="frequency-penalty"
-                        max="1"
-                        min="0"
-                        step="0.01"
-                        type="range"
-                        value={settings.frequencyPenalty}
-                        onChange={(e) => onSettingsChange('frequencyPenalty', e.target.value)}
-                    />
-                    <span className="font-semibold">{settings.frequencyPenalty}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                    <label className="font-semibold" htmlFor="presence-penalty">Presence Penalty</label>
-                    <input
-                        className="w-full"
-                        id="presence-penalty"
-                        max="1"
-                        min="0"
-                        step="0.01"
-                        type="range"
-                        value={settings.presencePenalty}
-                        onChange={(e) => onSettingsChange('presencePenalty', e.target.value)}
-                    />
-                    <span className="font-semibold">{settings.presencePenalty}</span>
-                </div>
+  const calculateSliderBackground = (name, value) => {
+    const percentage = (name / value) * 100;
+    return `linear-gradient(to right, #0D859A 0%, #0D859A ${percentage}%, #d3d3d3 ${percentage}%, #d3d3d3 100%)`;
+  };
+  return (
+    <>
+      <div>
+        <div className="flex flex-col space-y-[7px]">
+          <div className="slidecontainer-main">
+            <div className="flex justify-between items-center mb-[6px]">
+              <p className="text-[#5D6574] text-[12px]">Max Tokens</p>
+              <span className="text-[#5D6574] text-[12px]">
+                {settings.maxTokens}
+              </span>
             </div>
+            <input
+              type="range"
+              min="0"
+              max="4000"
+              className="slider-main"
+              value={settings.maxTokens}
+              id="max-tokens"
+              onChange={(e) => onSettingsChange("maxTokens", e.target.value)}
+              style={{
+                background: calculateSliderBackground(settings.maxTokens, 4000),
+              }}
+            />
+          </div>
+          <div className="slidecontainer-main">
+            <div className="flex justify-between items-center mb-[6px]">
+              <p className="text-[#5D6574] text-[12px]">Temperature</p>
+              <span className="text-[#5D6574] text-[12px]">
+                {settings.temperature}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              className="slider-main"
+              value={settings.temperature}
+              id="temperature"
+              onChange={(e) => onSettingsChange("temperature", e.target.value)}
+              style={{
+                background: calculateSliderBackground(settings.temperature, 1),
+              }}
+            />
+          </div>
+          <div className="slidecontainer-main">
+            <div className="flex justify-between items-center mb-[6px]">
+              <p className="text-[#5D6574] text-[12px]">Top P</p>
+              <span className="text-[#5D6574] text-[12px]">
+                {settings.topP}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              className="slider-main"
+              value={settings.topP}
+              id="top-p"
+              onChange={(e) => onSettingsChange("topP", e.target.value)}
+              style={{
+                background: calculateSliderBackground(settings.topP, 1),
+              }}
+            />
+          </div>
+          <div className="slidecontainer-main">
+            <div className="flex justify-between items-center mb-[6px]">
+              <p className="text-[#5D6574] text-[12px]">Top K</p>
+              <span className="text-[#5D6574] text-[12px]">
+                {settings.topK}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              className="slider-main"
+              value={settings.topK}
+              id="top-k"
+              onChange={(e) => onSettingsChange("topK", e.target.value)}
+              style={{
+                background: calculateSliderBackground(settings.topK, 1),
+              }}
+            />
+          </div>
+          <div className="slidecontainer-main">
+            <div className="flex justify-between items-center mb-[6px]">
+              <p className="text-[#5D6574] text-[12px]">Frequency Penalty</p>
+              <span className="text-[#5D6574] text-[12px]">
+                {settings.frequencyPenalty}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              className="slider-main"
+              value={settings.frequencyPenalty}
+              id="frequency-penalty"
+              onChange={(e) =>
+                onSettingsChange("frequencyPenalty", e.target.value)
+              }
+              style={{
+                background: calculateSliderBackground(
+                  settings.frequencyPenalty,
+                  1
+                ),
+              }}
+            />
+          </div>
+          <div className="slidecontainer-main">
+            <div className="flex justify-between items-center mb-[6px]">
+              <p className="text-[#5D6574] text-[12px]">Presence Penalty</p>
+              <span className="text-[#5D6574] text-[12px]">
+                {settings.presencePenalty}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              className="slider-main"
+              value={settings.presencePenalty}
+              id="presence-penalty"
+              onChange={(e) =>
+                onSettingsChange("presencePenalty", e.target.value)
+              }
+              style={{
+                background: calculateSliderBackground(
+                  settings.presencePenalty,
+                  1
+                ),
+              }}
+            />
+          </div>
         </div>
-    );
+      </div>
+    </>
+  );
 }

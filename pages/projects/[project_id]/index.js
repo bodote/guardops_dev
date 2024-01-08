@@ -5,8 +5,7 @@ import {
   RightIcon,
   SearchIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import { useRouter } from "next/router";
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Projectstabledata from "@/components/Projectsdetails/Projectstabledata";
 import { RiFilter2Fill } from "react-icons/ri";
 import Sidebar from "@/components/Sidebar/Sidebar";
@@ -21,14 +20,9 @@ function classNames(...classes) {
 
 const ProjectDetails = () => {
   const [active, setActive] = useState(false);
-  const [currentProject, setCurrentProject] = useState("");
+  const [tracesNumber, setTracesNumber] = useState();
+  const [tracesData, setTracesData] = useState();
   const modalRef = useRef();
-
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const projectId = url.pathname.split("/").pop();
-    // projectId && setCurrentProject(projectId)
-  }, []);
 
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -47,11 +41,71 @@ const ProjectDetails = () => {
     };
   }, [active]);
 
+  const getProjectDetails = async () => {
+    try {
+      const url = new URL(window.location.href);
+      const projectId = url.pathname.split("/").pop();
+
+      const response = await fetch(
+        `/api/manageProjectTrace?project_id=${projectId}`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.traces) {
+          let traces = [];
+          responseData.traces.map((trace) =>
+            trace.map((data) => {
+              data.parent_id === null && traces.push(data);
+            })
+          );
+          if (traces) {
+            setTracesData(traces);
+            const monthCounts = Array(12).fill(0);
+            traces.forEach((trace) => {
+              const startTime = new Date(trace.start_time);
+              const monthIndex = startTime.getMonth();
+              monthCounts[monthIndex]++;
+            });
+            setTracesNumber(monthCounts);
+          }
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  useEffect(() => {
+    getProjectDetails();
+  }, []);
+  // console.log("tracesData: ", tracesData);
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+
+  if (tracesData) {
+    tracesData.forEach((trace) => {
+      // Extract prompt_tokens and completion_tokens from attributes
+      const { prompt_tokens, completion_tokens } = trace.attributes;
+
+      // Add prompt_tokens to totalInputTokens
+      totalInputTokens += prompt_tokens;
+
+      // Add completion_tokens to totalOutputTokens
+      totalOutputTokens += completion_tokens;
+    });
+
+  }
   return (
     <>
       <div className="flex">
         <Sidebar />
-        <div className="w-full h-screen overflow-y-auto  ml-[96px]">
+        <div className="w-full h-screen overflow-y-auto  sm:ml-[96px] ml-[72px]">
           <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
             <div className="flex items-center gap-[5px]">
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
@@ -108,7 +162,7 @@ const ProjectDetails = () => {
               <h1 className="font-Inter text-[12px]  font-normal text-[#000000] ">
                 Traces per month
               </h1>
-              <BarChart />
+              {tracesNumber && <BarChart tracesNumber={tracesNumber} />}
             </div>
             <div className="bg-[#f5f5f5] p-[2px_16px_15px_8px] rounded-xl lg:min-w-[285px]">
               <h1 className="font-Inter text-[14px] font-normal text-[#000000] ">
@@ -121,7 +175,7 @@ const ProjectDetails = () => {
                       Inputtokens
                     </h1>
                     <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
-                      1,234 T
+                      {totalInputTokens} T
                     </button>
                   </div>
                   <div className="flex items-center gap-[10px] ">
@@ -139,7 +193,7 @@ const ProjectDetails = () => {
                       Outputtokens
                     </h1>
                     <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
-                      2,345 T
+                      {totalOutputTokens} T
                     </button>
                   </div>
                   <div className="flex items-center gap-[10px]">
@@ -266,7 +320,7 @@ const ProjectDetails = () => {
             </div>
           </div>
           <div>
-            <Projectstabledata currentProjectID={currentProject} />
+            <Projectstabledata />
           </div>
         </div>
       </div>

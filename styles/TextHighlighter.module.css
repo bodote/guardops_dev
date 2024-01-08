@@ -1,0 +1,31 @@
+.highlight {
+    position: relative;
+    padding: 3px;
+    border-radius: 3px;
+    color: black;
+}
+
+.category {
+    font-size: 0.7em;
+    /* Smaller font size for the category label */
+    color: violet;
+    /* Black color for the category text */
+    margin-left: 4px;
+    /* Space between the highlighted text and the category label */
+}
+
+.PERSON {
+    background-color: #9fafff;
+}
+
+.ORG {
+    background-color: #afeeee;
+}
+
+.DATE_TIME {
+    background-color: #b0e0e6;
+}
+
+.LOCATION {
+    background-color: #d8bbd8;
+}

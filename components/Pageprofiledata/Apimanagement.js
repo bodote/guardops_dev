@@ -12,7 +12,7 @@ const Apimanagement = () => {
 
   const getUserKeyDetails = async () => {
     const formData = {
-      user_id: "demouser1",
+      user_id: "demouser2",
     };
 
     try {
@@ -38,7 +38,7 @@ const Apimanagement = () => {
 
   const ganerateNewKey = async () => {
     const formData = {
-      user_id: "demouser1",
+      user_id: "demouser2",
     };
 
     try {
@@ -63,7 +63,7 @@ const Apimanagement = () => {
 
   const handleDeleteKey = async () => {
     const formData = {
-      user_id: "demouser1",
+      user_id: "demouser2",
       key_hash: deletedKey.hash,
     };
     try {

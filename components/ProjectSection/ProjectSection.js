@@ -46,6 +46,7 @@ const ProjectSection = () => {
   const [projectList, setProjectList] = useState([]);
   const [selectedProjectForDelete, setSelectedProjectForDelete] = useState("");
   const [selectedProjectForEdit, setSelectedProjectForEdit] = useState("");
+  const [loader, setLoader] = useState(false);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(people[0]);
 
@@ -64,7 +65,7 @@ const ProjectSection = () => {
   const handleProjectDelete = async (activity) => {
     if ((activity = "delete")) {
       const formData = {
-        user_id: "demouser1",
+        user_id: "demouser2",
         project_id: selectedProjectForDelete.project_id,
       };
 
@@ -89,13 +90,15 @@ const ProjectSection = () => {
   };
 
   const getProjectList = async () => {
+    setLoader(true);
     try {
-      const user_id = "demouser1";
+      const user_id = "demouser2";
       const response = await fetch(`/api/manageProjects?user_id=${user_id}`, {
         method: "GET",
       });
 
       if (response.ok) {
+        setLoader(false);
         const responseData = await response.json();
         if (responseData.projects) {
           setProjectList(responseData.projects);
@@ -104,6 +107,7 @@ const ProjectSection = () => {
         console.error("API request failed:", response.statusText);
       }
     } catch (error) {
+      setLoader(false);
       console.error("Error during API request:", error);
     }
   };
@@ -137,13 +141,13 @@ const ProjectSection = () => {
         <h1 className="font-Archivo sm:text-[32px] text-[28px] font-thin text-[#000] sm:py-[26px] py-[20px]">
           Projects
         </h1>
-        <div className="flex xl:gap-[45px] sm:gap-[30px] gap-[10px] flex-wrap ">
-          {projectList.length &&
+        <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full items-center">
+          {!loader ? (
             projectList.map((ele, i) => {
               return (
                 <div
                   key={i}
-                  className="hover:border-[#000] hover:bg-[#f2f2f2] xl:w-[calc(34%_-_45px)] sm:w-[calc(50%_-_15px)] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px] cursor-pointer"
+                  className="hover:border-[#000] hover:bg-[#f2f2f2] border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px] cursor-pointer w-full"
                 >
                   <div className="flex items-center justify-between">
                     <div
@@ -184,7 +188,7 @@ const ProjectSection = () => {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-[14px] pt-[8px] pb-[6px]">
+                  <div className="flex gap-[14px] pt-[8px] pb-[6px] flex-wrap">
                     <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
                       Traces: 2563
                     </p>
@@ -200,14 +204,21 @@ const ProjectSection = () => {
                   </p>
                 </div>
               );
-            })}
+            })
+          ) : (
+            <div className="flex">
+              <div className="dot-loader"></div>
+              <div className="dot-loader dot-loader--2"></div>
+              <div className="dot-loader dot-loader--3"></div>
+            </div>
+          )}
 
           <div
             onClick={() => {
               setCreateProjectStatus("new");
               setIsModalOpen(true);
             }}
-            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group xl:w-[calc(34%_-_45px)] sm:w-[calc(50%_-_15px)] w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
+            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
           >
             <div className="flex items-center gap-[8px]">
               <PlusIcon className="stroke-[#12131A] group-hover:stroke-white" />
