@@ -16,6 +16,7 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import { Tooltip } from "react-tooltip";
 import ModelSettings from "./modelSettings"; // Import the settings component
+import axios from "axios";
 
 const models = [
   {
@@ -102,6 +103,8 @@ const Version = ({
   const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
   const modalRef = useRef();
+  const [analysis, setAnalysis] = useState(false);
+  const [analysisData, setAnalysisData] = useState([]);
   // Load API key from Local Storage
 
   useEffect(() => {
@@ -217,6 +220,26 @@ const Version = ({
   }, [message, selected.id1, fireworksAIKey, runPressed, resetRunPressed]);
 
   // Format OutputResponse for Code
+  const handleAnalysis = async () => {
+    setAnalysis((prevAnalysis) => !prevAnalysis);
+    if (!analysis) {
+      try {
+        const queryParams = new URLSearchParams({
+          input: message,
+          response: apiResponse,
+        });
+
+        const response = await axios.post(
+          `https://lm3.hs-ansbach.de/tracing/api/pg_analysis?${queryParams}`
+        );
+
+        setAnalysisData(response.data);
+      } catch (error) {
+        console.error("Error sending text to API:", error);
+      }
+    }
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard
       .writeText(text)
@@ -300,6 +323,7 @@ const Version = ({
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [showSettings]);
+
   return (
     <>
       <div
@@ -439,7 +463,9 @@ const Version = ({
               <EditIcon />
               <MinusIcon onClick={() => removeVersion()} />
               <PlusRectangleIcon onClick={addVersion} />
-              <ShareIcon />
+              <button onClick={handleAnalysis}>
+                <ShareIcon />
+              </button>
               <SettingIcon
                 onClick={() => setShowSettings(true)}
                 className="cursor-pointer"
@@ -489,6 +515,46 @@ const Version = ({
             <UpArrowIcon />
             <PenIcon />
           </div>
+          {analysis && (
+            <div className="w-full bg-[#D4DB3333] p-[15px] rounded-[18px] overflow-auto">
+              <table className="grid grid-cols-2 min-w-[640px]">
+                {analysisData?.map((data, key) => {
+                  return (
+                    <tr key={key} className="flex gap-[12px]">
+                      <td className="text-[12px] italic font-semibold mb-[3px] text-left">
+                        <div
+                          data-tooltip-id="my-tooltip"
+                          data-tooltip-content={data.category}
+                          className="w-[100px] truncate"
+                        >
+                          {data.category}
+                        </div>
+                      </td>
+                      <td className="text-[12px] font-normal mb-[3px] text-left">
+                        <div
+                          data-tooltip-id="my-tooltip"
+                          data-tooltip-content={data.type}
+                          className="w-[100px] truncate"
+                        >
+                          {data.type}
+                        </div>
+                      </td>
+                      <td className="text-[12px] font-semibold mb-[3px] text-left">
+                        <div
+                          data-tooltip-id="my-tooltip"
+                          data-tooltip-content={data.value}
+                          className="w-[60px] truncate"
+                        >
+                          {data.value}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </table>
+             
+            </div>
+          )}
         </div>
         {tokens && (
           <div>
@@ -499,6 +565,7 @@ const Version = ({
           </div>
         )}
       </div>
+      <Tooltip id="my-tooltip" />
     </>
   );
 };

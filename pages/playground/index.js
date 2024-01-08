@@ -383,8 +383,8 @@ const index = () => {
             </div>
           </div>
           <div
-            className={`flex sm:flex-row flex-col
-              ${versions.length > 4 && "h-auto"}
+            className={`flex sm:flex-row flex-col h-screen
+              // ${versions.length < 6 && "2xl:h-screen"}
               `}
           >
             <div className="px-[16px] py-[12px] sm:w-[158px] sm:min-w-[156px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
