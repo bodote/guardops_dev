@@ -222,9 +222,7 @@ const AddProjectModal = ({
                   setShowRange(!showRange);
                 }}
                 id="hs-basic-with-description-checked"
-                className="relative w-[3.25rem] h-7 p-px bg-gray-100 border-transparent text-transparent  rounded-full cursor-pointer transition-colors ease-in-out duration-200 
-                              disabled:opacity-50  checked:bg-none checked:text-[#0D859A] dark:bg-gray-800 dark:border-gray-700 dark:focus:ring-offset-gray-600 before:inline-block 
-                              before:w-6 before:h-6 before:bg-white checked:before:bg-[#fff] before:translate-x-0 checked:before:translate-x-full before:rounded-full"
+                className="relative w-[35px] h-[20px] bg-gray-200 border-gray-400 text-transparent  rounded-full cursor-pointer transition-colors ease-in-out duration-200 disabled:opacity-50  checked:bg-none checked:text-[#0D859A] dark:bg-gray-800 dark:border-gray-700 dark:focus:ring-offset-gray-600 before:inline-block  before:bg-white checked:before:bg-[#fff] before:translate-x-0 checked:before:translate-x-full before:rounded-full before:w-[16px] before:h-[16px] before:ml-[2px] checked:before:!ml-0"
                 checked={showRange}
               />
             </div>

@@ -124,7 +124,7 @@ const AddDatasetModal = ({
             onChange={handleOnChange}
           />
           <p className="text-[#68727D] font-normal text-[14px] font-Inter">
-            Enter name of Dataset
+            Enter the name of your Dataset
           </p>
         </div>
         <div className="mt-[36px]">
@@ -144,7 +144,7 @@ const AddDatasetModal = ({
             onChange={handleOnChange}
           />
           <p className="text-[#68727D] font-normal text-[14px] font-Inter">
-            Give a clear Description of the Project you want to start
+            Give a clear description of the Dataset you want to create
           </p>
         </div>
 
