@@ -33,7 +33,7 @@ const Pageprofile = () => {
           </div>
 
           <div className="sm:px-[22px] px-[16px] ">
-            <div className="mt-[18px] flex  gap-[10px] items-center sm:justify-start justify-between">
+            <div className="mt-[18px] flex  gap-[10px] items-center sm:justify-start justify-between flex-wrap">
               <button
                 onClick={() => setTab("Profile")}
                 className={`${
@@ -75,7 +75,7 @@ const Pageprofile = () => {
                 Billing
               </button>
             </div>
-            <div className="sm:mt-[34px] mt-[10px] w-full overflow-x-auto">
+            <div className="w-full overflow-x-auto">
               {tab === "Profile" && <Profile />}
               {tab === "Apimanagement" && <Apimanagement />}
               {tab === "PlaygroundSettings" && <PlaygroundSettings />}
