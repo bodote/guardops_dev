@@ -18,68 +18,6 @@ import { Tooltip } from "react-tooltip";
 import ModelSettings from "./modelSettings"; // Import the settings component
 import axios from "axios";
 
-const models = [
-  {
-    id: 1,
-    name: "Select an option",
-    id1: "None",
-    provider: null,
-    context: null,
-    input_price: null,
-    output_price: null,
-    model_description: null,
-  },
-  {
-    id: 2,
-    name: "OpenAI - GPT-3.5-Turbo",
-    id1: "gpt-3.5-turbo",
-    provider: "openai",
-    context: "4,096",
-    input_price: "0.003 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-  {
-    id: 3,
-    name: "OpenAI - GPT-3.5-1106",
-    id1: "gpt-3.5-turbo-1106",
-    provider: "openai",
-    context: "16,385",
-    input_price: "0.002 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-  {
-    id: 4,
-    name: "FW - Mixtral MoE 8x7B Instruct",
-    id1: "mixtral-8x7b-instruct",
-    provider: "fireworks",
-    context: "128000",
-    input_price: "0.002 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-  {
-    id: 5,
-    name: "FW - Fireworks Function Call 34B v0",
-    id1: "fw-function-call-34b-v0",
-    provider: "fireworks",
-    context: "128000",
-    input_price: "0.002 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-  {
-    id: 6,
-    name: "FW - Qwen 72B Chat",
-    id1: "qwen-72b-chat",
-    provider: "fireworks",
-    context: "128000",
-    input_price: "0.002 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-];
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -95,23 +33,41 @@ const Version = ({
   resetRunPressed,
   appendToMessage,
 }) => {
-  const [selected, setSelected] = useState(models[0]);
+  const [models, setModels] = useState([]);
+  const [selected, setSelected] = useState({
+    name: "Select an option",
+  });
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tokens, setTokens] = useState();
   const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
+  const [customAIKey, setCustomAIKey] = useState(""); // State for the API key
+  const [customEndpoint, setCustomEndpoint] = useState(""); // State for the API endpoint
   const modalRef = useRef();
   const [analysis, setAnalysis] = useState(false);
   const [analysisData, setAnalysisData] = useState([]);
-  // Load API key from Local Storage
 
+  const getModels = async () => {
+    const response = await fetch(
+      "https://lm3.hs-ansbach.de/tracing/api/get_models"
+    );
+    const data = await response.json();
+    setModels(data);
+  };
+
+  // Load API key from Local Storage
   useEffect(() => {
+    getModels();
     const key = localStorage.getItem("fireworksAIKey") || "";
     setFireworksAIKey(key);
     const key1 = localStorage.getItem("openAIKey") || "";
     setOpenaiKey(key1);
+    const key2 = localStorage.getItem("customAIKey") || "";
+    setCustomAIKey(key2);
+    const key3 = localStorage.getItem("customEndpoint") || "";
+    setCustomEndpoint(key3);
   }, []);
 
   const providerConfig = {
@@ -122,6 +78,10 @@ const Version = ({
     fireworks: {
       endpoint: "https://api.fireworks.ai/inference/v1/chat/completions",
       getKey: () => fireworksAIKey,
+    },
+    custom: {
+      endpoint: () => customEndpoint,
+      getKey: () => customAIKey,
     },
     // Add more providers here as needed
   };
@@ -141,7 +101,10 @@ const Version = ({
       return;
     }
 
-    const apiEndpoint = providerInfo.endpoint;
+    const apiEndpoint =
+      selected.provider === "custom"
+        ? providerInfo.endpoint()
+        : providerInfo.endpoint;
     const authKey = `Bearer ${providerInfo.getKey()}`;
 
     const formData = {
@@ -193,8 +156,8 @@ const Version = ({
   };
 
   useEffect(() => {
-    const isValidModelSelected = selected.id1 && selected.id1 !== "None";
-    const providerInfo = providerConfig[selected.provider];
+    const isValidModelSelected = selected?.id1 && selected?.id1 !== "None";
+    const providerInfo = providerConfig[selected?.provider];
     const apiKey = providerInfo ? providerInfo.getKey() : null;
 
     if (message && isValidModelSelected && apiKey && runPressed) {
@@ -217,7 +180,7 @@ const Version = ({
       ); // Set error message in apiResponse
       resetRunPressed();
     }
-  }, [message, selected.id1, fireworksAIKey, runPressed, resetRunPressed]);
+  }, [message, selected?.id1, fireworksAIKey, runPressed, resetRunPressed]);
 
   // Format OutputResponse for Code
   const handleAnalysis = async () => {
@@ -351,7 +314,7 @@ const Version = ({
                     >
                       <span className="flex items-center">
                         <span className=" block truncate pr-[20px]">
-                          {selected.name}
+                          {selected?.name}
                         </span>
                       </span>
                       <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
@@ -520,39 +483,40 @@ const Version = ({
               <table className="grid grid-cols-2 min-w-[640px]">
                 {analysisData?.map((data, key) => {
                   return (
-                    <tr key={key} className="flex gap-[12px]">
-                      <td className="text-[12px] italic font-semibold mb-[3px] text-left">
-                        <div
-                          data-tooltip-id="my-tooltip"
-                          data-tooltip-content={data.category}
-                          className="w-[100px] truncate"
-                        >
-                          {data.category}
-                        </div>
-                      </td>
-                      <td className="text-[12px] font-normal mb-[3px] text-left">
-                        <div
-                          data-tooltip-id="my-tooltip"
-                          data-tooltip-content={data.type}
-                          className="w-[100px] truncate"
-                        >
-                          {data.type}
-                        </div>
-                      </td>
-                      <td className="text-[12px] font-semibold mb-[3px] text-left">
-                        <div
-                          data-tooltip-id="my-tooltip"
-                          data-tooltip-content={data.value}
-                          className="w-[60px] truncate"
-                        >
-                          {data.value}
-                        </div>
-                      </td>
-                    </tr>
+                    <tbody key={key}>
+                      <tr className="flex gap-[12px]">
+                        <td className="text-[12px] italic font-semibold mb-[3px] text-left">
+                          <div
+                            data-tooltip-id="my-tooltip"
+                            data-tooltip-content={data.category}
+                            className="w-[100px] truncate"
+                          >
+                            {data.category}
+                          </div>
+                        </td>
+                        <td className="text-[12px] font-normal mb-[3px] text-left">
+                          <div
+                            data-tooltip-id="my-tooltip"
+                            data-tooltip-content={data.type}
+                            className="w-[100px] truncate"
+                          >
+                            {data.type}
+                          </div>
+                        </td>
+                        <td className="text-[12px] font-semibold mb-[3px] text-left">
+                          <div
+                            data-tooltip-id="my-tooltip"
+                            data-tooltip-content={data.value}
+                            className="w-[60px] truncate"
+                          >
+                            {data.value}
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
                   );
                 })}
               </table>
-             
             </div>
           )}
         </div>

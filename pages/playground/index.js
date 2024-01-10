@@ -371,7 +371,7 @@ const index = () => {
               </div>
               {isModalOpen && (
                 <div
-                  ref={modalRef}
+                  // ref={modalRef}
                   className="modal z-[2] sm:w-[600px] w-auto absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto"
                 >
                   <PromptTemplates
