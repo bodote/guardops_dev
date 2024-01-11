@@ -12,6 +12,27 @@ export default async function handler(req, res) {
   const token = await getToken();
 
   switch (method) {
+    case "GET":
+      Url = `${baseUrl}api/get_templates`;
+      queryParams = new URLSearchParams({
+        user_id: req.query.user_id,
+      });
+      urlWithParams = `${Url}?${queryParams}`;
+      try {
+        const response = await fetch(urlWithParams, {
+          method: "GET",
+          headers: new Headers({
+            authorization: `Bearer ${token}`,
+          }),
+        });
+
+        const data = await response.json();
+        res.status(response.status).json(data);
+      } catch (error) {
+        console.error("Error during API request:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+      break;
     case "POST":
       bodyData = JSON.parse(req.body);
       Url = `${baseUrl}api/create_template`;

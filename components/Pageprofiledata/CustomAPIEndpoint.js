@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FiPlus, FiEye, FiEyeOff } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 const CustomAPIEndpoint = ({
   apiKey,
@@ -13,7 +14,7 @@ const CustomAPIEndpoint = ({
 
   const handleSave = () => {
     saveApiKeyWithEndpoint();
-    alert(`${label} API Key and Endpoint saved successfully!`);
+    toast.success("Custom Key saved successfully");
   };
 
   const toggleKeyVisibility = () => {

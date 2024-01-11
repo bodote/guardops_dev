@@ -4,27 +4,32 @@ import { FiPlus } from "react-icons/fi";
 import Templates from "../Templates/Templates";
 import AddTemplate from "./AddTemplate";
 
-const promptTemplateData = [
-  {
-    name: "React Prompt",
-    description:
-      "React Prompt Paradigma to use the Language Models as Controller for other tools",
-    link: "https://axiv.org/abs/2210.03629",
-    content:
-      "Answer the Question best as you can!\n You have the following tools.\n\n[search] Search the internet \n[calculator] Use Calculator. \n\n Select the tool and answer the following question.",
-  },
-  {
-    name: "Chain of Thought",
-    description:
-      "Enables complex reasoning capabilities through intermediate reasoning steps",
-    link: "https://axiv.org/abs/2210.qw123123",
-    content:
-      "Answer the following question not directly. Rather answer it step by step",
-  },
-];
-
 const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
   const [open, setOpen] = useState(false);
+  const [templates, setTemplates] = useState([]);
+  const getTemplatesList = async () => {
+    try {
+      const user_id = "demouser2";
+      const response = await fetch(`/api/manageTemplates?user_id=${user_id}`, {
+        method: "GET",
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.prompt_templates) {
+          setTemplates(responseData.prompt_templates);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+  useEffect(() => {
+    getTemplatesList();
+  }, []);
+
   return (
     <>
       <>
@@ -41,7 +46,7 @@ const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
             Choose Template to fill
           </h1>
           <div>
-            {promptTemplateData.map((data, ind) => (
+            {templates.map((data, ind) => (
               <Templates
                 data={data}
                 key={ind}
