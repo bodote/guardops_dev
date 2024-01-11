@@ -1,25 +1,15 @@
 import {
   DocumentIcon,
-  LinebigIcon,
-  LinesmallIcon,
-  LineverticalIcon,
   LineverticalbigIcon,
   RightcircleIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import React, {
-  useEffect,
-  Fragment,
-  useState,
-  useRef,
-  useLayoutEffect,
-} from "react";
+import React, { useEffect, useState } from "react";
 import Info from "./Info";
 import Response from "./Response";
 import SignalsConcepts from "./SignalsConcepts";
 import { Tooltip } from "react-tooltip";
-import { IoAdd, IoChevronDownOutline } from "react-icons/io5";
-import { Dialog, Listbox, Transition } from "@headlessui/react";
 import SelectDatasetModal from "../modal/SelectDatasetModal";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const TraceDetails = ({ traceProject, setIsModalOpen }) => {
   const [open, setOpen] = useState(true);
@@ -27,7 +17,12 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
   const [currentRootTrace, setCurrentRootTrace] = useState(null);
   const [isDatasetModelOpen, setIsDatasetModelOpen] = useState(false);
   const [tab, setTab] = useState("Info");
-
+  const router = useRouter();
+  const params = useSearchParams();
+  const dataToPass = {
+    project_name: params.get("name"),
+    message: encodeURIComponent(selectedProject?.attributes.prompt),
+  };
   const handleLatency = (startTime, endTime) => {
     const TempStartTime = new Date(startTime);
     const TempendTime = new Date(endTime);
@@ -226,7 +221,10 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
             >
               Add to dataset
             </button>
-            <button className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md">
+            <button
+              onClick={() => router.push(`/playground?data=${JSON.stringify(dataToPass)}`)}
+              className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
+            >
               Open in playground
             </button>
           </div>

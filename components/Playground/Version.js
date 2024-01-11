@@ -18,6 +18,68 @@ import { Tooltip } from "react-tooltip";
 import ModelSettings from "./modelSettings"; // Import the settings component
 import axios from "axios";
 
+// const models = [
+//   {
+//     id: 1,
+//     name: "Select an option",
+//     id1: "None",
+//     provider: null,
+//     context: null,
+//     input_price: null,
+//     output_price: null,
+//     model_description: null,
+//   },
+//   {
+//     id: 2,
+//     name: "OpenAI - GPT-3.5-Turbo",
+//     id1: "gpt-3.5-turbo",
+//     provider: "openai",
+//     context: "4,096",
+//     input_price: "0.003 / 1000 Tokens",
+//     output_price: "0.005 / 1000 Tokens",
+//     model_description: "Model is capable for all kind of tasks",
+//   },
+//   {
+//     id: 3,
+//     name: "OpenAI - GPT-3.5-1106",
+//     id1: "gpt-3.5-turbo-1106",
+//     provider: "openai",
+//     context: "16,385",
+//     input_price: "0.002 / 1000 Tokens",
+//     output_price: "0.005 / 1000 Tokens",
+//     model_description: "Model is capable for all kind of tasks",
+//   },
+//   {
+//     id: 4,
+//     name: "FW - Mixtral MoE 8x7B Instruct",
+//     id1: "mixtral-8x7b-instruct",
+//     provider: "fireworks",
+//     context: "128000",
+//     input_price: "0.002 / 1000 Tokens",
+//     output_price: "0.005 / 1000 Tokens",
+//     model_description: "Model is capable for all kind of tasks",
+//   },
+//   {
+//     id: 5,
+//     name: "FW - Fireworks Function Call 34B v0",
+//     id1: "fw-function-call-34b-v0",
+//     provider: "fireworks",
+//     context: "128000",
+//     input_price: "0.002 / 1000 Tokens",
+//     output_price: "0.005 / 1000 Tokens",
+//     model_description: "Model is capable for all kind of tasks",
+//   },
+//   {
+//     id: 6,
+//     name: "FW - Qwen 72B Chat",
+//     id1: "qwen-72b-chat",
+//     provider: "fireworks",
+//     context: "128000",
+//     input_price: "0.002 / 1000 Tokens",
+//     output_price: "0.005 / 1000 Tokens",
+//     model_description: "Model is capable for all kind of tasks",
+//   },
+// ];
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -80,7 +142,10 @@ const Version = ({
       getKey: () => fireworksAIKey,
     },
     custom: {
-      endpoint: () => customEndpoint,
+      endpoint: () =>
+        !customEndpoint.endsWith("/chat/completions")
+          ? `${customEndpoint}/chat/completions`
+          : customEndpoint,
       getKey: () => customAIKey,
     },
     // Add more providers here as needed
@@ -105,7 +170,10 @@ const Version = ({
       selected.provider === "custom"
         ? providerInfo.endpoint()
         : providerInfo.endpoint;
-    const authKey = `Bearer ${providerInfo.getKey()}`;
+    const authKey =
+      selected.provider === "custom"
+        ? `${providerInfo.getKey()}`
+        : `Bearer ${providerInfo.getKey()}`;
 
     const formData = {
       settings: settings,

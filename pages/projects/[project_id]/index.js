@@ -13,6 +13,7 @@ import DonutChart from "@/components/Projectsdetails/DonutChart";
 import BarChart from "@/components/Projectsdetails/BarChart";
 import { MdOutlineAdd } from "react-icons/md";
 import SelectDatasetModal from "@/components/modal/SelectDatasetModal";
+import { useSearchParams } from "next/navigation";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -23,7 +24,8 @@ const ProjectDetails = () => {
   const [tracesNumber, setTracesNumber] = useState();
   const [tracesData, setTracesData] = useState();
   const modalRef = useRef();
-
+  const searchParams = useSearchParams();
+  const projectName = searchParams.get("name");
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
       setActive(false);
@@ -99,7 +101,6 @@ const ProjectDetails = () => {
       // Add completion_tokens to totalOutputTokens
       totalOutputTokens += completion_tokens;
     });
-
   }
   return (
     <>
@@ -117,7 +118,7 @@ const ProjectDetails = () => {
               </h1>
               <RightIcon />
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                Dias Assistant
+                {projectName}
               </h1>
             </div>
             <LockIcon />

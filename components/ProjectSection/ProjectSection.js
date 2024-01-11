@@ -9,33 +9,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import DeleteProjectModal from "../modal/DeleteProjectModal";
 
-const people = [
-  {
-    id: 1,
-    name: "Select a dataset",
-  },
-  {
-    id: 2,
-    name: "DIAS Assistant",
-  },
-  {
-    id: 3,
-    name: "Simon Marius GPT",
-  },
-  {
-    id: 4,
-    name: "PlantUML GPT",
-  },
-  {
-    id: 5,
-    name: "MDZ",
-  },
-  {
-    id: 6,
-    name: "New Project ...",
-  },
-];
-
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -48,7 +21,7 @@ const ProjectSection = () => {
   const [selectedProjectForEdit, setSelectedProjectForEdit] = useState("");
   const [loader, setLoader] = useState(false);
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(people[0]);
+  const [selected, setSelected] = useState();
 
   const router = useRouter();
   const modalRef = useRef();
@@ -59,8 +32,8 @@ const ProjectSection = () => {
     }
   };
 
-  const handleProjectClick = (project_id) => {
-    router.push(`/projects/${project_id}`);
+  const handleProjectClick = (project_id, project_name) => {
+    router.push(`/projects/${project_id}?name=${project_name}`);
   };
   const handleProjectDelete = async (activity) => {
     if ((activity = "delete")) {
@@ -152,7 +125,9 @@ const ProjectSection = () => {
                   <div className="flex items-center justify-between">
                     <div
                       className="flex items-center gap-[8px]"
-                      onClick={() => handleProjectClick(ele.project_id)}
+                      onClick={() =>
+                        handleProjectClick(ele.project_id, ele.name)
+                      }
                     >
                       <img
                         src="/Assets/Images/Union.png"
@@ -181,7 +156,6 @@ const ProjectSection = () => {
                           setOpen={setOpen}
                           selectedProjectForDelete={selectedProjectForDelete}
                           selected={selected}
-                          people={people}
                           handleProjectDelete={handleProjectDelete}
                           setSelected={setSelected}
                         />

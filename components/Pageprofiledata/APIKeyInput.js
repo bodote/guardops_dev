@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { FiPlus, FiEye, FiEyeOff } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 const APIKeyInput = ({ apiKey, setApiKey, saveApiKey, label }) => {
   const [isKeyVisible, setIsKeyVisible] = useState(false);
 
   const handleSave = () => {
     saveApiKey();
-    alert(`${label} API Key saved successfully!`);
+    toast.success(`${label} Key saved successfully`);
   };
 
   const toggleKeyVisibility = () => {

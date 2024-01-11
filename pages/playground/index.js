@@ -11,6 +11,7 @@ import { Switch } from "@headlessui/react";
 import debounce from "lodash/debounce";
 import axios from "axios";
 import styles from "@/styles/TextHighlighter.module.css";
+import { useSearchParams } from "next/navigation";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -24,6 +25,25 @@ const index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
   const [enabled, setEnabled] = useState(false);
+  const [proname, setProname] = useState({
+    name: "Select an option",
+  });
+
+  const params = useSearchParams();
+  const data = params.get("data");
+
+  useEffect(() => {
+    const parsedData = JSON.parse(data);
+    if (parsedData && parsedData.message) {
+      setMessage(parsedData.message);
+    }
+    if (parsedData && parsedData.project_name) {
+      const matchingProject = projectList.find(
+        (project) => project.name === parsedData.project_name
+      );
+      setProname(matchingProject);
+    }
+  }, [projectList, data]);
 
   // Code for VersionsHistory:
   const [runsHistory, setRunsHistory] = useState([]);
@@ -165,12 +185,6 @@ const index = () => {
   const appendToMessage = (text) => {
     setMessage((prevMessage) => `${prevMessage} ${text}`);
   };
-
-  const t1 = {
-    id: 999,
-    name: "Select a Project",
-  };
-  const [proname, setProname] = useState(t1);
 
   // State to manage versions
   const [versions, setVersions] = useState([
