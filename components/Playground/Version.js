@@ -17,69 +17,7 @@ import gfm from "remark-gfm";
 import { Tooltip } from "react-tooltip";
 import ModelSettings from "./modelSettings"; // Import the settings component
 import axios from "axios";
-
-// const models = [
-//   {
-//     id: 1,
-//     name: "Select an option",
-//     id1: "None",
-//     provider: null,
-//     context: null,
-//     input_price: null,
-//     output_price: null,
-//     model_description: null,
-//   },
-//   {
-//     id: 2,
-//     name: "OpenAI - GPT-3.5-Turbo",
-//     id1: "gpt-3.5-turbo",
-//     provider: "openai",
-//     context: "4,096",
-//     input_price: "0.003 / 1000 Tokens",
-//     output_price: "0.005 / 1000 Tokens",
-//     model_description: "Model is capable for all kind of tasks",
-//   },
-//   {
-//     id: 3,
-//     name: "OpenAI - GPT-3.5-1106",
-//     id1: "gpt-3.5-turbo-1106",
-//     provider: "openai",
-//     context: "16,385",
-//     input_price: "0.002 / 1000 Tokens",
-//     output_price: "0.005 / 1000 Tokens",
-//     model_description: "Model is capable for all kind of tasks",
-//   },
-//   {
-//     id: 4,
-//     name: "FW - Mixtral MoE 8x7B Instruct",
-//     id1: "mixtral-8x7b-instruct",
-//     provider: "fireworks",
-//     context: "128000",
-//     input_price: "0.002 / 1000 Tokens",
-//     output_price: "0.005 / 1000 Tokens",
-//     model_description: "Model is capable for all kind of tasks",
-//   },
-//   {
-//     id: 5,
-//     name: "FW - Fireworks Function Call 34B v0",
-//     id1: "fw-function-call-34b-v0",
-//     provider: "fireworks",
-//     context: "128000",
-//     input_price: "0.002 / 1000 Tokens",
-//     output_price: "0.005 / 1000 Tokens",
-//     model_description: "Model is capable for all kind of tasks",
-//   },
-//   {
-//     id: 6,
-//     name: "FW - Qwen 72B Chat",
-//     id1: "qwen-72b-chat",
-//     provider: "fireworks",
-//     context: "128000",
-//     input_price: "0.002 / 1000 Tokens",
-//     output_price: "0.005 / 1000 Tokens",
-//     model_description: "Model is capable for all kind of tasks",
-//   },
-// ];
+import { Switch } from "@headlessui/react";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -94,6 +32,7 @@ const Version = ({
   runPressed,
   resetRunPressed,
   appendToMessage,
+  setApiCallInProgress,
 }) => {
   const [models, setModels] = useState([]);
   const [selected, setSelected] = useState({
@@ -110,6 +49,8 @@ const Version = ({
   const modalRef = useRef();
   const [analysis, setAnalysis] = useState(false);
   const [analysisData, setAnalysisData] = useState([]);
+  const [enabled, setEnabled] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const getModels = async () => {
     const response = await fetch(
@@ -142,10 +83,7 @@ const Version = ({
       getKey: () => fireworksAIKey,
     },
     custom: {
-      endpoint: () =>
-        !customEndpoint.endsWith("/chat/completions")
-          ? `${customEndpoint}/chat/completions`
-          : customEndpoint,
+      endpoint: () => customEndpoint,
       getKey: () => customAIKey,
     },
     // Add more providers here as needed
@@ -194,28 +132,34 @@ const Version = ({
 
       if (!res.ok) {
         setIsLoading(false);
-        setApiResponse("No content available");
+        // setApiResponse("No content available");
+        const errorText = await res.text();
+        let errorMessage = JSON.parse(errorText);
+        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
+        selected.provider === "openai" &&
+          setApiResponse(errorMessage.error.message);
+        selected.provider === "custom" && setApiResponse(errorMessage.message);
         throw new Error(res.statusText);
-      }
+      } else {
+        const data = res.body;
+        if (!data) {
+          setApiResponse("No content available");
+          return;
+        }
+        setIsLoading(false);
 
-      const data = res.body;
-      if (!data) {
-        setApiResponse("No content available");
-        return;
-      }
-      setIsLoading(false);
+        const reader = data.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
 
-      const reader = data.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        const chunkValue = decoder.decode(value);
-        setApiResponse((prev) => prev + chunkValue);
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          const chunkValue = decoder.decode(value);
+          setApiResponse((prev) => prev + chunkValue);
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     } catch (error) {
       console.error("API request failed:", error.message);
       setError("Error: " + error.message);
@@ -232,10 +176,12 @@ const Version = ({
       fetchApiResponse()
         .then(() => {
           resetRunPressed(); // Reset runPressed after the API call
+          setApiCallInProgress(false);
         })
         .catch((error) => {
           console.error("Error fetching API response:", error);
           setError("Error: " + error.message); // Set error state
+          setApiCallInProgress(false);
         });
     } else if (runPressed) {
       let missingItems = [];
@@ -327,12 +273,12 @@ const Version = ({
 
   // State for settings values
   const [settings, setSettings] = useState({
-    maxTokens: 500,
-    temperature: 0.6,
-    topP: 0.2,
-    topK: 0.3,
-    frequencyPenalty: 0.3,
-    presencePenalty: 0.3,
+    maxTokens: "",
+    temperature: "",
+    topP: "",
+    topK: "",
+    frequencyPenalty: "",
+    presencePenalty: "",
   });
 
   // Handle settings change
@@ -358,7 +304,6 @@ const Version = ({
   return (
     <>
       <div
-        // className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC]"
         className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[476px] !min-h-[400px] overflow-auto ${
           versions > 4
             ? "sm:min-h-0 !min-h-[464px] sm:h-auto h-[464px] sm:!pr-[10px]"
@@ -491,7 +436,9 @@ const Version = ({
                 versions > 2 ? "!gap-[10px]" : ""
               }`}
             >
-              <EditIcon />
+              <button onClick={() => setOpen(!open)}>
+                <EditIcon />
+              </button>
               <MinusIcon onClick={() => removeVersion()} />
               <PlusRectangleIcon onClick={addVersion} />
               <button onClick={handleAnalysis}>
@@ -540,6 +487,44 @@ const Version = ({
               <p>Error: {error}</p>
             ) : null}
           </div>
+          {open && (
+            <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px]">
+              <p className="text-[#252525] font-medium text-[14px]">
+                System Prompt
+              </p>
+              <textarea
+                placeholder="Your system prompt to the model"
+                className="border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
+              ></textarea>
+              <div className="flex justify-between items-center gap-[10px] flex-wrap">
+                <div className="flex items-center gap-[5px]">
+                  <Switch
+                    checked={enabled}
+                    onChange={setEnabled}
+                    className={classNames(
+                      enabled ? "bg-[#0074fb]" : "bg-gray-200",
+                      "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                    )}
+                  >
+                    <span className="sr-only">Use setting</span>
+                    <span
+                      aria-hidden="true"
+                      className={classNames(
+                        enabled ? "translate-x-[11px]" : "translate-x-0",
+                        "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                      )}
+                    />
+                  </Switch>
+                  <label className="text-[#252525] text-[12px] font-medium">
+                    Sync to all
+                  </label>
+                </div>
+                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
+                  Save System Prompt
+                </button>
+              </div>
+            </div>
+          )}
           <div className="flex gap-[10px] justify-center my-[17px]">
             <CopyIcon onClick={handleCopyClick} />
             <DownArrowIcon />

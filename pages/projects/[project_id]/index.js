@@ -23,6 +23,7 @@ const ProjectDetails = () => {
   const [active, setActive] = useState(false);
   const [tracesNumber, setTracesNumber] = useState();
   const [tracesData, setTracesData] = useState();
+  const [searchTrace, setSearchTrace] = useState("");
   const modalRef = useRef();
   const searchParams = useSearchParams();
   const projectName = searchParams.get("name");
@@ -230,6 +231,8 @@ const ProjectDetails = () => {
                   <input
                     type="text"
                     id="voice-search"
+                    value={searchTrace}
+                    onChange={(e) => setSearchTrace(e.target.value)}
                     className="focus:ring-0 focus:outline-none focus:!border-gray-300  border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
                     placeholder="Search"
                     required
@@ -321,7 +324,7 @@ const ProjectDetails = () => {
             </div>
           </div>
           <div>
-            <Projectstabledata />
+            <Projectstabledata searchTrace={searchTrace} />
           </div>
         </div>
       </div>
