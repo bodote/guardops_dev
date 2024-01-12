@@ -222,7 +222,9 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
               Add to dataset
             </button>
             <button
-              onClick={() => router.push(`/playground?data=${JSON.stringify(dataToPass)}`)}
+              onClick={() =>
+                router.push(`/playground?data=${JSON.stringify(dataToPass)}`)
+              }
               className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
             >
               Open in playground

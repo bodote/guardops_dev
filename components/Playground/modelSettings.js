@@ -11,7 +11,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             <div className="flex justify-between items-center mb-[6px]">
               <p className="text-[#5D6574] text-[12px]">Max Tokens</p>
               <span className="text-[#5D6574] text-[12px]">
-                {settings.maxTokens}
+                {settings.maxTokens ? settings.maxTokens : 0}
               </span>
             </div>
             <input
@@ -19,7 +19,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
               min="0"
               max="4000"
               className="slider-main"
-              value={settings.maxTokens}
+              value={settings.maxTokens ? settings.maxTokens : 0}
               id="max-tokens"
               onChange={(e) => onSettingsChange("maxTokens", e.target.value)}
               style={{
@@ -31,7 +31,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             <div className="flex justify-between items-center mb-[6px]">
               <p className="text-[#5D6574] text-[12px]">Temperature</p>
               <span className="text-[#5D6574] text-[12px]">
-                {settings.temperature}
+                {settings.temperature ? settings.temperature : 0}
               </span>
             </div>
             <input
@@ -40,7 +40,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
               max="1"
               step="0.01"
               className="slider-main"
-              value={settings.temperature}
+              value={settings.temperature ? settings.temperature : 0}
               id="temperature"
               onChange={(e) => onSettingsChange("temperature", e.target.value)}
               style={{
@@ -52,7 +52,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             <div className="flex justify-between items-center mb-[6px]">
               <p className="text-[#5D6574] text-[12px]">Top P</p>
               <span className="text-[#5D6574] text-[12px]">
-                {settings.topP}
+                {settings.topP ? settings.topP : 0}
               </span>
             </div>
             <input
@@ -61,7 +61,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
               max="1"
               step="0.01"
               className="slider-main"
-              value={settings.topP}
+              value={settings.topP ? settings.topP : 0}
               id="top-p"
               onChange={(e) => onSettingsChange("topP", e.target.value)}
               style={{
@@ -73,7 +73,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             <div className="flex justify-between items-center mb-[6px]">
               <p className="text-[#5D6574] text-[12px]">Top K</p>
               <span className="text-[#5D6574] text-[12px]">
-                {settings.topK}
+                {settings.topK ? settings.topK : 0}
               </span>
             </div>
             <input
@@ -82,7 +82,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
               max="1"
               step="0.01"
               className="slider-main"
-              value={settings.topK}
+              value={settings.topK ? settings.topK : 0}
               id="top-k"
               onChange={(e) => onSettingsChange("topK", e.target.value)}
               style={{
@@ -94,7 +94,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             <div className="flex justify-between items-center mb-[6px]">
               <p className="text-[#5D6574] text-[12px]">Frequency Penalty</p>
               <span className="text-[#5D6574] text-[12px]">
-                {settings.frequencyPenalty}
+                {settings.frequencyPenalty ? settings.frequencyPenalty : 0}
               </span>
             </div>
             <input
@@ -103,7 +103,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
               max="1"
               step="0.01"
               className="slider-main"
-              value={settings.frequencyPenalty}
+              value={settings.frequencyPenalty ? settings.frequencyPenalty : 0}
               id="frequency-penalty"
               onChange={(e) =>
                 onSettingsChange("frequencyPenalty", e.target.value)
@@ -120,7 +120,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             <div className="flex justify-between items-center mb-[6px]">
               <p className="text-[#5D6574] text-[12px]">Presence Penalty</p>
               <span className="text-[#5D6574] text-[12px]">
-                {settings.presencePenalty}
+                {settings.presencePenalty ? settings.presencePenalty : 0}
               </span>
             </div>
             <input
@@ -129,7 +129,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
               max="1"
               step="0.01"
               className="slider-main"
-              value={settings.presencePenalty}
+              value={settings.presencePenalty ? settings.presencePenalty : 0}
               id="presence-penalty"
               onChange={(e) =>
                 onSettingsChange("presencePenalty", e.target.value)

@@ -3,7 +3,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { FiPlus } from "react-icons/fi";
 import { toast } from "react-toastify";
 
-const AddTemplate = ({ open, setOpen }) => {
+const AddTemplate = ({ open, setOpen, updateTemplatesList }) => {
   const [templateData, setTemplateData] = useState({
     template_name: "",
     template_description: "",
@@ -56,6 +56,7 @@ const AddTemplate = ({ open, setOpen }) => {
           template: "",
         });
         setOpen(false);
+        updateTemplatesList();
       } else {
         toast.error("API request failed");
         console.error("API request failed:", response.statusText);

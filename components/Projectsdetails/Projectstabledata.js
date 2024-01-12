@@ -2,10 +2,8 @@ import { ThreeDotsIcon, UpDownIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useEffect, useState, useRef } from "react";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
 import TraceDetails from "./TraceDetails";
-import { RiAddBoxLine } from "react-icons/ri";
-import { MdDeleteOutline } from "react-icons/md";
 
-const Projectstabledata = () => {
+const Projectstabledata = ({ searchTrace }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectList, setProjectList] = useState([]);
   const [traceProject, setTraceProject] = useState(null);
@@ -45,8 +43,6 @@ const Projectstabledata = () => {
 
   const getProjectDetails = async () => {
     try {
-      // const urlParams = new URLSearchParams(traceProject?.attributes?.http_url);
-      // const project_id = '7b0ad838-1eae-4b28-b148-9bc8aaaaab03';
       const url = new URL(window.location.href);
       const projectId = url.pathname.split("/").pop();
 
@@ -99,6 +95,20 @@ const Projectstabledata = () => {
   useEffect(() => {
     getProjectDetails();
   }, []);
+
+  const filteredProjects = projectList.filter((project) =>
+    project.some(
+      (item) =>
+        item?.parent_id === null &&
+        (item?.kind.toLowerCase().includes(searchTrace.toLowerCase()) ||
+          item?.attributes.prompt
+            .toLowerCase()
+            .includes(searchTrace.toLowerCase()) ||
+          item?.attributes.content
+            .toLowerCase()
+            .includes(searchTrace.toLowerCase()))
+    )
+  );
 
   return (
     <>
@@ -156,7 +166,7 @@ const Projectstabledata = () => {
             </tr>
           </thead>
           <tbody>
-            {projectList.map((data, outerEle) =>
+            {filteredProjects.map((data) =>
               data.map((val, innerEle) => {
                 return (
                   val.parent_id == null && (

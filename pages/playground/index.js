@@ -28,6 +28,7 @@ const index = () => {
   const [proname, setProname] = useState({
     name: "Select an option",
   });
+  const [apiCallInProgress, setApiCallInProgress] = useState(false);
 
   const params = useSearchParams();
   const data = params.get("data");
@@ -138,6 +139,9 @@ const index = () => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        if (apiCallInProgress) {
+          return;
+        }
         runPlayground();
       }
     };
@@ -149,7 +153,7 @@ const index = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [message]); // Depend on 'message' to ensure it's captured in the closure
+  }, [message, apiCallInProgress]); // Depend on 'message' to ensure it's captured in the closure
 
   useEffect(() => {
     getProjectList();
@@ -170,6 +174,12 @@ const index = () => {
 
   // Function to transform text and pass to Version component
   const runPlayground = () => {
+    if (apiCallInProgress) {
+      return;
+    }
+
+    // Set the API call in progress status
+    setApiCallInProgress(true);
     // Pass the uppercaseMessage to each Version component
     setVersions(versions.map((v) => ({ ...v, message: message })));
     setRunPressed(true);
@@ -439,6 +449,7 @@ const index = () => {
                   resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
                   appendToMessage: appendToMessage, // pass the appendToMessage function here
                   key: version.id,
+                  setApiCallInProgress: setApiCallInProgress,
                 })
               )}
             </div>

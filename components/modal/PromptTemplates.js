@@ -26,6 +26,12 @@ const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
       console.error("Error during API request:", error);
     }
   };
+
+  const updateTemplatesList = async () => {
+    // Refresh the template list when called
+    await getTemplatesList();
+  };
+
   useEffect(() => {
     getTemplatesList();
   }, []);
@@ -64,7 +70,13 @@ const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
               <FiPlus />
               Add own Template
             </button>
-            {open && <AddTemplate open={open} setOpen={setOpen} />}
+            {open && (
+              <AddTemplate
+                open={open}
+                setOpen={setOpen}
+                updateTemplatesList={updateTemplatesList}
+              />
+            )}
           </div>
         </div>
       </>
