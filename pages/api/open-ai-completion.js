@@ -1,7 +1,8 @@
 import { ModalAIStream } from "@/utils/ModalAIStream";
 
 export default async function handler(req, res) {
-  const { settings, modal, apiEndpoint, authKey, message } = req.body;
+  const { settings, modal, apiEndpoint, authKey, message, systemPrompt } =
+    req.body;
   try {
     // Set appropriate headers for streaming data
     res.setHeader("Content-Type", "application/octet-stream");
@@ -13,6 +14,7 @@ export default async function handler(req, res) {
       apiEndpoint,
       authKey,
       message,
+      systemPrompt,
     });
 
     if (typeof stream.getReader !== "function") {
