@@ -66,7 +66,7 @@ const index = () => {
     const elements = [];
     let lastIndex = 0;
 
-    piiData.forEach((annotation, index) => {
+    {message && piiData.forEach((annotation, index) => {
       elements.push(message.substring(lastIndex, annotation.start));
 
       elements.push(
@@ -81,7 +81,7 @@ const index = () => {
       lastIndex = annotation.end;
     });
     elements.push(message.substring(lastIndex));
-
+}
     return elements;
   };
 
@@ -95,6 +95,7 @@ const index = () => {
         setPiiData(response.data);
       } catch (error) {
         console.error("Error sending text to API:", error);
+        setPiiData([]);
       }
     }, 1000),
     []

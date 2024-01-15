@@ -26,14 +26,18 @@ export async function ModalAIStream(payload) {
               : payload.modal.id1,
           messages: [
             {
+              role: "system",
+              content: `${payload.systemPrompt}`,
+            },
+            {
               role: "user",
               content: `${payload.message}`,
             },
           ],
           stream: true,
           max_tokens: Number(payload?.settings.maxTokens),
-          temperature: Number(payload?.settings.temperature),
-          top_p: Number(payload?.settings.topP),
+          temperature: payload?.settings.temperature,
+          top_p: payload?.settings.topP,
         }),
       });
 

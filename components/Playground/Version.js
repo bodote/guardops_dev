@@ -51,6 +51,7 @@ const Version = ({
   const [analysisData, setAnalysisData] = useState([]);
   const [enabled, setEnabled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState("");
 
   const getModels = async () => {
     const response = await fetch(
@@ -119,6 +120,7 @@ const Version = ({
       apiEndpoint: apiEndpoint,
       authKey: authKey,
       message: message,
+      systemPrompt: open ? systemPrompt : "",
     };
 
     try {
@@ -244,7 +246,7 @@ const Version = ({
     const regex = /```(.*?)```/gs;
     let lastIndex = 0;
 
-    apiResponse.replace(regex, (match, codeBlock, index) => {
+    apiResponse?.replace(regex, (match, codeBlock, index) => {
       // Add the text segment before the code block
       if (index > lastIndex) {
         segments.push({
@@ -273,12 +275,12 @@ const Version = ({
 
   // State for settings values
   const [settings, setSettings] = useState({
-    maxTokens: "",
-    temperature: "",
-    topP: "",
-    topK: "",
-    frequencyPenalty: "",
-    presencePenalty: "",
+    maxTokens: 500,
+    temperature: 0.6,
+    topP: 0.2,
+    topK: 0.3,
+    frequencyPenalty: 0.3,
+    presencePenalty: 0.3,
   });
 
   // Handle settings change
@@ -472,7 +474,7 @@ const Version = ({
             {isLoading ? (
               <p>Loading...</p>
             ) : apiResponse ? (
-              parseApiResponse(apiResponse).map((segment, index) =>
+              segments.map((segment, index) =>
                 segment.type === "code" ? (
                   <CodeBox key={index} code={segment.content} />
                 ) : (
@@ -494,6 +496,10 @@ const Version = ({
               </p>
               <textarea
                 placeholder="Your system prompt to the model"
+                name="system"
+                id="system"
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
                 className="border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
               ></textarea>
               <div className="flex justify-between items-center gap-[10px] flex-wrap">
