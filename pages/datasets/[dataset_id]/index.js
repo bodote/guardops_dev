@@ -5,22 +5,18 @@ import {
   RightIcon,
   SearchIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Projectstabledata from "@/components/Projectsdetails/Projectstabledata";
 import { RiFilter2Fill } from "react-icons/ri";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import DonutChart from "@/components/Projectsdetails/DonutChart";
 import BarChart from "@/components/Projectsdetails/BarChart";
+import { useSearchParams } from "next/navigation";
 
 const ProjectDetails = () => {
   const [currentProject, setCurrentProject] = useState("");
-  // useEffect(()=>{
-  //   // const url = new URL( window.location.href);
-  //   // const projectId = url.pathname.split('/').pop()
-  //   console.log("check value+++++++++++++", projectId);
-  //   projectId && setCurrentProject(projectId)
-  // },[])
+  const searchParams = useSearchParams();
+  const datasetName = searchParams.get("name");
 
   return (
     <>
@@ -34,11 +30,11 @@ const ProjectDetails = () => {
               </h1>
               <RightIcon />
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                Projects
+                Datasets
               </h1>
               <RightIcon />
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                Dias Assistant
+                {datasetName}
               </h1>
             </div>
             <LockIcon />

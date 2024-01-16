@@ -11,6 +11,7 @@ import { Switch } from "@headlessui/react";
 import debounce from "lodash/debounce";
 import axios from "axios";
 import styles from "@/styles/TextHighlighter.module.css";
+import { useSearchParams } from "next/navigation";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -23,7 +24,31 @@ const index = () => {
   const [piiData, setPiiData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
-  const [enabled, setEnabled] = useState(false);
+  const [PiiCheckEnable, setPiiCheckEnable] = useState(false);
+  const [syncAll, setsyncAll] = useState(false);
+  const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
+
+  const [allSystemPrompt, setAllSystemPrompt] = useState("");
+  const [proname, setProname] = useState({
+    name: "Select an option",
+  });
+  const [apiCallInProgress, setApiCallInProgress] = useState(false);
+
+  const params = useSearchParams();
+  const data = params.get("data");
+
+  useEffect(() => {
+    const parsedData = JSON.parse(data);
+    if (parsedData && parsedData.message) {
+      setMessage(parsedData.message);
+    }
+    if (parsedData && parsedData.project_name) {
+      const matchingProject = projectList.find(
+        (project) => project.name === parsedData.project_name
+      );
+      setProname(matchingProject);
+    }
+  }, [projectList, data]);
 
   // Code for VersionsHistory:
   const [runsHistory, setRunsHistory] = useState([]);
@@ -45,22 +70,26 @@ const index = () => {
     const elements = [];
     let lastIndex = 0;
 
-    piiData.forEach((annotation, index) => {
-      elements.push(message.substring(lastIndex, annotation.start));
+    {
+      message &&
+        piiData.forEach((annotation, index) => {
+          elements.push(message.substring(lastIndex, annotation.start));
 
-      elements.push(
-        <span
-          key={index}
-          className={`${styles[annotation.entity_type]} ${styles.highlight}`}
-        >
-          {message.substring(annotation.start, annotation.end)}
-          <span className={styles.category}>{annotation.entity_type}</span>
-        </span>
-      );
-      lastIndex = annotation.end;
-    });
-    elements.push(message.substring(lastIndex));
-
+          elements.push(
+            <span
+              key={index}
+              className={`${styles[annotation.entity_type]} ${
+                styles.highlight
+              }`}
+            >
+              {message.substring(annotation.start, annotation.end)}
+              <span className={styles.category}>{annotation.entity_type}</span>
+            </span>
+          );
+          lastIndex = annotation.end;
+        });
+      elements.push(message.substring(lastIndex));
+    }
     return elements;
   };
 
@@ -74,6 +103,7 @@ const index = () => {
         setPiiData(response.data);
       } catch (error) {
         console.error("Error sending text to API:", error);
+        setPiiData([]);
       }
     }, 1000),
     []
@@ -81,7 +111,11 @@ const index = () => {
   // Function to handle text change in text area
   const handleTextChange = (e) => {
     setMessage(e.target.value);
-    debouncedSendText(e.target.value);
+    if (e.target.value.length > 0) {
+      PiiCheckEnable && debouncedSendText(e.target.value);
+    }else{
+      setPiiData([])
+    }
   };
   useEffect(() => {
     if (isModalOpen) {
@@ -118,6 +152,9 @@ const index = () => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        if (apiCallInProgress) {
+          return;
+        }
         runPlayground();
       }
     };
@@ -129,7 +166,7 @@ const index = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [message]); // Depend on 'message' to ensure it's captured in the closure
+  }, [message, apiCallInProgress]); // Depend on 'message' to ensure it's captured in the closure
 
   useEffect(() => {
     getProjectList();
@@ -138,6 +175,7 @@ const index = () => {
   // Function to clear the message text area
   const clearMessage = () => {
     setMessage("");
+    setPiiData([])
   };
 
   // State to track the runPlayground button has been pressed
@@ -150,6 +188,13 @@ const index = () => {
 
   // Function to transform text and pass to Version component
   const runPlayground = () => {
+    setAnalysisModelOpen(false);
+    if (apiCallInProgress) {
+      return;
+    }
+
+    // Set the API call in progress status
+    setApiCallInProgress(true);
     // Pass the uppercaseMessage to each Version component
     setVersions(versions.map((v) => ({ ...v, message: message })));
     setRunPressed(true);
@@ -166,12 +211,6 @@ const index = () => {
     setMessage((prevMessage) => `${prevMessage} ${text}`);
   };
 
-  const t1 = {
-    id: 999,
-    name: "Select a Project",
-  };
-  const [proname, setProname] = useState(t1);
-
   // State to manage versions
   const [versions, setVersions] = useState([
     { id: 1, component: <Version key={1} /> },
@@ -183,7 +222,20 @@ const index = () => {
       versions.length > 0 ? versions[versions.length - 1].id + 1 : 1;
     setVersions([
       ...versions,
-      { id: newId, component: <Version key={newId} /> },
+      {
+        id: newId,
+        component: (
+          <Version
+            key={newId}
+            syncAll={syncAll}
+            setsyncAll={setsyncAll}
+            allSystemPrompt={allSystemPrompt}
+            setAllSystemPrompt={setAllSystemPrompt}
+            setAnalysisModelOpen={setAnalysisModelOpen}
+            analysisModelOpen={analysisModelOpen}
+          />
+        ),
+      },
     ]);
   };
 
@@ -239,10 +291,10 @@ const index = () => {
                 <div className="md:flex items-center gap-[20px]">
                   <div className="flex items-center gap-[5px] sm:mt-0 mt-2">
                     <Switch
-                      checked={enabled}
-                      onChange={setEnabled}
+                      checked={PiiCheckEnable}
+                      onChange={setPiiCheckEnable}
                       className={classNames(
-                        enabled ? "bg-[#0074fb]" : "bg-gray-200",
+                        PiiCheckEnable ? "bg-[#0074fb]" : "bg-gray-200",
                         "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                       )}
                     >
@@ -250,7 +302,9 @@ const index = () => {
                       <span
                         aria-hidden="true"
                         className={classNames(
-                          enabled ? "translate-x-[11px]" : "translate-x-0",
+                          PiiCheckEnable
+                            ? "translate-x-[11px]"
+                            : "translate-x-0",
                           "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
                         )}
                       />
@@ -343,9 +397,9 @@ const index = () => {
                   value={message}
                   onChange={handleTextChange}
                 />
-                {enabled && (
+                {PiiCheckEnable && (
                   <div className="h-[180px] w-full font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto">
-                    {getParsedText()}
+                    {  getParsedText()}
                   </div>
                 )}
               </div>
@@ -371,7 +425,7 @@ const index = () => {
               </div>
               {isModalOpen && (
                 <div
-                  ref={modalRef}
+                  // ref={modalRef}
                   className="modal z-[2] sm:w-[600px] w-auto absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto"
                 >
                   <PromptTemplates
@@ -383,8 +437,8 @@ const index = () => {
             </div>
           </div>
           <div
-            className={`flex sm:flex-row flex-col
-              ${versions.length > 4 && "h-auto"}
+            className={`flex sm:flex-row flex-col h-screen
+              // ${versions.length < 6 && "2xl:h-screen"}
               `}
           >
             <div className="px-[16px] py-[12px] sm:w-[158px] sm:min-w-[156px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
@@ -425,6 +479,14 @@ const index = () => {
                   resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
                   appendToMessage: appendToMessage, // pass the appendToMessage function here
                   key: version.id,
+                  setApiCallInProgress: setApiCallInProgress,
+                  apiCallInProgress:apiCallInProgress,
+                  syncAll,
+                  setsyncAll,
+                  setAllSystemPrompt,
+                  allSystemPrompt,
+                  analysisModelOpen,
+                  setAnalysisModelOpen,
                 })
               )}
             </div>

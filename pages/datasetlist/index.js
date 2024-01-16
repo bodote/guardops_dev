@@ -47,7 +47,7 @@ const DatasetList = () => {
               </h1>
               <RightIcon />
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                Projects
+                Datasets
               </h1>
             </div>
             <a href="/api/auth/logout">

@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { FiPlus, FiEye, FiEyeOff } from "react-icons/fi";
+import { toast } from "react-toastify";
 
 const APIKeyInput = ({ apiKey, setApiKey, saveApiKey, label }) => {
   const [isKeyVisible, setIsKeyVisible] = useState(false);
 
   const handleSave = () => {
     saveApiKey();
-    alert(`${label} API Key saved successfully!`);
+    toast.success(`${label} Key saved successfully`);
   };
 
   const toggleKeyVisibility = () => {
@@ -14,7 +15,7 @@ const APIKeyInput = ({ apiKey, setApiKey, saveApiKey, label }) => {
   };
 
   return (
-    <div className="">
+    <div className="mt-[31px]">
       <label className="text-[#252525] font-medium text-[14px] font-Inter">
         {label}
       </label>
@@ -23,13 +24,13 @@ const APIKeyInput = ({ apiKey, setApiKey, saveApiKey, label }) => {
           <input
             type={isKeyVisible ? "text" : "password"}
             value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-            className="h-10 border border-[#EAEBF0] my-[6px] rounded w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter"
+            onChange={(e) => setApiKey(e.target.value)}
+            className="h-10 border border-[#EAEBF0] my-[6px] rounded w-full focus:ring-0 focus:outline-none focus:!border-[#EAEBF0] font-normal text-[15px] font-Inter pr-[32px]"
             required=""
           />
-          <button 
-            type="button" 
-            onClick={toggleKeyVisibility} 
+          <button
+            type="button"
+            onClick={toggleKeyVisibility}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
           >
             {isKeyVisible ? <FiEyeOff /> : <FiEye />}

@@ -16,69 +16,9 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import { Tooltip } from "react-tooltip";
 import ModelSettings from "./modelSettings"; // Import the settings component
-
-const models = [
-  {
-    id: 1,
-    name: "Select an option",
-    id1: "None",
-    provider: null,
-    context: null,
-    input_price: null,
-    output_price: null,
-    model_description: null,
-  },
-  {
-    id: 2,
-    name: "OpenAI - GPT-3.5-Turbo",
-    id1: "gpt-3.5-turbo",
-    provider: "openai",
-    context: "4,096",
-    input_price: "0.003 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-  {
-    id: 3,
-    name: "OpenAI - GPT-3.5-1106",
-    id1: "gpt-3.5-turbo-1106",
-    provider: "openai",
-    context: "16,385",
-    input_price: "0.002 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-  {
-    id: 4,
-    name: "FW - Mixtral MoE 8x7B Instruct",
-    id1: "mixtral-8x7b-instruct",
-    provider: "fireworks",
-    context: "128000",
-    input_price: "0.002 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-  {
-    id: 5,
-    name: "FW - Fireworks Function Call 34B v0",
-    id1: "fw-function-call-34b-v0",
-    provider: "fireworks",
-    context: "128000",
-    input_price: "0.002 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-  {
-    id: 6,
-    name: "FW - Qwen 72B Chat",
-    id1: "qwen-72b-chat",
-    provider: "fireworks",
-    context: "128000",
-    input_price: "0.002 / 1000 Tokens",
-    output_price: "0.005 / 1000 Tokens",
-    model_description: "Model is capable for all kind of tasks",
-  },
-];
+import axios from "axios";
+import { Switch } from "@headlessui/react";
+import { toast } from "react-toastify";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -93,22 +33,52 @@ const Version = ({
   runPressed,
   resetRunPressed,
   appendToMessage,
+  setApiCallInProgress,
+  apiCallInProgress,
+  syncAll,
+  setsyncAll,
+  setAllSystemPrompt,
+  allSystemPrompt,
+  analysisModelOpen,
+  setAnalysisModelOpen,
 }) => {
-  const [selected, setSelected] = useState(models[0]);
+  const [models, setModels] = useState([]);
+  const [selected, setSelected] = useState({
+    name: "Select an option",
+  });
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tokens, setTokens] = useState();
   const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
+  const [customAIKey, setCustomAIKey] = useState(""); // State for the API key
+  const [customEndpoint, setCustomEndpoint] = useState(""); // State for the API endpoint
   const modalRef = useRef();
-  // Load API key from Local Storage
+  const [analysisData, setAnalysisData] = useState([]);
+  const [enabled, setEnabled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState("");
 
+  const getModels = async () => {
+    const response = await fetch(
+      "https://lm3.hs-ansbach.de/tracing/api/get_models"
+    );
+    const data = await response.json();
+    setModels(data);
+  };
+
+  // Load API key from Local Storage
   useEffect(() => {
+    getModels();
     const key = localStorage.getItem("fireworksAIKey") || "";
     setFireworksAIKey(key);
     const key1 = localStorage.getItem("openAIKey") || "";
     setOpenaiKey(key1);
+    const key2 = localStorage.getItem("customAIKey") || "";
+    setCustomAIKey(key2);
+    const key3 = localStorage.getItem("customEndpoint") || "";
+    setCustomEndpoint(key3);
   }, []);
 
   const providerConfig = {
@@ -119,6 +89,10 @@ const Version = ({
     fireworks: {
       endpoint: "https://api.fireworks.ai/inference/v1/chat/completions",
       getKey: () => fireworksAIKey,
+    },
+    custom: {
+      endpoint: () => customEndpoint,
+      getKey: () => customAIKey,
     },
     // Add more providers here as needed
   };
@@ -138,8 +112,14 @@ const Version = ({
       return;
     }
 
-    const apiEndpoint = providerInfo.endpoint;
-    const authKey = `Bearer ${providerInfo.getKey()}`;
+    const apiEndpoint =
+      selected.provider === "custom"
+        ? providerInfo.endpoint()
+        : providerInfo.endpoint;
+    const authKey =
+      selected.provider === "custom"
+        ? `${providerInfo.getKey()}`
+        : `Bearer ${providerInfo.getKey()}`;
 
     const formData = {
       settings: settings,
@@ -147,6 +127,7 @@ const Version = ({
       apiEndpoint: apiEndpoint,
       authKey: authKey,
       message: message,
+      systemPrompt: open ? systemPrompt : "",
     };
 
     try {
@@ -160,28 +141,34 @@ const Version = ({
 
       if (!res.ok) {
         setIsLoading(false);
-        setApiResponse("No content available");
+        // setApiResponse("No content available");
+        const errorText = await res.text();
+        let errorMessage = JSON.parse(errorText);
+        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
+        selected.provider === "openai" &&
+          setApiResponse(errorMessage.error.message);
+        selected.provider === "custom" && setApiResponse(errorMessage.message);
         throw new Error(res.statusText);
-      }
+      } else {
+        const data = res.body;
+        if (!data) {
+          setApiResponse("No content available");
+          return;
+        }
+        setIsLoading(false);
 
-      const data = res.body;
-      if (!data) {
-        setApiResponse("No content available");
-        return;
-      }
-      setIsLoading(false);
+        const reader = data.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
 
-      const reader = data.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        const chunkValue = decoder.decode(value);
-        setApiResponse((prev) => prev + chunkValue);
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          const chunkValue = decoder.decode(value);
+          setApiResponse((prev) => prev + chunkValue);
+        }
+        setIsLoading(false);
       }
-      setIsLoading(false);
     } catch (error) {
       console.error("API request failed:", error.message);
       setError("Error: " + error.message);
@@ -190,18 +177,20 @@ const Version = ({
   };
 
   useEffect(() => {
-    const isValidModelSelected = selected.id1 && selected.id1 !== "None";
-    const providerInfo = providerConfig[selected.provider];
+    const isValidModelSelected = selected?.id1 && selected?.id1 !== "None";
+    const providerInfo = providerConfig[selected?.provider];
     const apiKey = providerInfo ? providerInfo.getKey() : null;
 
     if (message && isValidModelSelected && apiKey && runPressed) {
       fetchApiResponse()
         .then(() => {
           resetRunPressed(); // Reset runPressed after the API call
+          setApiCallInProgress(false);
         })
         .catch((error) => {
           console.error("Error fetching API response:", error);
           setError("Error: " + error.message); // Set error state
+          setApiCallInProgress(false);
         });
     } else if (runPressed) {
       let missingItems = [];
@@ -212,11 +201,37 @@ const Version = ({
       setApiResponse(
         `Please provide the following: ${missingItems.join(", ")}.`
       ); // Set error message in apiResponse
+      setApiCallInProgress(false);
       resetRunPressed();
     }
-  }, [message, selected.id1, fireworksAIKey, runPressed, resetRunPressed]);
+  }, [message, selected?.id1, fireworksAIKey, runPressed, resetRunPressed]);
 
   // Format OutputResponse for Code
+  const handleAnalysis = async () => {
+    if (analysisModelOpen) {
+      try {
+        const queryParams = new URLSearchParams({
+          input: message,
+          response: apiResponse,
+        });
+
+        const response = await axios.post(
+          `https://lm3.hs-ansbach.de/tracing/api/pg_analysis?${queryParams}`
+        );
+
+        setAnalysisData(response.data);
+      } catch (error) {
+        console.error("Error sending text to API:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (analysisModelOpen) {
+      handleAnalysis();
+    }
+  }, [analysisModelOpen]);
+
   const copyToClipboard = (text) => {
     navigator.clipboard
       .writeText(text)
@@ -244,7 +259,7 @@ const Version = ({
     const regex = /```(.*?)```/gs;
     let lastIndex = 0;
 
-    apiResponse.replace(regex, (match, codeBlock, index) => {
+    apiResponse?.replace(regex, (match, codeBlock, index) => {
       // Add the text segment before the code block
       if (index > lastIndex) {
         segments.push({
@@ -258,7 +273,7 @@ const Version = ({
     });
 
     // Add any remaining text after the last code block
-    if (lastIndex < apiResponse.length) {
+    if (apiResponse && lastIndex < apiResponse.length) {
       segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
     }
 
@@ -290,6 +305,31 @@ const Version = ({
       setShowSettings(false);
     }
   };
+
+  useEffect(() => {
+    if (enabled) {
+      setsyncAll(true);
+      setAllSystemPrompt(systemPrompt);
+    } else {
+      setsyncAll(false);
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    if (syncAll) {
+      setEnabled(true);
+      setSystemPrompt(allSystemPrompt);
+    } else {
+      setEnabled(false);
+    }
+  }, [syncAll, allSystemPrompt]);
+
+  useEffect(() => {
+    if (syncAll) {
+      setAllSystemPrompt(systemPrompt);
+    }
+  }, [systemPrompt]);
+
   useEffect(() => {
     if (showSettings) {
       document.addEventListener("mousedown", handleOutsideClick);
@@ -300,10 +340,10 @@ const Version = ({
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [showSettings]);
+
   return (
     <>
       <div
-        // className="py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC]"
         className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[476px] !min-h-[400px] overflow-auto ${
           versions > 4
             ? "sm:min-h-0 !min-h-[464px] sm:h-auto h-[464px] sm:!pr-[10px]"
@@ -327,7 +367,7 @@ const Version = ({
                     >
                       <span className="flex items-center">
                         <span className=" block truncate pr-[20px]">
-                          {selected.name}
+                          {selected?.name}
                         </span>
                       </span>
                       <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
@@ -436,10 +476,14 @@ const Version = ({
                 versions > 2 ? "!gap-[10px]" : ""
               }`}
             >
-              <EditIcon />
+              <button onClick={() => setOpen(!open)}>
+                <EditIcon />
+              </button>
               <MinusIcon onClick={() => removeVersion()} />
               <PlusRectangleIcon onClick={addVersion} />
-              <ShareIcon />
+              <button onClick={() => !apiCallInProgress && setAnalysisModelOpen(!analysisModelOpen)}>
+                <ShareIcon />
+              </button>
               <SettingIcon
                 onClick={() => setShowSettings(true)}
                 className="cursor-pointer"
@@ -460,6 +504,53 @@ const Version = ({
               </div>
             )}
           </div>
+          {open && (
+            <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px]">
+              <p className="text-[#252525] font-medium text-[14px]">
+                System Prompt
+              </p>
+              <textarea
+                placeholder="Your system prompt to the model"
+                name="system"
+                id="system"
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+                className="border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
+              ></textarea>
+              <div className="flex justify-between items-center gap-[10px] flex-wrap">
+                <div className="flex items-center gap-[5px]">
+                  <Switch
+                    checked={enabled}
+                    onChange={() => setEnabled(!enabled)}
+                    className={classNames(
+                      enabled ? "bg-[#0074fb]" : "bg-gray-200",
+                      "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                    )}
+                  >
+                    <span className="sr-only">Use setting</span>
+                    <span
+                      aria-hidden="true"
+                      className={classNames(
+                        enabled ? "translate-x-[11px]" : "translate-x-0",
+                        "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                      )}
+                    />
+                  </Switch>
+                  <label className="text-[#252525] text-[12px] font-medium">
+                    Sync to all
+                  </label>
+                </div>
+                <button
+                  onClick={() =>
+                    toast.success("System prompt saved successfully")
+                  }
+                  className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                >
+                  Save System Prompt
+                </button>
+              </div>
+            </div>
+          )}
           <div
             className={`response-output justify-center mt-[20px]  overflow-auto ${
               versions > 4 ? "sm:max-h-auto sm:max-h-[360px] max-h-[310px]" : ""
@@ -468,11 +559,36 @@ const Version = ({
             {isLoading ? (
               <p>Loading...</p>
             ) : apiResponse ? (
-              parseApiResponse(apiResponse).map((segment, index) =>
+              segments.map((segment, index) =>
                 segment.type === "code" ? (
                   <CodeBox key={index} code={segment.content} />
                 ) : (
                   <ReactMarkdown
+                    components={{
+                      ul: ({ node, ...props }) => (
+                        <ul
+                          style={{
+                            display: "block",
+                            listStyleType: "disc",
+                            paddingInlineStart: "40px",
+                          }}
+                          {...props}
+                        />
+                      ),
+                      ol: ({ node, ...props }) => (
+                        <ol
+                          style={{
+                            display: "block",
+                            listStyleType: "decimal",
+                            paddingInlineStart: "40px",
+                          }}
+                          {...props}
+                        />
+                      ),
+                      h1: ({ node, ...props }) => (
+                        <h1 className="font-bold text-6xl" {...props} />
+                      ),
+                    }}
                     remarkPlugins={[gfm]}
                     key={index}
                     children={segment.content}
@@ -489,6 +605,47 @@ const Version = ({
             <UpArrowIcon />
             <PenIcon />
           </div>
+          {analysisModelOpen && (
+            <div className="w-full bg-[#D4DB3333] p-[15px] rounded-[18px] overflow-auto">
+              <table className="grid grid-cols-2 min-w-[640px]">
+                {analysisData?.map((data, key) => {
+                  return (
+                    <tbody key={key}>
+                      <tr className="flex gap-[12px]">
+                        <td className="text-[12px] italic font-semibold mb-[3px] text-left">
+                          <div
+                            data-tooltip-id="my-tooltip"
+                            data-tooltip-content={data.category}
+                            className="w-[100px] truncate"
+                          >
+                            {data.category}
+                          </div>
+                        </td>
+                        <td className="text-[12px] font-normal mb-[3px] text-left">
+                          <div
+                            data-tooltip-id="my-tooltip"
+                            data-tooltip-content={data.type}
+                            className="w-[100px] truncate"
+                          >
+                            {data.type}
+                          </div>
+                        </td>
+                        <td className="text-[12px] font-semibold mb-[3px] text-left">
+                          <div
+                            data-tooltip-id="my-tooltip"
+                            data-tooltip-content={data.value}
+                            className="w-[60px] truncate"
+                          >
+                            {data.value}
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  );
+                })}
+              </table>
+            </div>
+          )}
         </div>
         {tokens && (
           <div>
@@ -499,6 +656,7 @@ const Version = ({
           </div>
         )}
       </div>
+      <Tooltip id="my-tooltip" />
     </>
   );
 };

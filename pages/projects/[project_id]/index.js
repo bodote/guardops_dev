@@ -13,6 +13,7 @@ import DonutChart from "@/components/Projectsdetails/DonutChart";
 import BarChart from "@/components/Projectsdetails/BarChart";
 import { MdOutlineAdd } from "react-icons/md";
 import SelectDatasetModal from "@/components/modal/SelectDatasetModal";
+import { useSearchParams } from "next/navigation";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -22,8 +23,10 @@ const ProjectDetails = () => {
   const [active, setActive] = useState(false);
   const [tracesNumber, setTracesNumber] = useState();
   const [tracesData, setTracesData] = useState();
+  const [searchTrace, setSearchTrace] = useState("");
   const modalRef = useRef();
-
+  const searchParams = useSearchParams();
+  const projectName = searchParams.get("name");
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
       setActive(false);
@@ -99,7 +102,6 @@ const ProjectDetails = () => {
       // Add completion_tokens to totalOutputTokens
       totalOutputTokens += completion_tokens;
     });
-
   }
   return (
     <>
@@ -117,7 +119,7 @@ const ProjectDetails = () => {
               </h1>
               <RightIcon />
               <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                Dias Assistant
+                {projectName}
               </h1>
             </div>
             <LockIcon />
@@ -229,6 +231,8 @@ const ProjectDetails = () => {
                   <input
                     type="text"
                     id="voice-search"
+                    value={searchTrace}
+                    onChange={(e) => setSearchTrace(e.target.value)}
                     className="focus:ring-0 focus:outline-none focus:!border-gray-300  border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
                     placeholder="Search"
                     required
@@ -320,7 +324,7 @@ const ProjectDetails = () => {
             </div>
           </div>
           <div>
-            <Projectstabledata />
+            <Projectstabledata searchTrace={searchTrace} />
           </div>
         </div>
       </div>
