@@ -18,6 +18,7 @@ import { Tooltip } from "react-tooltip";
 import ModelSettings from "./modelSettings"; // Import the settings component
 import axios from "axios";
 import { Switch } from "@headlessui/react";
+import { toast } from "react-toastify";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -33,6 +34,13 @@ const Version = ({
   resetRunPressed,
   appendToMessage,
   setApiCallInProgress,
+  apiCallInProgress,
+  syncAll,
+  setsyncAll,
+  setAllSystemPrompt,
+  allSystemPrompt,
+  analysisModelOpen,
+  setAnalysisModelOpen,
 }) => {
   const [models, setModels] = useState([]);
   const [selected, setSelected] = useState({
@@ -47,7 +55,6 @@ const Version = ({
   const [customAIKey, setCustomAIKey] = useState(""); // State for the API key
   const [customEndpoint, setCustomEndpoint] = useState(""); // State for the API endpoint
   const modalRef = useRef();
-  const [analysis, setAnalysis] = useState(false);
   const [analysisData, setAnalysisData] = useState([]);
   const [enabled, setEnabled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -194,14 +201,14 @@ const Version = ({
       setApiResponse(
         `Please provide the following: ${missingItems.join(", ")}.`
       ); // Set error message in apiResponse
+      setApiCallInProgress(false);
       resetRunPressed();
     }
   }, [message, selected?.id1, fireworksAIKey, runPressed, resetRunPressed]);
 
   // Format OutputResponse for Code
   const handleAnalysis = async () => {
-    setAnalysis((prevAnalysis) => !prevAnalysis);
-    if (!analysis) {
+    if (analysisModelOpen) {
       try {
         const queryParams = new URLSearchParams({
           input: message,
@@ -218,6 +225,12 @@ const Version = ({
       }
     }
   };
+
+  useEffect(() => {
+    if (analysisModelOpen) {
+      handleAnalysis();
+    }
+  }, [analysisModelOpen]);
 
   const copyToClipboard = (text) => {
     navigator.clipboard
@@ -260,7 +273,7 @@ const Version = ({
     });
 
     // Add any remaining text after the last code block
-    if (lastIndex < apiResponse.length) {
+    if (apiResponse && lastIndex < apiResponse.length) {
       segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
     }
 
@@ -292,6 +305,31 @@ const Version = ({
       setShowSettings(false);
     }
   };
+
+  useEffect(() => {
+    if (enabled) {
+      setsyncAll(true);
+      setAllSystemPrompt(systemPrompt);
+    } else {
+      setsyncAll(false);
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    if (syncAll) {
+      setEnabled(true);
+      setSystemPrompt(allSystemPrompt);
+    } else {
+      setEnabled(false);
+    }
+  }, [syncAll, allSystemPrompt]);
+
+  useEffect(() => {
+    if (syncAll) {
+      setAllSystemPrompt(systemPrompt);
+    }
+  }, [systemPrompt]);
+
   useEffect(() => {
     if (showSettings) {
       document.addEventListener("mousedown", handleOutsideClick);
@@ -443,7 +481,7 @@ const Version = ({
               </button>
               <MinusIcon onClick={() => removeVersion()} />
               <PlusRectangleIcon onClick={addVersion} />
-              <button onClick={handleAnalysis}>
+              <button onClick={() => !apiCallInProgress && setAnalysisModelOpen(!analysisModelOpen)}>
                 <ShareIcon />
               </button>
               <SettingIcon
@@ -466,31 +504,8 @@ const Version = ({
               </div>
             )}
           </div>
-          <div
-            className={`response-output justify-center mt-[20px]  overflow-auto ${
-              versions > 4 ? "sm:max-h-auto sm:max-h-[360px] max-h-[310px]" : ""
-            }`}
-          >
-            {isLoading ? (
-              <p>Loading...</p>
-            ) : apiResponse ? (
-              segments.map((segment, index) =>
-                segment.type === "code" ? (
-                  <CodeBox key={index} code={segment.content} />
-                ) : (
-                  <ReactMarkdown
-                    remarkPlugins={[gfm]}
-                    key={index}
-                    children={segment.content}
-                  />
-                )
-              )
-            ) : error ? (
-              <p>Error: {error}</p>
-            ) : null}
-          </div>
           {open && (
-            <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px]">
+            <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px]">
               <p className="text-[#252525] font-medium text-[14px]">
                 System Prompt
               </p>
@@ -506,7 +521,7 @@ const Version = ({
                 <div className="flex items-center gap-[5px]">
                   <Switch
                     checked={enabled}
-                    onChange={setEnabled}
+                    onChange={() => setEnabled(!enabled)}
                     className={classNames(
                       enabled ? "bg-[#0074fb]" : "bg-gray-200",
                       "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
@@ -525,19 +540,72 @@ const Version = ({
                     Sync to all
                   </label>
                 </div>
-                <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md">
+                <button
+                  onClick={() =>
+                    toast.success("System prompt saved successfully")
+                  }
+                  className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                >
                   Save System Prompt
                 </button>
               </div>
             </div>
           )}
+          <div
+            className={`response-output justify-center mt-[20px]  overflow-auto ${
+              versions > 4 ? "sm:max-h-auto sm:max-h-[360px] max-h-[310px]" : ""
+            }`}
+          >
+            {isLoading ? (
+              <p>Loading...</p>
+            ) : apiResponse ? (
+              segments.map((segment, index) =>
+                segment.type === "code" ? (
+                  <CodeBox key={index} code={segment.content} />
+                ) : (
+                  <ReactMarkdown
+                    components={{
+                      ul: ({ node, ...props }) => (
+                        <ul
+                          style={{
+                            display: "block",
+                            listStyleType: "disc",
+                            paddingInlineStart: "40px",
+                          }}
+                          {...props}
+                        />
+                      ),
+                      ol: ({ node, ...props }) => (
+                        <ol
+                          style={{
+                            display: "block",
+                            listStyleType: "decimal",
+                            paddingInlineStart: "40px",
+                          }}
+                          {...props}
+                        />
+                      ),
+                      h1: ({ node, ...props }) => (
+                        <h1 className="font-bold text-6xl" {...props} />
+                      ),
+                    }}
+                    remarkPlugins={[gfm]}
+                    key={index}
+                    children={segment.content}
+                  />
+                )
+              )
+            ) : error ? (
+              <p>Error: {error}</p>
+            ) : null}
+          </div>
           <div className="flex gap-[10px] justify-center my-[17px]">
             <CopyIcon onClick={handleCopyClick} />
             <DownArrowIcon />
             <UpArrowIcon />
             <PenIcon />
           </div>
-          {analysis && (
+          {analysisModelOpen && (
             <div className="w-full bg-[#D4DB3333] p-[15px] rounded-[18px] overflow-auto">
               <table className="grid grid-cols-2 min-w-[640px]">
                 {analysisData?.map((data, key) => {

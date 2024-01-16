@@ -24,7 +24,11 @@ const index = () => {
   const [piiData, setPiiData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
-  const [enabled, setEnabled] = useState(false);
+  const [PiiCheckEnable, setPiiCheckEnable] = useState(false);
+  const [syncAll, setsyncAll] = useState(false);
+  const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
+
+  const [allSystemPrompt, setAllSystemPrompt] = useState("");
   const [proname, setProname] = useState({
     name: "Select an option",
   });
@@ -66,22 +70,26 @@ const index = () => {
     const elements = [];
     let lastIndex = 0;
 
-    {message && piiData.forEach((annotation, index) => {
-      elements.push(message.substring(lastIndex, annotation.start));
+    {
+      message &&
+        piiData.forEach((annotation, index) => {
+          elements.push(message.substring(lastIndex, annotation.start));
 
-      elements.push(
-        <span
-          key={index}
-          className={`${styles[annotation.entity_type]} ${styles.highlight}`}
-        >
-          {message.substring(annotation.start, annotation.end)}
-          <span className={styles.category}>{annotation.entity_type}</span>
-        </span>
-      );
-      lastIndex = annotation.end;
-    });
-    elements.push(message.substring(lastIndex));
-}
+          elements.push(
+            <span
+              key={index}
+              className={`${styles[annotation.entity_type]} ${
+                styles.highlight
+              }`}
+            >
+              {message.substring(annotation.start, annotation.end)}
+              <span className={styles.category}>{annotation.entity_type}</span>
+            </span>
+          );
+          lastIndex = annotation.end;
+        });
+      elements.push(message.substring(lastIndex));
+    }
     return elements;
   };
 
@@ -103,7 +111,11 @@ const index = () => {
   // Function to handle text change in text area
   const handleTextChange = (e) => {
     setMessage(e.target.value);
-    debouncedSendText(e.target.value);
+    if (e.target.value.length > 0) {
+      PiiCheckEnable && debouncedSendText(e.target.value);
+    }else{
+      setPiiData([])
+    }
   };
   useEffect(() => {
     if (isModalOpen) {
@@ -163,6 +175,7 @@ const index = () => {
   // Function to clear the message text area
   const clearMessage = () => {
     setMessage("");
+    setPiiData([])
   };
 
   // State to track the runPlayground button has been pressed
@@ -175,6 +188,7 @@ const index = () => {
 
   // Function to transform text and pass to Version component
   const runPlayground = () => {
+    setAnalysisModelOpen(false);
     if (apiCallInProgress) {
       return;
     }
@@ -208,7 +222,20 @@ const index = () => {
       versions.length > 0 ? versions[versions.length - 1].id + 1 : 1;
     setVersions([
       ...versions,
-      { id: newId, component: <Version key={newId} /> },
+      {
+        id: newId,
+        component: (
+          <Version
+            key={newId}
+            syncAll={syncAll}
+            setsyncAll={setsyncAll}
+            allSystemPrompt={allSystemPrompt}
+            setAllSystemPrompt={setAllSystemPrompt}
+            setAnalysisModelOpen={setAnalysisModelOpen}
+            analysisModelOpen={analysisModelOpen}
+          />
+        ),
+      },
     ]);
   };
 
@@ -264,10 +291,10 @@ const index = () => {
                 <div className="md:flex items-center gap-[20px]">
                   <div className="flex items-center gap-[5px] sm:mt-0 mt-2">
                     <Switch
-                      checked={enabled}
-                      onChange={setEnabled}
+                      checked={PiiCheckEnable}
+                      onChange={setPiiCheckEnable}
                       className={classNames(
-                        enabled ? "bg-[#0074fb]" : "bg-gray-200",
+                        PiiCheckEnable ? "bg-[#0074fb]" : "bg-gray-200",
                         "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                       )}
                     >
@@ -275,7 +302,9 @@ const index = () => {
                       <span
                         aria-hidden="true"
                         className={classNames(
-                          enabled ? "translate-x-[11px]" : "translate-x-0",
+                          PiiCheckEnable
+                            ? "translate-x-[11px]"
+                            : "translate-x-0",
                           "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
                         )}
                       />
@@ -368,9 +397,9 @@ const index = () => {
                   value={message}
                   onChange={handleTextChange}
                 />
-                {enabled && (
+                {PiiCheckEnable && (
                   <div className="h-[180px] w-full font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto">
-                    {getParsedText()}
+                    {  getParsedText()}
                   </div>
                 )}
               </div>
@@ -451,6 +480,13 @@ const index = () => {
                   appendToMessage: appendToMessage, // pass the appendToMessage function here
                   key: version.id,
                   setApiCallInProgress: setApiCallInProgress,
+                  apiCallInProgress:apiCallInProgress,
+                  syncAll,
+                  setsyncAll,
+                  setAllSystemPrompt,
+                  allSystemPrompt,
+                  analysisModelOpen,
+                  setAnalysisModelOpen,
                 })
               )}
             </div>
