@@ -1,37 +1,69 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 
 import { IoChevronDownOutline } from "react-icons/io5";
 import { Listbox, Transition } from "@headlessui/react";
+import { toast } from "react-toastify";
 
-const itemList = [
-  {
-    id: 1,
-    name: "Select a dataset",
-  },
-  {
-    id: 2,
-    name: "DIAS Assistant",
-  },
-  {
-    id: 3,
-    name: "Simon Marius GPT",
-  },
-  {
-    id: 4,
-    name: "PlantUML GPT",
-  },
-  {
-    id: 5,
-    name: "MDZ",
-  },
-  {
-    id: 6,
-    name: "New Project ...",
-  },
-];
+const SelectDatasetModal = ({
+  setIsDatasetModelOpen,
+  traceProject,
+  selectedTrace,
+}) => {
+  const [selected, setSelected] = useState({ name: "Select a dataset" });
+  const [datasetList, setDatasetList] = useState([]);
+  const user_id = "demouser2";
 
-const SelectDatasetModal = ({ setIsDatasetModelOpen }) => {
-  const [selected, setSelected] = useState(itemList[0]);
+  const getDatasets = async () => {
+    try {
+      const response = await fetch(`/api/manageDataset?user_id=${user_id}`, {
+        method: "GET",
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.datasets) {
+          setDatasetList(responseData.datasets);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  const formData = {
+    user_id,
+    dataset_id: selected.dataset_id,
+    trace_ids: (() => {
+      if (traceProject) {
+        const mainTrace = traceProject.find(
+          (trace) => trace.parent_id === null
+        );
+        return mainTrace ? [mainTrace.context.trace_id] : null;
+      } else if (selectedTrace) {
+        return selectedTrace.map((trace) => trace.context.trace_id);
+      } else {
+        return null;
+      }
+    })(),
+  };
+  const handleConfirm = async () => {
+    const response = await fetch("/api/manageDataset", {
+      method: "PATCH",
+      body: JSON.stringify(formData),
+    });
+    if (response.ok) {
+      toast.success("Traces successfully added to dataset!!");
+      const responseData = await response.json();
+      setIsDatasetModelOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    getDatasets();
+  }, []);
+
   function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
   }
@@ -67,16 +99,16 @@ const SelectDatasetModal = ({ setIsDatasetModelOpen }) => {
                 leaveTo="opacity-0"
               >
                 <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-[8px] bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border-[1px] border-[#ccc] shadow-none">
-                  {itemList.map((person) => (
+                  {datasetList.map((dataset) => (
                     <Listbox.Option
-                      key={person.id}
+                      key={dataset.dataset_id}
                       className={({ active }) =>
                         classNames(
                           active ? "bg-[#eee]" : "text-gray-900",
                           "relative cursor-default select-none py-[4px] pl-3 pr-9 text-[12px]"
                         )
                       }
-                      value={person}
+                      value={dataset}
                     >
                       {({ selected, active }) => (
                         <>
@@ -87,7 +119,7 @@ const SelectDatasetModal = ({ setIsDatasetModelOpen }) => {
                                 "ml-3 block truncate"
                               )}
                             >
-                              {person.name}
+                              {dataset.name}
                             </span>
                           </div>
 
@@ -117,7 +149,7 @@ const SelectDatasetModal = ({ setIsDatasetModelOpen }) => {
           cancel
         </button>
         <button
-          onClick={() => setIsDatasetModelOpen(false)}
+          onClick={handleConfirm}
           className=" bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
         >
           Confirm

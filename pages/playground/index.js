@@ -12,6 +12,7 @@ import debounce from "lodash/debounce";
 import axios from "axios";
 import styles from "@/styles/TextHighlighter.module.css";
 import { useSearchParams } from "next/navigation";
+import NewPrompt from "@/components/modal/NewPrompt";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -27,7 +28,7 @@ const index = () => {
   const [PiiCheckEnable, setPiiCheckEnable] = useState(false);
   const [syncAll, setsyncAll] = useState(false);
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
-
+  const [open, setOpen] = useState(false);
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
   const [proname, setProname] = useState({
     name: "Select an option",
@@ -113,8 +114,8 @@ const index = () => {
     setMessage(e.target.value);
     if (e.target.value.length > 0) {
       PiiCheckEnable && debouncedSendText(e.target.value);
-    }else{
-      setPiiData([])
+    } else {
+      setPiiData([]);
     }
   };
   useEffect(() => {
@@ -175,7 +176,7 @@ const index = () => {
   // Function to clear the message text area
   const clearMessage = () => {
     setMessage("");
-    setPiiData([])
+    setPiiData([]);
   };
 
   // State to track the runPlayground button has been pressed
@@ -271,7 +272,10 @@ const index = () => {
           </div>
           <div className=" flex sm:flex-row flex-col border-b border-b-[#CCCCCC]">
             <div className="px-[16px] pt-[12px] sm:w-[156px] sm:min-w-[156px] w-full  sm:border-r border-0 border-r-[#CCCCCC] ">
-              <button className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[11px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]">
+              <button
+                onClick={() => setOpen(true)}
+                className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[11px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
+              >
                 <FiPlus /> New Prompt
               </button>
               <ul className="list-disc px-[8px]">
@@ -399,7 +403,7 @@ const index = () => {
                 />
                 {PiiCheckEnable && (
                   <div className="h-[180px] w-full font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto">
-                    {  getParsedText()}
+                    {getParsedText()}
                   </div>
                 )}
               </div>
@@ -434,6 +438,7 @@ const index = () => {
                   />
                 </div>
               )}
+              {open && <NewPrompt setOpen={setOpen} open={open} />}
             </div>
           </div>
           <div
@@ -480,7 +485,7 @@ const index = () => {
                   appendToMessage: appendToMessage, // pass the appendToMessage function here
                   key: version.id,
                   setApiCallInProgress: setApiCallInProgress,
-                  apiCallInProgress:apiCallInProgress,
+                  apiCallInProgress: apiCallInProgress,
                   syncAll,
                   setsyncAll,
                   setAllSystemPrompt,

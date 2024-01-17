@@ -24,6 +24,7 @@ const ProjectDetails = () => {
   const [tracesNumber, setTracesNumber] = useState();
   const [tracesData, setTracesData] = useState();
   const [searchTrace, setSearchTrace] = useState("");
+  const [selectedTrace, setSelectedTrace] = useState([]);
   const modalRef = useRef();
   const searchParams = useSearchParams();
   const projectName = searchParams.get("name");
@@ -87,7 +88,6 @@ const ProjectDetails = () => {
   useEffect(() => {
     getProjectDetails();
   }, []);
-  // console.log("tracesData: ", tracesData);
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
 
@@ -254,7 +254,10 @@ const ProjectDetails = () => {
                   Add to Dataset
                 </button>
                 {active && (
-                  <SelectDatasetModal setIsDatasetModelOpen={setActive} />
+                  <SelectDatasetModal
+                    setIsDatasetModelOpen={setActive}
+                    selectedTrace={selectedTrace}
+                  />
                 )}
               </div>
             </div>
@@ -324,7 +327,10 @@ const ProjectDetails = () => {
             </div>
           </div>
           <div>
-            <Projectstabledata searchTrace={searchTrace} />
+            <Projectstabledata
+              searchTrace={searchTrace}
+              setSelectedTrace={setSelectedTrace}
+            />
           </div>
         </div>
       </div>

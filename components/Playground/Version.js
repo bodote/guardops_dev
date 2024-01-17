@@ -208,21 +208,19 @@ const Version = ({
 
   // Format OutputResponse for Code
   const handleAnalysis = async () => {
-    if (analysisModelOpen) {
-      try {
-        const queryParams = new URLSearchParams({
-          input: message,
-          response: apiResponse,
-        });
+    try {
+      const queryParams = new URLSearchParams({
+        input: message,
+        response: apiResponse,
+      });
 
-        const response = await axios.post(
-          `https://lm3.hs-ansbach.de/tracing/api/pg_analysis?${queryParams}`
-        );
+      const response = await axios.post(
+        `https://lm3.hs-ansbach.de/tracing/api/pg_analysis?${queryParams}`
+      );
 
-        setAnalysisData(response.data);
-      } catch (error) {
-        console.error("Error sending text to API:", error);
-      }
+      setAnalysisData(response.data);
+    } catch (error) {
+      console.error("Error sending text to API:", error);
     }
   };
 
@@ -481,7 +479,11 @@ const Version = ({
               </button>
               <MinusIcon onClick={() => removeVersion()} />
               <PlusRectangleIcon onClick={addVersion} />
-              <button onClick={() => !apiCallInProgress && setAnalysisModelOpen(!analysisModelOpen)}>
+              <button
+                onClick={() =>
+                  !apiCallInProgress && setAnalysisModelOpen(!analysisModelOpen)
+                }
+              >
                 <ShareIcon />
               </button>
               <SettingIcon
