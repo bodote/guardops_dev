@@ -232,8 +232,8 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
           </div>
           {isDatasetModelOpen && (
             <SelectDatasetModal
-              isDatasetModelOpen={isDatasetModelOpen}
               setIsDatasetModelOpen={setIsDatasetModelOpen}
+              traceProject={traceProject}
             />
           )}
         </div>
