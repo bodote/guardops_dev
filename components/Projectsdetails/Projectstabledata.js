@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
 import TraceDetails from "./TraceDetails";
 
-const Projectstabledata = ({ searchTrace }) => {
+const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectList, setProjectList] = useState([]);
   const [traceProject, setTraceProject] = useState(null);
@@ -66,6 +66,17 @@ const Projectstabledata = ({ searchTrace }) => {
     }
   };
 
+  const handleSelectTraces = (e, data) => {
+    if (e.target.checked) {
+      // If checked, add the data to the selectedRows state
+      setSelectedTrace((prevSelectedTrace) => [...prevSelectedTrace, data]);
+    } else {
+      // If unchecked, remove the data from the selectedRows state
+      setSelectedTrace((prevSelectedTrace) =>
+        prevSelectedTrace.filter((row) => row !== data)
+      );
+    }
+  };
   const sortData = () => {
     const sortedProjectList = [...projectList];
 
@@ -172,12 +183,12 @@ const Projectstabledata = ({ searchTrace }) => {
                   val.parent_id == null && (
                     <tr
                       key={innerEle}
-                      onClick={() => openModal(data)}
                       className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
                     >
                       <td className="py-[14px] px-[10px]  text-center">
                         <input
                           type="checkbox"
+                          onChange={(e) => handleSelectTraces(e, val)}
                           className="w-4 h-4 border border-[#334851] border-opacity-[0.3] rounded focus:ring-0 focus:outline-none focus:!border-[#334851]"
                         />
                       </td>
@@ -188,34 +199,33 @@ const Projectstabledata = ({ searchTrace }) => {
                       <td className="py-[14px] px-[10px] text-[14px] text-[#171C26] font-medium font-Inter text-center">
                         {innerEle}
                       </td>
-                      <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                        <a href="#" className="hover:underline">
+                      <td
+                        onClick={() => openModal(data)}
+                        className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center"
+                      >
+                        <p className="hover:underline cursor-pointer">
                           {val.kind}
-                        </a>
+                        </p>
                       </td>
                       <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center min-w-[300px]">
-                        <a href="#" className="hover:underline line-clamp">
-                          {val.attributes?.prompt}
-                        </a>
+                        <p className="line-clamp">{val.attributes?.prompt}</p>
                       </td>
                       <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                        <a href="#" className="hover:underline line-clamp">
-                          {val.attributes?.content}
-                        </a>
+                        <p className="line-clamp">{val.attributes?.content}</p>
                       </td>
                       <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
                         {handleSpanStartTime(val.start_time)}
                         <br />
                       </td>
                       <td className="py-[14px] px-[10px] text-[14px] font-normal font-Inter text-[#464F60] text-center">
-                        <button className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
+                        <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
                           {handleLatency(val.start_time, val.end_time)}s
-                        </button>
+                        </p>
                       </td>
                       <td className="py-[14px] px-[10px] text-[12px] font-medium font-Inter text-[#464F60] text-center">
-                        <button className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
+                        <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
                           {val.attributes?.total_tokens}
-                        </button>
+                        </p>
                       </td>
                       <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
                         {val?.status.status_code}
