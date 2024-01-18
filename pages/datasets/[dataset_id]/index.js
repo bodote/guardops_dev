@@ -5,18 +5,104 @@ import {
   RightIcon,
   SearchIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Projectstabledata from "@/components/Projectsdetails/Projectstabledata";
 import { RiFilter2Fill } from "react-icons/ri";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import DonutChart from "@/components/Projectsdetails/DonutChart";
 import BarChart from "@/components/Projectsdetails/BarChart";
+import { MdOutlineAdd } from "react-icons/md";
 import { useSearchParams } from "next/navigation";
+import SelectDatasetModal from "@/components/modal/SelectDatasetModal";
 
 const ProjectDetails = () => {
-  const [currentProject, setCurrentProject] = useState("");
+  const [active, setActive] = useState(false);
+  const [tracesNumber, setTracesNumber] = useState();
+  const [tracesData, setTracesData] = useState();
+  const [searchTrace, setSearchTrace] = useState("");
+  const [selectedTrace, setSelectedTrace] = useState([]);
+  const [traceList, setTraceList] = useState([]);
+  const modalRef = useRef();
   const searchParams = useSearchParams();
   const datasetName = searchParams.get("name");
+
+  const handleOutsideClick = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      setActive(false);
+    }
+  };
+
+  useEffect(() => {
+    if (active) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    } else {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [active]);
+
+  const getDatasetDetails = async () => {
+    try {
+      const url = new URL(window.location.href);
+      const datasetId = url.pathname.split("/").pop();
+
+      const response = await fetch(
+        `/api/manageTraces?dataset_id=${datasetId}`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.traces) {
+          setTraceList(responseData.traces);
+          let traces = [];
+          responseData.traces.map((trace) =>
+            trace.map((data) => {
+              data.parent_id === null && traces.push(data);
+            })
+          );
+          if (traces) {
+            setTracesData(traces);
+            const monthCounts = Array(12).fill(0);
+            traces.forEach((trace) => {
+              const startTime = new Date(trace.start_time);
+              const monthIndex = startTime.getMonth();
+              monthCounts[monthIndex]++;
+            });
+            setTracesNumber(monthCounts);
+          }
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDatasetDetails();
+  }, []);
+
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+
+  if (tracesData) {
+    tracesData.forEach((trace) => {
+      // Extract prompt_tokens and completion_tokens from attributes
+      const { prompt_tokens, completion_tokens } = trace.attributes;
+
+      // Add prompt_tokens to totalInputTokens
+      totalInputTokens += prompt_tokens;
+
+      // Add completion_tokens to totalOutputTokens
+      totalOutputTokens += completion_tokens;
+    });
+  }
 
   return (
     <>
@@ -79,7 +165,7 @@ const ProjectDetails = () => {
               <h1 className="font-Inter text-[12px]  font-normal text-[#000000] ">
                 Traces per month
               </h1>
-              <BarChart />
+              {tracesNumber && <BarChart tracesNumber={tracesNumber} />}
             </div>
             <div className="bg-[#f5f5f5] p-[2px_16px_15px_8px] rounded-xl lg:min-w-[285px]">
               <h1 className="font-Inter text-[14px] font-normal text-[#000000] ">
@@ -92,7 +178,7 @@ const ProjectDetails = () => {
                       Inputtokens
                     </h1>
                     <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
-                      1,234 T
+                      {totalInputTokens} T
                     </button>
                   </div>
                   <div className="flex items-center gap-[10px] ">
@@ -110,7 +196,7 @@ const ProjectDetails = () => {
                       Outputtokens
                     </h1>
                     <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
-                      2,345 T
+                      {totalOutputTokens} T
                     </button>
                   </div>
                   <div className="flex items-center gap-[10px]">
@@ -127,34 +213,53 @@ const ProjectDetails = () => {
           </div>
 
           <div className=" sm:px-[22px] px-[16px] py-[9px] flex items-center justify-between flex-wrap gap-[20px]">
-            <div className="flex sm:w-[370px] w-auto">
-              <button
-                id="dropdown-button-2"
-                data-dropdown-toggle="dropdown-search-city"
-                className="gap-[8px] flex-shrink-0 inline-flex items-center py-2.5 px-4  text-[#464F60] border border-gray-300 rounded-s-lg "
-                type="button"
-              >
-                <RiFilter2Fill />
-                <h1 className="text-[14px] font-medium font-Inter ">All</h1>
-                <DownIcon />
-              </button>
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                  <SearchIcon />
-                </div>
-                <input
-                  type="text"
-                  id="voice-search"
-                  className="focus:ring-0 focus:outline-none focus:!border-gray-300  border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
-                  placeholder="Search"
-                  required
-                />
+            <div className="flex gap-[40px] ">
+              <div className="flex sm:w-[370px] w-auto">
                 <button
+                  id="dropdown-button-2"
+                  data-dropdown-toggle="dropdown-search-city"
+                  className="gap-[8px] flex-shrink-0 inline-flex items-center py-2.5 px-4  text-[#464F60] border border-gray-300 rounded-s-lg "
                   type="button"
-                  className="absolute inset-y-0 end-0 flex me-3 bg-[#E9EDF5] w-[16px] h-[16px] rounded justify-center items-center translate-y-[-50%] top-[50%]"
                 >
-                  <DivisionIcon className="" />
+                  <RiFilter2Fill />
+                  <h1 className="text-[14px] font-medium font-Inter ">All</h1>
+                  <DownIcon />
                 </button>
+                <div className="relative w-full">
+                  <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <SearchIcon />
+                  </div>
+                  <input
+                    type="text"
+                    id="voice-search"
+                    value={searchTrace}
+                    onChange={(e) => setSearchTrace(e.target.value)}
+                    className="focus:ring-0 focus:outline-none focus:!border-gray-300  border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
+                    placeholder="Search"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 end-0 flex me-3 bg-[#E9EDF5] w-[16px] h-[16px] rounded justify-center items-center translate-y-[-50%] top-[50%]"
+                  >
+                    <DivisionIcon className="" />
+                  </button>
+                </div>
+              </div>
+              <div className="relative">
+                <button
+                  onClick={() => setActive(!active)}
+                  className="bg-[#cce037] hover:bg-[#6753db] text-white rounded-lg flex gap-2 items-center p-[10px_14px]"
+                >
+                  <MdOutlineAdd className="text-[26px] text-white" />
+                  Add to Dataset
+                </button>
+                {active && (
+                  <SelectDatasetModal
+                    setIsDatasetModelOpen={setActive}
+                    selectedTrace={selectedTrace}
+                  />
+                )}
               </div>
             </div>
             <div className="flex gap-[48px] flex-wrap sm:mt-0 mt-[10px]">
@@ -223,7 +328,12 @@ const ProjectDetails = () => {
             </div>
           </div>
           <div>
-            <Projectstabledata currentProjectID={currentProject} />
+            <Projectstabledata
+              searchTrace={searchTrace}
+              setSelectedTrace={setSelectedTrace}
+              traceList={traceList}
+              setTraceList={setTraceList}
+            />
           </div>
         </div>
       </div>
