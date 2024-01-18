@@ -41,6 +41,8 @@ const Version = ({
   allSystemPrompt,
   analysisModelOpen,
   setAnalysisModelOpen,
+  setAllPromtsDetails,
+  allPromtsDetails 
 }) => {
   const [models, setModels] = useState([]);
   const [selected, setSelected] = useState({
@@ -96,6 +98,7 @@ const Version = ({
     },
     // Add more providers here as needed
   };
+
 
   // Function to append apiResponse to message
   const handleCopyClick = () => {

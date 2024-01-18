@@ -3,7 +3,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { FiPlus } from "react-icons/fi";
 import { toast } from "react-toastify";
 
-const NewPrompt = ({ open, setOpen }) => {
+const NewPrompt = ({ open, setOpen, updatePlaygroundList }) => {
   const [playgroundData, setPlaygroundData] = useState({
     playground_name: "",
     playground_description: "",
@@ -31,9 +31,9 @@ const NewPrompt = ({ open, setOpen }) => {
     }
     const formData = {
       user_id: playgroundFormData.user_id,
-      playground_name: playgroundFormData.project_name,
-      playground_description: playgroundFormData.project_description,
-      project_id: "",
+      playground_name: playgroundFormData.playground_name,
+      playground_description: playgroundFormData.playground_description,
+      playground_id: "",
     };
     try {
       const response = await fetch("/api/managePlaygrounds", {
@@ -48,6 +48,7 @@ const NewPrompt = ({ open, setOpen }) => {
           playground_description: "",
         });
         setOpen(false);
+        updatePlaygroundList();
       }
     } catch (error) {
       toast.error(`${error.message}`);

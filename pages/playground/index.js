@@ -21,6 +21,7 @@ function classNames(...classes) {
 const index = () => {
   // Add state to manage text area content
   const [projectList, setProjectList] = useState([]);
+  const [playgroundList, setPlaygroundList] = useState([]);
   const [message, setMessage] = useState("");
   const [piiData, setPiiData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,6 +31,8 @@ const index = () => {
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
+  const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
+  const [allPromtsDetails , setAllPromtsDetails ] = useState([])
   const [proname, setProname] = useState({
     name: "Select an option",
   });
@@ -169,10 +172,59 @@ const index = () => {
     };
   }, [message, apiCallInProgress]); // Depend on 'message' to ensure it's captured in the closure
 
+  const updatePlaygroundList = async () => {
+    await getPlaygrounds();
+  };
+
+  const getPlaygrounds = async () => {
+    try {
+      const user_id = "demouser2";
+      const response = await fetch(
+        `/api/managePlaygrounds?user_id=${user_id}`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.playgrounds) {
+          setPlaygroundList(responseData.playgrounds);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
   useEffect(() => {
     getProjectList();
+    getPlaygrounds();
   }, []);
 
+  const handleSetTraces = async (playground_id) => {
+    setCurrentPlaygroundID(playground_id);
+    try {
+      const response = await fetch(
+        `/api/manageTraces?playground_id=${playground_id}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData) {
+          console.log("RES+++++", responseData);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
   // Function to clear the message text area
   const clearMessage = () => {
     setMessage("");
@@ -187,13 +239,38 @@ const index = () => {
     setRunPressed(false);
   };
 
+  const saveTracePlayground = async () => {
+    console.log("+++++++++++");
+    // const formData = {
+    //   user_id: "demouser2",
+    //   project_id: proname.project_id,
+    // playground_id: currentPlaygroundID,
+    //   access_token: localStorage.getItem("customAIKey"),
+    //   start_time: new Date().toISOString(),
+    //   prompt_response_pairs: [],
+    // };
+    // try {
+    //   const response = await fetch("/api/trace_playground", {
+    //     method: "POST",
+    //     body: JSON.stringify(formData),
+    //   });
+    //   if (response.ok) {
+    //     const responseData = await response.json();
+    //   }
+    // } catch (error) {
+    //   console.error("Error during API request:", error);
+    // }
+  };
+
   // Function to transform text and pass to Version component
   const runPlayground = () => {
     setAnalysisModelOpen(false);
     if (apiCallInProgress) {
       return;
     }
-
+    if (!apiCallInProgress && proname.project_id) {
+      saveTracePlayground();
+    }
     // Set the API call in progress status
     setApiCallInProgress(true);
     // Pass the uppercaseMessage to each Version component
@@ -234,6 +311,8 @@ const index = () => {
             setAllSystemPrompt={setAllSystemPrompt}
             setAnalysisModelOpen={setAnalysisModelOpen}
             analysisModelOpen={analysisModelOpen}
+            setAllPromtsDetails = {setAllPromtsDetails}
+            allPromtsDetails = {setAllPromtsDetails}
           />
         ),
       },
@@ -279,9 +358,15 @@ const index = () => {
                 <FiPlus /> New Prompt
               </button>
               <ul className="list-disc px-[8px]">
-                <li className="text-[#656565] text-[12px] font-Inter font-medium my-[20px]">
-                  Prompt1
-                </li>
+                {playgroundList.map((playground) => (
+                  <li
+                    key={playground.playground_id}
+                    onClick={() => handleSetTraces(playground.playground_id)}
+                    className="text-[#656565] text-[12px] font-Inter font-medium my-[20px] cursor-pointer hover:underline"
+                  >
+                    {playground.name}
+                  </li>
+                ))}
               </ul>
             </div>
             <div className="px-[16px] pt-[12px] w-full">
@@ -438,7 +523,13 @@ const index = () => {
                   />
                 </div>
               )}
-              {open && <NewPrompt setOpen={setOpen} open={open} />}
+              {open && (
+                <NewPrompt
+                  setOpen={setOpen}
+                  open={open}
+                  updatePlaygroundList={updatePlaygroundList}
+                />
+              )}
             </div>
           </div>
           <div
@@ -492,6 +583,8 @@ const index = () => {
                   allSystemPrompt,
                   analysisModelOpen,
                   setAnalysisModelOpen,
+                  setAllPromtsDetails,
+                  allPromtsDetails 
                 })
               )}
             </div>

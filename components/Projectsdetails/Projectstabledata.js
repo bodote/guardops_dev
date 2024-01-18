@@ -3,9 +3,13 @@ import React, { useEffect, useState, useRef } from "react";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
 import TraceDetails from "./TraceDetails";
 
-const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
+const Projectstabledata = ({
+  searchTrace,
+  setSelectedTrace,
+  traceList,
+  setTraceList,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [projectList, setProjectList] = useState([]);
   const [traceProject, setTraceProject] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [option, setOption] = useState(false);
@@ -41,31 +45,6 @@ const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
     return FormatedTime;
   };
 
-  const getProjectDetails = async () => {
-    try {
-      const url = new URL(window.location.href);
-      const projectId = url.pathname.split("/").pop();
-
-      const response = await fetch(
-        `/api/manageProjectTrace?project_id=${projectId}`,
-        {
-          method: "GET",
-        }
-      );
-
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData.traces) {
-          setProjectList(responseData.traces);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
-
   const handleSelectTraces = (e, data) => {
     if (e.target.checked) {
       // If checked, add the data to the selectedRows state
@@ -78,7 +57,7 @@ const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
     }
   };
   const sortData = () => {
-    const sortedProjectList = [...projectList];
+    const sortedProjectList = [...traceList];
 
     sortedProjectList.sort((a, b) => {
       const nullParentA = a.find((obj) => obj.parent_id === null);
@@ -100,14 +79,10 @@ const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
 
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
 
-    setProjectList(sortedProjectList);
+    setTraceList(sortedProjectList);
   };
 
-  useEffect(() => {
-    getProjectDetails();
-  }, []);
-
-  const filteredProjects = projectList.filter((project) =>
+  const filteredProjects = traceList.filter((project) =>
     project.some(
       (item) =>
         item?.parent_id === null &&
