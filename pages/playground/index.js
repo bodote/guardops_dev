@@ -32,7 +32,7 @@ const index = () => {
   const [open, setOpen] = useState(false);
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
-  const [allPromtsDetails , setAllPromtsDetails ] = useState([])
+  const [allPromtsDetails, setAllPromtsDetails] = useState([]);
   const [proname, setProname] = useState({
     name: "Select an option",
   });
@@ -216,7 +216,7 @@ const index = () => {
       if (response.ok) {
         const responseData = await response.json();
         if (responseData) {
-          console.log("RES+++++", responseData);
+          setRunsHistory(responseData.traces);
         }
       } else {
         console.error("API request failed:", response.statusText);
@@ -239,27 +239,42 @@ const index = () => {
     setRunPressed(false);
   };
 
+  useEffect(() => {
+    if (allPromtsDetails.length && allPromtsDetails.length == versions.length) {
+      if (!apiCallInProgress && proname.project_id) {
+        saveTracePlayground();
+      }
+    }
+  }, [allPromtsDetails]);
+
   const saveTracePlayground = async () => {
-    console.log("+++++++++++");
-    // const formData = {
-    //   user_id: "demouser2",
-    //   project_id: proname.project_id,
-    // playground_id: currentPlaygroundID,
-    //   access_token: localStorage.getItem("customAIKey"),
-    //   start_time: new Date().toISOString(),
-    //   prompt_response_pairs: [],
-    // };
-    // try {
-    //   const response = await fetch("/api/trace_playground", {
-    //     method: "POST",
-    //     body: JSON.stringify(formData),
-    //   });
-    //   if (response.ok) {
-    //     const responseData = await response.json();
-    //   }
-    // } catch (error) {
-    //   console.error("Error during API request:", error);
-    // }
+    const APIBody = allPromtsDetails
+      .filter((item) => item.isValid)
+      .map((item) => ({
+        [item.model]: [item.input, item.output],
+      }));
+
+    console.log("new+++++++++", APIBody);
+
+    const formData = {
+      user_id: "demouser2",
+      project_id: proname.project_id,
+      playground_id: currentPlaygroundID,
+      access_token: localStorage.getItem("customAIKey"),
+      start_time: new Date().toISOString(),
+      prompt_response_pairs: APIBody,
+    };
+    try {
+      const response = await fetch("/api/managePlaygrounds", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const responseData = await response.json();
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
   };
 
   // Function to transform text and pass to Version component
@@ -268,9 +283,8 @@ const index = () => {
     if (apiCallInProgress) {
       return;
     }
-    if (!apiCallInProgress && proname.project_id) {
-      saveTracePlayground();
-    }
+
+    setAllPromtsDetails([]);
     // Set the API call in progress status
     setApiCallInProgress(true);
     // Pass the uppercaseMessage to each Version component
@@ -311,8 +325,8 @@ const index = () => {
             setAllSystemPrompt={setAllSystemPrompt}
             setAnalysisModelOpen={setAnalysisModelOpen}
             analysisModelOpen={analysisModelOpen}
-            setAllPromtsDetails = {setAllPromtsDetails}
-            allPromtsDetails = {setAllPromtsDetails}
+            setAllPromtsDetails={setAllPromtsDetails}
+            allPromtsDetails={setAllPromtsDetails}
           />
         ),
       },
@@ -369,128 +383,130 @@ const index = () => {
                 ))}
               </ul>
             </div>
-            <div className="px-[16px] pt-[12px] w-full">
-              <div className="flex justify-between w-full sm:flex-row flex-col">
-                <label
-                  htmlFor="name"
-                  className="font-Archivo text-[12px] font-normal text-[#000]"
-                >
-                  Prompt
-                </label>
-                <div className="md:flex items-center gap-[20px]">
-                  <div className="flex items-center gap-[5px] sm:mt-0 mt-2">
-                    <Switch
-                      checked={PiiCheckEnable}
-                      onChange={setPiiCheckEnable}
-                      className={classNames(
-                        PiiCheckEnable ? "bg-[#0074fb]" : "bg-gray-200",
-                        "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                      )}
-                    >
-                      <span className="sr-only">Use setting</span>
-                      <span
-                        aria-hidden="true"
+            <div className="px-[16px] pt-[12px] w-full flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between w-full sm:flex-row flex-col">
+                  <label
+                    htmlFor="name"
+                    className="font-Archivo text-[12px] font-normal text-[#000]"
+                  >
+                    Prompt
+                  </label>
+                  <div className="md:flex items-center gap-[20px]">
+                    <div className="flex items-center gap-[5px] sm:mt-0 mt-2">
+                      <Switch
+                        checked={PiiCheckEnable}
+                        onChange={setPiiCheckEnable}
                         className={classNames(
-                          PiiCheckEnable
-                            ? "translate-x-[11px]"
-                            : "translate-x-0",
-                          "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                          PiiCheckEnable ? "bg-[#0074fb]" : "bg-gray-200",
+                          "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                         )}
-                      />
-                    </Switch>
-                    <label className="text-[#252525] text-[12px] font-medium">
-                      PII checker
-                    </label>
-                  </div>
-                  <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start sm:mt-0 mt-[10px]">
-                    <label
-                      htmlFor="project"
-                      className="block font-Archivo text-[12px] text-[#000000] font-normal"
-                    >
-                      Input Tokens: 245
-                    </label>
-                    <Listbox value={proname} onChange={setProname}>
-                      {({ open }) => (
-                        <>
-                          <div className="relative sm:w-[180px] w-full">
-                            <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
-                              <span className="flex items-center">
-                                <span className=" block truncate">
-                                  {proname?.name}
+                      >
+                        <span className="sr-only">Use setting</span>
+                        <span
+                          aria-hidden="true"
+                          className={classNames(
+                            PiiCheckEnable
+                              ? "translate-x-[11px]"
+                              : "translate-x-0",
+                            "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                          )}
+                        />
+                      </Switch>
+                      <label className="text-[#252525] text-[12px] font-medium">
+                        PII checker
+                      </label>
+                    </div>
+                    <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start sm:mt-0 mt-[10px]">
+                      <label
+                        htmlFor="project"
+                        className="block font-Archivo text-[12px] text-[#000000] font-normal"
+                      >
+                        Input Tokens: 245
+                      </label>
+                      <Listbox value={proname} onChange={setProname}>
+                        {({ open }) => (
+                          <>
+                            <div className="relative sm:w-[180px] w-full">
+                              <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
+                                <span className="flex items-center">
+                                  <span className=" block truncate">
+                                    {proname?.name}
+                                  </span>
                                 </span>
-                              </span>
-                              <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                                <MdKeyboardArrowUp
-                                  className={
-                                    open
-                                      ? "h-5 w-5 text-gray-400 rotate-[0]"
-                                      : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                                  }
-                                  aria-hidden="true"
-                                />
-                              </span>
-                            </Listbox.Button>
-
-                            <Transition
-                              show={open}
-                              as={Fragment}
-                              leave="transition ease-in duration-100"
-                              leaveFrom="opacity-100"
-                              leaveTo="opacity-0"
-                            >
-                              <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                                {projectList.map((project) => (
-                                  <Listbox.Option
-                                    key={project.project_id}
-                                    className={({ active }) =>
-                                      classNames(
-                                        active
-                                          ? "bg-[#f0efef]  rounded-[6px]"
-                                          : "text-[#000]",
-                                        "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
-                                      )
+                                <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                  <MdKeyboardArrowUp
+                                    className={
+                                      open
+                                        ? "h-5 w-5 text-gray-400 rotate-[0]"
+                                        : "h-5 w-5 text-gray-400 rotate-[180deg]"
                                     }
-                                    value={project}
-                                  >
-                                    <div className="flex items-center ">
-                                      <span
-                                        className={classNames(
-                                          proname
-                                            ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                            : "font-normal",
-                                          "block truncate"
-                                        )}
-                                      >
-                                        {project.name}
-                                      </span>
-                                    </div>
-                                  </Listbox.Option>
-                                ))}
-                              </Listbox.Options>
-                            </Transition>
-                          </div>
-                        </>
-                      )}
-                    </Listbox>
+                                    aria-hidden="true"
+                                  />
+                                </span>
+                              </Listbox.Button>
+
+                              <Transition
+                                show={open}
+                                as={Fragment}
+                                leave="transition ease-in duration-100"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
+                              >
+                                <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
+                                  {projectList.map((project) => (
+                                    <Listbox.Option
+                                      key={project.project_id}
+                                      className={({ active }) =>
+                                        classNames(
+                                          active
+                                            ? "bg-[#f0efef]  rounded-[6px]"
+                                            : "text-[#000]",
+                                          "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
+                                        )
+                                      }
+                                      value={project}
+                                    >
+                                      <div className="flex items-center ">
+                                        <span
+                                          className={classNames(
+                                            proname
+                                              ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                              : "font-normal",
+                                            "block truncate"
+                                          )}
+                                        >
+                                          {project.name}
+                                        </span>
+                                      </div>
+                                    </Listbox.Option>
+                                  ))}
+                                </Listbox.Options>
+                              </Transition>
+                            </div>
+                          </>
+                        )}
+                      </Listbox>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="lg:flex">
-                <textarea
-                  type="text"
-                  name="message"
-                  id="message"
-                  className="h-[180px] border-0 rounded  w-full  font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none"
-                  placeholder=" Start entering your prompt for the selected models. Press
+                <div className="lg:flex">
+                  <textarea
+                    type="text"
+                    name="message"
+                    id="message"
+                    className="h-[180px] border-0 rounded  w-full  font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none"
+                    placeholder=" Start entering your prompt for the selected models. Press
                   Button Run Playground or Shift + Return to get the results."
-                  value={message}
-                  onChange={handleTextChange}
-                />
-                {PiiCheckEnable && (
-                  <div className="h-[180px] w-full font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto">
-                    {getParsedText()}
-                  </div>
-                )}
+                    value={message}
+                    onChange={handleTextChange}
+                  />
+                  {PiiCheckEnable && (
+                    <div className="h-[180px] w-full font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto">
+                      {getParsedText()}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center mt-3">
                 <button
@@ -542,18 +558,19 @@ const index = () => {
                 Versions
               </h1>
               <ul className="list-disc px-[8px]">
-                {runsHistory.map((run) => (
-                  <li
-                    key={run.id}
-                    className="run-link text-[#656565] text-[12px] font-Inter font-medium mt-[10px]"
-                    onClick={() => handleRunClick(run.message)}
-                  >
-                    Run {run.id}:{" "}
-                    {run.message.length > 20
-                      ? run.message.substring(0, 16) + "..."
-                      : run.message}
-                  </li>
-                ))}
+                {runsHistory.map((innerArray) =>
+                  innerArray.map((run, innerIndex) => (
+                    <li
+                      key={innerIndex}
+                      className="run-link text-[#656565] text-[12px] font-Inter font-medium mt-[10px]"
+                      onClick={() => handleRunClick(run.attributes.prompt)}
+                    >
+                      {run.attributes.prompt.length > 20
+                        ? run.attributes.prompt.substring(0, 16) + "..."
+                        : run.attributes.prompt}{" "}
+                    </li>
+                  ))
+                )}
               </ul>
             </div>
             <div
@@ -584,7 +601,7 @@ const index = () => {
                   analysisModelOpen,
                   setAnalysisModelOpen,
                   setAllPromtsDetails,
-                  allPromtsDetails 
+                  allPromtsDetails,
                 })
               )}
             </div>

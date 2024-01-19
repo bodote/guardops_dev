@@ -35,53 +35,55 @@ export default async function handler(req, res) {
       break;
     case "POST":
       bodyData = JSON.parse(req.body);
-      // console.log("Data: ", bodyData);
-      // if (bodyData.project_id) {
-      //   Url = `${baseUrl}api/trace_playground`;
-      //   queryParams = new URLSearchParams({
-      //     user_id: bodyData.user_id,
-      //     project_id: bodyData.project_id,
-      //     playground_id: bodyData.playground_id,
-      // access_token:bodyData.access_token,
-      // start_time:bodyData.start_time,
-      //prompt_response_pairs:bodyData.prompt_response_pairs,
-      //   });
-      //   urlWithParams = `${Url}?${queryParams}`;
-      //   try {
-      //     const response = await fetch(urlWithParams, {
-      //       method: "POST",
-      //       headers: new Headers({
-      //         authorization: `Bearer ${token}`,
-      //       }),
-      //     });
-
-      //     const data = await response.json();
-      //     res.status(response.status).json(data);
-      //   } catch (error) {
-      //     console.error("Error during API request:", error);
-      //     res.status(500).json({ error: "Internal Server Error" });
-      //   }
-      // }
-      Url = `${baseUrl}api/create_playground`;
-      queryParams = new URLSearchParams({
-        user_id: bodyData.user_id,
-        playground_name: bodyData.playground_name,
-        playground_description: bodyData.playground_description,
-      });
-      urlWithParams = `${Url}?${queryParams}`;
-      try {
-        const response = await fetch(urlWithParams, {
-          method: "POST",
-          headers: new Headers({
-            authorization: `Bearer ${token}`,
-          }),
+      if (bodyData.project_id) {
+        Url = `${baseUrl}api/trace_playground`;
+        queryParams = new URLSearchParams({
+          user_id: bodyData.user_id,
+          project_id: bodyData.project_id,
+          playground_id: bodyData.playground_id,
+          access_token: bodyData.access_token,
+          start_time: bodyData.start_time,
         });
+        urlWithParams = `${Url}?${queryParams.toString()}`;
 
-        const data = await response.json();
-        res.status(response.status).json(data);
-      } catch (error) {
-        console.error("Error during API request:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+        try {
+          const response = await fetch(urlWithParams, {
+            method: "POST",
+            headers: new Headers({
+              authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            }),
+            body: JSON.stringify(bodyData.prompt_response_pairs),
+          });
+
+          const data = await response.json();
+          res.status(response.status).json(data);
+        } catch (error) {
+          console.error("Error during API request:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
+      } else if (!bodyData.project_id) {
+        Url = `${baseUrl}api/create_playground`;
+        queryParams = new URLSearchParams({
+          user_id: bodyData.user_id,
+          playground_name: bodyData.playground_name,
+          playground_description: bodyData.playground_description,
+        });
+        urlWithParams = `${Url}?${queryParams}`;
+        try {
+          const response = await fetch(urlWithParams, {
+            method: "POST",
+            headers: new Headers({
+              authorization: `Bearer ${token}`,
+            }),
+          });
+
+          const data = await response.json();
+          res.status(response.status).json(data);
+        } catch (error) {
+          console.error("Error during API request:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
       }
       break;
   }
