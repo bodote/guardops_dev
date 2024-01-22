@@ -82,9 +82,8 @@ const index = () => {
           elements.push(
             <span
               key={index}
-              className={`${styles[annotation.entity_type]} ${
-                styles.highlight
-              }`}
+              className={`${styles[annotation.entity_type]} ${styles.highlight
+                }`}
             >
               {message.substring(annotation.start, annotation.end)}
               <span className={styles.category}>{annotation.entity_type}</span>
@@ -254,8 +253,6 @@ const index = () => {
         [item.model]: [item.input, item.output],
       }));
 
-    console.log("new+++++++++", APIBody);
-
     const formData = {
       user_id: "demouser2",
       project_id: proname.project_id,
@@ -290,12 +287,6 @@ const index = () => {
     // Pass the uppercaseMessage to each Version component
     setVersions(versions.map((v) => ({ ...v, message: message })));
     setRunPressed(true);
-
-    // New logic to add the current message to runs history
-    setRunsHistory((prevRuns) => [
-      ...prevRuns,
-      { id: prevRuns.length + 1, message: message },
-    ]);
   };
 
   // Function to append text to message
