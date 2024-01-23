@@ -82,8 +82,9 @@ const index = () => {
           elements.push(
             <span
               key={index}
-              className={`${styles[annotation.entity_type]} ${styles.highlight
-                }`}
+              className={`${styles[annotation.entity_type]} ${
+                styles.highlight
+              }`}
             >
               {message.substring(annotation.start, annotation.end)}
               <span className={styles.category}>{annotation.entity_type}</span>
@@ -355,24 +356,25 @@ const index = () => {
             </a>
           </div>
           <div className=" flex sm:flex-row flex-col border-b border-b-[#CCCCCC]">
-            <div className="px-[16px] pt-[12px] sm:w-[156px] sm:min-w-[156px] w-full  sm:border-r border-0 border-r-[#CCCCCC] ">
+            <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] h-[285px] overflow-y-auto">
               <button
                 onClick={() => setOpen(true)}
                 className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[11px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
               >
                 <FiPlus /> New Prompt
               </button>
-              <ul className="list-disc px-[8px]">
-                {playgroundList.map((playground) => (
-                  <li
+              {playgroundList.map((playground) => (
+                <div className="flex items-start my-[20px] gap-2">
+                  <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
+                  <div
                     key={playground.playground_id}
                     onClick={() => handleSetTraces(playground.playground_id)}
-                    className="text-[#656565] text-[12px] font-Inter font-medium my-[20px] cursor-pointer hover:underline"
+                    className="text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline"
                   >
                     {playground.name}
-                  </li>
-                ))}
-              </ul>
+                  </div>
+                </div>
+              ))}
             </div>
             <div className="px-[16px] pt-[12px] w-full flex flex-col justify-between">
               <div>
@@ -444,7 +446,7 @@ const index = () => {
                                 leaveFrom="opacity-100"
                                 leaveTo="opacity-0"
                               >
-                                <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
+                                <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
                                   {projectList.map((project) => (
                                     <Listbox.Option
                                       key={project.project_id}
@@ -544,7 +546,7 @@ const index = () => {
               // ${versions.length < 6 && "2xl:h-screen"}
               `}
           >
-            <div className="px-[16px] py-[12px] sm:w-[158px] sm:min-w-[156px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
+            <div className="px-[16px] py-[12px] sm:w-[182px] sm:min-w-[182px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
               <h1 className="text-[#000000] font-medium text-[12px] font-Inter">
                 Versions
               </h1>
