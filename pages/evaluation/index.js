@@ -13,40 +13,19 @@ import {
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { RiFilter2Fill } from "react-icons/ri";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
+import dynamic from "next/dynamic";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
-
-const evaluation_list = [
-  {
-    project_id: "457ac8f9-a9cb-462a-b75d-e290459cbfb0",
-    date: "2024-01-18T13:50:20.895000",
-
-    evaluation_id: "4e422632-29b1-4f12-93d2-5c2d12672600",
-
-    name: "FirstTestEvaluation",
-    frameworks: ["MMLUFramework"],
-    evaluations: [
-      {
-        evaluation_id: "558374cc-08d4-4e6b-b75c-5f62bb3fb399",
-        name: "First test",
-        framework: "MMLUFramework",
-        data: {
-          eval_data: {
-            Score: 0,
-          },
-        },
-      },
-    ],
-  },
-];
 
 const index = () => {
   const [selected, setSelected] = useState({
     name: "Select an option",
   });
   const [projectList, setProjectList] = useState([]);
+  const [evaluationList, setEvaluationList] = useState([]);
+  const DynamicReactJson = dynamic(import("react-json-view"), { ssr: false });
 
   const getProjectList = async () => {
     try {
@@ -68,7 +47,7 @@ const index = () => {
     }
   };
 
-  const handleProjectSelection = async (project) => {
+  const getEvaluationList = async (project) => {
     try {
       const response = await fetch(
         `/api/manageEvaluation?project_id=${project}`,
@@ -79,7 +58,7 @@ const index = () => {
 
       if (response.ok) {
         const responseData = await response.json();
-        // console.log("Res+++", responseData);
+        setEvaluationList(responseData.evaluation_list);
       } else {
         console.error("API request failed:", response.statusText);
       }
@@ -136,7 +115,7 @@ const index = () => {
                 value={selected}
                 onChange={(value) => {
                   setSelected(value);
-                  handleProjectSelection(value.project_id);
+                  getEvaluationList(value.project_id);
                 }}
               >
                 {({ open }) => (
@@ -284,14 +263,17 @@ const index = () => {
                   <th className="uppercase py-[8px] px-[10px] text-[12px] font-medium font-Inter text-[#687182] min-w-[150px] text-end">
                     Total Tests
                   </th>
-                  <th className="uppercase py-[8px] px-[10px] text-[12px] font-medium font-Inter text-[#687182] min-w-[200px]">
+                  <th className="uppercase py-[8px] px-[10px] text-[12px] font-medium font-Inter text-[#687182] min-w-[150px] text-center">
+                    Total Score
+                  </th>
+                  <th className="uppercase py-[8px] px-[10px] text-[12px] font-medium font-Inter text-[#687182] min-w-[150px]">
                     status
                   </th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                {evaluation_list.map((data, index) => {
+                {evaluationList.map((data, index) => {
                   return (
                     <tr
                       key={data.evaluation_id}
@@ -321,7 +303,7 @@ const index = () => {
                         </p>
                       </td>
                       <td className=" py-[3.5px] px-[10px] text-[10px] font-normal font-Inter text-[#171C26] text-center">
-                        <p className="line-clamp leading-[20px]">
+                        <p className="line-clamp leading-[20px] max-w-[84px] mx-auto">
                           {formatDate(data.date)}
                         </p>
                       </td>
@@ -336,7 +318,23 @@ const index = () => {
                           4589
                         </span>
                       </td>
-                      <td></td>
+                      <td className="py-[3.5px] px-[10px] text-center">
+                        <span className="bg-[#E9EDF5] rounded-[6px] h-[24px] text-[#464F60] p-[3.5px_8px] text-[12px]">
+                          {data.evaluations.map(
+                            (res) => res.data.eval_data.total_score
+                          )}
+                        </span>
+                      </td>
+                      <td>
+                        {data.evaluations.map((res, index) => (
+                          <DynamicReactJson
+                            key={index}
+                            src={res.data.eval_data.scores}
+                            theme="summerfruit:inverted"
+                            collapsed={true}
+                          />
+                        ))}
+                      </td>
                       <td className="py-[3.5px] px-[10px] text-[14px] font-medium font-Inter text-end min-w-[100px]">
                         <div className="flex gap-[5px] items-center relative">
                           <div>

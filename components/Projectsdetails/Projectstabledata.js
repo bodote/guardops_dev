@@ -90,7 +90,10 @@ const Projectstabledata = ({
           item?.attributes.prompt
             .toLowerCase()
             .includes(searchTrace.toLowerCase()) ||
-          item?.attributes.content
+          (item?.attributes.content
+            ? item?.attributes.content
+            : item?.attributes.response
+          )
             .toLowerCase()
             .includes(searchTrace.toLowerCase()))
     )
@@ -186,7 +189,11 @@ const Projectstabledata = ({
                         <p className="line-clamp">{val.attributes?.prompt}</p>
                       </td>
                       <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                        <p className="line-clamp">{val.attributes?.content}</p>
+                        <p className="line-clamp">
+                          {val.attributes?.content
+                            ? val.attributes?.content
+                            : val.attributes?.response}
+                        </p>
                       </td>
                       <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
                         {handleSpanStartTime(val.start_time)}
@@ -227,7 +234,7 @@ const Projectstabledata = ({
             {isModalOpen && (
               <div
                 // ref={modalRef}
-                className="modal lg:w-[981px] w-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 sm:flex-row flex-col"
+                className="modal lg:w-[52%] w-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 sm:flex-row flex-col"
               >
                 <TraceDetails
                   traceProject={traceProject}

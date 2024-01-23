@@ -364,13 +364,15 @@ const Version = ({
   return (
     <>
       <div
-        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[476px] !min-h-[400px] overflow-auto ${versions > 4
+        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[476px] !min-h-[400px] overflow-auto ${
+          versions > 4
             ? "sm:min-h-0 !min-h-[464px] sm:h-auto h-[464px] sm:!pr-[10px]"
             : ""
-          } ${versions <= 5
+        } ${
+          versions <= 5
             ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[600px] sm:!min-h-[600px]"
             : ""
-          }`}
+        }`}
       >
         <div>
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative">
@@ -379,8 +381,9 @@ const Version = ({
                 <>
                   <div className="relative">
                     <Listbox.Button
-                      className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${versions > 2 ? "sm:!w-[140px]" : ""
-                        }`}
+                      className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
+                        versions > 2 ? "sm:!w-[140px]" : ""
+                      }`}
                     >
                       <span className="flex items-center">
                         <span className=" block truncate pr-[20px]">
@@ -489,8 +492,9 @@ const Version = ({
               )}
             </Listbox>
             <div
-              className={`flex gap-[17px] sm:mt-0 mt-[20px] ${versions > 2 ? "!gap-[10px]" : ""
-                }`}
+              className={`flex gap-[17px] sm:mt-0 mt-[20px] ${
+                versions > 2 ? "!gap-[10px]" : ""
+              }`}
             >
               <button onClick={() => setOpen(!open)}>
                 <EditIcon />
@@ -573,8 +577,9 @@ const Version = ({
             </div>
           )}
           <div
-            className={`response-output justify-center mt-[20px]  overflow-auto ${versions > 4 ? "sm:max-h-auto sm:max-h-[360px] max-h-[310px]" : ""
-              }`}
+            className={`response-output justify-center mt-[20px]  overflow-auto ${
+              versions > 4 ? "sm:max-h-auto sm:max-h-[360px] max-h-[310px]" : ""
+            }`}
           >
             {isLoading ? (
               <p>Loading...</p>
