@@ -25,6 +25,7 @@ const ProjectDetails = () => {
   const [tracesData, setTracesData] = useState();
   const [searchTrace, setSearchTrace] = useState("");
   const [selectedTrace, setSelectedTrace] = useState([]);
+  const [traceList, setTraceList] = useState([]);
   const modalRef = useRef();
   const searchParams = useSearchParams();
   const projectName = searchParams.get("name");
@@ -51,7 +52,7 @@ const ProjectDetails = () => {
       const projectId = url.pathname.split("/").pop();
 
       const response = await fetch(
-        `/api/manageProjectTrace?project_id=${projectId}`,
+        `/api/manageTraces?project_id=${projectId}`,
         {
           method: "GET",
         }
@@ -60,6 +61,7 @@ const ProjectDetails = () => {
       if (response.ok) {
         const responseData = await response.json();
         if (responseData.traces) {
+          setTraceList(responseData.traces);
           let traces = [];
           responseData.traces.map((trace) =>
             trace.map((data) => {
@@ -330,6 +332,8 @@ const ProjectDetails = () => {
             <Projectstabledata
               searchTrace={searchTrace}
               setSelectedTrace={setSelectedTrace}
+              traceList={traceList}
+              setTraceList={setTraceList}
             />
           </div>
         </div>

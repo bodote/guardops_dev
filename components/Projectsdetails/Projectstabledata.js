@@ -3,9 +3,13 @@ import React, { useEffect, useState, useRef } from "react";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
 import TraceDetails from "./TraceDetails";
 
-const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
+const Projectstabledata = ({
+  searchTrace,
+  setSelectedTrace,
+  traceList,
+  setTraceList,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [projectList, setProjectList] = useState([]);
   const [traceProject, setTraceProject] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [option, setOption] = useState(false);
@@ -41,31 +45,6 @@ const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
     return FormatedTime;
   };
 
-  const getProjectDetails = async () => {
-    try {
-      const url = new URL(window.location.href);
-      const projectId = url.pathname.split("/").pop();
-
-      const response = await fetch(
-        `/api/manageProjectTrace?project_id=${projectId}`,
-        {
-          method: "GET",
-        }
-      );
-
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData.traces) {
-          setProjectList(responseData.traces);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
-
   const handleSelectTraces = (e, data) => {
     if (e.target.checked) {
       // If checked, add the data to the selectedRows state
@@ -78,7 +57,7 @@ const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
     }
   };
   const sortData = () => {
-    const sortedProjectList = [...projectList];
+    const sortedProjectList = [...traceList];
 
     sortedProjectList.sort((a, b) => {
       const nullParentA = a.find((obj) => obj.parent_id === null);
@@ -100,14 +79,10 @@ const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
 
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
 
-    setProjectList(sortedProjectList);
+    setTraceList(sortedProjectList);
   };
 
-  useEffect(() => {
-    getProjectDetails();
-  }, []);
-
-  const filteredProjects = projectList.filter((project) =>
+  const filteredProjects = traceList.filter((project) =>
     project.some(
       (item) =>
         item?.parent_id === null &&
@@ -115,7 +90,10 @@ const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
           item?.attributes.prompt
             .toLowerCase()
             .includes(searchTrace.toLowerCase()) ||
-          item?.attributes.content
+          (item?.attributes.content
+            ? item?.attributes.content
+            : item?.attributes.response
+          )
             .toLowerCase()
             .includes(searchTrace.toLowerCase()))
     )
@@ -211,7 +189,7 @@ const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
                         <p className="line-clamp">{val.attributes?.prompt}</p>
                       </td>
                       <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                        <p className="line-clamp">{val.attributes?.content}</p>
+                      <p className="line-clamp">{val.attributes?.output}</p>
                       </td>
                       <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
                         {handleSpanStartTime(val.start_time)}
@@ -252,7 +230,7 @@ const Projectstabledata = ({ searchTrace, setSelectedTrace }) => {
             {isModalOpen && (
               <div
                 // ref={modalRef}
-                className="modal lg:w-[981px] w-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 sm:flex-row flex-col"
+                className="modal lg:w-[52%] w-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 sm:flex-row flex-col"
               >
                 <TraceDetails
                   traceProject={traceProject}

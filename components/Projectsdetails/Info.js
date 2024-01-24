@@ -39,8 +39,28 @@ const Info = ({ traceProject }) => {
           </div>
           {trace && (
             <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
-              {traceProject?.content
-                ? traceProject?.content
+              {traceProject?.output
+                ? traceProject?.output
+                : traceProject?.llm_completions_0_content || 'null'}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="lg:m-[39px_45px_10px_49px] m-[0px_16px_0px_16px]">
+        <div
+          onClick={() => setTrace(!trace)}
+          className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] bg-[rgba(13,133,150,0.2)]"
+        >
+          <div className="flex gap-[13px] items-center p-[13px_23px_15px_23px] ">
+            <ArrowDownIcon className="fill-[#334851]" />
+            <h1 className="text-[18px] font-Archivo font-normal text-[#000000]">
+              Model
+            </h1>
+          </div>
+          {trace && (
+            <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
+              {traceProject?.model
+                ? traceProject?.model
                 : traceProject?.llm_completions_0_content || 'null'}
             </div>
           )}

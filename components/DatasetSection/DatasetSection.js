@@ -27,7 +27,7 @@ const DatasetSection = () => {
     }
   };
 
-  const handleProjectClick = (dataset_id, dataset_name) => {
+  const handleDataSetClick = (dataset_id, dataset_name) => {
     router.push(`/datasets/${dataset_id}?name=${dataset_name}`);
   };
 
@@ -117,7 +117,9 @@ const DatasetSection = () => {
                   <div className="flex items-center justify-between">
                     <div
                       className="flex items-center gap-[8px]"
-                      onClick={() => handleProjectClick(ele.dataset_id, ele.name)}
+                      onClick={() =>
+                        handleDataSetClick(ele.dataset_id, ele.name)
+                      }
                     >
                       <img
                         src="/Assets/Images/Union.png"

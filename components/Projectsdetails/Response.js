@@ -1,9 +1,9 @@
-import { ArrowDownIcon } from '@/public/Assets/Icons/Allsvg';
-import React, { useEffect, useState } from 'react';
+import { ArrowDownIcon } from "@/public/Assets/Icons/Allsvg";
+import React, { useEffect, useState } from "react";
 
 const Response = ({ traceProject }) => {
   const [responce, setResponce] = useState(true);
-  const [apiResponse, setApiResponse] = useState('');
+  const [apiResponse, setApiResponse] = useState("");
 
   useEffect(() => {
     if (traceProject?.response) {
@@ -13,7 +13,7 @@ const Response = ({ traceProject }) => {
     } else if (traceProject?.response_openai) {
       setApiResponse(traceProject?.response_openai);
     } else {
-      setApiResponse('');
+      setApiResponse("");
     }
   }, [traceProject]);
   return (
@@ -30,8 +30,8 @@ const Response = ({ traceProject }) => {
             </h1>
           </div>
           {responce && (
-            <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
-              <p>{apiResponse}</p>
+            <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  border-t border-t-[#CCCCCC]">
+              <p class="break-all">{apiResponse}</p>
             </div>
           )}
         </div>

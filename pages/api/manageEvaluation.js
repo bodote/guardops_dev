@@ -13,11 +13,12 @@ export default async function handler(req, res) {
 
   switch (method) {
     case "GET":
-      Url = `${baseUrl}api/get_project_traces`;
+      Url = `${baseUrl}api/get_evaluation_list`;
       queryParams = new URLSearchParams({
         project_id: req.query.project_id,
       });
       urlWithParams = `${Url}?${queryParams}`;
+
       try {
         const response = await fetch(urlWithParams, {
           method: "GET",

@@ -149,6 +149,7 @@ const SelectDatasetModal = ({
           cancel
         </button>
         <button
+          // onClick={() => setIsDatasetModelOpen(false)}
           onClick={handleConfirm}
           className=" bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
         >

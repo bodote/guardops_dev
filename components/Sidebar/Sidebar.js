@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  ChartIcon,
   DatasetIcon,
   HomeIcon,
   LeftIcon,
@@ -88,6 +89,15 @@ const Sidebar = () => {
                   <TraceIcon className="w-[24px]" />
                   <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
                     Playground
+                  </p>
+                </a>
+                <a
+                  href="/evaluation"
+                  className="flex gap-[10px] items-center mt-[30px]"
+                >
+                  <ChartIcon className="w-[24px]" />
+                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                    Evaluation
                   </p>
                 </a>
               </div>

@@ -41,6 +41,7 @@ const Version = ({
   allSystemPrompt,
   analysisModelOpen,
   setAnalysisModelOpen,
+  setAllPromtsDetails,
 }) => {
   const [models, setModels] = useState([]);
   const [selected, setSelected] = useState({
@@ -148,6 +149,16 @@ const Version = ({
         selected.provider === "openai" &&
           setApiResponse(errorMessage.error.message);
         selected.provider === "custom" && setApiResponse(errorMessage.message);
+        setAllPromtsDetails((prevDetails) => [
+          ...prevDetails,
+          {
+            isValid: false,
+            versionId: versionId,
+            model: selected.id,
+            input: message,
+            output: "",
+          },
+        ]);
         throw new Error(res.statusText);
       } else {
         const data = res.body;
@@ -156,18 +167,29 @@ const Version = ({
           return;
         }
         setIsLoading(false);
-
         const reader = data.getReader();
         const decoder = new TextDecoder();
         let done = false;
+        let completeString = "";
 
         while (!done) {
           const { value, done: doneReading } = await reader.read();
           done = doneReading;
           const chunkValue = decoder.decode(value);
           setApiResponse((prev) => prev + chunkValue);
+          completeString += chunkValue;
         }
         setIsLoading(false);
+        setAllPromtsDetails((prevDetails) => [
+          ...prevDetails,
+          {
+            isValid: true,
+            versionId: versionId,
+            model: selected.id,
+            input: message,
+            output: completeString,
+          },
+        ]);
       }
     } catch (error) {
       console.error("API request failed:", error.message);
@@ -544,6 +566,7 @@ const Version = ({
                 </div>
                 <button
                   onClick={() =>
+                    systemPrompt &&
                     toast.success("System prompt saved successfully")
                   }
                   className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"

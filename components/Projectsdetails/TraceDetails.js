@@ -68,7 +68,7 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
   return (
     <>
       <div className="trace-scroll">
-        <div className="lg:w-[509px] w-full overflow-y-auto h-screen scroll-auto border-r border-r-[#CCCCCC]">
+        <div className="lg:w-[509px] w-full overflow-y-auto h-screen scroll-auto">
           <div className="border-b border-b-[#CCCCCC]">
             <button
               onClick={() => setIsModalOpen(false)}
@@ -210,9 +210,9 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
           </div>
         </div>
       </div>
-      <div className="lg:w-[557px]  w-full">
+      <div className=" w-full">
         <div className="border-b border-b-[#CCCCCC]">
-          <div className="h-[42px] flex items-center justify-end gap-[12px] px-[16px]">
+          <div className="h-[42px] flex items-center justify-end gap-[12px] px-[16px] border-l border-l-[#CCCCCC]">
             <button
               className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
               onClick={() => {
@@ -237,7 +237,7 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
             />
           )}
         </div>
-        <div className="px-[23px] pt-[8px] pb-[5px] border-b border-b-[#ccc]">
+        <div className="px-[23px] pt-[8px] pb-[5px] border-b border-b-[#ccc] border-l border-l-[#CCCCCC]">
           <div className="gap-[13px] flex">
             <button className="bg-[#D4DB33]  text-[#2F2C53] font-bold text-[14px] font-Exo rounded-full px-[9px]">
               Chain
@@ -287,7 +287,7 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
             </div>
           </div>
         </div>
-        <div className="w-full overflow-x-auto">
+        <div className="w-full overflow-x-auto border-l border-l-[#CCCCCC] h-screen">
           {tab === "Info" && (
             <Info traceProject={selectedProject?.attributes} />
           )}
