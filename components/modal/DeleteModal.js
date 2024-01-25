@@ -1,11 +1,12 @@
 import React, { useState, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 
-const DeleteDatasetModal = ({
+const DeleteModal = ({
   open,
   setOpen,
-  selectedProjectForDelete,
-  handleProjectDelete,
+  selectedDataForDelete,
+  handleDeleteData,
+  name,
 }) => {
   const [chekval, setChekval] = useState(false);
   function classNames(...classes) {
@@ -42,19 +43,36 @@ const DeleteDatasetModal = ({
                   <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto z-50 outline-none ">
                     <div className="relative w-full  mx-auto max-w-[470px]">
                       <div className="rounded-lg  relative flex flex-col w-full bg-white outline-none focus:outline-none  sm:px-[41px] px-[15px]">
-                        <h3 className="text-[14px] font-medium font-Inter text-[#000000] pb-[12px] pt-[16px] text-center">
-                          Delete selected API-Key
-                        </h3>
-                        <p className="text-left text-[14px] font-medium font-Inter text-[#68727D] ">
-                          The project you are trying to delete has 20 traces in
-                          it. Do you want to delete them or move them to a
-                          different project?
-                        </p>
+                        {name === "dataset" && (
+                          <>
+                            <h3 className="text-[14px] font-medium font-Inter text-[#000000] pb-[12px] pt-[16px] text-center">
+                              Delete selected Dataset
+                            </h3>
+                            <p className="text-left text-[14px] font-medium font-Inter text-[#68727D] ">
+                              The selected dataset will be deleted forever. The
+                              traces will not be deleted but their reference to
+                              this dataset will be removed. You can not restore
+                              the dataset after deletion.
+                            </p>
+                          </>
+                        )}
+                        {name === "playground" && (
+                          <>
+                            <h3 className="text-[14px] font-medium font-Inter text-[#000000] pb-[12px] pt-[16px] text-center">
+                              Delete selected Playground
+                            </h3>
+                            <p className="text-left text-[14px] font-medium font-Inter text-[#68727D] ">
+                              The selected prompt and all corresponding traces
+                              will be deleted forever. You can not restore the
+                              prompt or traces after deletion.
+                            </p>
+                          </>
+                        )}
                         <input
                           type="text"
                           name="projectName"
                           id="projectName"
-                          placeholder={selectedProjectForDelete.name}
+                          placeholder={selectedDataForDelete.name}
                           className="h-10 bg-[#F7F7F8] border border-[#EAEBF0] mt-[6px] rounded  w-full font-normal text-[15px] font-Inter placeholder:text-[#000000]"
                           disabled
                         />
@@ -62,7 +80,7 @@ const DeleteDatasetModal = ({
                         <div className="flex justify-center my-[12px] sm:gap-[16px] gap-[8px] flex-wrap">
                           <button
                             onClick={() => {
-                              handleProjectDelete("delete");
+                              handleDeleteData();
                               setOpen(false);
                             }}
                             className=" bg-[#E33B32] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
@@ -90,4 +108,4 @@ const DeleteDatasetModal = ({
   );
 };
 
-export default DeleteDatasetModal;
+export default DeleteModal;

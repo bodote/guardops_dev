@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import { LockIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
+import {
+  DeleteBlackIcon,
+  EditBlackIcon,
+  LockIcon,
+  RightIcon,
+} from "@/public/Assets/Icons/Allsvg";
 import { Fragment } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
@@ -13,6 +18,7 @@ import axios from "axios";
 import styles from "@/styles/TextHighlighter.module.css";
 import { useSearchParams } from "next/navigation";
 import NewPrompt from "@/components/modal/NewPrompt";
+import DeleteModal from "@/components/modal/DeleteModal";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -30,8 +36,11 @@ const index = () => {
   const [syncAll, setsyncAll] = useState(false);
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
   const [open, setOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [actionType, setActionType] = useState("");
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
+  const [currentPlayground, setCurrentPlayground] = useState({});
   const [allPromtsDetails, setAllPromtsDetails] = useState([]);
   const [proname, setProname] = useState({
     name: "Select an option",
@@ -204,11 +213,12 @@ const index = () => {
     getPlaygrounds();
   }, []);
 
-  const handleSetTraces = async (playground_id) => {
-    setCurrentPlaygroundID(playground_id);
+  const handleSetTraces = async (playground) => {
+    setCurrentPlayground(playground);
+    setCurrentPlaygroundID(playground.playground_id);
     try {
       const response = await fetch(
-        `/api/manageTraces?playground_id=${playground_id}`,
+        `/api/manageTraces?playground_id=${playground.playground_id}`,
         {
           method: "GET",
         }
@@ -275,6 +285,26 @@ const index = () => {
     }
   };
 
+  const handleDeletePlaygroundData = async () => {
+    const formData = {
+      user_id: "demouser2",
+      playground_id: currentPlaygroundID,
+    };
+    try {
+      const response = await fetch("/api/managePlaygrounds", {
+        method: "DELETE",
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        getPlaygrounds();
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
   // Function to transform text and pass to Version component
   const runPlayground = () => {
     setAnalysisModelOpen(false);
@@ -356,61 +386,98 @@ const index = () => {
             </a>
           </div>
           <div className=" flex sm:flex-row flex-col border-b border-b-[#CCCCCC]">
-            <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] h-[285px] overflow-y-auto">
+            <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] lg:h-[285px] sm:h-[495px] h-[285px] overflow-y-auto">
               <button
-                onClick={() => setOpen(true)}
+                onClick={() => {
+                  setOpen(true);
+                  setActionType("new");
+                }}
                 className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[11px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
               >
                 <FiPlus /> New Prompt
               </button>
+              {/* <ul className="list-disc px-[8px]"> */}
               {playgroundList.map((playground) => (
-                <div className="flex items-start my-[20px] gap-2">
+                <div
+                  key={playground.playground_id}
+                  className="flex items-start my-[20px] gap-2"
+                >
                   <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
                   <div
-                    key={playground.playground_id}
-                    onClick={() => handleSetTraces(playground.playground_id)}
+                    onClick={() => handleSetTraces(playground)}
                     className="text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline"
                   >
                     {playground.name}
                   </div>
                 </div>
               ))}
+              {/* </ul> */}
             </div>
             <div className="px-[16px] pt-[12px] w-full flex flex-col justify-between">
               <div>
-                <div className="flex justify-between w-full sm:flex-row flex-col">
+                <div className="flex justify-between w-full sm:flex-row flex-col gap-3">
                   <label
                     htmlFor="name"
                     className="font-Archivo text-[12px] font-normal text-[#000]"
                   >
                     Prompt
                   </label>
-                  <div className="md:flex items-center gap-[20px]">
-                    <div className="flex items-center gap-[5px] sm:mt-0 mt-2">
-                      <Switch
-                        checked={PiiCheckEnable}
-                        onChange={setPiiCheckEnable}
-                        className={classNames(
-                          PiiCheckEnable ? "bg-[#0074fb]" : "bg-gray-200",
-                          "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                        )}
-                      >
-                        <span className="sr-only">Use setting</span>
-                        <span
-                          aria-hidden="true"
-                          className={classNames(
-                            PiiCheckEnable
-                              ? "translate-x-[11px]"
-                              : "translate-x-0",
-                            "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                          )}
+                  <div className="lg:flex items-center gap-[20px]">
+                    <div className="flex gap-[20px] sm:mt-0 mt-2 items-center">
+                      {currentPlaygroundID && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setOpen(true);
+                              setActionType("edit");
+                            }}
+                          >
+                            <EditBlackIcon />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setDeleteModalOpen(true);
+                            }}
+                          >
+                            <DeleteBlackIcon />
+                          </button>
+                        </>
+                      )}
+                      {deleteModalOpen && (
+                        <DeleteModal
+                          open={deleteModalOpen}
+                          setOpen={setDeleteModalOpen}
+                          selectedDataForDelete={currentPlayground}
+                          handleDeleteData={handleDeletePlaygroundData}
+                          name="playground"
                         />
-                      </Switch>
-                      <label className="text-[#252525] text-[12px] font-medium">
-                        PII checker
-                      </label>
+                      )}
+                      <div className="flex items-center gap-[5px]">
+                        <Switch
+                          checked={PiiCheckEnable}
+                          onChange={setPiiCheckEnable}
+                          className={classNames(
+                            PiiCheckEnable ? "bg-[#0074fb]" : "bg-gray-200",
+                            "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                          )}
+                        >
+                          <span className="sr-only">Use setting</span>
+                          <span
+                            aria-hidden="true"
+                            className={classNames(
+                              PiiCheckEnable
+                                ? "translate-x-[11px]"
+                                : "translate-x-0",
+                              "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                            )}
+                          />
+                        </Switch>
+                        <label className="text-[#252525] text-[12px] font-medium">
+                          PII checker
+                        </label>
+                      </div>
                     </div>
-                    <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start sm:mt-0 mt-[10px]">
+                    <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start lg:mt-0 mt-[10px]">
                       <label
                         htmlFor="project"
                         className="block font-Archivo text-[12px] text-[#000000] font-normal"
@@ -524,7 +591,7 @@ const index = () => {
               {isModalOpen && (
                 <div
                   // ref={modalRef}
-                  className="modal z-[2] sm:w-[600px] w-auto absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto"
+                  className="modal z-[2] sm:w-[600px] w-[76%] absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto"
                 >
                   <PromptTemplates
                     setIsModalOpen={setIsModalOpen}
@@ -537,6 +604,10 @@ const index = () => {
                   setOpen={setOpen}
                   open={open}
                   updatePlaygroundList={updatePlaygroundList}
+                  actionType={actionType}
+                  playground={actionType === "edit" ? currentPlayground : null}
+                  setCurrentPlaygroundID={setCurrentPlaygroundID}
+                  setCurrentPlayground={setCurrentPlayground}
                 />
               )}
             </div>

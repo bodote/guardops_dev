@@ -7,7 +7,7 @@ import {
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
 import AddDatasetModal from "@/components/modal/AddDatasetModal";
-import DeleteDatasetModal from "../modal/DeleteDatasetModal";
+import DeleteModal from "../modal/DeleteModal";
 
 const DatasetSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,27 +61,25 @@ const DatasetSection = () => {
     }
   };
 
-  const handleDatasetDelete = async (activity) => {
-    if ((activity = "delete")) {
-      const formData = {
-        user_id: "demouser2",
-        dataset_id: selectedDatasetForDelete.dataset_id,
-      };
+  const handleDatasetDelete = async () => {
+    const formData = {
+      user_id: "demouser2",
+      dataset_id: selectedDatasetForDelete.dataset_id,
+    };
 
-      try {
-        const response = await fetch("/api/manageDataset", {
-          method: "DELETE",
-          body: JSON.stringify(formData),
-        });
+    try {
+      const response = await fetch("/api/manageDataset", {
+        method: "DELETE",
+        body: JSON.stringify(formData),
+      });
 
-        if (response.ok) {
-          getDatasetList();
-        } else {
-          console.error("API request failed:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Error during API request:", error);
+      if (response.ok) {
+        getDatasetList();
+      } else {
+        console.error("API request failed:", response.statusText);
       }
+    } catch (error) {
+      console.error("Error during API request:", error);
     }
   };
 
@@ -143,11 +141,12 @@ const DatasetSection = () => {
                         <DeleteBlackIcon />
                       </button>
                       {open && (
-                        <DeleteDatasetModal
+                        <DeleteModal
                           open={open}
                           setOpen={setOpen}
-                          selectedProjectForDelete={selectedDatasetForDelete}
-                          handleProjectDelete={handleDatasetDelete}
+                          selectedDataForDelete={selectedDatasetForDelete}
+                          handleDeleteData={handleDatasetDelete}
+                          name="dataset"
                         />
                       )}
                     </div>

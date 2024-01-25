@@ -86,5 +86,54 @@ export default async function handler(req, res) {
         }
       }
       break;
+    case "PATCH":
+      bodyData = JSON.parse(req.body);
+      Url = `${baseUrl}api/update_playground`;
+      queryParams = new URLSearchParams({
+        user_id: bodyData.user_id,
+        playground_id: bodyData.playground_id,
+        playground_name: bodyData.playground_name,
+        playground_description: bodyData.playground_description,
+      });
+      urlWithParams = `${Url}?${queryParams}`;
+      try {
+        const response = await fetch(urlWithParams, {
+          method: "PATCH",
+          headers: new Headers({
+            authorization: `Bearer ${token}`,
+          }),
+        });
+
+        const data = await response.json();
+        res.status(response.status).json(data);
+      } catch (error) {
+        console.error("Error during API request:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+      break;
+    case "DELETE":
+      bodyData = JSON.parse(req.body);
+      Url = `${baseUrl}api/delete_playground`;
+      queryParams = new URLSearchParams({
+        user_id: bodyData.user_id,
+        playground_id: bodyData.playground_id,
+      });
+
+      urlWithParams = `${Url}?${queryParams}`;
+      try {
+        const response = await fetch(urlWithParams, {
+          method: "DELETE",
+          headers: new Headers({
+            authorization: `Bearer ${token}`,
+          }),
+        });
+
+        const data = await response.json();
+        res.status(response.status).json(data);
+      } catch (error) {
+        console.error("Error during API request:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+      break;
   }
 }

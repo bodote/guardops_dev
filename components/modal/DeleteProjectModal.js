@@ -53,7 +53,7 @@ const DeleteProjectModal = ({
                     <div className="relative w-full  mx-auto max-w-[470px]">
                       <div className="rounded-lg  relative flex flex-col w-full bg-white outline-none focus:outline-none  sm:px-[41px] px-[15px]">
                         <h3 className="text-[14px] font-medium font-Inter text-[#000000] pb-[12px] pt-[16px] text-center">
-                          Delete selected API-Key
+                          Delete selected Project{" "}
                         </h3>
                         <p className="text-left text-[14px] font-medium font-Inter text-[#68727D] ">
                           The project you are trying to delete has 20 traces in
