@@ -179,7 +179,7 @@ const AddTemplate = ({
                     <div className="flex justify-center">
                       <button
                         onClick={handleAddTemplate}
-                        className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
+                        className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
                       >
                         <FiPlus />
                         {actionType === "new"

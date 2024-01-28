@@ -4,14 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm install --legacy-peer-deps && next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.5.0",
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
+    "@mui/material": "^5.15.6",
+    "@textea/json-viewer": "^3.3.1",
     "ai": "^2.2.31",
     "apexcharts": "^3.44.2",
     "axios": "^1.6.2",
@@ -30,7 +34,6 @@
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18",
     "react-icons": "^4.12.0",
-    "react-json-view": "^1.21.3",
     "react-markdown": "^9.0.1",
     "react-multi-select-component": "^4.3.4",
     "react-select": "^5.8.0",
@@ -41,6 +44,6 @@
   "devDependencies": {
     "autoprefixer": "^10.0.1",
     "postcss": "^8",
-    "tailwindcss": "^3.3.0"
+    "tailwindcss": "^3.4.1"
   }
 }

@@ -13,7 +13,8 @@ import {
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { RiFilter2Fill } from "react-icons/ri";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
-import dynamic from "next/dynamic";
+import { JsonViewer } from '@textea/json-viewer'; // Imported JsonViewer
+
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -25,8 +26,7 @@ const index = () => {
   });
   const [projectList, setProjectList] = useState([]);
   const [evaluationList, setEvaluationList] = useState([]);
-  const DynamicReactJson = dynamic(import("react-json-view"), { ssr: false });
-
+  
   const getProjectList = async () => {
     try {
       const user_id = "demouser2";
@@ -326,14 +326,9 @@ const index = () => {
                         </span>
                       </td>
                       <td>
-                        {data.evaluations.map((res, index) => (
-                          <DynamicReactJson
-                            key={index}
-                            src={res.data.eval_data.scores}
-                            theme="summerfruit:inverted"
-                            collapsed={true}
-                          />
-                        ))}
+                      {data.evaluations.map((res, index) => (
+                        <JsonViewer key={index} value={res.data.eval_data.scores} defaultInspectDepth={0}/> // Replaced DynamicReactJson with JsonViewer
+                      ))}
                       </td>
                       <td className="py-[3.5px] px-[10px] text-[14px] font-medium font-Inter text-end min-w-[100px]">
                         <div className="flex gap-[5px] items-center relative">

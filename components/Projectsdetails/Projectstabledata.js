@@ -189,11 +189,7 @@ const Projectstabledata = ({
                         <p className="line-clamp">{val.attributes?.prompt}</p>
                       </td>
                       <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                        <p className="line-clamp">
-                          {val.attributes?.content
-                            ? val.attributes?.content
-                            : val.attributes?.response}
-                        </p>
+                      <p className="line-clamp">{val.attributes?.output}</p>
                       </td>
                       <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
                         {handleSpanStartTime(val.start_time)}

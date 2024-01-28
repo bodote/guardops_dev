@@ -61,7 +61,7 @@ const Templates = ({
         <div className="flex gap-[16px] items-center">
           <button
             onClick={() => handleAddToPromptClick(data.template)}
-            className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium w-[161px] sm:text-[14px] text-[12px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
+            className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium w-[161px] sm:text-[14px] text-[12px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
           >
             <FiPlus />
             Add to Prompt
