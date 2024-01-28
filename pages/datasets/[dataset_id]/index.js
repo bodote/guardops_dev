@@ -249,7 +249,7 @@ const ProjectDetails = () => {
               <div className="relative">
                 <button
                   onClick={() => setActive(!active)}
-                  className="bg-[#cce037] hover:bg-[#6753db] text-white rounded-lg flex gap-2 items-center p-[10px_14px]"
+                  className="bg-[#cce037] hover:bg-[#0D859A] text-white rounded-lg flex gap-2 items-center p-[10px_14px]"
                 >
                   <MdOutlineAdd className="text-[26px] text-white" />
                   Add to Dataset

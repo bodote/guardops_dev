@@ -214,7 +214,7 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
         <div className="border-b border-b-[#CCCCCC]">
           <div className="h-[42px] flex items-center justify-end gap-[12px] px-[16px] border-l border-l-[#CCCCCC]">
             <button
-              className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
+              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
               onClick={() => {
                 setIsDatasetModelOpen(!isDatasetModelOpen);
               }}
@@ -225,7 +225,7 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
               onClick={() =>
                 router.push(`/playground?data=${JSON.stringify(dataToPass)}`)
               }
-              className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
+              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
             >
               Open in playground
             </button>
