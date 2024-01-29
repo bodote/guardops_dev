@@ -4,7 +4,6 @@ import {
   EditBlackIcon,
   PlusIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
 import AddDatasetModal from "@/components/modal/AddDatasetModal";
 import DeleteModal from "../modal/DeleteModal";
@@ -16,7 +15,6 @@ const DatasetSection = () => {
   const [selectedDatasetForDelete, setSelectedDatasetForDelete] = useState("");
   const [selectedDatasetForEdit, setSelectedDatasetForEdit] = useState("");
   const [loader, setLoader] = useState(false);
-  const { user } = useUser();
   const router = useRouter();
   const modalRef = useRef();
   const [open, setOpen] = useState(false);
@@ -34,8 +32,7 @@ const DatasetSection = () => {
   const getDatasetList = async () => {
     setLoader(true);
     try {
-      const user_id = "demouser2";
-      const response = await fetch(`/api/manageDataset?user_id=${user_id}`, {
+      const response = await fetch(`/api/manageDataset`, {
         method: "GET",
       });
 
@@ -63,7 +60,6 @@ const DatasetSection = () => {
 
   const handleDatasetDelete = async () => {
     const formData = {
-      user_id: "demouser2",
       dataset_id: selectedDatasetForDelete.dataset_id,
     };
 
@@ -153,18 +149,18 @@ const DatasetSection = () => {
                   </div>
                   <div className="flex gap-[14px] pt-[8px] pb-[6px]">
                     <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
-                      Traces: 2563
+                      Traces: {ele.stats.trace_count}
                     </p>
-                    <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
+                    {/* <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
                       -Latenz: 0,25
                     </p>
                     <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
                       Errors: 59
-                    </p>
+                    </p> */}
                   </div>
-                  <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
+                  {/* <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
                     Used Token: 2.425.453
-                  </p>
+                  </p> */}
                 </div>
               );
             })

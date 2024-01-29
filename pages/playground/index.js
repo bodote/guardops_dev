@@ -19,6 +19,7 @@ import styles from "@/styles/TextHighlighter.module.css";
 import { useSearchParams } from "next/navigation";
 import NewPrompt from "@/components/modal/NewPrompt";
 import DeleteModal from "@/components/modal/DeleteModal";
+import Logout from "@/components/Logout/Logout";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -143,8 +144,7 @@ const index = () => {
 
   const getProjectList = async () => {
     try {
-      const user_id = "demouser2";
-      const response = await fetch(`/api/manageProjects?user_id=${user_id}`, {
+      const response = await fetch(`/api/manageProjects`, {
         method: "GET",
       });
 
@@ -187,9 +187,8 @@ const index = () => {
 
   const getPlaygrounds = async () => {
     try {
-      const user_id = "demouser2";
       const response = await fetch(
-        `/api/managePlaygrounds?user_id=${user_id}`,
+        `/api/managePlaygrounds`,
         {
           method: "GET",
         }
@@ -265,7 +264,6 @@ const index = () => {
       }));
 
     const formData = {
-      user_id: "demouser2",
       project_id: proname.project_id,
       playground_id: currentPlaygroundID,
       access_token: localStorage.getItem("customAIKey"),
@@ -287,7 +285,6 @@ const index = () => {
 
   const handleDeletePlaygroundData = async () => {
     const formData = {
-      user_id: "demouser2",
       playground_id: currentPlaygroundID,
     };
     try {
@@ -381,12 +378,10 @@ const index = () => {
                 Playground
               </h1>
             </div>
-            <a href="/">
-              <LockIcon />
-            </a>
+            <Logout/>
           </div>
-          <div className=" flex sm:flex-row flex-col border-b border-b-[#CCCCCC]">
-            <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] lg:h-[285px] sm:h-[495px] h-[285px] overflow-y-auto">
+          <div className="flex sm:flex-row flex-col border-b border-b-[#CCCCCC] resize-y overflow-y-auto">
+            <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] lg:min-h-[285px] sm:min-h-[495px] min-h-[285px] overflow-y-auto">
               <button
                 onClick={() => {
                   setOpen(true);
@@ -414,7 +409,7 @@ const index = () => {
               {/* </ul> */}
             </div>
             <div className="px-[16px] pt-[12px] w-full flex flex-col justify-between">
-              <div>
+              <div className="h-full mb-[10px]">
                 <div className="flex justify-between w-full sm:flex-row flex-col gap-3">
                   <label
                     htmlFor="name"
@@ -550,19 +545,19 @@ const index = () => {
                     </div>
                   </div>
                 </div>
-                <div className="lg:flex">
+                <div className="lg:flex h-[90%]">
                   <textarea
                     type="text"
                     name="message"
                     id="message"
-                    className="h-[180px] border-0 rounded  w-full  font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none"
+                    className=" border-0 rounded  w-full  text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none"
                     placeholder=" Start entering your prompt for the selected models. Press
                   Button Run Playground or Shift + Return to get the results."
                     value={message}
                     onChange={handleTextChange}
                   />
                   {PiiCheckEnable && (
-                    <div className="h-[180px] w-full font-Archivo text-[12px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto">
+                    <div className=" w-full text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto">
                       {getParsedText()}
                     </div>
                   )}

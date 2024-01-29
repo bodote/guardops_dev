@@ -14,6 +14,7 @@ import BarChart from "@/components/Projectsdetails/BarChart";
 import { MdOutlineAdd } from "react-icons/md";
 import { useSearchParams } from "next/navigation";
 import SelectDatasetModal from "@/components/modal/SelectDatasetModal";
+import Logout from "@/components/Logout/Logout";
 
 const ProjectDetails = () => {
   const [active, setActive] = useState(false);
@@ -123,7 +124,8 @@ const ProjectDetails = () => {
                 {datasetName}
               </h1>
             </div>
-            <LockIcon />
+            {/* <LockIcon /> */}
+            <Logout/>
           </div>
 
           <div className="flex lg:flex-row flex-col my-[14px] sm:pl-[22px] pl-[16px] sm:pr-[35px] pr-[16px] xl:gap-[52px] gap-[20px]">

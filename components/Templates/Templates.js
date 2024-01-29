@@ -21,7 +21,6 @@ const Templates = ({
   };
   const handleDeleteTemplate = async (template) => {
     const formData = {
-      user_id: "demouser2",
       template_id: template,
     };
 

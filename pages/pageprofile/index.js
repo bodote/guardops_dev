@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import { LockIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useState } from "react";
 import PlaygroundSettings from "@/components/Pageprofiledata/PlaygroundSettings";
+import Logout from "@/components/Logout/Logout";
 
 const Pageprofile = () => {
   const [tab, setTab] = useState("Profile");
@@ -27,9 +28,10 @@ const Pageprofile = () => {
                 User 1
               </h1>
             </div>
-            <a href="/">
+            {/* <a href="/">
               <LockIcon />
-            </a>
+            </a> */}
+            <Logout/>
           </div>
 
           <div className="sm:px-[22px] px-[16px] ">

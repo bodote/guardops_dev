@@ -4,9 +4,7 @@ export default async function handler(req, res) {
   let Url = null;
   let queryParams = null;
   let urlWithParams = null;
-  let bodyData = null;
   const baseUrl = process.env.BackendBaseUrl;
-
   const { method } = req;
 
   const token = await getToken();

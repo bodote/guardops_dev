@@ -26,8 +26,7 @@ const AddTemplate = ({
 
   const handleAddTemplate = async () => {
     const templateFormData = {
-      ...templateData,
-      user_id: "demouser2",
+      ...templateData
     };
 
     if (
@@ -39,7 +38,6 @@ const AddTemplate = ({
       return false;
     }
     const formData = {
-      user_id: templateFormData.user_id,
       template_name: templateFormData.template_name,
       template_description: templateFormData.template_description,
       template_link: templateFormData.template_link,
