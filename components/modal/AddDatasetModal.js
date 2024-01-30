@@ -29,7 +29,6 @@ const AddDatasetModal = ({
   const handleSaveDataset = async () => {
     const datasetFormData = {
       ...datasetData,
-      user_id: "demouser2",
     };
     if (
       datasetFormData.dataset_name == "" ||
@@ -40,7 +39,6 @@ const AddDatasetModal = ({
     }
 
     const formData = {
-      user_id: datasetFormData.user_id,
       dataset_name: datasetFormData.dataset_name,
       dataset_description: datasetFormData.dataset_description,
       dataset_id: values ? values.dataset_id : "",

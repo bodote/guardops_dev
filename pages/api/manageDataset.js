@@ -1,4 +1,5 @@
 import { getToken } from "@/utils/getToken";
+import Cookies from "js-cookie";
 
 export default async function handler(req, res) {
   let Url = null;
@@ -6,7 +7,7 @@ export default async function handler(req, res) {
   let urlWithParams = null;
   let bodyData = null;
   const baseUrl = process.env.BackendBaseUrl;
-
+  const user = req.cookies.user_id;
   const { method } = req;
 
   const token = await getToken();
@@ -15,7 +16,7 @@ export default async function handler(req, res) {
     case "GET":
       Url = `${baseUrl}api/get_datasets`;
       queryParams = new URLSearchParams({
-        user_id: req.query.user_id,
+        user_id: user,
       });
       urlWithParams = `${Url}?${queryParams}`;
 
@@ -39,7 +40,7 @@ export default async function handler(req, res) {
       bodyData = JSON.parse(req.body);
       Url = `${baseUrl}api/create_dataset`;
       queryParams = new URLSearchParams({
-        user_id: bodyData.user_id,
+        user_id: user,
         dataset_name: bodyData.dataset_name,
         dataset_description: bodyData.dataset_description,
       });
@@ -65,7 +66,7 @@ export default async function handler(req, res) {
         const trace = bodyData.trace_ids;
         Url = `${baseUrl}api/add_traces_to_dataset`;
         queryParams = new URLSearchParams({
-          user_id: bodyData.user_id,
+          user_id: user,
           dataset_id: bodyData.dataset_id,
         });
         trace.forEach((traceId) => {
@@ -91,7 +92,7 @@ export default async function handler(req, res) {
         Url = `${baseUrl}api/update_dataset`;
         queryParams = new URLSearchParams({
           dataset_id: bodyData.dataset_id,
-          user_id: bodyData.user_id,
+          user_id: user,
           dataset_name: bodyData.dataset_name,
           dataset_description: bodyData.dataset_description,
         });
@@ -116,7 +117,7 @@ export default async function handler(req, res) {
       bodyData = JSON.parse(req.body);
       Url = `${baseUrl}api/delete_dataset`;
       queryParams = new URLSearchParams({
-        user_id: bodyData.user_id,
+        user_id: user,
         dataset_id: bodyData.dataset_id,
       });
 

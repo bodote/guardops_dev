@@ -27,7 +27,6 @@ const NewPrompt = ({
   const handleCreatePrompt = async () => {
     const playgroundFormData = {
       ...playgroundData,
-      user_id: "demouser2",
     };
     if (
       playgroundFormData.playground_name == "" ||
@@ -37,7 +36,6 @@ const NewPrompt = ({
       return false;
     }
     const formData = {
-      user_id: playgroundFormData.user_id,
       playground_name: playgroundFormData.playground_name,
       playground_description: playgroundFormData.playground_description,
       playground_id: playground ? playground.playground_id : "",

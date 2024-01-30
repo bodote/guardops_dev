@@ -11,11 +11,10 @@ const SelectDatasetModal = ({
 }) => {
   const [selected, setSelected] = useState({ name: "Select a dataset" });
   const [datasetList, setDatasetList] = useState([]);
-  const user_id = "demouser2";
 
   const getDatasets = async () => {
     try {
-      const response = await fetch(`/api/manageDataset?user_id=${user_id}`, {
+      const response = await fetch(`/api/manageDataset`, {
         method: "GET",
       });
 
@@ -33,7 +32,6 @@ const SelectDatasetModal = ({
   };
 
   const formData = {
-    user_id,
     dataset_id: selected.dataset_id,
     trace_ids: (() => {
       if (traceProject) {

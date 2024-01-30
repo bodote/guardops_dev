@@ -38,7 +38,6 @@ const ProjectSection = () => {
   const handleProjectDelete = async (activity) => {
     if ((activity = "delete")) {
       const formData = {
-        user_id: "demouser2",
         project_id: selectedProjectForDelete.project_id,
       };
 
@@ -65,8 +64,7 @@ const ProjectSection = () => {
   const getProjectList = async () => {
     setLoader(true);
     try {
-      const user_id = "demouser2";
-      const response = await fetch(`/api/manageProjects?user_id=${user_id}`, {
+      const response = await fetch(`/api/manageProjects`, {
         method: "GET",
       });
 
@@ -164,18 +162,18 @@ const ProjectSection = () => {
                   </div>
                   <div className="flex gap-[14px] pt-[8px] pb-[6px] flex-wrap">
                     <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
-                      Traces: 2563
+                      Traces: {ele.stats.trace_count}
                     </p>
-                    <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
+                    {/* <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
                       -Latenz: 0,25
                     </p>
                     <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
                       Errors: 59
-                    </p>
+                    </p> */}
                   </div>
-                  <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
+                  {/* <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
                     Used Token: 2.425.453
-                  </p>
+                  </p> */}
                 </div>
               );
             })

@@ -20,7 +20,11 @@ const AddProjectModal = ({
     project_retention: values ? values.retention : 0,
   });
   const [selected, setSelected] = useState(
-    values ? values.tags.map((tag) => ({ label: tag, value: tag })) : []
+    values && values.tags && values.tags.length
+      ? values.tags.includes("[]")
+        ? []
+        : values.tags.map((tag) => ({ label: tag, value: tag }))
+      : []
   );
   const [showRange, setShowRange] = useState(
     values?.retention > 0 ? true : false
@@ -60,7 +64,6 @@ const AddProjectModal = ({
     const projectFormData = {
       ...projectData,
       project_tags: selected.map((option) => option.value),
-      user_id: "demouser2",
     };
 
     if (
@@ -72,7 +75,6 @@ const AddProjectModal = ({
     }
 
     const formData = {
-      user_id: projectFormData.user_id,
       project_name: projectFormData.project_name,
       project_description: projectFormData.project_description,
       project_retention: projectFormData.project_retention,

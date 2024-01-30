@@ -11,8 +11,7 @@ const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
   const [actionType, setActionType] = useState("");
   const getTemplatesList = async () => {
     try {
-      const user_id = "demouser2";
-      const response = await fetch(`/api/manageTemplates?user_id=${user_id}`, {
+      const response = await fetch(`/api/manageTemplates`, {
         method: "GET",
       });
 

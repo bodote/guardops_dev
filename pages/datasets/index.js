@@ -1,6 +1,7 @@
 import React from "react";
 import { LockIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import Logout from "@/components/Logout/Logout";
 const Datasets = () => {
   return (
     <>
@@ -17,9 +18,10 @@ const Datasets = () => {
                 Dataset
               </h1>
             </div>
-            <a href="/">
+            <Logout/>
+            {/* <a href="/">
               <LockIcon />
-            </a>
+            </a> */}
           </div>
         </div>
       </div>
