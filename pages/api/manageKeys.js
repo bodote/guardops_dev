@@ -5,6 +5,7 @@ export default async function handler(req, res) {
   let queryParams = null;
   let urlWithParams = null;
   let bodyData = null;
+  const user = req.cookies.user_id;
   const baseUrl = process.env.BackendBaseUrl;
 
   const { method } = req;
@@ -15,8 +16,7 @@ export default async function handler(req, res) {
     case "GET":
       Url = `${baseUrl}api/get_keys`;
       queryParams = new URLSearchParams({
-        user_id: req.query.user_id,
-        
+        user_id: user,
       });
       urlWithParams = `${Url}?${queryParams}`;
       try {
@@ -35,10 +35,9 @@ export default async function handler(req, res) {
       }
       break;
     case "POST":
-      bodyData = JSON.parse(req.body);
       Url = `${baseUrl}api/create_key`;
       queryParams = new URLSearchParams({
-        user_id: bodyData.user_id,
+        user_id: user,
       });
       urlWithParams = `${Url}?${queryParams}`;
       try {
@@ -59,7 +58,7 @@ export default async function handler(req, res) {
       bodyData = JSON.parse(req.body);
       Url = `${baseUrl}api/delete_key`;
       queryParams = new URLSearchParams({
-        user_id: bodyData.user_id,
+        user_id: user,
         key_hash: bodyData.key_hash,
       });
 

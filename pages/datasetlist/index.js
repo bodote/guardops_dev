@@ -4,6 +4,7 @@ import { LockIcon, PlusIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
 import Intromodel from "@/components/modal/AddProjectModal";
 import Link from "next/link";
 import DatasetSection from "@/components/DatasetSection/DatasetSection";
+import Logout from "@/components/Logout/Logout";
 
 const DatasetList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,9 +51,8 @@ const DatasetList = () => {
                 Datasets
               </h1>
             </div>
-            <a href="/api/auth/logout">
-              <LockIcon />
-            </a>
+            <Logout/>
+             
           </div>
           <DatasetSection />
         </div>

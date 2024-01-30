@@ -3,12 +3,19 @@ import { Dialog, Transition } from "@headlessui/react";
 import { FiPlus } from "react-icons/fi";
 import { toast } from "react-toastify";
 
-const NewPrompt = ({ open, setOpen, updatePlaygroundList }) => {
+const NewPrompt = ({
+  open,
+  setOpen,
+  updatePlaygroundList,
+  actionType,
+  playground,
+  setCurrentPlaygroundID,
+  setCurrentPlayground,
+}) => {
   const [playgroundData, setPlaygroundData] = useState({
-    playground_name: "",
-    playground_description: "",
+    playground_name: playground ? playground.name : "",
+    playground_description: playground ? playground.description : "",
   });
-
   const handleOnChange = (e) => {
     const { name, value } = e.target;
     setPlaygroundData((prevState) => ({
@@ -20,7 +27,6 @@ const NewPrompt = ({ open, setOpen, updatePlaygroundList }) => {
   const handleCreatePrompt = async () => {
     const playgroundFormData = {
       ...playgroundData,
-      user_id: "demouser2",
     };
     if (
       playgroundFormData.playground_name == "" ||
@@ -30,25 +36,49 @@ const NewPrompt = ({ open, setOpen, updatePlaygroundList }) => {
       return false;
     }
     const formData = {
-      user_id: playgroundFormData.user_id,
       playground_name: playgroundFormData.playground_name,
       playground_description: playgroundFormData.playground_description,
-      playground_id: "",
+      playground_id: playground ? playground.playground_id : "",
     };
     try {
-      const response = await fetch("/api/managePlaygrounds", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        toast.success("Prompt created successfully !!");
-        const responseData = await response.json();
-        setPlaygroundData({
-          playground_name: "",
-          playground_description: "",
+      if (actionType === "new") {
+        const response = await fetch("/api/managePlaygrounds", {
+          method: "POST",
+          body: JSON.stringify(formData),
         });
-        setOpen(false);
-        updatePlaygroundList();
+        if (response.ok) {
+          toast.success("Prompt created successfully !!");
+          const responseData = await response.json();
+          setPlaygroundData({
+            playground_name: "",
+            playground_description: "",
+          });
+          setOpen(false);
+          updatePlaygroundList();
+          setCurrentPlaygroundID();
+          setCurrentPlayground();
+        }
+      } else if (actionType === "edit") {
+        const response = await fetch("/api/managePlaygrounds", {
+          method: "PATCH",
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          toast.success("Prompt updated successfully !!");
+          const responseData = await response.json();
+          setPlaygroundData({
+            playground_name: "",
+            playground_description: "",
+          });
+          setOpen(false);
+          updatePlaygroundList();
+          setCurrentPlaygroundID();
+          setCurrentPlayground();
+        } else {
+          toast.error("API request failed !!");
+          console.error("API request failed:", response.statusText);
+        }
       }
     } catch (error) {
       toast.error(`${error.message}`);
@@ -116,10 +146,12 @@ const NewPrompt = ({ open, setOpen, updatePlaygroundList }) => {
                     <div className="flex justify-center mt-[68px]">
                       <button
                         onClick={handleCreatePrompt}
-                        className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
+                        className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
                       >
                         <FiPlus />
-                        Create Prompt
+                        {actionType === "new"
+                          ? "Create Prompt"
+                          : "Update Prompt"}
                       </button>
                     </div>
                   </div>

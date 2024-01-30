@@ -11,13 +11,9 @@ const Apimanagement = () => {
   const [deletedKey, setDeletedKey] = useState("");
 
   const getUserKeyDetails = async () => {
-    const formData = {
-      user_id: "demouser2",
-    };
-
     try {
       const response = await fetch(
-        `/api/manageKeys?user_id=${formData.user_id}`,
+        `/api/manageKeys`,
         {
           method: "GET",
         }
@@ -37,14 +33,9 @@ const Apimanagement = () => {
   };
 
   const ganerateNewKey = async () => {
-    const formData = {
-      user_id: "demouser2",
-    };
-
     try {
       const response = await fetch("/api/manageKeys", {
         method: "POST",
-        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
@@ -63,7 +54,6 @@ const Apimanagement = () => {
 
   const handleDeleteKey = async () => {
     const formData = {
-      user_id: "demouser2",
       key_hash: deletedKey.hash,
     };
     try {

@@ -3,14 +3,19 @@ import { Dialog, Transition } from "@headlessui/react";
 import { FiPlus } from "react-icons/fi";
 import { toast } from "react-toastify";
 
-const AddTemplate = ({ open, setOpen, updateTemplatesList }) => {
+const AddTemplate = ({
+  open,
+  setOpen,
+  updateTemplatesList,
+  actionType,
+  value,
+}) => {
   const [templateData, setTemplateData] = useState({
-    template_name: "",
-    template_description: "",
-    template_link: "",
-    template: "",
+    template_name: value ? value.name : "",
+    template_description: value ? value.description : "",
+    template_link: value ? value.link : "",
+    template: value ? value.template : "",
   });
-
   const handleOnChange = (e) => {
     const { name, value } = e.target;
     setTemplateData((prevState) => ({
@@ -21,8 +26,7 @@ const AddTemplate = ({ open, setOpen, updateTemplatesList }) => {
 
   const handleAddTemplate = async () => {
     const templateFormData = {
-      ...templateData,
-      user_id: "demouser2",
+      ...templateData
     };
 
     if (
@@ -34,34 +38,56 @@ const AddTemplate = ({ open, setOpen, updateTemplatesList }) => {
       return false;
     }
     const formData = {
-      user_id: templateFormData.user_id,
       template_name: templateFormData.template_name,
       template_description: templateFormData.template_description,
       template_link: templateFormData.template_link,
       template: templateFormData.template,
+      template_id: value ? value.template_id : "",
     };
 
     try {
-      const response = await fetch("/api/manageTemplates", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        toast.success("Template created successfully !!");
-        const responseData = await response.json();
-        setTemplateData({
-          template_name: "",
-          template_description: "",
-          template_link: "",
-          template: "",
+      if (actionType === "new") {
+        const response = await fetch("/api/manageTemplates", {
+          method: "POST",
+          body: JSON.stringify(formData),
         });
-        setOpen(false);
-        updateTemplatesList();
+        if (response.ok) {
+          toast.success("Template created successfully !!");
+          const responseData = await response.json();
+          setTemplateData({
+            template_name: "",
+            template_description: "",
+            template_link: "",
+            template: "",
+          });
+          setOpen(false);
+          updateTemplatesList();
+        }
+      } else if (actionType === "edit") {
+        const response = await fetch("/api/manageTemplates", {
+          method: "PATCH",
+          body: JSON.stringify(formData),
+        });
+        if (response.ok) {
+          toast.success("Template updated successfully !!");
+          const responseData = await response.json();
+          setTemplateData({
+            template_name: "",
+            template_description: "",
+            template_link: "",
+            template: "",
+          });
+          setOpen(false);
+          updateTemplatesList();
+        }
       } else {
         toast.error("API request failed");
         console.error("API request failed:", response.statusText);
       }
-    } catch (error) {}
+    } catch (error) {
+      toast.error(`${error.message}`);
+      console.error("Error during API request:", error);
+    }
   };
 
   return (
@@ -151,10 +177,12 @@ const AddTemplate = ({ open, setOpen, updateTemplatesList }) => {
                     <div className="flex justify-center">
                       <button
                         onClick={handleAddTemplate}
-                        className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
+                        className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
                       >
                         <FiPlus />
-                        Create Template
+                        {actionType === "new"
+                          ? "Create Template"
+                          : "Update Template"}
                       </button>
                     </div>
                   </div>

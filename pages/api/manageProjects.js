@@ -6,6 +6,7 @@ export default async function handler(req, res) {
   let urlWithParams = null;
   let bodyData = null;
   const baseUrl = process.env.BackendBaseUrl;
+  const user = req.cookies.user_id;
 
   const { method } = req;
 
@@ -15,7 +16,7 @@ export default async function handler(req, res) {
     case "GET":
       Url = `${baseUrl}api/get_projects`;
       queryParams = new URLSearchParams({
-        user_id: req.query.user_id,
+        user_id: user,
       });
       urlWithParams = `${Url}?${queryParams}`;
       try {
@@ -37,11 +38,14 @@ export default async function handler(req, res) {
       bodyData = JSON.parse(req.body);
       Url = `${baseUrl}api/create_project`;
       queryParams = new URLSearchParams({
-        user_id: bodyData.user_id,
+        user_id: user,
         project_name: bodyData.project_name,
         project_description: bodyData.project_description,
         project_retention: bodyData.project_retention,
-        project_tags: bodyData.project_tags.join(","),
+        project_tags:
+          bodyData.project_tags.length > 0
+            ? bodyData.project_tags.join(",")
+            : "[]",
       });
       urlWithParams = `${Url}?${queryParams}`;
       try {
@@ -64,11 +68,14 @@ export default async function handler(req, res) {
       Url = `${baseUrl}api/update_project`;
       queryParams = new URLSearchParams({
         project_id: bodyData.project_id,
-        user_id: bodyData.user_id,
+        user_id:user,
         project_name: bodyData.project_name,
         project_description: bodyData.project_description,
         project_retention: bodyData.project_retention,
-        project_tags: bodyData.project_tags.join(","),
+        project_tags:
+          bodyData.project_tags.length > 0
+            ? bodyData.project_tags.join(",")
+            : "[]",
       });
       urlWithParams = `${Url}?${queryParams}`;
       try {
@@ -90,7 +97,7 @@ export default async function handler(req, res) {
       bodyData = JSON.parse(req.body);
       Url = `${baseUrl}api/delete_project`;
       queryParams = new URLSearchParams({
-        user_id: bodyData.user_id,
+        user_id: user,
         project_id: bodyData.project_id,
         cascade: true,
       });

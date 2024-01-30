@@ -7,10 +7,11 @@ import AddTemplate from "./AddTemplate";
 const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
   const [open, setOpen] = useState(false);
   const [templates, setTemplates] = useState([]);
+  const [templatesForEdit, setTemplatesForEdit] = useState();
+  const [actionType, setActionType] = useState("");
   const getTemplatesList = async () => {
     try {
-      const user_id = "demouser2";
-      const response = await fetch(`/api/manageTemplates?user_id=${user_id}`, {
+      const response = await fetch(`/api/manageTemplates`, {
         method: "GET",
       });
 
@@ -28,7 +29,6 @@ const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
   };
 
   const updateTemplatesList = async () => {
-    // Refresh the template list when called
     await getTemplatesList();
   };
 
@@ -56,16 +56,22 @@ const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
               <Templates
                 data={data}
                 key={ind}
-                setIsModalOpen={setIsModalOpen}
                 onPromptOpen={onPromptOpen}
+                setOpen={setOpen}
+                setActionType={setActionType}
+                setTemplatesForEdit={setTemplatesForEdit}
+                updateTemplatesList={updateTemplatesList}
               />
             ))}
           </div>
 
           <div className="flex justify-center sm:mt-[53px] mt-[30px]">
             <button
-              className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
-              onClick={() => setOpen(true)}
+              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
+              onClick={() => {
+                setOpen(true);
+                setActionType("new");
+              }}
             >
               <FiPlus />
               Add own Template
@@ -75,6 +81,8 @@ const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
                 open={open}
                 setOpen={setOpen}
                 updateTemplatesList={updateTemplatesList}
+                actionType={actionType}
+                value={actionType === "edit" ? templatesForEdit : null}
               />
             )}
           </div>

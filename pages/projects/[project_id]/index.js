@@ -14,6 +14,7 @@ import BarChart from "@/components/Projectsdetails/BarChart";
 import { MdOutlineAdd } from "react-icons/md";
 import SelectDatasetModal from "@/components/modal/SelectDatasetModal";
 import { useSearchParams } from "next/navigation";
+import Logout from "@/components/Logout/Logout";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -124,7 +125,8 @@ const ProjectDetails = () => {
                 {projectName}
               </h1>
             </div>
-            <LockIcon />
+            {/* <LockIcon /> */}
+            <Logout/>
           </div>
 
           <div className="flex lg:flex-row flex-col my-[14px] sm:pl-[22px] pl-[16px] sm:pr-[35px] pr-[16px] xl:gap-[52px] gap-[20px]">
@@ -250,7 +252,7 @@ const ProjectDetails = () => {
               <div className="relative">
                 <button
                   onClick={() => setActive(!active)}
-                  className="bg-[#cce037] hover:bg-[#6753db] text-white rounded-lg flex gap-2 items-center p-[10px_14px]"
+                  className="bg-[#cce037] hover:bg-[#0D859A] text-white rounded-lg flex gap-2 items-center p-[10px_14px]"
                 >
                   <MdOutlineAdd className="text-[26px] text-white" />
                   Add to Dataset

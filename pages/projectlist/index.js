@@ -4,6 +4,7 @@ import { LockIcon, PlusIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
 import Intromodel from "@/components/modal/AddProjectModal";
 import Link from "next/link";
 import ProjectSection from "@/components/ProjectSection/ProjectSection";
+import Logout from "@/components/Logout/Logout";
 
 const ProjectList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,9 +51,7 @@ const ProjectList = () => {
                 Projects
               </h1>
             </div>
-            <a href="/api/auth/logout">
-              <LockIcon />
-            </a>
+            <Logout/>
           </div>
           <ProjectSection />
         </div>

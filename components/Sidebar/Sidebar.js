@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ChartIcon,
   DatasetIcon,
@@ -9,11 +9,13 @@ import {
   TraceIcon,
   UserIcon,
 } from "@/public/Assets/Icons/Allsvg";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import Cookies from "js-cookie";
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-
+  const { user } = useUser();
   const handleMouseEnter = () => {
     setIsHovered(true);
   };
@@ -21,6 +23,17 @@ const Sidebar = () => {
   const handleMouseLeave = () => {
     setIsHovered(false);
   };
+
+//*******************************Set User**************************/
+  // useEffect(() => {
+  //   const cookie = Cookies.get("user_id");
+  //   if (!cookie && user) {
+  //     Cookies.set("user_id", user?.sub);
+  //   }
+  //   console.log("front end side++", Cookies.get("user_id"));
+  // }, [user]);
+
+  //*******************************Set User**************************/
 
   const dynamicClassName = `trans ${isHovered ? "hovered-class" : ""}`;
   return (

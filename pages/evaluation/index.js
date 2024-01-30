@@ -15,6 +15,8 @@ import { RiFilter2Fill } from "react-icons/ri";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
 import { JsonViewer } from '@textea/json-viewer'; // Imported JsonViewer
 
+import dynamic from "next/dynamic";
+import Logout from "@/components/Logout/Logout";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -29,8 +31,7 @@ const index = () => {
   
   const getProjectList = async () => {
     try {
-      const user_id = "demouser2";
-      const response = await fetch(`/api/manageProjects?user_id=${user_id}`, {
+      const response = await fetch(`/api/manageProjects`, {
         method: "GET",
       });
 
@@ -102,9 +103,10 @@ const index = () => {
                 Monitoring
               </h1>
             </div>
-            <a href="/">
+            <Logout/>
+            {/* <a href="/">
               <LockIcon />
-            </a>
+            </a> */}
           </div>
           <div className="lg:pl-[42px] sm:pl-[20px] pl-[14px] sm:pr-[20px] pr-[14px] mt-[24px] flex md:flex-row flex-col gap-[20px] justify-between md:items-center">
             <div>

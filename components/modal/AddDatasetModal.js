@@ -29,7 +29,6 @@ const AddDatasetModal = ({
   const handleSaveDataset = async () => {
     const datasetFormData = {
       ...datasetData,
-      user_id: "demouser2",
     };
     if (
       datasetFormData.dataset_name == "" ||
@@ -40,7 +39,6 @@ const AddDatasetModal = ({
     }
 
     const formData = {
-      user_id: datasetFormData.user_id,
       dataset_name: datasetFormData.dataset_name,
       dataset_description: datasetFormData.dataset_description,
       dataset_id: values ? values.dataset_id : "",
@@ -150,7 +148,7 @@ const AddDatasetModal = ({
 
         <div className="flex justify-center sm:mt-[77px] mt-[50px]">
           <button
-            className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
+            className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
             onClick={handleSaveDataset}
           >
             <FiPlus />

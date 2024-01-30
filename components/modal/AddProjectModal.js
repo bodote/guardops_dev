@@ -20,7 +20,11 @@ const AddProjectModal = ({
     project_retention: values ? values.retention : 0,
   });
   const [selected, setSelected] = useState(
-    values ? values.tags.map((tag) => ({ label: tag, value: tag })) : []
+    values && values.tags && values.tags.length
+      ? values.tags.includes("[]")
+        ? []
+        : values.tags.map((tag) => ({ label: tag, value: tag }))
+      : []
   );
   const [showRange, setShowRange] = useState(
     values?.retention > 0 ? true : false
@@ -60,7 +64,6 @@ const AddProjectModal = ({
     const projectFormData = {
       ...projectData,
       project_tags: selected.map((option) => option.value),
-      user_id: "demouser2",
     };
 
     if (
@@ -72,7 +75,6 @@ const AddProjectModal = ({
     }
 
     const formData = {
-      user_id: projectFormData.user_id,
       project_name: projectFormData.project_name,
       project_description: projectFormData.project_description,
       project_retention: projectFormData.project_retention,
@@ -255,7 +257,7 @@ const AddProjectModal = ({
         </div>
         <div className="flex justify-center sm:mt-[77px] mt-[50px]">
           <button
-            className="bg-[#D4DB33] hover:bg-[#5E5ADB] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
+            className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
             onClick={() => handleSaveProject(values)}
           >
             <FiPlus />
