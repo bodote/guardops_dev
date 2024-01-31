@@ -79,6 +79,7 @@ const ProjectSection = () => {
       }
     } catch (error) {
       setLoader(false);
+      console.log("new+++++++", error);
       console.error("Error during API request:", error);
     }
   };

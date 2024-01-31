@@ -37,6 +37,7 @@ const index = () => {
   const [syncAll, setsyncAll] = useState(false);
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
   const [open, setOpen] = useState(false);
+  const [clear, setClear] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [actionType, setActionType] = useState("");
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
@@ -187,12 +188,9 @@ const index = () => {
 
   const getPlaygrounds = async () => {
     try {
-      const response = await fetch(
-        `/api/managePlaygrounds`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetch(`/api/managePlaygrounds`, {
+        method: "GET",
+      });
 
       if (response.ok) {
         const responseData = await response.json();
@@ -238,6 +236,7 @@ const index = () => {
   const clearMessage = () => {
     setMessage("");
     setPiiData([]);
+    setClear(true);
   };
 
   // State to track the runPlayground button has been pressed
@@ -378,7 +377,7 @@ const index = () => {
                 Playground
               </h1>
             </div>
-            <Logout/>
+            <Logout />
           </div>
           <div className="flex sm:flex-row flex-col border-b border-b-[#CCCCCC] resize-y overflow-y-auto">
             <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] lg:min-h-[285px] sm:min-h-[495px] min-h-[285px] overflow-y-auto">
@@ -577,6 +576,12 @@ const index = () => {
                   Clear
                 </button>
                 <button
+                  id="stop"
+                  className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                >
+                  Stop
+                </button>
+                <button
                   className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
                   onClick={runPlayground}
                 >
@@ -661,6 +666,8 @@ const index = () => {
                   setAnalysisModelOpen,
                   setAllPromtsDetails,
                   allPromtsDetails,
+                  setClear,
+                  clear,
                 })
               )}
             </div>

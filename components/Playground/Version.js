@@ -42,6 +42,8 @@ const Version = ({
   analysisModelOpen,
   setAnalysisModelOpen,
   setAllPromtsDetails,
+  setClear,
+  clear,
 }) => {
   const [models, setModels] = useState([]);
   const [selected, setSelected] = useState({
@@ -98,7 +100,7 @@ const Version = ({
       endpoint: () => customEndpoint,
       getKey: () => customAIKey,
     },
-    togethercomputer: {
+    togehtercompute: {
       endpoint: "https://api.together.xyz/v1/chat/completions",
       getKey: () => togetheraiKey,
     },
@@ -155,7 +157,9 @@ const Version = ({
         selected.provider === "fireworks" && setApiResponse(errorMessage.error);
         selected.provider === "openai" &&
           setApiResponse(errorMessage.error.message);
-        selected.provider === "custom" && setApiResponse(errorMessage.message);
+        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
+        selected.provider === "togehtercompute" &&
+          setApiResponse(errorMessage.error);
         setAllPromtsDetails((prevDetails) => [
           ...prevDetails,
           {
@@ -258,6 +262,13 @@ const Version = ({
       handleAnalysis();
     }
   }, [analysisModelOpen]);
+
+  useEffect(() => {
+    if (clear) {
+      setApiResponse("");
+      setClear(false);
+    }
+  }, [clear]);
 
   const copyToClipboard = (text) => {
     navigator.clipboard
