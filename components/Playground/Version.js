@@ -42,6 +42,8 @@ const Version = ({
   analysisModelOpen,
   setAnalysisModelOpen,
   setAllPromtsDetails,
+  setClear,
+  clear,
 }) => {
   const [models, setModels] = useState([]);
   const [selected, setSelected] = useState({
@@ -53,6 +55,7 @@ const Version = ({
   const [tokens, setTokens] = useState();
   const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
+  const [togetheraiKey, setTogetheraiKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState(""); // State for the API key
   const [customEndpoint, setCustomEndpoint] = useState(""); // State for the API endpoint
   const modalRef = useRef();
@@ -80,6 +83,8 @@ const Version = ({
     setCustomAIKey(key2);
     const key3 = localStorage.getItem("customEndpoint") || "";
     setCustomEndpoint(key3);
+    const key4 = localStorage.getItem("togetherAIKey") || "";
+    setTogetheraiKey(key4);
   }, []);
 
   const providerConfig = {
@@ -94,6 +99,10 @@ const Version = ({
     custom: {
       endpoint: () => customEndpoint,
       getKey: () => customAIKey,
+    },
+    togehtercompute: {
+      endpoint: "https://api.together.xyz/v1/chat/completions",
+      getKey: () => togetheraiKey,
     },
     // Add more providers here as needed
   };
@@ -148,7 +157,9 @@ const Version = ({
         selected.provider === "fireworks" && setApiResponse(errorMessage.error);
         selected.provider === "openai" &&
           setApiResponse(errorMessage.error.message);
-        selected.provider === "custom" && setApiResponse(errorMessage.message);
+        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
+        selected.provider === "togehtercompute" &&
+          setApiResponse(errorMessage.error);
         setAllPromtsDetails((prevDetails) => [
           ...prevDetails,
           {
@@ -251,6 +262,13 @@ const Version = ({
       handleAnalysis();
     }
   }, [analysisModelOpen]);
+
+  useEffect(() => {
+    if (clear) {
+      setApiResponse("");
+      setClear(false);
+    }
+  }, [clear]);
 
   const copyToClipboard = (text) => {
     navigator.clipboard

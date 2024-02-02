@@ -7,12 +7,13 @@ export async function ModalAIStream(payload) {
   if (
     payload.modal.provider === "openai" ||
     payload.modal.provider === "fireworks" ||
-    payload.modal.provider === "custom"
+    payload.modal.provider === "custom" ||
+    payload.modal.provider === "togehtercompute"
   ) {
     let counter = 0;
 
     try {
-      // Ask OpenAI or Fireworks for a streaming completion given the prompt
+      // Ask OpenAI or Fireworks or Custom or Together for a streaming completion given the prompt
       const response = await fetch(`${payload.apiEndpoint}`, {
         headers: {
           "Content-Type": "application/json",
@@ -24,16 +25,14 @@ export async function ModalAIStream(payload) {
             payload.modal.provider === "fireworks"
               ? `accounts/fireworks/models/${payload.modal.id1}`
               : payload.modal.id1,
-          messages: [
-            {
-              role: "system",
-              content: `${payload.systemPrompt}`,
-            },
-            {
-              role: "user",
-              content: `${payload.message}`,
-            },
-          ],
+          ...(payload.modal.provider === "togehtercompute"
+            ? { prompt: payload.message }
+            : {
+                messages: [
+                  { role: "system", content: payload.systemPrompt },
+                  { role: "user", content: payload.message },
+                ],
+              }),
           stream: true,
           max_tokens: Number(payload?.settings.maxTokens),
           temperature: payload?.settings.temperature,

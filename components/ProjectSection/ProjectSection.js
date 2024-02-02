@@ -79,6 +79,7 @@ const ProjectSection = () => {
       }
     } catch (error) {
       setLoader(false);
+      console.log("new+++++++", error);
       console.error("Error during API request:", error);
     }
   };
@@ -112,7 +113,7 @@ const ProjectSection = () => {
         <h1 className="font-Archivo sm:text-[32px] text-[28px] font-thin text-[#000] sm:py-[26px] py-[20px]">
           Projects
         </h1>
-        <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full items-center">
+        <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full">
           {!loader ? (
             projectList.map((ele, i) => {
               return (
