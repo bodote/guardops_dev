@@ -1130,3 +1130,145 @@ export const BookIcon = ({ className }) => {
     </svg>
   );
 };
+
+export const LodingIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="17"
+      height="17"
+      viewBox="0 0 17 17"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M8.5 1L8.5 3.25"
+        stroke="#464F60"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M8.5 13.75L8.5 16"
+        stroke="#464F60"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M16 8.5L13.75 8.5"
+        stroke="#464F60"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M3.25 8.5L1 8.5"
+        stroke="#464F60"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M13.8034 3.19673L12.2124 4.78772"
+        stroke="#464F60"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M4.78777 12.2125L3.19678 13.8035"
+        stroke="#464F60"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M3.19661 3.19673L4.7876 4.78772"
+        stroke="#464F60"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M12.2122 12.2125L13.8032 13.8035"
+        stroke="#464F60"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  );
+};
+export const ImageIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="17"
+      height="17"
+      viewBox="0 0 17 17"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M1 5C1 2.79086 2.79086 1 5 1H8.5H10.2574C11.053 1 11.8161 1.31607 12.3787 1.87868L15.1213 4.62132C15.6839 5.18393 16 5.94699 16 6.74264V8.5V12C16 14.2091 14.2091 16 12 16H5C2.79086 16 1 14.2091 1 12V5Z"
+        stroke="#464F60"
+        stroke-width="1.5"
+      />
+      <path
+        d="M4 11.25C4 10.1454 4.89543 9.25 6 9.25H11C12.1046 9.25 13 10.1454 13 11.25V16H4V11.25Z"
+        stroke="#464F60"
+        stroke-width="1.5"
+      />
+      <path
+        d="M5.5 1V3.75C5.5 4.30228 5.94772 4.75 6.5 4.75H10.5C11.0523 4.75 11.5 4.30228 11.5 3.75V1"
+        stroke="#464F60"
+        stroke-width="1.5"
+      />
+    </svg>
+  );
+};
+export const User2Icon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="19"
+      viewBox="0 0 16 19"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle
+        cx="4"
+        cy="4"
+        r="4"
+        transform="matrix(-1 0 0 1 12 1)"
+        stroke="#2B3F6C"
+        stroke-width="1.5"
+      />
+      <path
+        d="M1 14.9347C1 14.0743 1.54085 13.3068 2.35109 13.0175V13.0175C6.00404 11.7128 9.99596 11.7128 13.6489 13.0175V13.0175C14.4591 13.3068 15 14.0743 15 14.9347V16.2502C15 17.4376 13.9483 18.3498 12.7728 18.1818L11.8184 18.0455C9.28565 17.6837 6.71435 17.6837 4.18162 18.0455L3.22721 18.1818C2.0517 18.3498 1 17.4376 1 16.2502V14.9347Z"
+        stroke="#2B3F6C"
+        stroke-width="1.5"
+      />
+    </svg>
+  );
+};
+export const FireIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="22"
+      viewBox="0 0 16 22"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M9.75218 1.18177C9.75028 1.1035 9.66348 1.05387 9.59828 1.09722C6.12039 3.40958 6.20112 9.21905 6.24237 10.2253C6.24533 10.2974 6.17609 10.3449 6.11223 10.3114C5.71018 10.1007 4.56273 9.3091 4.50247 7.11866C4.50031 7.04027 4.41402 6.9913 4.34855 7.03447C2.34414 8.35634 1 10.7954 1 13.5C1 17.6421 4.134 21 8 21C11.866 21 15 17.6421 15 13.5C15 7.47851 9.87373 6.18656 9.75218 1.18177Z"
+        stroke="#2B3F6C"
+        stroke-width="1.5"
+      />
+    </svg>
+  );
+};

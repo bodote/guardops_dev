@@ -126,7 +126,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             <input
               type="range"
               min="0"
-              max="1"
+              max="2"
               step="0.01"
               className="slider-main"
               value={settings.presencePenalty ? settings.presencePenalty : 0}
@@ -137,7 +137,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
               style={{
                 background: calculateSliderBackground(
                   settings.presencePenalty,
-                  1
+                  2
                 ),
               }}
             />
