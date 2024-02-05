@@ -35,8 +35,8 @@ export async function ModalAIStream(payload) {
               }),
           stream: true,
           max_tokens: Number(payload?.settings.maxTokens),
-          temperature: payload?.settings.temperature,
-          top_p: payload?.settings.topP,
+          temperature: Number(payload?.settings.temperature),
+          top_p: Number(payload?.settings.topP),
         }),
       });
 

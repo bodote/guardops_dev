@@ -19,6 +19,7 @@ import ModelSettings from "./modelSettings"; // Import the settings component
 import axios from "axios";
 import { Switch } from "@headlessui/react";
 import { toast } from "react-toastify";
+import { AiOutlineStop } from "react-icons/ai";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -65,9 +66,9 @@ const Version = ({
   const [systemPrompt, setSystemPrompt] = useState("");
 
   const getModels = async () => {
-    const response = await fetch(
-      "https://lm3.hs-ansbach.de/tracing/api/get_models"
-    );
+    const response = await fetch(`/api/manageModelChecks`, {
+      method: "GET",
+    });
     const data = await response.json();
     setModels(data);
   };
@@ -394,121 +395,126 @@ const Version = ({
       >
         <div>
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative">
-            <Listbox value={selected} onChange={setSelected}>
-              {({ open }) => (
-                <>
-                  <div className="relative">
-                    <Listbox.Button
-                      className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
-                        versions > 2 ? "sm:!w-[140px]" : ""
-                      }`}
-                    >
-                      <span className="flex items-center">
-                        <span className=" block truncate pr-[20px]">
-                          {selected?.name}
+            <div className="flex items-center gap-2">
+              <Listbox value={selected} onChange={setSelected}>
+                {({ open }) => (
+                  <>
+                    <div className="relative">
+                      <Listbox.Button
+                        className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
+                          versions > 2 ? "sm:!w-[140px]" : ""
+                        }`}
+                      >
+                        <span className="flex items-center">
+                          <span className=" block truncate pr-[20px]">
+                            {selected?.name}
+                          </span>
                         </span>
-                      </span>
-                      <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                        <MdKeyboardArrowUp
-                          className={
-                            open
-                              ? "h-5 w-5 text-gray-400 rotate-[0]"
-                              : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                          }
-                          aria-hidden="true"
-                        />
-                      </span>
-                    </Listbox.Button>
-
-                    <Transition
-                      show={open}
-                      as={Fragment}
-                      leave="transition ease-in duration-100"
-                      leaveFrom="opacity-100"
-                      leaveTo="opacity-0"
-                    >
-                      <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px]">
-                        {models.map((model) => (
-                          <Listbox.Option
-                            key={model.id}
-                            id={model.id}
-                            className={({ active }) =>
-                              classNames(
-                                active
-                                  ? "bg-[#f0efef]  rounded-[6px]"
-                                  : "text-[#000]",
-                                "relative cursor-default select-none lg:py-2 py-1 px-[10px]"
-                              )
+                        <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                          <MdKeyboardArrowUp
+                            className={
+                              open
+                                ? "h-5 w-5 text-gray-400 rotate-[0]"
+                                : "h-5 w-5 text-gray-400 rotate-[180deg]"
                             }
-                            value={model}
-                          >
-                            <div
-                              className="flex items-center tooltip-main"
-                              data-tooltip-id={
-                                model.id > 1
-                                  ? `my-tooltip-${model.id}`
-                                  : undefined
+                            aria-hidden="true"
+                          />
+                        </span>
+                      </Listbox.Button>
+
+                      <Transition
+                        show={open}
+                        as={Fragment}
+                        leave="transition ease-in duration-100"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                      >
+                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px]">
+                          {models.map((model) => (
+                            <Listbox.Option
+                              key={model.id}
+                              id={model.id}
+                              className={({ active }) =>
+                                classNames(
+                                  active
+                                    ? "bg-[#f0efef]  rounded-[6px]"
+                                    : "text-[#000]",
+                                  "relative cursor-default select-none lg:py-2 py-1 px-[10px]"
+                                )
                               }
+                              value={model}
                             >
-                              <span
-                                className={classNames(
-                                  selected
-                                    ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                    : "font-normal",
-                                  "block truncate"
-                                )}
+                              <div
+                                className="flex items-center tooltip-main"
+                                data-tooltip-id={
+                                  model.id > 1
+                                    ? `my-tooltip-${model.id}`
+                                    : undefined
+                                }
                               >
-                                {model.name}
-                              </span>
-                              <Tooltip
-                                className="tooltip-show-data"
-                                id={`my-tooltip-${model.id}`}
-                                place="right"
-                              >
-                                <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[9] ml-[10px] 2xl:!w-[270px] w-[230px opacity-100">
-                                  <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
-                                    {model.name}
-                                  </h1>
-                                  <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#aaa] leading-normal mt-[5px]">
-                                    {model.model_description}
-                                  </p>
-                                  <div className="my-[10px]">
-                                    <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                                      <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                        Context length:
-                                      </p>
-                                      <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                        {model.context} tokens
-                                      </p>
-                                    </div>
-                                    <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                                      <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                        Input pricing:
-                                      </p>
-                                      <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                        {model.input_price}
-                                      </p>
-                                    </div>
-                                    <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
-                                      <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                        Output princing:
-                                      </p>
-                                      <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                        {model.output_price}
-                                      </p>
+                                <span
+                                  className={classNames(
+                                    selected
+                                      ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                      : "font-normal",
+                                    "block truncate"
+                                  )}
+                                >
+                                  {model.name}
+                                </span>
+                                <Tooltip
+                                  className="tooltip-show-data"
+                                  id={`my-tooltip-${model.id}`}
+                                  place="right"
+                                >
+                                  <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[9] ml-[10px] 2xl:!w-[270px] w-[230px opacity-100">
+                                    <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
+                                      {model.name}
+                                    </h1>
+                                    <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#aaa] leading-normal mt-[5px]">
+                                      {model.model_description}
+                                    </p>
+                                    <div className="my-[10px]">
+                                      <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+                                        <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                          Context length:
+                                        </p>
+                                        <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                          {model.context} tokens
+                                        </p>
+                                      </div>
+                                      <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+                                        <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                          Input pricing:
+                                        </p>
+                                        <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                          {model.input_price}
+                                        </p>
+                                      </div>
+                                      <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
+                                        <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                          Output princing:
+                                        </p>
+                                        <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                                          {model.output_price}
+                                        </p>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </Tooltip>
-                            </div>
-                          </Listbox.Option>
-                        ))}
-                      </Listbox.Options>
-                    </Transition>
-                  </div>
-                </>
-              )}
-            </Listbox>
+                                </Tooltip>
+                              </div>
+                            </Listbox.Option>
+                          ))}
+                        </Listbox.Options>
+                      </Transition>
+                    </div>
+                  </>
+                )}
+              </Listbox>
+              <button className="text-[#464F60] text-[17px] rotate-[95deg]">
+                <AiOutlineStop />
+              </button>
+            </div>
             <div
               className={`flex gap-[17px] sm:mt-0 mt-[20px] ${
                 versions > 2 ? "!gap-[10px]" : ""
@@ -517,8 +523,12 @@ const Version = ({
               <button onClick={() => setOpen(!open)}>
                 <EditIcon />
               </button>
-              <MinusIcon onClick={() => removeVersion()} />
-              <PlusRectangleIcon onClick={addVersion} />
+              <button>
+                <MinusIcon onClick={() => removeVersion()} />
+              </button>
+              <button>
+                <PlusRectangleIcon onClick={addVersion} />
+              </button>
               <button
                 onClick={() =>
                   !apiCallInProgress && setAnalysisModelOpen(!analysisModelOpen)
@@ -526,10 +536,9 @@ const Version = ({
               >
                 <ShareIcon />
               </button>
-              <SettingIcon
-                onClick={() => setShowSettings(true)}
-                className="cursor-pointer"
-              />{" "}
+              <button onClick={() => setShowSettings(true)}>
+                <SettingIcon />{" "}
+              </button>
               {/* Attach the click handler */}
             </div>
 
@@ -537,7 +546,7 @@ const Version = ({
             {showSettings && (
               <div
                 ref={modalRef}
-                className="max-w-[285px] w-full mx-auto bg-white shadow-lg rounded-lg absolute sm:top-[40px] top-[80px] right-0 p-[13px_23px_17px_25px]"
+                className="max-w-[285px] w-full mx-auto bg-white shadow-lg rounded-lg absolute sm:top-[40px] top-[80px] right-0 p-[13px_23px_17px_25px] z-[1]"
               >
                 <ModelSettings
                   onSettingsChange={handleSettingsChange}

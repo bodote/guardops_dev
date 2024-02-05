@@ -1,5 +1,4 @@
 import { getToken } from "@/utils/getToken";
-import Cookies from "js-cookie";
 
 export default async function handler(req, res) {
   let Url = null;

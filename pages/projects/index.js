@@ -48,7 +48,6 @@ const projects = () => {
       Cookies.set("user_id", user?.sub);
       setUser(user?.sub);
     }
-    console.log("front end side++", Cookies.get("user_id"));
   }, [user]);
 
   return (
