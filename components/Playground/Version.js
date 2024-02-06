@@ -70,7 +70,9 @@ const Version = ({
       method: "GET",
     });
     const data = await response.json();
-    setModels(data);
+    if (data.models) {
+      setModels(data.models);
+    }
   };
 
   // Load API key from Local Storage
@@ -197,9 +199,11 @@ const Version = ({
           {
             isValid: true,
             versionId: versionId,
-            model: selected.id,
+            model: selected.model_id,
             input: message,
             output: completeString,
+            systemPrompt: systemPrompt,
+            settings: settings,
           },
         ]);
       }
@@ -242,19 +246,21 @@ const Version = ({
 
   // Format OutputResponse for Code
   const handleAnalysis = async () => {
+    const formData = {
+      input: message,
+      response: apiResponse,
+    };
     try {
-      const queryParams = new URLSearchParams({
-        input: message,
-        response: apiResponse,
+      const response = await fetch("/api/manageModelChecks", {
+        method: "POST",
+        body: JSON.stringify(formData),
       });
-
-      const response = await axios.post(
-        `https://lm3.hs-ansbach.de/tracing/api/pg_analysis?${queryParams}`
-      );
-
-      setAnalysisData(response.data);
+      if (response.ok) {
+        const responseData = await response.json();
+        setAnalysisData(responseData);
+      }
     } catch (error) {
-      console.error("Error sending text to API:", error);
+      console.error("Error during API request:", error);
     }
   };
 
@@ -432,8 +438,8 @@ const Version = ({
                         <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px]">
                           {models.map((model) => (
                             <Listbox.Option
-                              key={model.id}
-                              id={model.id}
+                              key={model.model_id}
+                              id={model.model_id}
                               className={({ active }) =>
                                 classNames(
                                   active
@@ -446,11 +452,7 @@ const Version = ({
                             >
                               <div
                                 className="flex items-center tooltip-main"
-                                data-tooltip-id={
-                                  model.id > 1
-                                    ? `my-tooltip-${model.id}`
-                                    : undefined
-                                }
+                                data-tooltip-id={`my-tooltip-${model.model_id}`}
                               >
                                 <span
                                   className={classNames(
@@ -464,7 +466,7 @@ const Version = ({
                                 </span>
                                 <Tooltip
                                   className="tooltip-show-data"
-                                  id={`my-tooltip-${model.id}`}
+                                  id={`my-tooltip-${model.model_id}`}
                                   place="right"
                                 >
                                   <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[9] ml-[10px] 2xl:!w-[270px] w-[230px opacity-100">

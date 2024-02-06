@@ -4,7 +4,7 @@ export const getToken = async () => {
   const redisToken = "access_token";
   try {
     // Check if the token is cached in Redis
-    const cachedToken = await redisClient.get(redisToken);
+    const cachedToken = await redisClient?.get(redisToken);
 
     if (cachedToken) {
       // If the token is in the cache, return it
