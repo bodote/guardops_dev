@@ -46,6 +46,7 @@ const index = () => {
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
   const [currentPlayground, setCurrentPlayground] = useState({});
   const [allPromtsDetails, setAllPromtsDetails] = useState([]);
+  const [ActiveTool, setActiveTool] = useState(false);
   const [proname, setProname] = useState({
     name: "Select a project to store",
   });
@@ -113,11 +114,14 @@ const index = () => {
   const debouncedSendText = useCallback(
     debounce(async (inputText) => {
       try {
-        const response = await axios.post(
-          "https://lm3.hs-ansbach.de/tracing/api/detect_pii",
-          { text: inputText }
-        );
-        setPiiData(response.data);
+        const response = await fetch("/api/manageModelChecks", {
+          method: "POST",
+          body: JSON.stringify(inputText),
+        });
+        if (response.ok) {
+          const responseData = await response.json();
+          setPiiData(responseData);
+        }
       } catch (error) {
         console.error("Error sending text to API:", error);
         setPiiData([]);
@@ -258,10 +262,22 @@ const index = () => {
   }, [allPromtsDetails]);
 
   const saveTracePlayground = async () => {
+    const formatModelParams = (settings) => {
+      const paramsArray = Object.entries(settings).map(
+        ([key, value]) => `${key}:${value}`
+      );
+      return paramsArray.join(", ");
+    };
     const APIBody = allPromtsDetails
       .filter((item) => item.isValid)
       .map((item) => ({
-        [item.model]: [item.input, item.output],
+        // [item.model]: [item.input, item.output],
+        [item.model]: {
+          system_prompt: item.systemPrompt,
+          input: item.input,
+          output: item.output,
+          model_params: formatModelParams(item.settings),
+        },
       }));
 
     const formData = {
@@ -532,10 +548,10 @@ const index = () => {
                           <Listbox value={proname} onChange={setProname}>
                             {({ open }) => (
                               <>
-                                <div className="relative sm:w-[180px] w-full">
+                                <div className="relative sm:w-[180px]">
                                   <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
                                     <span className="flex items-center">
-                                      <span className=" block truncate">
+                                      <span className=" block truncate mr-3">
                                         {proname?.name}
                                       </span>
                                     </span>
@@ -729,15 +745,154 @@ const index = () => {
             </>
           )}
           {page === "chat" && (
-            <Chat_version
-              key={chatVersion.id}
-              setPage={setPage}
-              page={page}
-              projectList={projectList}
-              chatVersion={chatVersion}
-              addVersion={addChatVersion}
-              removeVersion={removeChatVersion}
-            />
+            <>
+              <div className="md:flex ">
+                <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full overflow-y-auto md:border-r border-0 md:border-r-[#CCCCCC]">
+                  {" "}
+                  <div className="bg-[#CCCCCC] text-white rounded-[6px] text-[12px] w-fit mb-[11px]">
+                    <button
+                      onClick={() => setPage("prompt")}
+                      className={`rounded-[6px] px-[6px] py-[3px] uppercase ${
+                        page === "prompt" ? "bg-[#D4DB33]" : ""
+                      }`}
+                    >
+                      prompt
+                    </button>
+                    <button
+                      onClick={() => setPage("chat")}
+                      className={`pl-[9px] pr-[15px] py-[3px] uppercase ${
+                        page === "chat" ? "bg-[#D4DB33] rounded-[6px]" : ""
+                      }`}
+                    >
+                      chat
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setOpen(true);
+                      setActionType("new");
+                    }}
+                    className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[12px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
+                  >
+                    <FiPlus /> New Prompt
+                  </button>
+                </div>
+                <div className="w-full sm:mt-0 mt-3">
+                  <div className="border-b-[#CCCCCC] border-b-[1px] flex justify-between items-center w-full p-[7px_7px_6px_13px] gap-3 flex-wrap sm:border-r-0 sm:border-t-0 border-t-[1px] border-t-[#CCCCCC]">
+                    <p className="text-[12px] text-black">Chat Prompt </p>
+                    <div className="flex md:justify-between justify-end items-center gap-[16px] flex-wrap">
+                      <div className="flex items-center gap-[5px]">
+                        <Switch
+                          checked={ActiveTool}
+                          onChange={setActiveTool}
+                          className={classNames(
+                            ActiveTool ? "bg-[#0074fb]" : "bg-gray-200",
+                            "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                          )}
+                        >
+                          <span className="sr-only">Use setting</span>
+                          <span
+                            aria-hidden="true"
+                            className={classNames(
+                              ActiveTool
+                                ? "translate-x-[11px]"
+                                : "translate-x-0",
+                              "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                            )}
+                          />
+                        </Switch>
+                        <label className="text-[#252525] text-[12px] font-medium">
+                          Activating Tools
+                        </label>
+                      </div>
+                      <Listbox value={proname} onChange={setProname}>
+                        {({ open }) => (
+                          <>
+                            <div className="relative sm:w-[180px]">
+                              <Listbox.Button className=" relative cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[1px] ">
+                                <span className="flex items-center">
+                                  <span className=" block truncate mr-3">
+                                    {proname?.name}
+                                  </span>
+                                </span>
+                                <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                  <MdKeyboardArrowUp
+                                    className={
+                                      open
+                                        ? "h-5 w-5 text-gray-400 rotate-[0]"
+                                        : "h-5 w-5 text-gray-400 rotate-[180deg]"
+                                    }
+                                    aria-hidden="true"
+                                  />
+                                </span>
+                              </Listbox.Button>
+
+                              <Transition
+                                show={open}
+                                as={Fragment}
+                                leave="transition ease-in duration-100"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
+                              >
+                                <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
+                                  {projectList.map((project) => (
+                                    <Listbox.Option
+                                      key={project.project_id}
+                                      className={({ active }) =>
+                                        classNames(
+                                          active
+                                            ? "bg-[#f0efef]  rounded-[6px]"
+                                            : "text-[#000]",
+                                          "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
+                                        )
+                                      }
+                                      value={project}
+                                    >
+                                      <div className="flex items-center ">
+                                        <span
+                                          className={classNames(
+                                            proname
+                                              ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                              : "font-normal",
+                                            "block truncate"
+                                          )}
+                                        >
+                                          {project.name}
+                                        </span>
+                                      </div>
+                                    </Listbox.Option>
+                                  ))}
+                                </Listbox.Options>
+                              </Transition>
+                            </div>
+                          </>
+                        )}
+                      </Listbox>
+                    </div>
+                  </div>
+                  <div
+                    className={`grid w-full
+                      ${chatVersion.length > 1 && "lg:grid-cols-2"}
+                      ${chatVersion.length > 2 && "xl:grid-cols-3"}
+                      ${chatVersion.length > 3 && "2xl:!grid-cols-4"}
+                      ${chatVersion.length > 4 && "3xl:!grid-cols-5"}
+                  `}
+                  >
+                    {chatVersion.map((version) =>
+                      React.cloneElement(version.component, {
+                        key: version.id,
+                        addChatVersion,
+                        removeChatVersion: () => removeChatVersion(version.id),
+                        versions: chatVersion.length,
+                        projectList: projectList,
+                        page: page,
+                        setPage: setPage,
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
