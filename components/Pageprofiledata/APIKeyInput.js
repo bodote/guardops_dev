@@ -15,7 +15,7 @@ const APIKeyInput = ({ apiKey, setApiKey, saveApiKey, label }) => {
   };
 
   return (
-    <div className="mt-[31px]">
+    <div>
       <label className="text-[#252525] font-medium text-[14px] font-Inter">
         {label}
       </label>

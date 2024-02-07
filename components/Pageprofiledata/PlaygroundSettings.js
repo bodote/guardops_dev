@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import APIKeyInput from "./APIKeyInput"; // Adjust the path as necessary
 import CustomAPIEndpoint from "./CustomAPIEndpoint";
+import { FiPlus } from "react-icons/fi";
+import { IoClose } from "react-icons/io5";
+import AddModal from "../modal/AddModal";
 
 const PlaygroundSettings = () => {
   // State for API keys
+  const [open, setOpen] = useState(false);
   const [openAIKey, setOpenAIKey] = useState("");
   const [huggingfaceKey, setHuggingfaceKey] = useState("");
   const [togetherAIKey, setTogetherAIKey] = useState("");
@@ -34,49 +38,88 @@ const PlaygroundSettings = () => {
     }
   };
 
+
   return (
     <>
       <div className="mb-[30px]">
+        <p className="text-[16px] text-black my-[60px] max-w-[950px]">
+          Enter the API keys of each Model Provider, which you want to use in
+          the the playground of coai monitoring solution. The API keys are not
+          stored server side, rather are stored on client side. The api will be
+          directly provided to the model provider not to coai. Only the Input
+          and Response is stored on coai servers for tracing and versioning.{" "}
+        </p>
         {/* ... */}
-        <APIKeyInput
-          apiKey={openAIKey}
-          setApiKey={setOpenAIKey}
-          saveApiKey={() => saveApiKey("openAIKey", openAIKey)}
-          label="OPENAI"
-        />
-        <APIKeyInput
-          apiKey={huggingfaceKey}
-          setApiKey={setHuggingfaceKey}
-          saveApiKey={() => saveApiKey("huggingfaceKey", huggingfaceKey)}
-          label="Huggingface"
-        />
-        <APIKeyInput
-          apiKey={togetherAIKey}
-          setApiKey={setTogetherAIKey}
-          saveApiKey={() => saveApiKey("togetherAIKey", togetherAIKey)}
-          label="Together.ai"
-        />
-        <APIKeyInput
-          apiKey={fireworksAIKey}
-          setApiKey={setFireworksAIKey}
-          saveApiKey={() => saveApiKey("fireworksAIKey", fireworksAIKey)}
-          label="Fireworks.ai"
-        />
-        <CustomAPIEndpoint
-          apiKey={customAIKey}
-          setApiKey={setCustomAIKey}
-          apiEndpint={customEndpoint}
-          setApiEndpoint={setCustomEndpoint}
-          saveApiKeyWithEndpoint={() =>
-            saveApiKeyWithEndpoint({
-              customAIKey: customAIKey,
-              customEndpoint: customEndpoint,
-            })
-          }
-          label="Custom Provider"
-        />
+        <div className="flex items-start flex-wrap xl:gap-[248px] lg:gap-[90px] sm:gap-[20px] gap-[40px]">
+          <div className="flex flex-col gap-[31px]">
+            <APIKeyInput
+              apiKey={openAIKey}
+              setApiKey={setOpenAIKey}
+              saveApiKey={() => saveApiKey("openAIKey", openAIKey)}
+              label="OPENAI"
+            />
+            <APIKeyInput
+              apiKey={huggingfaceKey}
+              setApiKey={setHuggingfaceKey}
+              saveApiKey={() => saveApiKey("huggingfaceKey", huggingfaceKey)}
+              label="Huggingface"
+            />
+            <APIKeyInput
+              apiKey={togetherAIKey}
+              setApiKey={setTogetherAIKey}
+              saveApiKey={() => saveApiKey("togetherAIKey", togetherAIKey)}
+              label="Together.ai"
+            />
+            <APIKeyInput
+              apiKey={fireworksAIKey}
+              setApiKey={setFireworksAIKey}
+              saveApiKey={() => saveApiKey("fireworksAIKey", fireworksAIKey)}
+              label="Fireworks.ai"
+            />
+            <CustomAPIEndpoint
+              apiKey={customAIKey}
+              setApiKey={setCustomAIKey}
+              apiEndpint={customEndpoint}
+              setApiEndpoint={setCustomEndpoint}
+              saveApiKeyWithEndpoint={() =>
+                saveApiKeyWithEndpoint({
+                  customAIKey: customAIKey,
+                  customEndpoint: customEndpoint,
+                })
+              }
+              label="Custom Provider"
+            />
+          </div>
+          <div>
+            <label className="text-[14px] text-black font-medium">
+              Models available in Playground
+            </label>
+            <div className="text-[14px] font-medium border-[#CCCCCC] border-[1px] p-[13px_16px] rounded-[6px] leading-[30px] mt-[7px] break-all min-h-[280px]">
+              openai/gpt-4-1106-preview <br /> openai/gpt-4
+              <br />
+              fireworks/mixtral-8x7b-instruct
+              <br /> custom/phoenix
+              <br />
+              togethercompute/StripedHyenna-Nous-7b
+            </div>
+            <div className="flex sm:gap-[43px] gap-[12px] mt-[13px] sm:ml-[15px]">
+              <button
+                onClick={() => setOpen(true)}
+                className="flex items-center gap-[10px] bg-[#D4DB33] text-black font-medium text-[14px] font-Inter py-[6px] sm:px-[12px] px-[9px] rounded-md"
+              >
+                <FiPlus className="text-[20px]" />
+                Add Model
+              </button>
+              <button className="flex items-center gap-[10px] bg-[#D1293D] text-black font-medium text-[14px] font-Inter py-[6px] sm:px-[12px] px-[9px] rounded-md">
+                <IoClose className="text-[20px] text-white" />
+                Del Model
+              </button>
+            </div>
+          </div>
+        </div>
         {/* ... */}
       </div>
+      <AddModal open={open} setOpen={setOpen} />
     </>
   );
 };

@@ -29,3 +29,4 @@ export const getToken = async () => {
     throw error;
   }
 };
+

@@ -36,6 +36,7 @@ const index = () => {
   const modalRef = useRef();
   const [PiiCheckEnable, setPiiCheckEnable] = useState(false);
   const [syncAll, setsyncAll] = useState(false);
+  const [syncAllMsg, setSyncAllMsg] = useState(false);
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [clear, setClear] = useState(false);
@@ -43,6 +44,7 @@ const index = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [actionType, setActionType] = useState("");
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
+  const [allMsg, setAllMsg] = useState("");
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
   const [currentPlayground, setCurrentPlayground] = useState({});
   const [allPromtsDetails, setAllPromtsDetails] = useState([]);
@@ -380,19 +382,7 @@ const index = () => {
       ...chatVersion,
       {
         id: newId,
-        component: (
-          <Chat_version
-            key={newId}
-            syncAll={syncAll}
-            setsyncAll={setsyncAll}
-            allSystemPrompt={allSystemPrompt}
-            setAllSystemPrompt={setAllSystemPrompt}
-            setAnalysisModelOpen={setAnalysisModelOpen}
-            analysisModelOpen={analysisModelOpen}
-            setAllPromtsDetails={setAllPromtsDetails}
-            allPromtsDetails={setAllPromtsDetails}
-          />
-        ),
+        component: <Chat_version />,
       },
     ]);
   };
@@ -884,9 +874,15 @@ const index = () => {
                         addChatVersion,
                         removeChatVersion: () => removeChatVersion(version.id),
                         versions: chatVersion.length,
-                        projectList: projectList,
-                        page: page,
-                        setPage: setPage,
+                        syncAll,
+                        setsyncAll,
+                        syncAllMsg,
+                        setSyncAllMsg,
+                        setAllSystemPrompt,
+                        allSystemPrompt,
+                        allMsg,
+                        setAllMsg,
+                        setAllPromtsDetails,
                       })
                     )}
                   </div>
