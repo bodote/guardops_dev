@@ -11,11 +11,14 @@ import {
   FireIcon,
 } from "@/public/Assets/Icons/Allsvg";
 import { MdKeyboardArrowUp } from "react-icons/md";
+import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
 import { Tooltip } from "react-tooltip";
 import { Listbox, Transition, Switch } from "@headlessui/react";
 import { AiOutlineStop } from "react-icons/ai";
+import { FiPlus } from "react-icons/fi";
 import ModelSettings from "./modelSettings";
+import { toast } from "react-toastify";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -25,19 +28,38 @@ const Chat_version = ({
   versions,
   removeChatVersion,
   addChatVersion,
+  syncAll,
+  setsyncAll,
+  setAllSystemPrompt,
+  allSystemPrompt,
+  syncAllMsg,
+  setSyncAllMsg,
+  allMsg,
+  setAllMsg,
 }) => {
-  const [Active, setActive] = useState(false);
+  const [userMessage, setUserMessage] = useState("");
+  const [messages, setMessages] = useState([
+    {
+      input: "",
+      output: "",
+    },
+  ]);
   const [open, setOpen] = useState(false);
   const modalRef = useRef();
   const [sync, setSync] = useState(false);
   const [selected, setSelected] = useState({
     name: "Select an option",
   });
-  const [proname, setProname] = useState({
-    name: "Select a project to store",
-  });
+  const [enabled, setEnabled] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [models, setModels] = useState([]);
+  const [fireworksAIKey, setFireworksAIKey] = useState("");
+  const [openaiKey, setOpenaiKey] = useState("");
+  const [togetheraiKey, setTogetheraiKey] = useState("");
+  const [customAIKey, setCustomAIKey] = useState("");
+  const [customEndpoint, setCustomEndpoint] = useState("");
+  const [error, setError] = useState("");
   // State for settings values
   const [settings, setSettings] = useState({
     maxTokens: 500,
@@ -66,11 +88,165 @@ const Chat_version = ({
       setModels(data.models);
     }
   };
+  const providerConfig = {
+    openai: {
+      endpoint: "https://api.openai.com/v1/chat/completions",
+      getKey: () => openaiKey,
+    },
+    fireworks: {
+      endpoint: "https://api.fireworks.ai/inference/v1/chat/completions",
+      getKey: () => fireworksAIKey,
+    },
+    custom: {
+      endpoint: () => customEndpoint,
+      getKey: () => customAIKey,
+    },
+    togehtercompute: {
+      endpoint: "https://api.together.xyz/v1/chat/completions",
+      getKey: () => togetheraiKey,
+    },
+    // Add more providers here as needed
+  };
 
-  // Load API key from Local Storage
+  const handleSendMessage = async () => {
+    if (userMessage.length) {
+      setMessages([...messages, { input: userMessage }]);
+      setUserMessage("");
+      fetchApiResponse();
+    }
+  };
+
+  const fetchApiResponse = async () => {
+    const providerInfo = providerConfig[selected.provider];
+
+    if (!providerInfo) {
+      setError("Please select the model");
+      return;
+    }
+
+    const apiEndpoint =
+      selected.provider === "custom"
+        ? providerInfo.endpoint()
+        : providerInfo.endpoint;
+    const authKey =
+      selected.provider === "custom"
+        ? `${providerInfo.getKey()}`
+        : `Bearer ${providerInfo.getKey()}`;
+
+    const formData = {
+      settings: settings,
+      modal: selected,
+      apiEndpoint: apiEndpoint,
+      authKey: authKey,
+      message: userMessage,
+      systemPrompt: open ? systemPrompt : "",
+    };
+
+    try {
+      const res = await fetch("/api/open-ai-completion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        setError("No content available");
+        const errorText = await res.text();
+        let errorMessage = JSON.parse(errorText);
+        selected.provider === "fireworks" && setError(errorMessage.error);
+        selected.provider === "openai" && setError(errorMessage.error.message);
+        selected.provider === "fireworks" && setError(errorMessage.error);
+        selected.provider === "togehtercompute" && setError(errorMessage.error);
+        throw new Error(res.statusText);
+      } else {
+        const data = res.body;
+        if (!data) {
+          setError("No content available");
+          return;
+        }
+        const reader = data.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+        let completeString = "";
+
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          const chunkValue = decoder.decode(value);
+          setError("");
+          completeString += chunkValue;
+          setMessages((prevMessages) => {
+            const lastIndex = prevMessages.length - 1;
+            return prevMessages.map((message, index) => {
+              if (index === lastIndex) {
+                return { ...message, output: completeString };
+              } else {
+                return message;
+              }
+            });
+          });
+        }
+      }
+    } catch (error) {
+      console.error("API request failed:", error.message);
+    }
+  };
+
   useEffect(() => {
     getModels();
+    const key = localStorage.getItem("fireworksAIKey") || "";
+    setFireworksAIKey(key);
+    const key1 = localStorage.getItem("openAIKey") || "";
+    setOpenaiKey(key1);
+    const key2 = localStorage.getItem("customAIKey") || "";
+    setCustomAIKey(key2);
+    const key3 = localStorage.getItem("customEndpoint") || "";
+    setCustomEndpoint(key3);
+    const key4 = localStorage.getItem("togetherAIKey") || "";
+    setTogetheraiKey(key4);
   }, []);
+  useEffect(() => {
+    if (enabled) {
+      setsyncAll(true);
+      setAllSystemPrompt(systemPrompt);
+    } else {
+      setsyncAll(false);
+    }
+
+    if (sync) {
+      setSyncAllMsg(true);
+      setAllMsg(userMessage);
+    } else {
+      setSyncAllMsg(false);
+    }
+  }, [enabled, sync]);
+
+  useEffect(() => {
+    if (syncAll) {
+      setSync(true);
+      setSystemPrompt(allSystemPrompt);
+    } else {
+      setSync(false);
+    }
+    if (syncAllMsg) {
+      setSync(true);
+      setUserMessage(allMsg);
+    } else {
+      setSync(false);
+    }
+  }, [syncAll, allSystemPrompt, syncAllMsg, allMsg]);
+
+  useEffect(() => {
+    if (syncAll) {
+      setAllSystemPrompt(systemPrompt);
+    }
+    if (syncAllMsg) {
+      setAllMsg(userMessage);
+    }
+  }, [systemPrompt, userMessage]);
+
   useEffect(() => {
     if (showSettings) {
       document.addEventListener("mousedown", handleOutsideClick);
@@ -213,7 +389,7 @@ const Chat_version = ({
               <button>
                 <ImageIcon />
               </button>
-              <button>
+              <button onClick={() => setOpen(!open)}>
                 <EditIcon />
               </button>
               <button>
@@ -243,7 +419,7 @@ const Chat_version = ({
             )}
           </div>
           {open && (
-            <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px]">
+            <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] m-[10px] mt-[16px]">
               <p className="text-[#252525] font-medium text-[14px]">
                 System Prompt
               </p>
@@ -291,46 +467,48 @@ const Chat_version = ({
             </div>
           )}
           <div>
+            {error && (
+              <p className="bg-[#ffe1e1bb] text-[red] p-[10px] flex gap-2 items-center">
+                <MdErrorOutline className="text-[20px]" />
+                {error}
+              </p>
+            )}
             <div className="bg-[#F7F7F7] h-[calc(100vh-247px)] overflow-y-auto">
-              <div className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex items-start justify-between gap-[20px] group">
-                <div className="flex sm:gap-[19px] gap-[8px]">
-                  <User2Icon className="min-w-[16px]" />
-                  <p className="md:text-[16px] text-[14px]">Hello </p>
-                </div>
-                <button className='text-[20px] text-[#2B3F6C] hidden group-hover:block'>
-                  <RiEdit2Line />
-                </button>
-              </div>
-              <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
-                <FireIcon className="min-w-[16px]" />
-                <p className="md:text-[16px] text-[14px]">
-                  Hello! How can I help you today? If you have any questions or
-                  need assistance with something, just let me know. I'll do my
-                  best to help you out.
-                </p>
-              </div>
-              <div className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
-                <User2Icon />
-                <p className="md:text-[16px] text-[14px]">How are you?</p>
-              </div>
-              <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
-                <FireIcon className="min-w-[16px]" />
-                <p className="md:text-[16px] text-[14px]">
-                  I'm just a computer program, so I don't have feelings or
-                  experiences in the way that a human does. However, I can
-                  understand and respond to a wide range of inquiries and
-                  requests.
-                </p>
-              </div>
-              <div className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
-                <User2Icon className="min-w-[16px]" />
-                <p className="md:text-[16px] text-[14px]">Hello </p>
-              </div>
+              {messages.map((message, index) => (
+                <>
+                  {message.input && (
+                    <div
+                      key={index}
+                      className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex items-start justify-between gap-[20px] group"
+                    >
+                      <div className="flex sm:gap-[19px] gap-[8px]">
+                        <User2Icon className="min-w-[16px]" />
+                        <p className="md:text-[16px] text-[14px]">
+                          {message.input}{" "}
+                        </p>
+                      </div>
+                      <button className="text-[20px] text-[#2B3F6C] hidden group-hover:block">
+                        <RiEdit2Line />
+                      </button>
+                    </div>
+                  )}
+                  {message.output && (
+                    <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
+                      <FireIcon className="min-w-[16px]" />
+                      <p className="md:text-[16px] text-[14px]">
+                        {message.output}
+                      </p>
+                    </div>
+                  )}
+                </>
+              ))}
             </div>
             <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
               <div className="bg-[#ECECEC]">
                 <textarea
                   placeholder="Send a message"
+                  value={userMessage}
+                  onChange={(e) => setUserMessage(e.target.value)}
                   className="border-0 resize-none bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full"
                 ></textarea>
                 <div className="flex justify-end gap-[10px] pr-[13px] pb-2">
@@ -356,7 +534,10 @@ const Chat_version = ({
                       Sync to all
                     </label>
                   </div>
-                  <button className="bg-[#D4DB33] text-black text-[12px] w-[54px] h-[22px] rounded-[6px]">
+                  <button
+                    onClick={handleSendMessage}
+                    className="bg-[#D4DB33] text-black text-[12px] w-[54px] h-[22px] rounded-[6px]"
+                  >
                     Send
                   </button>
                 </div>

@@ -3,6 +3,7 @@ import {
   DeleteBlackIcon,
   EditBlackIcon,
   PlusIcon,
+  LightIcon
 } from "@/public/Assets/Icons/Allsvg";
 import AddProjectModal from "@/components/modal/AddProjectModal";
 import { useRouter } from "next/navigation";
@@ -138,6 +139,9 @@ const ProjectSection = () => {
                       </h2>
                     </div>
                     <div className="flex gap-4">
+                      <button>
+                        <LightIcon />
+                      </button>
                       <button onClick={() => handleProjectEdit(ele)}>
                         <EditBlackIcon />
                       </button>
