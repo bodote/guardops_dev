@@ -3,10 +3,12 @@ import {
   DeleteBlackIcon,
   EditBlackIcon,
   PlusIcon,
+  LightIcon,
 } from "@/public/Assets/Icons/Allsvg";
 import { useRouter } from "next/navigation";
 import AddDatasetModal from "@/components/modal/AddDatasetModal";
 import DeleteModal from "../modal/DeleteModal";
+import DeveloperInfo from "../modal/DeveloperInfo";
 
 const DatasetSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,6 +20,7 @@ const DatasetSection = () => {
   const router = useRouter();
   const modalRef = useRef();
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(false);
 
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -125,6 +128,17 @@ const DatasetSection = () => {
                       </h2>
                     </div>
                     <div className="flex gap-4">
+                      <button onClick={() => setActive(true)}>
+                        <LightIcon />
+                      </button>
+                      {active && (
+                        <DeveloperInfo
+                          active={active}
+                          setActive={setActive}
+                          name="dataset"
+                          selectedID={ele.dataset_id}
+                        />
+                      )}
                       <button onClick={() => handleDatasetEdit(ele)}>
                         <EditBlackIcon />
                       </button>

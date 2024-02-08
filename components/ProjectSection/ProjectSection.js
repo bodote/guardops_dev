@@ -3,12 +3,13 @@ import {
   DeleteBlackIcon,
   EditBlackIcon,
   PlusIcon,
-  LightIcon
+  LightIcon,
 } from "@/public/Assets/Icons/Allsvg";
 import AddProjectModal from "@/components/modal/AddProjectModal";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import DeleteProjectModal from "../modal/DeleteProjectModal";
+import DeveloperInfo from "../modal/DeveloperInfo";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -23,6 +24,7 @@ const ProjectSection = () => {
   const [loader, setLoader] = useState(false);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState();
+  const [active, setActive] = useState(false);
 
   const router = useRouter();
   const modalRef = useRef();
@@ -80,7 +82,6 @@ const ProjectSection = () => {
       }
     } catch (error) {
       setLoader(false);
-      console.log("new+++++++", error);
       console.error("Error during API request:", error);
     }
   };
@@ -139,9 +140,17 @@ const ProjectSection = () => {
                       </h2>
                     </div>
                     <div className="flex gap-4">
-                      <button>
+                      <button onClick={() => setActive(true)}>
                         <LightIcon />
                       </button>
+                      {active && (
+                        <DeveloperInfo
+                          active={active}
+                          setActive={setActive}
+                          name="project"
+                          selectedID={ele.project_id}
+                        />
+                      )}
                       <button onClick={() => handleProjectEdit(ele)}>
                         <EditBlackIcon />
                       </button>
