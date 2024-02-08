@@ -4,10 +4,14 @@ import CustomAPIEndpoint from "./CustomAPIEndpoint";
 import { FiPlus } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
 import AddModal from "../modal/AddModal";
+import { toast } from "react-toastify";
 
 const PlaygroundSettings = () => {
   // State for API keys
   const [open, setOpen] = useState(false);
+  const [models, setModels] = useState([]);
+  const [modelsForEdit, setModelsForEdit] = useState();
+  const [createModelStatus, setCreateModelStatus] = useState("new");
   const [openAIKey, setOpenAIKey] = useState("");
   const [huggingfaceKey, setHuggingfaceKey] = useState("");
   const [togetherAIKey, setTogetherAIKey] = useState("");
@@ -15,8 +19,55 @@ const PlaygroundSettings = () => {
   const [customAIKey, setCustomAIKey] = useState("");
   const [customEndpoint, setCustomEndpoint] = useState("");
 
+  const getModels = async () => {
+    const response = await fetch(`/api/manageModels`, {
+      method: "GET",
+    });
+    const data = await response.json();
+    if (data.models) {
+      setModels(data.models);
+    }
+  };
+
+  const handleModelEdit = (model) => {
+    if (!open && model.user_id !== 0) {
+      setOpen(true);
+      setModelsForEdit(model);
+      setCreateModelStatus("existing");
+    }
+  };
+
+  const handleDeleteModel = async () => {
+    if (modelsForEdit) {
+      const formData = {
+        model_id: modelsForEdit.model_id,
+      };
+      if (modelsForEdit.user_id == 0) {
+        toast.error("Default model cannot be deleted");
+        return;
+      }
+      try {
+        const response = await fetch("/api/manageModels", {
+          method: "DELETE",
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          toast.success(`Project deleted successfully !!`);
+          getModels();
+        } else {
+          toast.error(`API request failed !!`);
+          console.error("API request failed:", response.statusText);
+        }
+      } catch (error) {
+        toast.error(`${error.message}`);
+        console.error("Error during API request:", error);
+      }
+    }
+  };
   // Load keys from Local Storage
   useEffect(() => {
+    getModels();
     setOpenAIKey(localStorage.getItem("openAIKey") || "");
     setHuggingfaceKey(localStorage.getItem("huggingfaceKey") || "");
     setTogetherAIKey(localStorage.getItem("togetherAIKey") || "");
@@ -37,7 +88,6 @@ const PlaygroundSettings = () => {
       }
     }
   };
-
 
   return (
     <>
@@ -94,23 +144,33 @@ const PlaygroundSettings = () => {
             <label className="text-[14px] text-black font-medium">
               Models available in Playground
             </label>
-            <div className="text-[14px] font-medium border-[#CCCCCC] border-[1px] p-[13px_16px] rounded-[6px] leading-[30px] mt-[7px] break-all min-h-[280px]">
-              openai/gpt-4-1106-preview <br /> openai/gpt-4
-              <br />
-              fireworks/mixtral-8x7b-instruct
-              <br /> custom/phoenix
-              <br />
-              togethercompute/StripedHyenna-Nous-7b
+            <div className="text-[14px] font-medium border-[#CCCCCC] border-[1px] rounded-[6px] sm:leading-[30px] leading-[26px] mt-[7px] break-all max-w-[450px]">
+              {models.map((model) => (
+                <button
+                  key={model.model_id}
+                  onClick={() => setModelsForEdit(model)}
+                  onDoubleClick={() => handleModelEdit(model)}
+                  className="focus:bg-[#f0efef] block w-full text-left px-[13px]"
+                >
+                  {model.provider}/{model.id1}
+                </button>
+              ))}
             </div>
             <div className="flex sm:gap-[43px] gap-[12px] mt-[13px] sm:ml-[15px]">
               <button
-                onClick={() => setOpen(true)}
+                onClick={() => {
+                  setOpen(true);
+                  setCreateModelStatus("new");
+                }}
                 className="flex items-center gap-[10px] bg-[#D4DB33] text-black font-medium text-[14px] font-Inter py-[6px] sm:px-[12px] px-[9px] rounded-md"
               >
                 <FiPlus className="text-[20px]" />
                 Add Model
               </button>
-              <button className="flex items-center gap-[10px] bg-[#D1293D] text-black font-medium text-[14px] font-Inter py-[6px] sm:px-[12px] px-[9px] rounded-md">
+              <button
+                onClick={handleDeleteModel}
+                className="flex items-center gap-[10px] bg-[#D1293D] text-black font-medium text-[14px] font-Inter py-[6px] sm:px-[12px] px-[9px] rounded-md"
+              >
                 <IoClose className="text-[20px] text-white" />
                 Del Model
               </button>
@@ -119,7 +179,15 @@ const PlaygroundSettings = () => {
         </div>
         {/* ... */}
       </div>
-      <AddModal open={open} setOpen={setOpen} />
+      {open && (
+        <AddModal
+          updateModelList={getModels}
+          open={open}
+          setOpen={setOpen}
+          model_status={createModelStatus}
+          value={createModelStatus !== "new" ? modelsForEdit : null}
+        />
+      )}
     </>
   );
 };

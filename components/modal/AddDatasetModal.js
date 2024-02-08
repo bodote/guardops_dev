@@ -89,7 +89,6 @@ const AddDatasetModal = ({
       console.error("Error during API request:", error);
     }
   };
-  useEffect(() => {}, [values]);
 
   return (
     <>

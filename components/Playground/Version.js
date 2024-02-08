@@ -66,7 +66,7 @@ const Version = ({
   const [systemPrompt, setSystemPrompt] = useState("");
 
   const getModels = async () => {
-    const response = await fetch(`/api/manageModelChecks`, {
+    const response = await fetch(`/api/manageModels`, {
       method: "GET",
     });
     const data = await response.json();
