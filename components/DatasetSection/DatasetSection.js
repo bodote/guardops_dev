@@ -131,14 +131,12 @@ const DatasetSection = () => {
                       <button onClick={() => setActive(true)}>
                         <LightIcon />
                       </button>
-                      {active && (
-                        <DeveloperInfo
-                          active={active}
-                          setActive={setActive}
-                          name="dataset"
-                          selectedID={ele.dataset_id}
-                        />
-                      )}
+                      <DeveloperInfo
+                        active={active}
+                        setActive={setActive}
+                        name="dataset"
+                        selectedID={ele.dataset_id}
+                      />
                       <button onClick={() => handleDatasetEdit(ele)}>
                         <EditBlackIcon />
                       </button>

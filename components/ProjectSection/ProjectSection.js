@@ -143,14 +143,12 @@ const ProjectSection = () => {
                       <button onClick={() => setActive(true)}>
                         <LightIcon />
                       </button>
-                      {active && (
-                        <DeveloperInfo
-                          active={active}
-                          setActive={setActive}
-                          name="project"
-                          selectedID={ele.project_id}
-                        />
-                      )}
+                      <DeveloperInfo
+                        active={active}
+                        setActive={setActive}
+                        name="project"
+                        selectedID={ele.project_id}
+                      />
                       <button onClick={() => handleProjectEdit(ele)}>
                         <EditBlackIcon />
                       </button>

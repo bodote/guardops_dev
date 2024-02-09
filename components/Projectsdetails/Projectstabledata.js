@@ -189,7 +189,7 @@ const Projectstabledata = ({
                         <p className="line-clamp">{val.attributes?.prompt}</p>
                       </td>
                       <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                      <p className="line-clamp">{val.attributes?.output}</p>
+                        <p className="line-clamp">{val.attributes?.output}</p>
                       </td>
                       <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
                         {handleSpanStartTime(val.start_time)}
@@ -230,7 +230,7 @@ const Projectstabledata = ({
             {isModalOpen && (
               <div
                 // ref={modalRef}
-                className="modal lg:w-[52%] w-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 sm:flex-row flex-col"
+                className="modal lg:w-[977px] w-[80%] overflow-x-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 lg:flex-row flex-col h-screen"
               >
                 <TraceDetails
                   traceProject={traceProject}

@@ -36,6 +36,8 @@ const Chat_version = ({
   setSyncAllMsg,
   allMsg,
   setAllMsg,
+  proname,
+  currentPlaygroundID,
 }) => {
   const [userMessage, setUserMessage] = useState("");
   const [messages, setMessages] = useState([
@@ -53,6 +55,7 @@ const Chat_version = ({
   const [enabled, setEnabled] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [models, setModels] = useState([]);
   const [fireworksAIKey, setFireworksAIKey] = useState("");
   const [openaiKey, setOpenaiKey] = useState("");
@@ -110,6 +113,7 @@ const Chat_version = ({
 
   const handleSendMessage = async () => {
     if (userMessage.length) {
+      setApiCallInProgress(true);
       setMessages([...messages, { input: userMessage }]);
       setUserMessage("");
       fetchApiResponse();
@@ -140,6 +144,8 @@ const Chat_version = ({
       authKey: authKey,
       message: userMessage,
       systemPrompt: open ? systemPrompt : "",
+      type: "chat",
+      data: messages,
     };
 
     try {
@@ -152,6 +158,7 @@ const Chat_version = ({
       });
 
       if (!res.ok) {
+        setApiCallInProgress(false);
         setError("No content available");
         const errorText = await res.text();
         let errorMessage = JSON.parse(errorText);
@@ -187,10 +194,57 @@ const Chat_version = ({
               }
             });
           });
+          setApiCallInProgress(false);
         }
       }
     } catch (error) {
       console.error("API request failed:", error.message);
+    }
+  };
+
+  const saveTracePlayground = async () => {
+    if (apiCallInProgress) {
+      return;
+    }
+    if (!proname.project_id && !currentPlaygroundID) {
+      toast.error("Please select the project and playground");
+      return;
+    }
+    const modelId = selected.model_id;
+    const formatModelParams = (settings) => {
+      const paramsArray = Object.entries(settings).map(
+        ([key, value]) => `${key}:${value}`
+      );
+      return paramsArray.join(", ");
+    };
+    const APIBody = messages
+      .filter((item) => item.input !== "" || item.output !== "")
+      .map((item) => ({
+        [modelId]: {
+          system_prompt: systemPrompt,
+          input: item.input,
+          output: item.output,
+          model_params: formatModelParams(settings),
+        },
+      }));
+
+    const formData = {
+      project_id: proname.project_id,
+      playground_id: currentPlaygroundID,
+      access_token: localStorage.getItem("customAIKey"),
+      start_time: new Date().toISOString(),
+      prompt_response_pairs: APIBody,
+    };
+    try {
+      const response = await fetch("/api/manageChatPlayground", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const responseData = await response.json();
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
     }
   };
 
@@ -257,6 +311,22 @@ const Chat_version = ({
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [showSettings]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        handleSendMessage();
+      }
+    };
+
+    // Add event listener
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [userMessage]);
   return (
     <div className="flex sm:flex-row flex-col items-start">
       <div className="w-full">
@@ -386,7 +456,7 @@ const Chat_version = ({
               <button>
                 <LoadingIcon />
               </button>
-              <button>
+              <button onClick={saveTracePlayground}>
                 <ImageIcon />
               </button>
               <button onClick={() => setOpen(!open)}>
