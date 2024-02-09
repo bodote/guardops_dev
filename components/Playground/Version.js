@@ -141,6 +141,7 @@ const Version = ({
       authKey: authKey,
       message: message,
       systemPrompt: open ? systemPrompt : "",
+      type: "prompt",
     };
 
     try {
@@ -395,7 +396,7 @@ const Version = ({
             : ""
         } ${
           versions <= 5
-            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[600px] sm:!min-h-[600px]"
+            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[566px] sm:!min-h-[600px]"
             : ""
         }`}
       >

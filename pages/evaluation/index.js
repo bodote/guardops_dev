@@ -13,7 +13,7 @@ import {
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { RiFilter2Fill } from "react-icons/ri";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
-import { JsonViewer } from '@textea/json-viewer'; // Imported JsonViewer
+import { JsonViewer } from "@textea/json-viewer"; // Imported JsonViewer
 
 import dynamic from "next/dynamic";
 import Logout from "@/components/Logout/Logout";
@@ -28,7 +28,7 @@ const index = () => {
   });
   const [projectList, setProjectList] = useState([]);
   const [evaluationList, setEvaluationList] = useState([]);
-  
+
   const getProjectList = async () => {
     try {
       const response = await fetch(`/api/manageProjects`, {
@@ -103,7 +103,7 @@ const index = () => {
                 Monitoring
               </h1>
             </div>
-            <Logout/>
+            <Logout />
             {/* <a href="/">
               <LockIcon />
             </a> */}
@@ -113,79 +113,84 @@ const index = () => {
               <h1 className="lg:text-[32px] text-[22px] text-black font-thin">
                 Evaluation Runs
               </h1>
-              <Listbox
-                value={selected}
-                onChange={(value) => {
-                  setSelected(value);
-                  getEvaluationList(value.project_id);
-                }}
-              >
-                {({ open }) => (
-                  <>
-                    <div className="relative mt-2">
-                      <Listbox.Button className="relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[209px] px-[8px] py-[3px]">
-                        <span className="flex items-center">
-                          <span className="ml-3 block truncate">
-                            {selected.name}
+              <div className="flex gap-[33px] items-center mt-2">
+                <Listbox
+                  value={selected}
+                  onChange={(value) => {
+                    setSelected(value);
+                    getEvaluationList(value.project_id);
+                  }}
+                >
+                  {({ open }) => (
+                    <>
+                      <div className="relative">
+                        <Listbox.Button className="relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[209px] px-[8px] py-[1px]">
+                          <span className="flex items-center">
+                            <span className="ml-3 block truncate">
+                              {selected.name}
+                            </span>
                           </span>
-                        </span>
-                        <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                          <MdKeyboardArrowUp
-                            className={
-                              open
-                                ? "h-5 w-5 text-gray-400 rotate-[0]"
-                                : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                            }
-                            aria-hidden="true"
-                          />
-                        </span>
-                      </Listbox.Button>
-
-                      <Transition
-                        show={open}
-                        as={Fragment}
-                        leave="transition ease-in duration-100"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                      >
-                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
-                          {projectList.map((project) => (
-                            <Listbox.Option
-                              key={project.project_id}
-                              className={({ active }) =>
-                                classNames(
-                                  active
-                                    ? "bg-[#f0efef]  rounded-[6px]"
-                                    : "text-[#000]",
-                                  "relative cursor-default select-none lg:py-2 py-1 px-[10px]"
-                                )
+                          <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                            <MdKeyboardArrowUp
+                              className={
+                                open
+                                  ? "h-5 w-5 text-gray-400 rotate-[0]"
+                                  : "h-5 w-5 text-gray-400 rotate-[180deg]"
                               }
-                              value={project}
-                            >
-                              {({ selected, active }) => (
-                                <>
-                                  <div className="flex items-center">
-                                    <span
-                                      className={classNames(
-                                        selected
-                                          ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                          : "font-normal text-[#656565] text-[12px]",
-                                        "ml-3 block truncate"
-                                      )}
-                                    >
-                                      {project.name}
-                                    </span>
-                                  </div>
-                                </>
-                              )}
-                            </Listbox.Option>
-                          ))}
-                        </Listbox.Options>
-                      </Transition>
-                    </div>
-                  </>
-                )}
-              </Listbox>
+                              aria-hidden="true"
+                            />
+                          </span>
+                        </Listbox.Button>
+
+                        <Transition
+                          show={open}
+                          as={Fragment}
+                          leave="transition ease-in duration-100"
+                          leaveFrom="opacity-100"
+                          leaveTo="opacity-0"
+                        >
+                          <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
+                            {projectList.map((project) => (
+                              <Listbox.Option
+                                key={project.project_id}
+                                className={({ active }) =>
+                                  classNames(
+                                    active
+                                      ? "bg-[#f0efef]  rounded-[6px]"
+                                      : "text-[#000]",
+                                    "relative cursor-default select-none lg:py-2 py-1 px-[10px]"
+                                  )
+                                }
+                                value={project}
+                              >
+                                {({ selected, active }) => (
+                                  <>
+                                    <div className="flex items-center">
+                                      <span
+                                        className={classNames(
+                                          selected
+                                            ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                            : "font-normal text-[#656565] text-[12px]",
+                                          "ml-3 block truncate"
+                                        )}
+                                      >
+                                        {project.name}
+                                      </span>
+                                    </div>
+                                  </>
+                                )}
+                              </Listbox.Option>
+                            ))}
+                          </Listbox.Options>
+                        </Transition>
+                      </div>
+                    </>
+                  )}
+                </Listbox>
+                <button className="bg-[#D4DB33] text-[#fff] text-[10px] rounded-[6px] max-w-[140px] h-[22px] px-[11px] w-full">
+                  Create & Plan Workflow
+                </button>
+              </div>
             </div>
             <div className="flex sm:w-[370px] w-auto">
               <button
@@ -328,9 +333,13 @@ const index = () => {
                         </span>
                       </td>
                       <td>
-                      {data.evaluations.map((res, index) => (
-                        <JsonViewer key={index} value={res.data.eval_data.scores} defaultInspectDepth={0}/> // Replaced DynamicReactJson with JsonViewer
-                      ))}
+                        {data.evaluations.map((res, index) => (
+                          <JsonViewer
+                            key={index}
+                            value={res.data.eval_data.scores}
+                            defaultInspectDepth={0}
+                          /> // Replaced DynamicReactJson with JsonViewer
+                        ))}
                       </td>
                       <td className="py-[3.5px] px-[10px] text-[14px] font-medium font-Inter text-end min-w-[100px]">
                         <div className="flex gap-[5px] items-center relative">

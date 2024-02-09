@@ -425,7 +425,7 @@ const index = () => {
           {page === "prompt" && (
             <>
               <div className="flex sm:flex-row flex-col border-b border-b-[#CCCCCC] resize-y overflow-y-auto">
-                <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] lg:min-h-[285px] sm:min-h-[495px] min-h-[285px] overflow-y-auto">
+                <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] lg:min-h-[285px] min-h-[285px] overflow-y-auto">
                   <div className="bg-[#CCCCCC] text-white rounded-[6px] text-[12px] w-fit pr-[15px] mb-[11px]">
                     <button
                       onClick={() => setPage("prompt")}
@@ -606,14 +606,14 @@ const index = () => {
                         type="text"
                         name="message"
                         id="message"
-                        className=" border-0 rounded  w-full  text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none"
+                        className=" border-0 rounded  w-full  text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none min-h-[127px]"
                         placeholder=" Start entering your prompt for the selected models. Press
                   Button Run Playground or Shift + Return to get the results."
                         value={message}
                         onChange={handleTextChange}
                       />
                       {PiiCheckEnable && (
-                        <div className=" w-full text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto">
+                        <div className=" w-full text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto min-h-[127px]">
                           {getParsedText()}
                         </div>
                       )}
@@ -673,9 +673,9 @@ const index = () => {
                 </div>
               </div>
               <div
-                className={`flex sm:flex-row flex-col h-screen
-              // ${versions.length < 6 && "2xl:h-screen"}
+                className={`flex sm:flex-row flex-col h-[calc(100vh-329px)]
               `}
+                // ${versions.length < 6 && "2xl:h-screen"}
               >
                 <div className="px-[16px] py-[12px] sm:w-[182px] sm:min-w-[182px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
                   <h1 className="text-[#000000] font-medium text-[12px] font-Inter">
@@ -698,7 +698,7 @@ const index = () => {
                   </ul>
                 </div>
                 <div
-                  className={`grid w-full
+                  className={`grid w-full overflow-y-auto
               ${versions.length > 1 && "lg:grid-cols-2"}
               ${versions.length > 2 && "xl:grid-cols-3"}
               ${versions.length > 3 && "2xl:!grid-cols-4"}
@@ -766,6 +766,35 @@ const index = () => {
                   >
                     <FiPlus /> New Prompt
                   </button>
+                  {open && (
+                    <NewPrompt
+                      setOpen={setOpen}
+                      open={open}
+                      updatePlaygroundList={updatePlaygroundList}
+                      actionType={actionType}
+                      playground={
+                        actionType === "edit" ? currentPlayground : null
+                      }
+                      setCurrentPlaygroundID={setCurrentPlaygroundID}
+                      setCurrentPlayground={setCurrentPlayground}
+                    />
+                  )}
+                  {playgroundList.map((playground) => (
+                    <div
+                      key={playground.playground_id}
+                      className="flex items-start my-[20px] gap-2"
+                    >
+                      <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
+                      <div
+                        onClick={() =>
+                          setCurrentPlaygroundID(playground.playground_id)
+                        }
+                        className="text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline"
+                      >
+                        {playground.name}
+                      </div>
+                    </div>
+                  ))}
                 </div>
                 <div className="w-full sm:mt-0 mt-3">
                   <div className="border-b-[#CCCCCC] border-b-[1px] flex justify-between items-center w-full p-[7px_7px_6px_13px] gap-3 flex-wrap sm:border-r-0 sm:border-t-0 border-t-[1px] border-t-[#CCCCCC]">
@@ -882,7 +911,8 @@ const index = () => {
                         allSystemPrompt,
                         allMsg,
                         setAllMsg,
-                        setAllPromtsDetails,
+                        proname,
+                        currentPlaygroundID,
                       })
                     )}
                   </div>

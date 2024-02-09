@@ -68,7 +68,7 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
   return (
     <>
       <div className="trace-scroll">
-        <div className="lg:w-[509px] w-full overflow-y-auto h-screen scroll-auto">
+        <div className="w-full overflow-y-auto h-screen scroll-auto">
           <div className="border-b border-b-[#CCCCCC]">
             <button
               onClick={() => setIsModalOpen(false)}
