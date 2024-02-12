@@ -3,7 +3,6 @@ import { createParser } from "eventsource-parser";
 export async function ModalAIStream(payload) {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
-
   if (
     payload.modal.provider === "openai" ||
     payload.modal.provider === "fireworks" ||
@@ -13,6 +12,28 @@ export async function ModalAIStream(payload) {
     let counter = 0;
 
     try {
+      let filteredData = payload.data.filter(
+        (item) => item.input.trim() !== "" || item.output.trim() !== ""
+      );
+      let messages = [];
+      if (payload.type === "chat") {
+        messages = [{ role: "system", content: payload.systemPrompt }];
+        filteredData.forEach((item, index) => {
+          messages.push({
+            role: "user",
+            content: item.input,
+          });
+          messages.push({
+            role: "assistant",
+            content: item.output,
+          });
+        });
+        // Add the current message
+        messages.push({
+          role: "user",
+          content: payload.message,
+        });
+      }
       // Ask OpenAI or Fireworks or Custom or Together for a streaming completion given the prompt
       const response = await fetch(`${payload.apiEndpoint}`, {
         headers: {
@@ -28,10 +49,7 @@ export async function ModalAIStream(payload) {
           ...(payload.modal.provider === "togehtercompute"
             ? { prompt: payload.message }
             : {
-                messages: [
-                  { role: "system", content: payload.systemPrompt },
-                  { role: "user", content: payload.message },
-                ],
+                messages,
               }),
           stream: true,
           max_tokens: Number(payload?.settings.maxTokens),

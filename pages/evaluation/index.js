@@ -27,6 +27,7 @@ const index = () => {
     name: "Select an option",
   });
   const [projectList, setProjectList] = useState([]);
+  const [projectID, setProjectID] = useState("");
   const [evaluationList, setEvaluationList] = useState([]);
 
   const getProjectList = async () => {
@@ -49,6 +50,7 @@ const index = () => {
   };
 
   const getEvaluationList = async (project) => {
+    setProjectID(project);
     try {
       const response = await fetch(
         `/api/manageEvaluation?project_id=${project}`,
@@ -104,9 +106,6 @@ const index = () => {
               </h1>
             </div>
             <Logout />
-            {/* <a href="/">
-              <LockIcon />
-            </a> */}
           </div>
           <div className="lg:pl-[42px] sm:pl-[20px] pl-[14px] sm:pr-[20px] pr-[14px] mt-[24px] flex md:flex-row flex-col gap-[20px] justify-between md:items-center">
             <div>
@@ -187,7 +186,14 @@ const index = () => {
                     </>
                   )}
                 </Listbox>
-                <button className="bg-[#D4DB33] text-[#fff] text-[10px] rounded-[6px] max-w-[140px] h-[22px] px-[11px] w-full">
+                <button
+                  className={`text-[#fff] text-[10px] rounded-[6px] max-w-[140px] h-[22px] px-[11px] w-full ${
+                    projectID
+                      ? "bg-[#D4DB33] hover:bg-[#0D859A]"
+                      : "bg-[#CCCCCC] text-[#666666]"
+                  }`}
+                  disabled={projectID === ""}
+                >
                   Create & Plan Workflow
                 </button>
               </div>

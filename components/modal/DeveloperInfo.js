@@ -1,12 +1,12 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import Cookies from "js-cookie";
+import { toast } from "react-toastify";
 
 const DeveloperInfo = ({ active, setActive, name, selectedID }) => {
   const [userID, setUserID] = useState("");
-  const [copied, setCopied] = useState(false);
   const handleCopy = () => {
-    let textToCopy;
+    let textToCopy = "";
     if (name === "dataset") {
       textToCopy = `import coai_eval as coai
 from coai_eval.config.config import Config
@@ -21,12 +21,10 @@ from coai_eval.config.config import Config
 Config.set_user_id("${userID}")
 Config.set_project_id("${selectedID}")`;
     }
-
     navigator.clipboard
       .writeText(textToCopy)
       .then(() => {
-        console.log("Text copied to clipboard");
-        setCopied(true);
+        toast.success("Text copied successfully", { autoClose: 1000 });
       })
       .catch((err) => {
         console.error("Unable to copy text: ", err);
@@ -38,9 +36,6 @@ Config.set_project_id("${selectedID}")`;
     const value = Cookies.get("user_id");
     setUserID(value);
   }, []);
-  useEffect(() => {
-    !active && setCopied(false);
-  }, [active]);
 
   return (
     <>
@@ -177,7 +172,7 @@ Config.set_project_id("${selectedID}")`;
                         onClick={handleCopy}
                         className="bg-[#D4DB33] rounded-[6px] text-black w-[60px] h-[32px] text-[14px] flex justify-center items-center"
                       >
-                        {copied ? "Copied" : "Copy"}
+                        Copy
                       </button>
                     </div>
                   </div>
