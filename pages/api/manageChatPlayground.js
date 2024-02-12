@@ -14,8 +14,6 @@ export default async function handler(req, res) {
   switch (method) {
     case "POST":
       bodyData = JSON.parse(req.body);
-      console.log("Body: ", bodyData);
-      console.log("Pair: ", bodyData.prompt_response_pairs);
       Url = `${baseUrl}api/trace_playground_chat`;
       queryParams = new URLSearchParams({
         user_id: user,

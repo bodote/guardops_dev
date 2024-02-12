@@ -21,6 +21,7 @@ const ProjectSection = () => {
   const [projectList, setProjectList] = useState([]);
   const [selectedProjectForDelete, setSelectedProjectForDelete] = useState("");
   const [selectedProjectForEdit, setSelectedProjectForEdit] = useState("");
+  const [selectedProjectID, setSelectedProjectID] = useState("");
   const [loader, setLoader] = useState(false);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState();
@@ -140,14 +141,19 @@ const ProjectSection = () => {
                       </h2>
                     </div>
                     <div className="flex gap-4">
-                      <button onClick={() => setActive(true)}>
+                      <button
+                        onClick={() => {
+                          setActive(true);
+                          setSelectedProjectID(ele.project_id);
+                        }}
+                      >
                         <LightIcon />
                       </button>
                       <DeveloperInfo
                         active={active}
                         setActive={setActive}
                         name="project"
-                        selectedID={ele.project_id}
+                        selectedID={selectedProjectID}
                       />
                       <button onClick={() => handleProjectEdit(ele)}>
                         <EditBlackIcon />

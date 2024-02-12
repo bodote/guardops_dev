@@ -63,6 +63,7 @@ const Chat_version = ({
   const [customAIKey, setCustomAIKey] = useState("");
   const [customEndpoint, setCustomEndpoint] = useState("");
   const [error, setError] = useState("");
+  const [editingIndex, setEditingIndex] = useState(-1);
   // State for settings values
   const [settings, setSettings] = useState({
     maxTokens: 500,
@@ -111,7 +112,16 @@ const Chat_version = ({
     // Add more providers here as needed
   };
 
+  const handleEditMessage = (index) => {
+    setEditingIndex(index);
+    setUserMessage(messages[index].input);
+  };
+
   const handleSendMessage = async () => {
+    if (!selected || selected.name === "Select an option") {
+      setError("Please select a model first.");
+      return;
+    }
     if (userMessage.length) {
       setApiCallInProgress(true);
       setMessages([...messages, { input: userMessage }]);
@@ -124,7 +134,7 @@ const Chat_version = ({
     const providerInfo = providerConfig[selected.provider];
 
     if (!providerInfo) {
-      setError("Please select the model");
+      setError("Please select the valid model");
       return;
     }
 
@@ -194,8 +204,8 @@ const Chat_version = ({
               }
             });
           });
-          setApiCallInProgress(false);
         }
+        setApiCallInProgress(false);
       }
     } catch (error) {
       console.error("API request failed:", error.message);
@@ -206,8 +216,8 @@ const Chat_version = ({
     if (apiCallInProgress) {
       return;
     }
-    if (!proname.project_id && !currentPlaygroundID) {
-      toast.error("Please select the project and playground");
+    if (proname.project_id === undefined || currentPlaygroundID.length === 0) {
+      toast.error("Please select the project and playground first!!!");
       return;
     }
     const modelId = selected.model_id;
@@ -242,6 +252,7 @@ const Chat_version = ({
       });
       if (response.ok) {
         const responseData = await response.json();
+        toast.success("The traces are successfully stored!!!")
       }
     } catch (error) {
       console.error("Error during API request:", error);
@@ -318,15 +329,11 @@ const Chat_version = ({
         handleSendMessage();
       }
     };
-
-    // Add event listener
     window.addEventListener("keydown", handleKeyDown);
-
-    // Cleanup
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [userMessage]);
+  }, [userMessage, selected]);
   return (
     <div className="flex sm:flex-row flex-col items-start">
       <div className="w-full">
@@ -453,7 +460,16 @@ const Chat_version = ({
                 versions > 2 ? "!gap-[10px]" : ""
               }`}
             >
-              <button>
+              <button
+                onClick={() =>
+                  setMessages([
+                    {
+                      input: "",
+                      output: "",
+                    },
+                  ])
+                }
+              >
                 <LoadingIcon />
               </button>
               <button onClick={saveTracePlayground}>
@@ -545,21 +561,28 @@ const Chat_version = ({
             )}
             <div className="bg-[#F7F7F7] h-[calc(100vh-247px)] overflow-y-auto">
               {messages.map((message, index) => (
-                <>
+                <Fragment key={index}>
                   {message.input && (
-                    <div
-                      key={index}
-                      className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex items-start justify-between gap-[20px] group"
-                    >
+                    <div className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex items-start justify-between gap-[20px] group">
                       <div className="flex sm:gap-[19px] gap-[8px]">
                         <User2Icon className="min-w-[16px]" />
                         <p className="md:text-[16px] text-[14px]">
                           {message.input}{" "}
                         </p>
                       </div>
-                      <button className="text-[20px] text-[#2B3F6C] hidden group-hover:block">
-                        <RiEdit2Line />
-                      </button>
+                      {editingIndex === index && (
+                        <button className="text-[20px] text-[#2B3F6C] block">
+                          <RiEdit2Line />
+                        </button>
+                      )}
+                      {editingIndex !== index && (
+                        <button
+                          className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
+                          onClick={() => handleEditMessage(index)}
+                        >
+                          <RiEdit2Line />
+                        </button>
+                      )}
                     </div>
                   )}
                   {message.output && (
@@ -570,7 +593,7 @@ const Chat_version = ({
                       </p>
                     </div>
                   )}
-                </>
+                </Fragment>
               ))}
             </div>
             <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
@@ -606,7 +629,12 @@ const Chat_version = ({
                   </div>
                   <button
                     onClick={handleSendMessage}
-                    className="bg-[#D4DB33] text-black text-[12px] w-[54px] h-[22px] rounded-[6px]"
+                    className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
+                      apiCallInProgress
+                        ? "bg-[#CCCCCC]"
+                        : "bg-[#D4DB33] hover:bg-[#0D859A]"
+                    }`}
+                    disabled={apiCallInProgress}
                   >
                     Send
                   </button>

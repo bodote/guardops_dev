@@ -15,6 +15,7 @@ const DatasetSection = () => {
   const [datasetList, setDatasetList] = useState([]);
   const [createDatasetStatus, setCreateDatasetStatus] = useState("new");
   const [selectedDatasetForDelete, setSelectedDatasetForDelete] = useState("");
+  const [selectedDatasetID, setSelectedDatasetID] = useState("");
   const [selectedDatasetForEdit, setSelectedDatasetForEdit] = useState("");
   const [loader, setLoader] = useState(false);
   const router = useRouter();
@@ -128,14 +129,19 @@ const DatasetSection = () => {
                       </h2>
                     </div>
                     <div className="flex gap-4">
-                      <button onClick={() => setActive(true)}>
+                      <button
+                        onClick={() => {
+                          setActive(true);
+                          setSelectedDatasetID(ele.dataset_id);
+                        }}
+                      >
                         <LightIcon />
                       </button>
                       <DeveloperInfo
                         active={active}
                         setActive={setActive}
                         name="dataset"
-                        selectedID={ele.dataset_id}
+                        selectedID={selectedDatasetID}
                       />
                       <button onClick={() => handleDatasetEdit(ele)}>
                         <EditBlackIcon />
