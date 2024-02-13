@@ -4,7 +4,7 @@ import { FiPlus } from "react-icons/fi";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { toast } from "react-toastify";
 
-const people = [
+const providerList = [
   {
     id: 1,
     name: "openai",
@@ -29,7 +29,9 @@ function classNames(...classes) {
 
 const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
   const [selected, setSelected] = useState(
-    value ? people.find((people) => people.name === value.provider) : people[0]
+    value
+      ? providerList.find((provider) => provider.name === value.provider)
+      : providerList[0]
   );
   const valueFormat = (price) => {
     if (price.includes("/")) {
@@ -49,8 +51,16 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
     outputCost: value ? valueFormat(value.output_price) : 0,
   });
   // Handle settings change
-  const handleSettingsChange = (settingName, value) => {
-    setSettings({ ...settings, [settingName]: value });
+  const handleSettingsChange = (
+    settingName,
+    value,
+    isEditableNumber = false
+  ) => {
+    if (isEditableNumber) {
+      setSettings({ ...settings, [settingName]: parseFloat(value) });
+    } else {
+      setSettings({ ...settings, [settingName]: value });
+    }
   };
 
   const calculateSliderBackground = (name, value) => {
@@ -62,7 +72,6 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
   const [modelData, setModelData] = useState({
     name: value ? value.name : "",
     id1: value ? value.id1 : "",
-    provider: value ? value.provider : "",
     model_description: value ? value.model_description : "",
   });
 
@@ -88,8 +97,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
       modelFormData.provider == "" ||
       modelFormData.context == "" ||
       modelFormData.input_price == "" ||
-      modelFormData.output_price == "" ||
-      modelFormData.model_description == ""
+      modelFormData.output_price == ""
     ) {
       toast.error("Please Enter required fields !!");
       return false;
@@ -195,12 +203,14 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                 <Dialog.Panel className="relative transform overflow-hidden rounded-[6px] bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-[643px] border-[#CCCCCC] border-[1px] sm:p-[19px_36px] p-[19px_14px]">
                   <div className="flex flex-col gap-[17px]">
                     <div>
-                      <label
-                        htmlFor="name"
-                        className="text-[#252525] font-medium text-[14px] font-Inter"
-                      >
-                        Name of Model
-                      </label>
+                      <Dialog.Title>
+                        <label
+                          htmlFor="name"
+                          className="text-[#252525] font-medium text-[14px] font-Inter"
+                        >
+                          Name of Model
+                        </label>
+                      </Dialog.Title>
                       <input
                         type="text"
                         name="name"
@@ -260,9 +270,9 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                                 leaveTo="opacity-0"
                               >
                                 <Listbox.Options className="absolute z-10 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                  {people.map((person) => (
+                                  {providerList.map((provider) => (
                                     <Listbox.Option
-                                      key={person.id}
+                                      key={provider.id}
                                       className={({ active }) =>
                                         classNames(
                                           active
@@ -271,7 +281,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                                           "relative cursor-default select-none py-2 pl-3 pr-9"
                                         )
                                       }
-                                      value={person}
+                                      value={provider}
                                     >
                                       {({ selected, active }) => (
                                         <>
@@ -284,7 +294,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                                                 "block truncate"
                                               )}
                                             >
-                                              {person.name}
+                                              {provider.name}
                                             </span>
                                           </div>
 
@@ -314,14 +324,46 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                         <p className="text-[#5D6574] text-[12px]">
                           Context Length
                         </p>
-                        <span className="text-[#5D6574] text-[12px]">
+                        <span
+                          className="text-[#5D6574] text-[12px] editable-number"
+                          contentEditable
+                          tabIndex="0"
+                          onBlur={(e) => {
+                            let newValue = e.target.textContent.trim();
+                            newValue = Math.max(
+                              1024,
+                              Math.min(256000, newValue)
+                            );
+                            handleSettingsChange("context", newValue, true);
+                            e.target.textContent = newValue;
+                          }}
+                          onKeyDown={(e) => {
+                            if (
+                              !/[0-9]|Backspace|Delete/.test(e.key) ||
+                              (e.key === "0" && e.target.textContent === "0")
+                            ) {
+                              e.preventDefault();
+                            }
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              e.target.blur();
+                            }
+                            if (
+                              e.target.textContent === "0" &&
+                              e.key !== "Backspace"
+                            ) {
+                              e.target.textContent = "";
+                            }
+                          }}
+                          suppressContentEditableWarning
+                        >
                           {settings.context ? settings.context : 0}
                         </span>
                       </div>
                       <input
                         type="range"
-                        min="0"
-                        max="200000"
+                        min="1024"
+                        max="256000"
                         step="1"
                         className="slider-main"
                         value={settings.context ? settings.context : 0}
@@ -332,7 +374,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                         style={{
                           background: calculateSliderBackground(
                             settings.context,
-                            200000
+                            256000
                           ),
                         }}
                       />
@@ -342,15 +384,46 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                         <p className="text-[#5D6574] text-[12px]">
                           Cost Input Token per Million
                         </p>
-                        <span className="text-[#5D6574] text-[12px]">
+                        <span
+                          className="text-[#5D6574] text-[12px] editable-number"
+                          contentEditable
+                          tabIndex="0"
+                          onBlur={(e) => {
+                            let newValue = e.target.textContent.trim();
+                            newValue = Math.max(0.001, Math.min(1, newValue));
+                            handleSettingsChange("inputCost", newValue, true);
+                            e.target.textContent = newValue;
+                          }}
+                          onKeyDown={(e) => {
+                            if (
+                              !/[0-9]|Backspace|Delete|\./.test(e.key) ||
+                              (e.key === "." &&
+                                e.target.textContent.includes(".")) ||
+                              (e.key === "0" && e.target.textContent === "0")
+                            ) {
+                              e.preventDefault();
+                            }
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              e.target.blur();
+                            }
+                            if (
+                              e.target.textContent === "0" &&
+                              e.key !== "Backspace"
+                            ) {
+                              e.target.textContent = "";
+                            }
+                          }}
+                          suppressContentEditableWarning
+                        >
                           {settings.inputCost ? settings.inputCost : 0}
                         </span>
                       </div>
                       <input
                         type="range"
-                        min="0"
-                        max="10"
-                        step="0.1"
+                        min="0.001"
+                        max="1"
+                        step="0.001"
                         className="slider-main"
                         value={settings.inputCost ? settings.inputCost : 0}
                         id="inputCost"
@@ -360,7 +433,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                         style={{
                           background: calculateSliderBackground(
                             settings.inputCost,
-                            10
+                            1
                           ),
                         }}
                       />
@@ -370,15 +443,46 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                         <p className="text-[#5D6574] text-[12px]">
                           Cost Output Token per Million
                         </p>
-                        <span className="text-[#5D6574] text-[12px]">
+                        <span
+                          className="text-[#5D6574] text-[12px] editable-number"
+                          contentEditable
+                          tabIndex="0"
+                          onBlur={(e) => {
+                            let newValue = e.target.textContent.trim();
+                            newValue = Math.max(0.001, Math.min(1, newValue));
+                            handleSettingsChange("outputCost", newValue, true);
+                            e.target.textContent = newValue;
+                          }}
+                          onKeyDown={(e) => {
+                            if (
+                              !/[0-9]|Backspace|Delete|\./.test(e.key) ||
+                              (e.key === "." &&
+                                e.target.textContent.includes(".")) ||
+                              (e.key === "0" && e.target.textContent === "0")
+                            ) {
+                              e.preventDefault();
+                            }
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              e.target.blur();
+                            }
+                            if (
+                              e.target.textContent === "0" &&
+                              e.key !== "Backspace"
+                            ) {
+                              e.target.textContent = "";
+                            }
+                          }}
+                          suppressContentEditableWarning
+                        >
                           {settings.outputCost ? settings.outputCost : 0}
                         </span>
                       </div>
                       <input
                         type="range"
-                        min="0"
-                        max="10"
-                        step="0.1"
+                        min="0.001"
+                        max="1"
+                        step="0.001"
                         className="slider-main"
                         value={settings.outputCost ? settings.outputCost : 0}
                         id="outputCost"
@@ -388,7 +492,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                         style={{
                           background: calculateSliderBackground(
                             settings.outputCost,
-                            10
+                            1
                           ),
                         }}
                       />

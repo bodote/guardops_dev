@@ -12,7 +12,7 @@ export async function ModalAIStream(payload) {
     let counter = 0;
 
     try {
-      let filteredData = payload.data.filter(
+      let filteredData = payload.data?.filter(
         (item) => item.input.trim() !== "" || item.output.trim() !== ""
       );
       let messages = [];
@@ -33,6 +33,11 @@ export async function ModalAIStream(payload) {
           role: "user",
           content: payload.message,
         });
+      } else {
+        messages = [
+          { role: "system", content: payload.systemPrompt },
+          { role: "user", content: payload.message },
+        ];
       }
       // Ask OpenAI or Fireworks or Custom or Together for a streaming completion given the prompt
       const response = await fetch(`${payload.apiEndpoint}`, {

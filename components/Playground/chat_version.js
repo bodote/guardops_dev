@@ -64,6 +64,7 @@ const Chat_version = ({
   const [customEndpoint, setCustomEndpoint] = useState("");
   const [error, setError] = useState("");
   const [editingIndex, setEditingIndex] = useState(-1);
+  const [editedMessage, setEditedMessage] = useState("");
   // State for settings values
   const [settings, setSettings] = useState({
     maxTokens: 500,
@@ -114,7 +115,28 @@ const Chat_version = ({
 
   const handleEditMessage = (index) => {
     setEditingIndex(index);
-    setUserMessage(messages[index].input);
+    setEditedMessage(messages[index].input);
+  };
+
+  const handleSaveEdit = async () => {
+    // Update the message with the edited content
+    const updatedMessages = [...messages];
+    updatedMessages[editingIndex].input = editedMessage;
+    setMessages(updatedMessages);
+    setEditingIndex(-1); // Reset editing index
+    setEditedMessage("");
+
+    // Clear messages after the edited input
+    const messagesBeforeEdit = updatedMessages.slice(0, editingIndex + 1);
+    setMessages(messagesBeforeEdit);
+
+    // Fetch API response
+    await fetchApiResponse();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingIndex(-1); // Reset editing index
+    setEditedMessage(""); // Reset edited message
   };
 
   const handleSendMessage = async () => {
@@ -146,13 +168,12 @@ const Chat_version = ({
       selected.provider === "custom"
         ? `${providerInfo.getKey()}`
         : `Bearer ${providerInfo.getKey()}`;
-
     const formData = {
       settings: settings,
       modal: selected,
       apiEndpoint: apiEndpoint,
       authKey: authKey,
-      message: userMessage,
+      message: editedMessage ? editedMessage : userMessage,
       systemPrompt: open ? systemPrompt : "",
       type: "chat",
       data: messages,
@@ -252,7 +273,7 @@ const Chat_version = ({
       });
       if (response.ok) {
         const responseData = await response.json();
-        toast.success("The traces are successfully stored!!!")
+        toast.success("The traces are successfully stored!!!");
       }
     } catch (error) {
       console.error("Error during API request:", error);
@@ -563,27 +584,61 @@ const Chat_version = ({
               {messages.map((message, index) => (
                 <Fragment key={index}>
                   {message.input && (
-                    <div className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex items-start justify-between gap-[20px] group">
-                      <div className="flex sm:gap-[19px] gap-[8px]">
-                        <User2Icon className="min-w-[16px]" />
-                        <p className="md:text-[16px] text-[14px]">
-                          {message.input}{" "}
-                        </p>
+                    <>
+                      <div
+                        className={`bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] group ${
+                          editingIndex === index
+                            ? ""
+                            : "flex justify-between gap-[20px]"
+                        }`}
+                      >
+                        <div className="flex sm:gap-[19px] gap-[8px]">
+                          <User2Icon className="min-w-[16px]" />
+                          {editingIndex === index ? (
+                            <>
+                              <div className="flex-col w-full">
+                                <div>
+                                  <textarea
+                                    className="bg-transparent border-none w-full  focus:ring-0 focus:outline-none pt-0 pl-0 h-[100px]"
+                                    value={editedMessage}
+                                    onChange={(e) =>
+                                      setEditedMessage(e.target.value)
+                                    }
+                                  />
+                                </div>
+                                <div className="flex gap-[13px] justify-center item-center">
+                                  <button
+                                    onClick={handleSaveEdit}
+                                    className="text-[12px] text-[#000]  bg-[#D4DB33] block px-[13px] h-fit py-[3px] rounded-[6px] font-medium"
+                                  >
+                                    Save & Send
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="text-[12px] text-[#000] bg-[#D4DB33]  block px-[29px] h-fit py-[3px] rounded-[6px] font-medium"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="md:text-[16px] text-[14px]">
+                              {message.input}{" "}
+                            </p>
+                          )}
+                        </div>
+                        {editingIndex !== index && (
+                          <button
+                            className="text-[20px] text-[#2B3F6C]  "
+                            // className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
+                            onClick={() => handleEditMessage(index)}
+                          >
+                            <RiEdit2Line />
+                          </button>
+                        )}
                       </div>
-                      {editingIndex === index && (
-                        <button className="text-[20px] text-[#2B3F6C] block">
-                          <RiEdit2Line />
-                        </button>
-                      )}
-                      {editingIndex !== index && (
-                        <button
-                          className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
-                          onClick={() => handleEditMessage(index)}
-                        >
-                          <RiEdit2Line />
-                        </button>
-                      )}
-                    </div>
+                    </>
                   )}
                   {message.output && (
                     <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
@@ -597,12 +652,12 @@ const Chat_version = ({
               ))}
             </div>
             <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
-              <div className="bg-[#ECECEC]">
+              <div className="bg-[#ECECEC] rounded-md">
                 <textarea
                   placeholder="Send a message"
                   value={userMessage}
                   onChange={(e) => setUserMessage(e.target.value)}
-                  className="border-0 resize-none bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full"
+                  className="border-0 resize-none bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full rounded-md"
                 ></textarea>
                 <div className="flex justify-end gap-[10px] pr-[13px] pb-2">
                   <div className="flex items-center gap-[5px]">
