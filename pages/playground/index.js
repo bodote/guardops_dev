@@ -457,7 +457,11 @@ const index = () => {
                       <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
                       <div
                         onClick={() => handleSetTraces(playground)}
-                        className="text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline"
+                        className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
+                          currentPlaygroundID === playground.playground_id
+                            ? "underline"
+                            : ""
+                        }`}
                       >
                         {playground.name}
                       </div>
@@ -789,7 +793,11 @@ const index = () => {
                         onClick={() =>
                           setCurrentPlaygroundID(playground.playground_id)
                         }
-                        className="text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline"
+                        className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
+                          currentPlaygroundID === playground.playground_id
+                            ? "underline"
+                            : ""
+                        }`}
                       >
                         {playground.name}
                       </div>
