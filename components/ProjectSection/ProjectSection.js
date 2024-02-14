@@ -4,12 +4,16 @@ import {
   EditBlackIcon,
   PlusIcon,
   LightIcon,
+  Share2Icon,
+  ImportIcon,
 } from "@/public/Assets/Icons/Allsvg";
 import AddProjectModal from "@/components/modal/AddProjectModal";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import DeleteProjectModal from "../modal/DeleteProjectModal";
 import DeveloperInfo from "../modal/DeveloperInfo";
+import GenerateShareModal from "../modal/GenerateShareModal";
+import ImportShareCode from "../modal/ImportShareCode";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -26,6 +30,8 @@ const ProjectSection = () => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState();
   const [active, setActive] = useState(false);
+  const [shareModal, setShareModal] = useState(false);
+  const [importShare, setImportShare] = useState(false);
 
   const router = useRouter();
   const modalRef = useRef();
@@ -95,6 +101,11 @@ const ProjectSection = () => {
     }
   };
 
+  const handleGenerateShareCode = (projectId) => {
+    setShareModal(true);
+    setSelectedProjectID(projectId);
+  };
+
   useEffect(() => {
     if (isModalOpen) {
       document.addEventListener("mousedown", handleOutsideClick);
@@ -142,6 +153,11 @@ const ProjectSection = () => {
                     </div>
                     <div className="flex gap-4">
                       <button
+                        onClick={() => handleGenerateShareCode(ele.project_id)}
+                      >
+                        <Share2Icon />
+                      </button>
+                      <button
                         onClick={() => {
                           setActive(true);
                           setSelectedProjectID(ele.project_id);
@@ -149,12 +165,6 @@ const ProjectSection = () => {
                       >
                         <LightIcon />
                       </button>
-                      <DeveloperInfo
-                        active={active}
-                        setActive={setActive}
-                        name="project"
-                        selectedID={selectedProjectID}
-                      />
                       <button onClick={() => handleProjectEdit(ele)}>
                         <EditBlackIcon />
                       </button>
@@ -220,6 +230,20 @@ const ProjectSection = () => {
               Create a new Project for Logging and Tracing
             </p>
           </div>
+          <div
+            onClick={() => setImportShare(true)}
+            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
+          >
+            <div className="flex items-center gap-[8px]">
+              <ImportIcon className="stroke-[#12131A] group-hover:stroke-white" />
+              <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
+                Import Project
+              </h2>
+            </div>
+            <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
+              Import an existing project from a share code
+            </p>
+          </div>
           {isModalOpen && (
             <div
               ref={modalRef}
@@ -234,6 +258,28 @@ const ProjectSection = () => {
                 }
               />
             </div>
+          )}
+          {active && (
+            <DeveloperInfo
+              active={active}
+              setActive={setActive}
+              name="project"
+              selectedID={selectedProjectID}
+            />
+          )}
+          {shareModal && (
+            <GenerateShareModal
+              shareModal={shareModal}
+              setShareModal={setShareModal}
+              selectedProjectID={selectedProjectID}
+            />
+          )}
+          {importShare && (
+            <ImportShareCode
+              importShare={importShare}
+              setImportShare={setImportShare}
+              name="project"
+            />
           )}
         </div>
       </div>

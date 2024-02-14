@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 
 const DeveloperInfo = ({ active, setActive, name, selectedID }) => {
   const [userID, setUserID] = useState("");
+  const [copied, setCopied] = useState(false);
   const handleCopy = () => {
     let textToCopy = "";
     if (name === "dataset") {
@@ -24,11 +25,10 @@ Config.set_project_id("${selectedID}")`;
     navigator.clipboard
       .writeText(textToCopy)
       .then(() => {
-        toast.success("Text copied successfully", { autoClose: 1000 });
+        setCopied(true);
       })
       .catch((err) => {
         console.error("Unable to copy text: ", err);
-        // Handle errors if copying fails
       });
   };
 
@@ -66,12 +66,14 @@ Config.set_project_id("${selectedID}")`;
               >
                 <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-[794px] sm:p-[10px_24px_17px_16px] p-[10px_24px_17px_6px]">
                   <div>
-                    <h1 className="text-[14px] font-medium text-center">
-                      {name === "dataset"
-                        ? "Load this dataset"
-                        : "Use this project"}{" "}
-                      in the coai-eval Framework
-                    </h1>
+                    <Dialog.Title>
+                      <h1 className="text-[14px] font-medium text-center">
+                        {name === "dataset"
+                          ? "Load this dataset"
+                          : "Use this project"}{" "}
+                        in the coai-eval Framework
+                      </h1>
+                    </Dialog.Title>
                     <div className="font-Azeret mt-[20px] p-[10px]">
                       <div className="flex gap-[16px]">
                         <p className="text-[rgba(36,41,46,.3)] text-[13px]">
@@ -172,7 +174,7 @@ Config.set_project_id("${selectedID}")`;
                         onClick={handleCopy}
                         className="bg-[#D4DB33] rounded-[6px] text-black w-[60px] h-[32px] text-[14px] flex justify-center items-center"
                       >
-                        Copy
+                        {copied ? "Copied" : "Copy"}
                       </button>
                     </div>
                   </div>

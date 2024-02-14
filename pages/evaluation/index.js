@@ -17,6 +17,7 @@ import { JsonViewer } from "@textea/json-viewer"; // Imported JsonViewer
 
 import dynamic from "next/dynamic";
 import Logout from "@/components/Logout/Logout";
+import { useRouter } from "next/navigation";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -29,6 +30,7 @@ const index = () => {
   const [projectList, setProjectList] = useState([]);
   const [projectID, setProjectID] = useState("");
   const [evaluationList, setEvaluationList] = useState([]);
+  const router = useRouter();
 
   const getProjectList = async () => {
     try {
@@ -187,6 +189,9 @@ const index = () => {
                   )}
                 </Listbox>
                 <button
+                  onClick={() =>
+                    router.push(`/evaluationflow?projectID=${projectID}`)
+                  }
                   className={`text-[#fff] text-[10px] rounded-[6px] max-w-[140px] h-[22px] px-[11px] w-full ${
                     projectID
                       ? "bg-[#D4DB33] hover:bg-[#0D859A]"
