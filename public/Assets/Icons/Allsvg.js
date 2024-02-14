@@ -1289,3 +1289,62 @@ export const LightIcon = ({ className }) => {
     </svg>
   );
 };
+export const Share2Icon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="21"
+      height="21"
+      viewBox="0 0 21 21"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M14.3 7.1579L16 7.1579C18.2091 7.1579 20 8.94876 20 11.1579L20 16.5C20 18.7091 18.2091 20.5 16 20.5L5 20.5C2.79086 20.5 1 18.7091 1 16.5L1 11.1579C1 8.94876 2.79086 7.1579 5 7.1579L6.7 7.1579"
+        stroke="black"
+        strokeLinecap="round"
+      />
+      <path
+        d="M13.35 4.07895L11.2338 1.79282C10.838 1.36521 10.1619 1.36521 9.76611 1.79282L7.64998 4.07895"
+        stroke="black"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10.5 2.02631L10.5 14.3421"
+        stroke="black"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+};
+export const ImportIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M9 8L7 8C4.79086 8 3 9.79086 3 12L3 17C3 19.2091 4.79086 21 7 21L19 21C21.2091 21 23 19.2091 23 17L23 12C23 9.79086 21.2091 8 19 8L17 8"
+        // stroke="black"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10 13L12.2929 15.2929C12.6834 15.6834 13.3166 15.6834 13.7071 15.2929L16 13"
+        // stroke="black"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M13 15L13 3"
+        // stroke="black"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+};
