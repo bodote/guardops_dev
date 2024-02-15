@@ -7,12 +7,14 @@ const WorkflowTemplate = ({
   isModalOpen,
   setIsModalOpen,
   updateFlowList,
+  projectID,
   values,
 }) => {
   const [flowData, setFlowData] = useState({
     flow_name: values ? values.name : "",
     flow_description: values ? values.description : "",
   });
+
   const handleOnChange = (e) => {
     const { name, value } = e.target;
     setFlowData((prevState) => ({
@@ -51,9 +53,11 @@ const WorkflowTemplate = ({
                 <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white sm:p-[37px_38px_48px_36px] p-[20px] text-left shadow-[0px_4px_4px_0px_#00000040] transition-all sm:max-w-[645px] w-full">
                   <div>
                     <div>
-                      <label className="text-[14px] font-medium block mb-[6px]">
-                        Workflow Name
-                      </label>
+                      <Dialog.Title>
+                        <label className="text-[14px] font-medium block mb-[6px]">
+                          Workflow Name
+                        </label>
+                      </Dialog.Title>
                       <input
                         type="text"
                         name="flow_name"
@@ -80,7 +84,7 @@ const WorkflowTemplate = ({
                     </div>
                     <div className="flex justify-center mt-[28px]">
                       <button
-                        // onClick={handleCreatePrompt}
+                        // onClick={handleCreateFlow}
                         className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex justify-center items-center gap-[10px] max-w-[161px] w-full"
                       >
                         <FiPlus />

@@ -106,7 +106,7 @@ const Chat_version = ({
       endpoint: () => customEndpoint,
       getKey: () => customAIKey,
     },
-    togehtercompute: {
+    togethercompute: {
       endpoint: "https://api.together.xyz/v1/chat/completions",
       getKey: () => togetheraiKey,
     },
@@ -196,7 +196,7 @@ const Chat_version = ({
         selected.provider === "fireworks" && setError(errorMessage.error);
         selected.provider === "openai" && setError(errorMessage.error.message);
         selected.provider === "fireworks" && setError(errorMessage.error);
-        selected.provider === "togehtercompute" && setError(errorMessage.error);
+        selected.provider === "togethercompute" && setError(errorMessage.error);
         throw new Error(res.statusText);
       } else {
         const data = res.body;

@@ -7,22 +7,23 @@ import {
   EditBlackIcon,
   PlusIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import WorkflowTemplate from "@/components/modal/WorkflowTemplate";
 
 const EvaluationFlow = () => {
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [flowList, setFlowList] = useState([]);
   const [createFlow, setCreateFlow] = useState("new");
+  const [projectID, setProjectID] = useState("");
   const [selectedFlowForEdit, setSelectedFlowForEdit] = useState();
   const [loader, setLoader] = useState(false);
+  const router = useRouter();
   const params = useSearchParams();
 
-  const getFlowList = async (id) => {
+  const getFlowList = async (projectID) => {
     setLoader(true);
     try {
-      const response = await fetch(`/api/manageFlow?projectID=${id}`, {
+      const response = await fetch(`/api/manageFlow?projectID=${projectID}`, {
         method: "GET",
       });
 
@@ -51,11 +52,10 @@ const EvaluationFlow = () => {
   useEffect(() => {
     const ID = params.get("projectID");
     if (ID) {
+      setProjectID(ID);
       getFlowList(ID);
     }
   }, [params.get("projectID")]);
-
-  //
 
   return (
     <>
@@ -84,7 +84,7 @@ const EvaluationFlow = () => {
                   return (
                     <div
                       key={i}
-                      className="hover:border-[#000] hover:bg-[#f2f2f2] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px] cursor-pointer"
+                      className="hover:border-[#000] hover:bg-[#f2f2f2] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px]"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-[8px]">
@@ -93,9 +93,12 @@ const EvaluationFlow = () => {
                             alt=""
                             className="w-[23px]"
                           />
-                          <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] text-[18px] font-thin text-[#000]">
+                          <button
+                            onClick={() => router.push("/workflowdetails")}
+                            className="font-Archivo lg:text-[24px] sm:text-[20px] text-[18px] font-thin text-[#000]"
+                          >
                             {ele.name}
-                          </h2>
+                          </button>
                         </div>
                         <div className="flex gap-4">
                           <button onClick={() => handleDatasetEdit(ele)}>
@@ -144,6 +147,7 @@ const EvaluationFlow = () => {
                   updateFlowList={getFlowList}
                   isModalOpen={isModalOpen}
                   setIsModalOpen={setIsModalOpen}
+                  projectID={projectID}
                   values={createFlow !== "new" ? selectedFlowForEdit : null}
                 />
               )}

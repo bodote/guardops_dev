@@ -7,7 +7,7 @@ export async function ModalAIStream(payload) {
     payload.modal.provider === "openai" ||
     payload.modal.provider === "fireworks" ||
     payload.modal.provider === "custom" ||
-    payload.modal.provider === "togehtercompute"
+    payload.modal.provider === "togethercompute"
   ) {
     let counter = 0;
 
@@ -51,7 +51,7 @@ export async function ModalAIStream(payload) {
             payload.modal.provider === "fireworks"
               ? `accounts/fireworks/models/${payload.modal.id1}`
               : payload.modal.id1,
-          ...(payload.modal.provider === "togehtercompute"
+          ...(payload.modal.provider === "togethercompute"
             ? { prompt: payload.message }
             : {
                 messages,
