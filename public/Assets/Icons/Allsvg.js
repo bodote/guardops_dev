@@ -1348,3 +1348,36 @@ export const ImportIcon = ({ className }) => {
     </svg>
   );
 };
+export const CoinIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="19"
+      viewBox="0 0 16 19"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M15 3.5C15 4.88071 11.866 6 8 6C4.13401 6 1 4.88071 1 3.5M15 3.5C15 2.11929 11.866 1 8 1C4.13401 1 1 2.11929 1 3.5M15 3.5V15.5C15 16.8807 11.866 18 8 18C4.13401 18 1 16.8807 1 15.5V3.5M15 7.5C15 8.88071 11.866 10 8 10C4.13401 10 1 8.88071 1 7.5M15 11.5C15 12.8807 11.866 14 8 14C4.13401 14 1 12.8807 1 11.5"
+        stroke="black"
+      />
+    </svg>
+  );
+};
+export const PlusBtnIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="44"
+      height="41"
+      viewBox="0 0 44 41"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="23" cy="20" r="15" fill="#D4DB33" />
+      <rect x="21" y="11" width="4" height="18" fill="white" />
+      <rect x="14" y="18" width="18" height="4" fill="white" />
+    </svg>
+  );
+};

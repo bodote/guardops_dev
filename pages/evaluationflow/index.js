@@ -9,29 +9,36 @@ import {
 } from "@/public/Assets/Icons/Allsvg";
 import { useRouter, useSearchParams } from "next/navigation";
 import WorkflowTemplate from "@/components/modal/WorkflowTemplate";
+import DeleteModal from "@/components/modal/DeleteModal";
 
 const EvaluationFlow = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [flowList, setFlowList] = useState([]);
-  const [createFlow, setCreateFlow] = useState("new");
+  const [open, setOpen] = useState(false);
+  const [evaluationList, setEvaluationList] = useState([]);
+  const [createDataset, setCreateDataset] = useState("new");
   const [projectID, setProjectID] = useState("");
-  const [selectedFlowForEdit, setSelectedFlowForEdit] = useState();
+  const [selectedEvaluationForEdit, setSelectedEvaluationForEdit] = useState();
+  const [selectedEvaluationForDelete, setSelectedEvaluationForDelete] =
+    useState({});
   const [loader, setLoader] = useState(false);
   const router = useRouter();
   const params = useSearchParams();
 
-  const getFlowList = async (projectID) => {
+  const getEvaluationList = async (projectID) => {
     setLoader(true);
     try {
-      const response = await fetch(`/api/manageFlow?projectID=${projectID}`, {
-        method: "GET",
-      });
+      const response = await fetch(
+        `/api/manageEvaluation?projectID=${projectID}`,
+        {
+          method: "GET",
+        }
+      );
 
       if (response.ok) {
         setLoader(false);
         const responseData = await response.json();
         if (responseData) {
-          setFlowList(responseData.flows[0].datasets);
+          setEvaluationList(responseData.evaluation_list[0].evaluations);
         }
       } else {
         console.error("API request failed:", response.statusText);
@@ -41,19 +48,38 @@ const EvaluationFlow = () => {
       console.error("Error during API request:", error);
     }
   };
-  const handleDatasetEdit = (flow) => {
+  const handleEvaluationEdit = (flow) => {
     if (!isModalOpen) {
       setIsModalOpen(true);
-      setSelectedFlowForEdit(flow);
-      setCreateFlow("existing");
+      setSelectedEvaluationForEdit(flow);
+      setCreateDataset("existing");
     }
   };
+  const handleEvaluationDelete = async () => {
+    const formData = {
+      evaluation_id: selectedEvaluationForDelete.evaluation_id,
+      project_id: projectID,
+    };
+    try {
+      const response = await fetch("/api/manageEvaluation", {
+        method: "DELETE",
+        body: JSON.stringify(formData),
+      });
 
+      if (response.ok) {
+        getEvaluationList(projectID);
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
   useEffect(() => {
     const ID = params.get("projectID");
     if (ID) {
       setProjectID(ID);
-      getFlowList(ID);
+      getEvaluationList(ID);
     }
   }, [params.get("projectID")]);
 
@@ -80,7 +106,7 @@ const EvaluationFlow = () => {
             </h2>
             <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[38px] sm:gap-[20px] gap-[10px] w-full mt-[31px]">
               {!loader ? (
-                flowList.map((ele, i) => {
+                evaluationList.map((ele, i) => {
                   return (
                     <div
                       key={i}
@@ -101,12 +127,28 @@ const EvaluationFlow = () => {
                           </button>
                         </div>
                         <div className="flex gap-4">
-                          <button onClick={() => handleDatasetEdit(ele)}>
+                          <button onClick={() => handleEvaluationEdit(ele)}>
                             <EditBlackIcon />
                           </button>
-                          <button>
+                          <button
+                            onClick={() => {
+                              setSelectedEvaluationForDelete(ele);
+                              setOpen(true);
+                            }}
+                          >
                             <DeleteBlackIcon />
                           </button>
+                          {open && (
+                            <DeleteModal
+                              open={open}
+                              setOpen={setOpen}
+                              selectedDataForDelete={
+                                selectedEvaluationForDelete
+                              }
+                              handleDeleteData={handleEvaluationDelete}
+                              name="evaluation"
+                            />
+                          )}
                         </div>
                       </div>
                       <div className="flex gap-[14px] pt-[8px] pb-[6px]">
@@ -127,7 +169,7 @@ const EvaluationFlow = () => {
 
               <div
                 onClick={() => {
-                  setCreateFlow("new");
+                  setCreateDataset("new");
                   setIsModalOpen(true);
                 }}
                 className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
@@ -144,11 +186,13 @@ const EvaluationFlow = () => {
               </div>
               {isModalOpen && (
                 <WorkflowTemplate
-                  updateFlowList={getFlowList}
+                  updateEvaluationList={getEvaluationList}
                   isModalOpen={isModalOpen}
                   setIsModalOpen={setIsModalOpen}
                   projectID={projectID}
-                  values={createFlow !== "new" ? selectedFlowForEdit : null}
+                  values={
+                    createDataset !== "new" ? selectedEvaluationForEdit : null
+                  }
                 />
               )}
             </div>
