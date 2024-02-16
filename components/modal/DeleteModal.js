@@ -43,7 +43,7 @@ const DeleteModal = ({
                   <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto z-50 outline-none ">
                     <div className="relative w-full  mx-auto max-w-[470px]">
                       <div className="rounded-lg  relative flex flex-col w-full bg-white outline-none focus:outline-none  sm:px-[41px] px-[15px]">
-                        {name === "dataset" && (
+                        {(name === "dataset" || name === "evaluation") && (
                           <>
                             <h3 className="text-[14px] font-medium font-Inter text-[#000000] pb-[12px] pt-[16px] text-center">
                               Delete selected Dataset

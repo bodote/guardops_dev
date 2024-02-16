@@ -55,15 +55,15 @@ const index = () => {
     setProjectID(project);
     try {
       const response = await fetch(
-        `/api/manageEvaluation?project_id=${project}`,
+        `/api/manageEvaluation?projectID=${project}`,
         {
           method: "GET",
         }
       );
-
       if (response.ok) {
         const responseData = await response.json();
-        setEvaluationList(responseData.evaluation_list);
+        // console.log(responseData.evaluation_list);
+        // setEvaluationList(responseData.evaluation_list);
       } else {
         console.error("API request failed:", response.statusText);
       }

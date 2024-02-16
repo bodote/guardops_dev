@@ -6,21 +6,78 @@ import { toast } from "react-toastify";
 const WorkflowTemplate = ({
   isModalOpen,
   setIsModalOpen,
-  updateFlowList,
+  updateEvaluationList,
   projectID,
   values,
 }) => {
-  const [flowData, setFlowData] = useState({
-    flow_name: values ? values.name : "",
-    flow_description: values ? values.description : "",
+  const [evaluationData, setEvaluationData] = useState({
+    evaluation_name: values ? values.name : "",
+    evaluation_description: values ? values.description : "",
   });
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
-    setFlowData((prevState) => ({
+    setEvaluationData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
+  };
+
+  const handleCreateFlow = async () => {
+    if (
+      evaluationData.evaluation_name == "" ||
+      evaluationData.evaluation_description == ""
+    ) {
+      toast.error("Please Enter required fields !!");
+      return false;
+    }
+    const formData = {
+      project_id: projectID,
+      evaluation_name: evaluationData.evaluation_name,
+      evaluation_description: evaluationData.evaluation_description,
+      evaluation_id: values ? values.evaluation_id : "",
+    };
+    try {
+      if (!values) {
+        const response = await fetch("/api/manageEvaluation", {
+          method: "POST",
+          body: JSON.stringify(formData),
+        });
+        if (response.ok) {
+          toast.success("Evaluation created successfully !!");
+          const responseData = await response.json();
+          setEvaluationData({
+            evaluation_name: "",
+            evaluation_description: "",
+          });
+          setIsModalOpen(false);
+          updateEvaluationList(projectID);
+        }
+      }
+      if (values) {
+        const response = await fetch("/api/manageEvaluation", {
+          method: "PATCH",
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          toast.success("Evaluation updated successfully !!");
+          const responseData = await response.json();
+          setEvaluationData({
+            evaluation_name: "",
+            evaluation_description: "",
+          });
+          setIsModalOpen(false);
+          updateEvaluationList(projectID);
+        } else {
+          toast.error("API request failed !!");
+          console.error("API request failed:", response.statusText);
+        }
+      }
+    } catch (error) {
+      toast.error(`${error.message}`);
+      console.error("Error during API request:", error);
+    }
   };
 
   return (
@@ -60,9 +117,9 @@ const WorkflowTemplate = ({
                       </Dialog.Title>
                       <input
                         type="text"
-                        name="flow_name"
-                        id="flow_name"
-                        value={flowData.flow_name}
+                        name="evaluation_name"
+                        id="evaluation_name"
+                        value={evaluationData.evaluation_name}
                         onChange={handleOnChange}
                         placeholder="Name for your Workflow"
                         className="border-[#EAEBF0] border-[1px] h-[40px] rounded-md text-[15px] font-normal placeholder:text-[#68727D] w-full"
@@ -74,9 +131,9 @@ const WorkflowTemplate = ({
                       </label>
                       <textarea
                         type="text"
-                        name="flow_description"
-                        id="flow_description"
-                        value={flowData.flow_description}
+                        name="evaluation_description"
+                        id="evaluation_description"
+                        value={evaluationData.evaluation_description}
                         onChange={handleOnChange}
                         placeholder="Description for the Workflow"
                         className="border-[#EAEBF0] border-[1px] h-[80px] rounded-md text-[15px] font-normal placeholder:text-[#68727D] w-full"
@@ -84,7 +141,7 @@ const WorkflowTemplate = ({
                     </div>
                     <div className="flex justify-center mt-[28px]">
                       <button
-                        // onClick={handleCreateFlow}
+                        onClick={handleCreateFlow}
                         className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex justify-center items-center gap-[10px] max-w-[161px] w-full"
                       >
                         <FiPlus />

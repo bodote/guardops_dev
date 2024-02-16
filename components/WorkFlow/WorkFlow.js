@@ -1,8 +1,14 @@
 import React, { useCallback, useEffect } from "react";
-import ReactFlow, { useNodesState, useEdgesState, addEdge } from "reactflow";
+import ReactFlow, {
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Background,
+} from "reactflow";
 
 import "reactflow/dist/style.css";
 import CustomNode from "./CustomNode";
+import { PlusBtnIcon } from "@/public/Assets/Icons/Allsvg";
 const nodeTypes = { custom: CustomNode };
 
 const WorkFlow = () => {
@@ -11,7 +17,7 @@ const WorkFlow = () => {
 
   const getFlowData = async () => {
     try {
-      const response = await fetch(`/api/manageFlow`, {
+      const response = await fetch(`/api/manageEvaluation`, {
         method: "GET",
       });
 
@@ -28,22 +34,20 @@ const WorkFlow = () => {
           const updatedEdges = [];
 
           updatedNodes.forEach((sourceNode) => {
-            sourceNode.data.outputs.forEach((output) => {
-              const targetNode = updatedNodes.find((node) =>
-                node.data.inputs.some((input) => input === output)
-              );
-              if (targetNode) {
-                const input = targetNode.data.inputs.find(
-                  (input) => input === output
-                );
-                updatedEdges.push({
-                  id: `${sourceNode.id}-${targetNode.id}-${output}`,
-                  source: sourceNode.id,
-                  //   sourceHandle: output,
-                  target: targetNode.id,
-                  //   targetHandle: input,
+            sourceNode.data.outputs.forEach((output, outputIndex) => {
+              updatedNodes.forEach((targetNode) => {
+                targetNode.data.inputs.forEach((input, inputIndex) => {
+                  if (input === output) {
+                    updatedEdges.push({
+                      id: `${sourceNode.id}-${targetNode.id}-${outputIndex}-${inputIndex}`,
+                      source: sourceNode.id,
+                      sourceHandle: `output-${sourceNode.id}-${outputIndex}`,
+                      target: targetNode.id,
+                      targetHandle: `input-${targetNode.id}-${inputIndex}`,
+                    });
+                  }
                 });
-              }
+              });
             });
           });
 
@@ -67,7 +71,7 @@ const WorkFlow = () => {
     getFlowData();
   }, []);
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
+    <div style={{ height: "100vh" }} className="relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -75,7 +79,12 @@ const WorkFlow = () => {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
-      />
+      >
+        <Background />
+      </ReactFlow>
+      <button className="absolute right-[23px] top-[10px]">
+        <PlusBtnIcon />
+      </button>
     </div>
   );
 };
