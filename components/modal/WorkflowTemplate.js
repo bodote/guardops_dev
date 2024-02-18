@@ -3,78 +3,72 @@ import { Dialog, Transition } from "@headlessui/react";
 import { FiPlus } from "react-icons/fi";
 import { toast } from "react-toastify";
 
-const NewPrompt = ({
-  open,
-  setOpen,
-  updatePlaygroundList,
-  actionType,
-  playground,
-  setCurrentPlaygroundID,
-  setCurrentPlayground,
+const WorkflowTemplate = ({
+  isModalOpen,
+  setIsModalOpen,
+  updateEvaluationList,
+  projectID,
+  values,
 }) => {
-  const [playgroundData, setPlaygroundData] = useState({
-    playground_name: playground ? playground.name : "",
-    playground_description: playground ? playground.description : "",
+  const [evaluationData, setEvaluationData] = useState({
+    evaluation_name: values ? values.name : "",
+    evaluation_description: values ? values.description : "",
   });
+
   const handleOnChange = (e) => {
     const { name, value } = e.target;
-    setPlaygroundData((prevState) => ({
+    setEvaluationData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
 
-  const handleCreatePrompt = async () => {
-    const playgroundFormData = {
-      ...playgroundData,
-    };
+  const handleCreateFlow = async () => {
     if (
-      playgroundFormData.playground_name == "" ||
-      playgroundFormData.playground_description == ""
+      evaluationData.evaluation_name == "" ||
+      evaluationData.evaluation_description == ""
     ) {
       toast.error("Please Enter required fields !!");
       return false;
     }
     const formData = {
-      playground_name: playgroundFormData.playground_name,
-      playground_description: playgroundFormData.playground_description,
-      playground_id: playground ? playground.playground_id : "",
+      project_id: projectID,
+      evaluation_name: evaluationData.evaluation_name,
+      evaluation_description: evaluationData.evaluation_description,
+      evaluation_id: values ? values.evaluation_id : "",
     };
     try {
-      if (actionType === "new") {
-        const response = await fetch("/api/managePlaygrounds", {
+      if (!values) {
+        const response = await fetch("/api/manageEvaluation", {
           method: "POST",
           body: JSON.stringify(formData),
         });
         if (response.ok) {
-          toast.success("Prompt created successfully !!");
+          toast.success("Evaluation created successfully !!");
           const responseData = await response.json();
-          setPlaygroundData({
-            playground_name: "",
-            playground_description: "",
+          setEvaluationData({
+            evaluation_name: "",
+            evaluation_description: "",
           });
-          setOpen(false);
-          updatePlaygroundList();
-          setCurrentPlaygroundID();
-          setCurrentPlayground();
+          setIsModalOpen(false);
+          updateEvaluationList(projectID);
         }
-      } else if (actionType === "edit") {
-        const response = await fetch("/api/managePlaygrounds", {
+      }
+      if (values) {
+        const response = await fetch("/api/manageEvaluation", {
           method: "PATCH",
           body: JSON.stringify(formData),
         });
 
         if (response.ok) {
-          toast.success("Prompt updated successfully !!");
+          toast.success("Evaluation updated successfully !!");
           const responseData = await response.json();
-          setPlaygroundData({
-            playground_name: "",
-            playground_description: "",
+          setEvaluationData({
+            evaluation_name: "",
+            evaluation_description: "",
           });
-          setOpen(false);
-          updatePlaygroundList();
-          setCurrentPlaygroundID();
-          setCurrentPlayground();
+          setIsModalOpen(false);
+          updateEvaluationList(projectID);
         } else {
           toast.error("API request failed !!");
           console.error("API request failed:", response.statusText);
@@ -88,8 +82,8 @@ const NewPrompt = ({
 
   return (
     <div>
-      <Transition.Root show={open} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setOpen}>
+      <Transition.Root show={isModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={setIsModalOpen}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -116,16 +110,18 @@ const NewPrompt = ({
                 <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white sm:p-[37px_38px_48px_36px] p-[20px] text-left shadow-[0px_4px_4px_0px_#00000040] transition-all sm:max-w-[645px] w-full">
                   <div>
                     <div>
-                      <label className="text-[14px] font-medium block mb-[6px]">
-                        Name
-                      </label>
+                      <Dialog.Title>
+                        <label className="text-[14px] font-medium block mb-[6px]">
+                          Workflow Name
+                        </label>
+                      </Dialog.Title>
                       <input
                         type="text"
-                        name="playground_name"
-                        id="playground_name"
-                        value={playgroundData.playground_name}
+                        name="evaluation_name"
+                        id="evaluation_name"
+                        value={evaluationData.evaluation_name}
                         onChange={handleOnChange}
-                        placeholder="Name for your prompt"
+                        placeholder="Name for your Workflow"
                         className="border-[#EAEBF0] border-[1px] h-[40px] rounded-md text-[15px] font-normal placeholder:text-[#68727D] w-full"
                       />
                     </div>
@@ -133,25 +129,23 @@ const NewPrompt = ({
                       <label className="text-[14px] font-medium block mb-[6px]">
                         Description
                       </label>
-                      <input
+                      <textarea
                         type="text"
-                        name="playground_description"
-                        id="playground_description"
-                        value={playgroundData.playground_description}
+                        name="evaluation_description"
+                        id="evaluation_description"
+                        value={evaluationData.evaluation_description}
                         onChange={handleOnChange}
-                        placeholder="Description for your prompt"
-                        className="border-[#EAEBF0] border-[1px] h-[40px] rounded-md text-[15px] font-normal placeholder:text-[#68727D] w-full"
+                        placeholder="Description for the Workflow"
+                        className="border-[#EAEBF0] border-[1px] h-[80px] rounded-md text-[15px] font-normal placeholder:text-[#68727D] w-full"
                       />
                     </div>
-                    <div className="flex justify-center mt-[68px]">
+                    <div className="flex justify-center mt-[28px]">
                       <button
-                        onClick={handleCreatePrompt}
-                        className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex items-center gap-[10px]"
+                        onClick={handleCreateFlow}
+                        className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[12px] rounded-md flex justify-center items-center gap-[10px] max-w-[161px] w-full"
                       >
                         <FiPlus />
-                        {actionType === "new"
-                          ? "Create Prompt"
-                          : "Update Prompt"}
+                        {values ? "Update WF" : "Create WF"}
                       </button>
                     </div>
                   </div>
@@ -165,4 +159,4 @@ const NewPrompt = ({
   );
 };
 
-export default NewPrompt;
+export default WorkflowTemplate;

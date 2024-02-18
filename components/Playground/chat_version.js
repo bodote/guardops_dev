@@ -1,70 +1,89 @@
+import React, { useState, Fragment, useEffect, useRef } from "react";
 import {
-  CopyIcon,
-  DownArrowIcon,
   EditIcon,
   MinusIcon,
-  PenIcon,
   PlusRectangleIcon,
   SettingIcon,
   ShareIcon,
-  UpArrowIcon,
+  LoadingIcon,
+  ImageIcon,
+  User2Icon,
+  FireIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import { Fragment, useState, useEffect, useRef } from "react";
-import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
-import ReactMarkdown from "react-markdown";
-import gfm from "remark-gfm";
+import { MdErrorOutline } from "react-icons/md";
+import { RiEdit2Line } from "react-icons/ri";
 import { Tooltip } from "react-tooltip";
-import ModelSettings from "./modelSettings"; // Import the settings component
-import axios from "axios";
-import { Switch } from "@headlessui/react";
-import { toast } from "react-toastify";
+import { Listbox, Transition, Switch } from "@headlessui/react";
 import { AiOutlineStop } from "react-icons/ai";
+import { FiPlus } from "react-icons/fi";
+import ModelSettings from "./modelSettings";
+import { toast } from "react-toastify";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-const Version = ({
-  addVersion,
-  removeVersion,
-  message,
+const Chat_version = ({
   versions,
-  versionId,
-  runPressed,
-  resetRunPressed,
-  appendToMessage,
-  setApiCallInProgress,
-  apiCallInProgress,
+  removeChatVersion,
+  addChatVersion,
   syncAll,
   setsyncAll,
   setAllSystemPrompt,
   allSystemPrompt,
-  analysisModelOpen,
-  setAnalysisModelOpen,
-  setAllPromtsDetails,
-  setClear,
-  clear,
+  syncAllMsg,
+  setSyncAllMsg,
+  allMsg,
+  setAllMsg,
+  proname,
+  currentPlaygroundID,
 }) => {
-  const [models, setModels] = useState([]);
+  const [userMessage, setUserMessage] = useState("");
+  const [messages, setMessages] = useState([
+    {
+      input: "",
+      output: "",
+    },
+  ]);
+  const [open, setOpen] = useState(false);
+  const modalRef = useRef();
+  const [sync, setSync] = useState(false);
   const [selected, setSelected] = useState({
     name: "Select an option",
   });
-  const [apiResponse, setApiResponse] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [tokens, setTokens] = useState();
-  const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
-  const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
-  const [togetheraiKey, setTogetheraiKey] = useState(""); // State for the API key
-  const [customAIKey, setCustomAIKey] = useState(""); // State for the API key
-  const [customEndpoint, setCustomEndpoint] = useState(""); // State for the API endpoint
-  const modalRef = useRef();
-  const [analysisData, setAnalysisData] = useState([]);
   const [enabled, setEnabled] = useState(false);
-  const [open, setOpen] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
+  const [apiCallInProgress, setApiCallInProgress] = useState(false);
+  const [models, setModels] = useState([]);
+  const [fireworksAIKey, setFireworksAIKey] = useState("");
+  const [openaiKey, setOpenaiKey] = useState("");
+  const [togetheraiKey, setTogetheraiKey] = useState("");
+  const [customAIKey, setCustomAIKey] = useState("");
+  const [customEndpoint, setCustomEndpoint] = useState("");
+  const [error, setError] = useState("");
+  const [editingIndex, setEditingIndex] = useState(-1);
+  const [editedMessage, setEditedMessage] = useState("");
+  // State for settings values
+  const [settings, setSettings] = useState({
+    maxTokens: 500,
+    temperature: 0.6,
+    topP: 0.2,
+    topK: 0.3,
+    frequencyPenalty: 0.3,
+    presencePenalty: 0.3,
+  });
 
+  // Handle settings change
+  const handleSettingsChange = (settingName, value) => {
+    setSettings({ ...settings, [settingName]: value });
+  };
+  const handleOutsideClick = (event) => {
+    if (modalRef.current && !modalRef.current.contains(event.target)) {
+      setShowSettings(false);
+    }
+  };
   const getModels = async () => {
     const response = await fetch(`/api/manageModels`, {
       method: "GET",
@@ -74,22 +93,6 @@ const Version = ({
       setModels(data.models);
     }
   };
-
-  // Load API key from Local Storage
-  useEffect(() => {
-    getModels();
-    const key = localStorage.getItem("fireworksAIKey") || "";
-    setFireworksAIKey(key);
-    const key1 = localStorage.getItem("openAIKey") || "";
-    setOpenaiKey(key1);
-    const key2 = localStorage.getItem("customAIKey") || "";
-    setCustomAIKey(key2);
-    const key3 = localStorage.getItem("customEndpoint") || "";
-    setCustomEndpoint(key3);
-    const key4 = localStorage.getItem("togetherAIKey") || "";
-    setTogetheraiKey(key4);
-  }, []);
-
   const providerConfig = {
     openai: {
       endpoint: "https://api.openai.com/v1/chat/completions",
@@ -110,18 +113,50 @@ const Version = ({
     // Add more providers here as needed
   };
 
-  // Function to append apiResponse to message
-  const handleCopyClick = () => {
-    appendToMessage(apiResponse);
+  const handleEditMessage = (index) => {
+    setEditingIndex(index);
+    setEditedMessage(messages[index].input);
+  };
+
+  const handleSaveEdit = async () => {
+    // Update the message with the edited content
+    const updatedMessages = [...messages];
+    updatedMessages[editingIndex].input = editedMessage;
+    setMessages(updatedMessages);
+    setEditingIndex(-1); // Reset editing index
+    setEditedMessage("");
+
+    // Clear messages after the edited input
+    const messagesBeforeEdit = updatedMessages.slice(0, editingIndex + 1);
+    setMessages(messagesBeforeEdit);
+
+    // Fetch API response
+    await fetchApiResponse();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingIndex(-1); // Reset editing index
+    setEditedMessage(""); // Reset edited message
+  };
+
+  const handleSendMessage = async () => {
+    if (!selected || selected.name === "Select an option") {
+      setError("Please select a model first.");
+      return;
+    }
+    if (userMessage.length) {
+      setApiCallInProgress(true);
+      setMessages([...messages, { input: userMessage }]);
+      setUserMessage("");
+      fetchApiResponse();
+    }
   };
 
   const fetchApiResponse = async () => {
-    setApiResponse("");
-    setIsLoading(true);
     const providerInfo = providerConfig[selected.provider];
+
     if (!providerInfo) {
-      setError(`Provider ${selected.provider} is not supported.`);
-      setIsLoading(false);
+      setError("Please select the valid model");
       return;
     }
 
@@ -133,15 +168,15 @@ const Version = ({
       selected.provider === "custom"
         ? `${providerInfo.getKey()}`
         : `Bearer ${providerInfo.getKey()}`;
-
     const formData = {
       settings: settings,
       modal: selected,
       apiEndpoint: apiEndpoint,
       authKey: authKey,
-      message: message,
+      message: editedMessage ? editedMessage : userMessage,
       systemPrompt: open ? systemPrompt : "",
-      type: "prompt",
+      type: "chat",
+      data: messages,
     };
 
     try {
@@ -154,34 +189,21 @@ const Version = ({
       });
 
       if (!res.ok) {
-        setIsLoading(false);
-        // setApiResponse("No content available");
+        setApiCallInProgress(false);
+        setError("No content available");
         const errorText = await res.text();
         let errorMessage = JSON.parse(errorText);
-        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
-        selected.provider === "openai" &&
-          setApiResponse(errorMessage.error.message);
-        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
-        selected.provider === "togethercompute" &&
-          setApiResponse(errorMessage.error);
-        setAllPromtsDetails((prevDetails) => [
-          ...prevDetails,
-          {
-            isValid: false,
-            versionId: versionId,
-            model: selected.id,
-            input: message,
-            output: "",
-          },
-        ]);
+        selected.provider === "fireworks" && setError(errorMessage.error);
+        selected.provider === "openai" && setError(errorMessage.error.message);
+        selected.provider === "fireworks" && setError(errorMessage.error);
+        selected.provider === "togethercompute" && setError(errorMessage.error);
         throw new Error(res.statusText);
       } else {
         const data = res.body;
         if (!data) {
-          setApiResponse("No content available");
+          setError("No content available");
           return;
         }
-        setIsLoading(false);
         const reader = data.getReader();
         const decoder = new TextDecoder();
         let done = false;
@@ -191,74 +213,67 @@ const Version = ({
           const { value, done: doneReading } = await reader.read();
           done = doneReading;
           const chunkValue = decoder.decode(value);
-          setApiResponse((prev) => prev + chunkValue);
+          setError("");
           completeString += chunkValue;
+          setMessages((prevMessages) => {
+            const lastIndex = prevMessages.length - 1;
+            return prevMessages.map((message, index) => {
+              if (index === lastIndex) {
+                return { ...message, output: completeString };
+              } else {
+                return message;
+              }
+            });
+          });
         }
-        setIsLoading(false);
-        setAllPromtsDetails((prevDetails) => [
-          ...prevDetails,
-          {
-            isValid: true,
-            versionId: versionId,
-            model: selected.model_id,
-            input: message,
-            output: completeString,
-            systemPrompt: systemPrompt,
-            settings: settings,
-          },
-        ]);
+        setApiCallInProgress(false);
       }
     } catch (error) {
       console.error("API request failed:", error.message);
-      setError("Error: " + error.message);
-      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    const isValidModelSelected = selected?.id1 && selected?.id1 !== "None";
-    const providerInfo = providerConfig[selected?.provider];
-    const apiKey = providerInfo ? providerInfo.getKey() : null;
-
-    if (message && isValidModelSelected && apiKey && runPressed) {
-      fetchApiResponse()
-        .then(() => {
-          resetRunPressed(); // Reset runPressed after the API call
-          setApiCallInProgress(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching API response:", error);
-          setError("Error: " + error.message); // Set error state
-          setApiCallInProgress(false);
-        });
-    } else if (runPressed) {
-      let missingItems = [];
-      if (!message) missingItems.push("message");
-      if (!isValidModelSelected) missingItems.push("valid model selection");
-      if (!apiKey) missingItems.push("API key");
-
-      setApiResponse(
-        `Please provide the following: ${missingItems.join(", ")}.`
-      ); // Set error message in apiResponse
-      setApiCallInProgress(false);
-      resetRunPressed();
+  const saveTracePlayground = async () => {
+    if (apiCallInProgress) {
+      return;
     }
-  }, [message, selected?.id1, fireworksAIKey, runPressed, resetRunPressed]);
+    if (proname.project_id === undefined || currentPlaygroundID.length === 0) {
+      toast.error("Please select the project and playground first!!!");
+      return;
+    }
+    const modelId = selected.model_id;
+    const formatModelParams = (settings) => {
+      const paramsArray = Object.entries(settings).map(
+        ([key, value]) => `${key}:${value}`
+      );
+      return paramsArray.join(", ");
+    };
+    const APIBody = messages
+      .filter((item) => item.input !== "" || item.output !== "")
+      .map((item) => ({
+        [modelId]: {
+          system_prompt: systemPrompt,
+          input: item.input,
+          output: item.output,
+          model_params: formatModelParams(settings),
+        },
+      }));
 
-  // Format OutputResponse for Code
-  const handleAnalysis = async () => {
     const formData = {
-      input: message,
-      response: apiResponse,
+      project_id: proname.project_id,
+      playground_id: currentPlaygroundID,
+      access_token: localStorage.getItem("customAIKey"),
+      start_time: new Date().toISOString(),
+      prompt_response_pairs: APIBody,
     };
     try {
-      const response = await fetch("/api/manageModelChecks", {
+      const response = await fetch("/api/manageChatPlayground", {
         method: "POST",
         body: JSON.stringify(formData),
       });
       if (response.ok) {
         const responseData = await response.json();
-        setAnalysisData(responseData);
+        toast.success("The traces are successfully stored!!!");
       }
     } catch (error) {
       console.error("Error during API request:", error);
@@ -266,92 +281,18 @@ const Version = ({
   };
 
   useEffect(() => {
-    if (analysisModelOpen) {
-      handleAnalysis();
-    }
-  }, [analysisModelOpen]);
-
-  useEffect(() => {
-    if (clear) {
-      setApiResponse("");
-      setClear(false);
-    }
-  }, [clear]);
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        console.log("Text copied to clipboard");
-      })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-      });
-  };
-
-  const CodeBox = ({ code }) => {
-    return (
-      <div className="code-box-container my-2">
-        <pre className="code-box">{code}</pre>
-        <button className="copy-button" onClick={() => copyToClipboard(code)}>
-          Copy
-        </button>
-      </div>
-    );
-  };
-
-  const parseApiResponse = (apiResponse) => {
-    const segments = [];
-    const regex = /```(.*?)```/gs;
-    let lastIndex = 0;
-
-    apiResponse?.replace(regex, (match, codeBlock, index) => {
-      // Add the text segment before the code block
-      if (index > lastIndex) {
-        segments.push({
-          type: "text",
-          content: apiResponse.slice(lastIndex, index),
-        });
-      }
-      // Add the code block
-      segments.push({ type: "code", content: codeBlock });
-      lastIndex = index + match.length;
-    });
-
-    // Add any remaining text after the last code block
-    if (apiResponse && lastIndex < apiResponse.length) {
-      segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
-    }
-
-    return segments;
-  };
-
-  const segments = parseApiResponse(apiResponse);
-
-  // Settings Modal Window
-  // State to manage settings visibility
-  const [showSettings, setShowSettings] = useState(false);
-
-  // State for settings values
-  const [settings, setSettings] = useState({
-    maxTokens: 500,
-    temperature: 0.6,
-    topP: 0.2,
-    topK: 0.3,
-    frequencyPenalty: 0.3,
-    presencePenalty: 0.3,
-  });
-
-  // Handle settings change
-  const handleSettingsChange = (settingName, value) => {
-    setSettings({ ...settings, [settingName]: value });
-  };
-  const handleOutsideClick = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
-      setShowSettings(false);
-    }
-  };
-
+    getModels();
+    const key = localStorage.getItem("fireworksAIKey") || "";
+    setFireworksAIKey(key);
+    const key1 = localStorage.getItem("openAIKey") || "";
+    setOpenaiKey(key1);
+    const key2 = localStorage.getItem("customAIKey") || "";
+    setCustomAIKey(key2);
+    const key3 = localStorage.getItem("customEndpoint") || "";
+    setCustomEndpoint(key3);
+    const key4 = localStorage.getItem("togetherAIKey") || "";
+    setTogetheraiKey(key4);
+  }, []);
   useEffect(() => {
     if (enabled) {
       setsyncAll(true);
@@ -359,22 +300,38 @@ const Version = ({
     } else {
       setsyncAll(false);
     }
-  }, [enabled]);
+
+    if (sync) {
+      setSyncAllMsg(true);
+      setAllMsg(userMessage);
+    } else {
+      setSyncAllMsg(false);
+    }
+  }, [enabled, sync]);
 
   useEffect(() => {
     if (syncAll) {
-      setEnabled(true);
+      setSync(true);
       setSystemPrompt(allSystemPrompt);
     } else {
-      setEnabled(false);
+      setSync(false);
     }
-  }, [syncAll, allSystemPrompt]);
+    if (syncAllMsg) {
+      setSync(true);
+      setUserMessage(allMsg);
+    } else {
+      setSync(false);
+    }
+  }, [syncAll, allSystemPrompt, syncAllMsg, allMsg]);
 
   useEffect(() => {
     if (syncAll) {
       setAllSystemPrompt(systemPrompt);
     }
-  }, [systemPrompt]);
+    if (syncAllMsg) {
+      setAllMsg(userMessage);
+    }
+  }, [systemPrompt, userMessage]);
 
   useEffect(() => {
     if (showSettings) {
@@ -387,21 +344,22 @@ const Version = ({
     };
   }, [showSettings]);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        handleSendMessage();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [userMessage, selected]);
   return (
-    <>
-      <div
-        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[476px] !min-h-[400px] overflow-auto ${
-          versions > 4
-            ? "sm:min-h-0 !min-h-[464px] sm:h-auto h-[464px] sm:!pr-[10px]"
-            : ""
-        } ${
-          versions <= 5
-            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[566px] sm:!min-h-[600px]"
-            : ""
-        }`}
-      >
-        <div>
-          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative">
+    <div className="flex sm:flex-row flex-col items-start">
+      <div className="w-full">
+        <div className="border-r-[#CCCCCC] border-r-[1px]">
+          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
             <div className="flex items-center gap-2">
               <Listbox value={selected} onChange={setSelected}>
                 {({ open }) => (
@@ -523,29 +481,38 @@ const Version = ({
                 versions > 2 ? "!gap-[10px]" : ""
               }`}
             >
+              <button
+                onClick={() =>
+                  setMessages([
+                    {
+                      input: "",
+                      output: "",
+                    },
+                  ])
+                }
+              >
+                <LoadingIcon />
+              </button>
+              <button onClick={saveTracePlayground}>
+                <ImageIcon />
+              </button>
               <button onClick={() => setOpen(!open)}>
                 <EditIcon />
               </button>
               <button>
-                <MinusIcon onClick={() => removeVersion()} />
+                <MinusIcon onClick={() => removeChatVersion()} />
               </button>
               <button>
-                <PlusRectangleIcon onClick={addVersion} />
+                <PlusRectangleIcon onClick={() => addChatVersion()} />
               </button>
-              <button
-                onClick={() =>
-                  !apiCallInProgress && setAnalysisModelOpen(!analysisModelOpen)
-                }
-              >
+              <button>
                 <ShareIcon />
               </button>
               <button onClick={() => setShowSettings(true)}>
                 <SettingIcon />{" "}
               </button>
-              {/* Attach the click handler */}
             </div>
 
-            {/* Conditionally render the settings component */}
             {showSettings && (
               <div
                 ref={modalRef}
@@ -559,7 +526,7 @@ const Version = ({
             )}
           </div>
           {open && (
-            <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px]">
+            <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] m-[10px] mt-[16px]">
               <p className="text-[#252525] font-medium text-[14px]">
                 System Prompt
               </p>
@@ -606,114 +573,134 @@ const Version = ({
               </div>
             </div>
           )}
-          <div
-            className={`response-output justify-center mt-[20px]  overflow-auto ${
-              versions > 4 ? "sm:max-h-auto sm:max-h-[360px] max-h-[310px]" : ""
-            }`}
-          >
-            {isLoading ? (
-              <p>Loading...</p>
-            ) : apiResponse ? (
-              segments.map((segment, index) =>
-                segment.type === "code" ? (
-                  <CodeBox key={index} code={segment.content} />
-                ) : (
-                  <ReactMarkdown
-                    components={{
-                      ul: ({ node, ...props }) => (
-                        <ul
-                          style={{
-                            display: "block",
-                            listStyleType: "disc",
-                            paddingInlineStart: "40px",
-                          }}
-                          {...props}
-                        />
-                      ),
-                      ol: ({ node, ...props }) => (
-                        <ol
-                          style={{
-                            display: "block",
-                            listStyleType: "decimal",
-                            paddingInlineStart: "40px",
-                          }}
-                          {...props}
-                        />
-                      ),
-                      h1: ({ node, ...props }) => (
-                        <h1 className="font-bold text-6xl" {...props} />
-                      ),
-                    }}
-                    remarkPlugins={[gfm]}
-                    key={index}
-                    children={segment.content}
-                  />
-                )
-              )
-            ) : error ? (
-              <p>Error: {error}</p>
-            ) : null}
-          </div>
-          <div className="flex gap-[10px] justify-center my-[17px]">
-            <CopyIcon onClick={handleCopyClick} />
-            <DownArrowIcon />
-            <UpArrowIcon />
-            <PenIcon />
-          </div>
-          {analysisModelOpen && (
-            <div className="w-full bg-[#D4DB3333] p-[15px] rounded-[18px] overflow-auto">
-              <table className="grid grid-cols-2 min-w-[640px]">
-                {analysisData?.map((data, key) => {
-                  return (
-                    <tbody key={key}>
-                      <tr className="flex gap-[12px]">
-                        <td className="text-[12px] italic font-semibold mb-[3px] text-left">
-                          <div
-                            data-tooltip-id="my-tooltip"
-                            data-tooltip-content={data.category}
-                            className="w-[100px] truncate"
-                          >
-                            {data.category}
-                          </div>
-                        </td>
-                        <td className="text-[12px] font-normal mb-[3px] text-left">
-                          <div
-                            data-tooltip-id="my-tooltip"
-                            data-tooltip-content={data.type}
-                            className="w-[100px] truncate"
-                          >
-                            {data.type}
-                          </div>
-                        </td>
-                        <td className="text-[12px] font-semibold mb-[3px] text-left">
-                          <div
-                            data-tooltip-id="my-tooltip"
-                            data-tooltip-content={data.value}
-                            className="w-[60px] truncate"
-                          >
-                            {data.value}
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  );
-                })}
-              </table>
-            </div>
-          )}
-        </div>
-        {tokens && (
           <div>
-            <p className="text-[12px] text-black text-center font-normal">
-              Total Tokens: {tokens.total_tokens} - Input Tokens:{" "}
-              {tokens.prompt_tokens} - Output Tokens: {tokens.completion_tokens}
-            </p>
+            {error && (
+              <p className="bg-[#ffe1e1bb] text-[red] p-[10px] flex gap-2 items-center">
+                <MdErrorOutline className="text-[20px]" />
+                {error}
+              </p>
+            )}
+            <div className="bg-[#F7F7F7] h-[calc(100vh-247px)] overflow-y-auto">
+              {messages.map((message, index) => (
+                <Fragment key={index}>
+                  {message.input && (
+                    <>
+                      <div
+                        className={`bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] group ${
+                          editingIndex === index
+                            ? ""
+                            : "flex justify-between gap-[20px]"
+                        }`}
+                      >
+                        <div className="flex sm:gap-[19px] gap-[8px]">
+                          <User2Icon className="min-w-[16px]" />
+                          {editingIndex === index ? (
+                            <>
+                              <div className="flex-col w-full">
+                                <div>
+                                  <textarea
+                                    className="bg-transparent border-none w-full  focus:ring-0 focus:outline-none pt-0 pl-0 h-[100px]"
+                                    value={editedMessage}
+                                    onChange={(e) =>
+                                      setEditedMessage(e.target.value)
+                                    }
+                                  />
+                                </div>
+                                <div className="flex gap-[13px] justify-center item-center">
+                                  <button
+                                    onClick={handleSaveEdit}
+                                    className="text-[12px] text-[#000]  bg-[#D4DB33] block px-[13px] h-fit py-[3px] rounded-[6px] font-medium"
+                                  >
+                                    Save & Send
+                                  </button>
+                                  <button
+                                    onClick={handleCancelEdit}
+                                    className="text-[12px] text-[#000] bg-[#D4DB33]  block px-[29px] h-fit py-[3px] rounded-[6px] font-medium"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="md:text-[16px] text-[14px]">
+                              {message.input}{" "}
+                            </p>
+                          )}
+                        </div>
+                        {editingIndex !== index && (
+                          <button
+                            className="text-[20px] text-[#2B3F6C]  "
+                            // className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
+                            onClick={() => handleEditMessage(index)}
+                          >
+                            <RiEdit2Line />
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  {message.output && (
+                    <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
+                      <FireIcon className="min-w-[16px]" />
+                      <p className="md:text-[16px] text-[14px]">
+                        {message.output}
+                      </p>
+                    </div>
+                  )}
+                </Fragment>
+              ))}
+            </div>
+            <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
+              <div className="bg-[#ECECEC] rounded-md">
+                <textarea
+                  placeholder="Send a message"
+                  value={userMessage}
+                  onChange={(e) => setUserMessage(e.target.value)}
+                  className="border-0 resize-none bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full rounded-md"
+                ></textarea>
+                <div className="flex justify-end gap-[10px] pr-[13px] pb-2">
+                  <div className="flex items-center gap-[5px]">
+                    <Switch
+                      checked={sync}
+                      onChange={() => setSync(!sync)}
+                      className={classNames(
+                        sync ? "bg-[#0074fb]" : "bg-[#F7F7F8]",
+                        "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      )}
+                    >
+                      <span className="sr-only">Use setting</span>
+                      <span
+                        aria-hidden="true"
+                        className={classNames(
+                          sync ? "translate-x-[11px]" : "translate-x-0",
+                          "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                        )}
+                      />
+                    </Switch>
+                    <label className="text-[#252525] text-[12px] font-medium">
+                      Sync to all
+                    </label>
+                  </div>
+                  <button
+                    onClick={handleSendMessage}
+                    className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
+                      apiCallInProgress
+                        ? "bg-[#CCCCCC]"
+                        : "bg-[#D4DB33] hover:bg-[#0D859A]"
+                    }`}
+                    disabled={apiCallInProgress}
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
-      <Tooltip id="my-tooltip" />
-    </>
+    </div>
   );
 };
 
-export default Version;
+export default Chat_version;

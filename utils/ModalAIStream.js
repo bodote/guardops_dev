@@ -3,16 +3,43 @@ import { createParser } from "eventsource-parser";
 export async function ModalAIStream(payload) {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
-
   if (
     payload.modal.provider === "openai" ||
     payload.modal.provider === "fireworks" ||
-    payload.modal.provider === "custom"
+    payload.modal.provider === "custom" ||
+    payload.modal.provider === "togethercompute"
   ) {
     let counter = 0;
 
     try {
-      // Ask OpenAI or Fireworks for a streaming completion given the prompt
+      let filteredData = payload.data?.filter(
+        (item) => item.input.trim() !== "" || item.output.trim() !== ""
+      );
+      let messages = [];
+      if (payload.type === "chat") {
+        messages = [{ role: "system", content: payload.systemPrompt }];
+        filteredData.forEach((item, index) => {
+          messages.push({
+            role: "user",
+            content: item.input,
+          });
+          messages.push({
+            role: "assistant",
+            content: item.output,
+          });
+        });
+        // Add the current message
+        messages.push({
+          role: "user",
+          content: payload.message,
+        });
+      } else {
+        messages = [
+          { role: "system", content: payload.systemPrompt },
+          { role: "user", content: payload.message },
+        ];
+      }
+      // Ask OpenAI or Fireworks or Custom or Together for a streaming completion given the prompt
       const response = await fetch(`${payload.apiEndpoint}`, {
         headers: {
           "Content-Type": "application/json",
@@ -24,20 +51,15 @@ export async function ModalAIStream(payload) {
             payload.modal.provider === "fireworks"
               ? `accounts/fireworks/models/${payload.modal.id1}`
               : payload.modal.id1,
-          messages: [
-            {
-              role: "system",
-              content: `${payload.systemPrompt}`,
-            },
-            {
-              role: "user",
-              content: `${payload.message}`,
-            },
-          ],
+          ...(payload.modal.provider === "togethercompute"
+            ? { prompt: payload.message }
+            : {
+                messages,
+              }),
           stream: true,
           max_tokens: Number(payload?.settings.maxTokens),
-          temperature: payload?.settings.temperature,
-          top_p: payload?.settings.topP,
+          temperature: Number(payload?.settings.temperature),
+          top_p: Number(payload?.settings.topP),
         }),
       });
 

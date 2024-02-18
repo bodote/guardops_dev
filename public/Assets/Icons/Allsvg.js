@@ -1130,3 +1130,254 @@ export const BookIcon = ({ className }) => {
     </svg>
   );
 };
+
+export const LoadingIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="17"
+      height="17"
+      viewBox="0 0 17 17"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M8.5 1L8.5 3.25"
+        stroke="#464F60"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.5 13.75L8.5 16"
+        stroke="#464F60"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M16 8.5L13.75 8.5"
+        stroke="#464F60"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.25 8.5L1 8.5"
+        stroke="#464F60"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M13.8034 3.19673L12.2124 4.78772"
+        stroke="#464F60"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.78777 12.2125L3.19678 13.8035"
+        stroke="#464F60"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M3.19661 3.19673L4.7876 4.78772"
+        stroke="#464F60"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12.2122 12.2125L13.8032 13.8035"
+        stroke="#464F60"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+export const ImageIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="17"
+      height="17"
+      viewBox="0 0 17 17"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M1 5C1 2.79086 2.79086 1 5 1H8.5H10.2574C11.053 1 11.8161 1.31607 12.3787 1.87868L15.1213 4.62132C15.6839 5.18393 16 5.94699 16 6.74264V8.5V12C16 14.2091 14.2091 16 12 16H5C2.79086 16 1 14.2091 1 12V5Z"
+        stroke="#464F60"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M4 11.25C4 10.1454 4.89543 9.25 6 9.25H11C12.1046 9.25 13 10.1454 13 11.25V16H4V11.25Z"
+        stroke="#464F60"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M5.5 1V3.75C5.5 4.30228 5.94772 4.75 6.5 4.75H10.5C11.0523 4.75 11.5 4.30228 11.5 3.75V1"
+        stroke="#464F60"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+};
+export const User2Icon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="19"
+      viewBox="0 0 16 19"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle
+        cx="4"
+        cy="4"
+        r="4"
+        transform="matrix(-1 0 0 1 12 1)"
+        stroke="#2B3F6C"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M1 14.9347C1 14.0743 1.54085 13.3068 2.35109 13.0175V13.0175C6.00404 11.7128 9.99596 11.7128 13.6489 13.0175V13.0175C14.4591 13.3068 15 14.0743 15 14.9347V16.2502C15 17.4376 13.9483 18.3498 12.7728 18.1818L11.8184 18.0455C9.28565 17.6837 6.71435 17.6837 4.18162 18.0455L3.22721 18.1818C2.0517 18.3498 1 17.4376 1 16.2502V14.9347Z"
+        stroke="#2B3F6C"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+};
+export const FireIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="22"
+      viewBox="0 0 16 22"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M9.75218 1.18177C9.75028 1.1035 9.66348 1.05387 9.59828 1.09722C6.12039 3.40958 6.20112 9.21905 6.24237 10.2253C6.24533 10.2974 6.17609 10.3449 6.11223 10.3114C5.71018 10.1007 4.56273 9.3091 4.50247 7.11866C4.50031 7.04027 4.41402 6.9913 4.34855 7.03447C2.34414 8.35634 1 10.7954 1 13.5C1 17.6421 4.134 21 8 21C11.866 21 15 17.6421 15 13.5C15 7.47851 9.87373 6.18656 9.75218 1.18177Z"
+        stroke="#2B3F6C"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+};
+export const LightIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="14"
+      height="20"
+      viewBox="0 0 14 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M8.81538 8.579C8.70492 8.579 8.61538 8.48946 8.61538 8.379V1.5558C8.61538 1.36835 8.38067 1.2839 8.26123 1.42837L0.676754 10.6024C0.407225 10.9284 0.639107 11.421 1.06211 11.421H5.18463C5.29508 11.421 5.38463 11.5105 5.38463 11.621V18.4442C5.38463 18.6316 5.61933 18.7161 5.73877 18.5716L13.3232 9.39759C13.5928 9.07158 13.3609 8.579 12.9379 8.579H8.81538Z"
+        stroke="black"
+      />
+    </svg>
+  );
+};
+export const Share2Icon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="21"
+      height="21"
+      viewBox="0 0 21 21"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M14.3 7.1579L16 7.1579C18.2091 7.1579 20 8.94876 20 11.1579L20 16.5C20 18.7091 18.2091 20.5 16 20.5L5 20.5C2.79086 20.5 1 18.7091 1 16.5L1 11.1579C1 8.94876 2.79086 7.1579 5 7.1579L6.7 7.1579"
+        stroke="black"
+        strokeLinecap="round"
+      />
+      <path
+        d="M13.35 4.07895L11.2338 1.79282C10.838 1.36521 10.1619 1.36521 9.76611 1.79282L7.64998 4.07895"
+        stroke="black"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10.5 2.02631L10.5 14.3421"
+        stroke="black"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+};
+export const ImportIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M9 8L7 8C4.79086 8 3 9.79086 3 12L3 17C3 19.2091 4.79086 21 7 21L19 21C21.2091 21 23 19.2091 23 17L23 12C23 9.79086 21.2091 8 19 8L17 8"
+        // stroke="black"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10 13L12.2929 15.2929C12.6834 15.6834 13.3166 15.6834 13.7071 15.2929L16 13"
+        // stroke="black"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M13 15L13 3"
+        // stroke="black"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+};
+export const CoinIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="19"
+      viewBox="0 0 16 19"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M15 3.5C15 4.88071 11.866 6 8 6C4.13401 6 1 4.88071 1 3.5M15 3.5C15 2.11929 11.866 1 8 1C4.13401 1 1 2.11929 1 3.5M15 3.5V15.5C15 16.8807 11.866 18 8 18C4.13401 18 1 16.8807 1 15.5V3.5M15 7.5C15 8.88071 11.866 10 8 10C4.13401 10 1 8.88071 1 7.5M15 11.5C15 12.8807 11.866 14 8 14C4.13401 14 1 12.8807 1 11.5"
+        stroke="black"
+      />
+    </svg>
+  );
+};
+export const PlusBtnIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="44"
+      height="41"
+      viewBox="0 0 44 41"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="23" cy="20" r="15" fill="#D4DB33" />
+      <rect x="21" y="11" width="4" height="18" fill="white" />
+      <rect x="14" y="18" width="18" height="4" fill="white" />
+    </svg>
+  );
+};

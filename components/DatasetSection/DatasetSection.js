@@ -3,21 +3,31 @@ import {
   DeleteBlackIcon,
   EditBlackIcon,
   PlusIcon,
+  LightIcon,
+  Share2Icon,
+  ImportIcon,
 } from "@/public/Assets/Icons/Allsvg";
 import { useRouter } from "next/navigation";
 import AddDatasetModal from "@/components/modal/AddDatasetModal";
 import DeleteModal from "../modal/DeleteModal";
+import DeveloperInfo from "../modal/DeveloperInfo";
+import ImportShareCode from "../modal/ImportShareCode";
+import GenerateShareModal from "../modal/GenerateShareModal";
 
 const DatasetSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [datasetList, setDatasetList] = useState([]);
   const [createDatasetStatus, setCreateDatasetStatus] = useState("new");
   const [selectedDatasetForDelete, setSelectedDatasetForDelete] = useState("");
+  const [selectedDatasetID, setSelectedDatasetID] = useState("");
   const [selectedDatasetForEdit, setSelectedDatasetForEdit] = useState("");
   const [loader, setLoader] = useState(false);
   const router = useRouter();
   const modalRef = useRef();
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(false);
+  const [shareModal, setShareModal] = useState(false);
+  const [importShare, setImportShare] = useState(false);
 
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -79,6 +89,10 @@ const DatasetSection = () => {
     }
   };
 
+  const handleGenerateShareCode = (datasetId) => {
+    setShareModal(true);
+    setSelectedDatasetID(datasetId);
+  };
   useEffect(() => {
     if (isModalOpen) {
       document.addEventListener("mousedown", handleOutsideClick);
@@ -100,7 +114,7 @@ const DatasetSection = () => {
         <h1 className="font-Archivo sm:text-[32px] text-[28px] font-thin text-[#000] sm:py-[26px] py-[20px]">
           Datasets
         </h1>
-        <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full items-center">
+        <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full">
           {!loader ? (
             datasetList.map((ele, i) => {
               return (
@@ -125,6 +139,19 @@ const DatasetSection = () => {
                       </h2>
                     </div>
                     <div className="flex gap-4">
+                      <button
+                        onClick={() => handleGenerateShareCode(ele.dataset_id)}
+                      >
+                        <Share2Icon />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActive(true);
+                          setSelectedDatasetID(ele.dataset_id);
+                        }}
+                      >
+                        <LightIcon />
+                      </button>
                       <button onClick={() => handleDatasetEdit(ele)}>
                         <EditBlackIcon />
                       </button>
@@ -182,11 +209,25 @@ const DatasetSection = () => {
             <div className="flex items-center gap-[8px]">
               <PlusIcon className="stroke-[#12131A] group-hover:stroke-white" />
               <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
-                Add Datasets
+                New Dataset
               </h2>
             </div>
             <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
               Create a Dataset for Finetuning, Evaluation and Curation
+            </p>
+          </div>
+          <div
+            onClick={() => setImportShare(true)}
+            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
+          >
+            <div className="flex items-center gap-[8px]">
+              <ImportIcon className="stroke-[#12131A] group-hover:stroke-white" />
+              <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
+                Import Dataset
+              </h2>
+            </div>
+            <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
+              Import an existing dataset from a share code
             </p>
           </div>
           {isModalOpen && (
@@ -203,6 +244,28 @@ const DatasetSection = () => {
                 }
               />
             </div>
+          )}
+          {active && (
+            <DeveloperInfo
+              active={active}
+              setActive={setActive}
+              name="dataset"
+              selectedID={selectedDatasetID}
+            />
+          )}
+          {shareModal && (
+            <GenerateShareModal
+              shareModal={shareModal}
+              setShareModal={setShareModal}
+              selectedDatasetID={selectedDatasetID}
+            />
+          )}
+          {importShare && (
+            <ImportShareCode
+              importShare={importShare}
+              setImportShare={setImportShare}
+              name="dataset"
+            />
           )}
         </div>
       </div>
