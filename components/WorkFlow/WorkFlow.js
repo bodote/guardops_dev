@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import ReactFlow, {
   useNodesState,
   useEdgesState,
@@ -9,11 +9,14 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import CustomNode from "./CustomNode";
 import { PlusBtnIcon } from "@/public/Assets/Icons/Allsvg";
+import ToolsModal from "../modal/ToolsModal";
 const nodeTypes = { custom: CustomNode };
 
 const WorkFlow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [flowData, setFlowData] = useEdgesState();
+  const [toolsModal, setToolsModal] = useState(false);
 
   const getFlowData = async () => {
     try {
@@ -24,6 +27,7 @@ const WorkFlow = () => {
       if (response.ok) {
         const responseData = await response.json();
         if (responseData.flow_elements) {
+          setFlowData(responseData.flow_elements);
           const updatedNodes = responseData.flow_elements.map((element) => ({
             id: element.id,
             type: "custom",
@@ -82,9 +86,17 @@ const WorkFlow = () => {
       >
         <Background />
       </ReactFlow>
-      <button className="absolute right-[23px] top-[10px]">
+      <button
+        onClick={() => setToolsModal(!toolsModal)}
+        className="absolute right-[23px] top-[10px]"
+      >
         <PlusBtnIcon />
       </button>
+      <ToolsModal
+        toolsModal={toolsModal}
+        setToolsModal={setToolsModal}
+        flowData={flowData}
+      />
     </div>
   );
 };
