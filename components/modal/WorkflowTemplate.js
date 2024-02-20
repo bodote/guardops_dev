@@ -11,7 +11,7 @@ const WorkflowTemplate = ({
   values,
 }) => {
   const [evaluationData, setEvaluationData] = useState({
-    evaluation_name: values ? values.name : "",
+    evaluation_name: values ? values.title : "",
     evaluation_description: values ? values.description : "",
   });
 

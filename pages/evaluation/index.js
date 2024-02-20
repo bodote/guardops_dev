@@ -13,7 +13,7 @@ import {
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { RiFilter2Fill } from "react-icons/ri";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
-import { JsonViewer } from "@textea/json-viewer"; // Imported JsonViewer
+import { JsonViewer } from "@textea/json-viewer";
 
 import dynamic from "next/dynamic";
 import Logout from "@/components/Logout/Logout";
@@ -55,15 +55,14 @@ const index = () => {
     setProjectID(project);
     try {
       const response = await fetch(
-        `/api/manageEvaluation?projectID=${project}`,
+        `/api/manageEvaluation?projectID=${project}&list=list`,
         {
           method: "GET",
         }
       );
       if (response.ok) {
         const responseData = await response.json();
-        // console.log(responseData.evaluation_list);
-        // setEvaluationList(responseData.evaluation_list);
+        setEvaluationList(responseData.evaluation_list);
       } else {
         console.error("API request failed:", response.statusText);
       }
@@ -73,19 +72,23 @@ const index = () => {
   };
 
   const formatDate = (dateString) => {
-    const options = {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
+    const date = new Date(dateString);
+
+    const formattedDate = date
+      .toLocaleDateString("en-US", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+      .replace(/,/g, "");
+
+    const formattedTime = date.toLocaleTimeString("en-US", {
       hour: "numeric",
-      minute: "numeric",
+      minute: "2-digit",
       hour12: true,
-    };
-    const formattedDate = new Date(dateString).toLocaleDateString(
-      "en-US",
-      options
-    );
-    return formattedDate;
+    });
+
+    return `${formattedDate}, ${formattedTime}`;
   };
 
   useEffect(() => {
@@ -220,7 +223,7 @@ const index = () => {
                 </div>
                 <input
                   type="text"
-                  id="voice-search"
+                  id="search"
                   className="focus:ring-0 focus:outline-none focus:!border-gray-300  border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 pl-[36px] py-[5px]  border-s-gray-50 placeholder:text-[#A1A9B8]"
                   placeholder="Search"
                   required
@@ -338,19 +341,20 @@ const index = () => {
                       </td>
                       <td className="py-[3.5px] px-[10px] text-center">
                         <span className="bg-[#E9EDF5] rounded-[6px] h-[24px] text-[#464F60] p-[3.5px_8px] text-[12px]">
-                          {data.evaluations.map(
+                          {/* {data.evaluations.map(
                             (res) => res.data.eval_data.total_score
-                          )}
+                          )} */}
+                          23
                         </span>
                       </td>
                       <td>
-                        {data.evaluations.map((res, index) => (
-                          <JsonViewer
-                            key={index}
-                            value={res.data.eval_data.scores}
-                            defaultInspectDepth={0}
-                          /> // Replaced DynamicReactJson with JsonViewer
-                        ))}
+                        {/* {data.evaluations.map((res, index) => ( */}
+                        <JsonViewer
+                          key={index}
+                          value={data.data}
+                          defaultInspectDepth={0}
+                        />
+                        {/* ))} */}
                       </td>
                       <td className="py-[3.5px] px-[10px] text-[14px] font-medium font-Inter text-end min-w-[100px]">
                         <div className="flex gap-[5px] items-center relative">

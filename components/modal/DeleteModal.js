@@ -72,7 +72,11 @@ const DeleteModal = ({
                           type="text"
                           name="projectName"
                           id="projectName"
-                          placeholder={selectedDataForDelete.name}
+                          placeholder={
+                            selectedDataForDelete.name
+                              ? selectedDataForDelete.name
+                              : selectedDataForDelete.title
+                          }
                           className="h-10 bg-[#F7F7F8] border border-[#EAEBF0] mt-[6px] rounded  w-full font-normal text-[15px] font-Inter placeholder:text-[#000000]"
                           disabled
                         />

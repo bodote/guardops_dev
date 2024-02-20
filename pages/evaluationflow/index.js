@@ -38,7 +38,7 @@ const EvaluationFlow = () => {
         setLoader(false);
         const responseData = await response.json();
         if (responseData) {
-          setEvaluationList(responseData.evaluation_list[0].evaluations);
+          setEvaluationList(responseData.evaluations);
         }
       } else {
         console.error("API request failed:", response.statusText);
@@ -123,7 +123,7 @@ const EvaluationFlow = () => {
                             onClick={() => router.push("/workflowdetails")}
                             className="font-Archivo lg:text-[24px] sm:text-[20px] text-[18px] font-thin text-[#000]"
                           >
-                            {ele.name}
+                            {ele.title}
                           </button>
                         </div>
                         <div className="flex gap-4">
