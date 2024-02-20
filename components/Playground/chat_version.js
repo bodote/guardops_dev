@@ -14,6 +14,8 @@ import { MdKeyboardArrowUp } from "react-icons/md";
 import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
 import { Tooltip } from "react-tooltip";
+import ReactMarkdown from "react-markdown";
+import gfm from "remark-gfm";
 import { Listbox, Transition, Switch } from "@headlessui/react";
 import { AiOutlineStop } from "react-icons/ai";
 import { FiPlus } from "react-icons/fi";
@@ -231,6 +233,50 @@ const Chat_version = ({
     } catch (error) {
       console.error("API request failed:", error.message);
     }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {})
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
+  };
+
+  const CodeBox = ({ code }) => {
+    return (
+      <div className="code-box-container my-2 max-w-[700px]">
+        <pre className="code-box">{code}</pre>
+        <button className="copy-button" onClick={() => copyToClipboard(code)}>
+          Copy
+        </button>
+      </div>
+    );
+  };
+
+  const parseApiResponse = (apiResponse) => {
+    const segments = [];
+    const regex = /```(.*?)```/gs;
+    let lastIndex = 0;
+    apiResponse?.replace(regex, (match, codeBlock, index) => {
+      // Add the text segment before the code block
+      if (index > lastIndex) {
+        segments.push({
+          type: "text",
+          content: apiResponse.slice(lastIndex, index),
+        });
+      }
+      // Add the code block
+      segments.push({ type: "code", content: codeBlock });
+      lastIndex = index + match.length;
+    });
+
+    // Add any remaining text after the last code block
+    if (apiResponse && lastIndex < apiResponse.length) {
+      segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
+    }
+    return segments;
   };
 
   const saveTracePlayground = async () => {
@@ -630,8 +676,7 @@ const Chat_version = ({
                         </div>
                         {editingIndex !== index && (
                           <button
-                            className="text-[20px] text-[#2B3F6C]  "
-                            // className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
+                            className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
                             onClick={() => handleEditMessage(index)}
                           >
                             <RiEdit2Line />
@@ -641,11 +686,61 @@ const Chat_version = ({
                     </>
                   )}
                   {message.output && (
-                    <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
+                    <div
+                      style={{ whiteSpace: "pre-wrap" }}
+                      className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]"
+                    >
                       <FireIcon className="min-w-[16px]" />
-                      <p className="md:text-[16px] text-[14px]">
-                        {message.output}
-                      </p>
+                      <div>
+                        {parseApiResponse(message.output).map(
+                          (segment, index) =>
+                            segment.type === "code" ? (
+                              <CodeBox key={index} code={segment.content} />
+                            ) : (
+                              <ReactMarkdown
+                                components={{
+                                  ul: ({ node, ...props }) => (
+                                    <ul
+                                      style={{
+                                        display: "block",
+                                        listStyleType: "disc",
+                                        paddingInlineStart: "40px",
+                                      }}
+                                      {...props}
+                                    />
+                                  ),
+                                  ol: ({ node, ...props }) => (
+                                    <ol
+                                      style={{
+                                        display: "block",
+                                        listStyleType: "decimal",
+                                        paddingInlineStart: "40px",
+                                      }}
+                                      {...props}
+                                    />
+                                  ),
+                                  h1: ({ node, ...props }) => (
+                                    <h1
+                                      className="font-bold text-6xl"
+                                      {...props}
+                                    />
+                                  ),
+                                  p: ({ node, ...props }) => (
+                                    <p
+                                      style={{
+                                        whiteSpace: "pre-wrap",
+                                      }}
+                                      {...props}
+                                    />
+                                  ),
+                                }}
+                                remarkPlugins={[gfm]}
+                                key={index}
+                                children={segment.content}
+                              />
+                            )
+                        )}
+                      </div>
                     </div>
                   )}
                 </Fragment>
