@@ -17,10 +17,13 @@ function classNames(...classes) {
 const CustomNode = ({ data }) => {
   // console.log(data.fields);
   const [projectList, setProjectList] = useState([]);
+  const [datasetList, setDatasetList] = useState([]);
+  const [models, setModels] = useState([]);
   const [ActiveTool, setActiveTool] = useState(false);
   const [selectedDayIndex, setSelectedDayIndex] = useState(null);
+  const [APIKey, setAPIKey] = useState("");
   const [proname, setProname] = useState({
-    name: "Select a project to store",
+    name: "Select",
   });
 
   const getProjectList = async () => {
@@ -42,6 +45,35 @@ const CustomNode = ({ data }) => {
     }
   };
 
+  const getDatasetList = async () => {
+    try {
+      const response = await fetch(`/api/manageDataset`, {
+        method: "GET",
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.datasets) {
+          setDatasetList(responseData.datasets);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  const getModels = async () => {
+    const response = await fetch(`/api/manageModels`, {
+      method: "GET",
+    });
+    const data = await response.json();
+    if (data.models) {
+      setModels(data.models);
+    }
+  };
+
   const handleDaySelection = (index) => {
     if (selectedDayIndex === index) {
       setSelectedDayIndex(null);
@@ -50,9 +82,56 @@ const CustomNode = ({ data }) => {
     }
   };
 
+  const handleSetApiKey = (item) => {
+    item.provider === "openai" && setAPIKey(localStorage.getItem("openAIKey"));
+    item.provider === "fireworks" &&
+      setAPIKey(localStorage.getItem("fireworksAIKey"));
+    item.provider === "custom" &&
+      setAPIKey(localStorage.getItem("customAIKey"));
+    item.provider === "togethercompute" &&
+      setAPIKey(localStorage.getItem("togetherAIKey"));
+  };
+
   useEffect(() => {
     getProjectList();
+    getDatasetList();
+    getModels();
   }, []);
+
+  const OptionItem = ({ name, item }) => (
+    <Listbox.Option
+      key={
+        name === "dataset"
+          ? item.dataset_id
+          : name === "model"
+          ? item.model_id
+          : item.project_id
+      }
+      className={({ active }) =>
+        classNames(
+          active ? "bg-[#f0efef]  rounded-[6px]" : "text-[#000]",
+          "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
+        )
+      }
+      value={item}
+      onClick={() => {
+        item.model_id && handleSetApiKey(item);
+      }}
+    >
+      <div className="flex items-center">
+        <span
+          className={classNames(
+            proname
+              ? "text-[#656565] text-[12px] font-Inter font-medium"
+              : "font-normal",
+            "block truncate"
+          )}
+        >
+          {item.name}
+        </span>
+      </div>
+    </Listbox.Option>
+  );
 
   return (
     <div className="border border-[#A8A8A8] rounded-[6px] bg-white max-w-[196px] min-w-[196px]">
@@ -71,28 +150,36 @@ const CustomNode = ({ data }) => {
           Inputs
         </div>
         {data.inputs &&
-          data.inputs.map((input, index) => (
-            <div
-              key={index}
-              style={{ position: "relative" }}
-              className="mt-[13px]"
-            >
-              <Handle
-                type="target"
-                position={Position.Left}
-                id={`input-${data.id}-${index}`}
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                }}
-                className="flow-handle"
-              />
-              <p className="ml-2 text-[#656565] text-[10px] font-medium">
-                {input}
-              </p>
-            </div>
-          ))}
+          data.inputs.map((input, index) => {
+            const formatInputText = (text) => {
+              return text
+                .split("_")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+            };
+            return (
+              <div
+                key={index}
+                style={{ position: "relative" }}
+                className="mt-[13px]"
+              >
+                <Handle
+                  type="target"
+                  position={Position.Left}
+                  id={`input-${data.id}-${index}`}
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                  }}
+                  className="flow-handle"
+                />
+                <p className="ml-2 text-[#656565] text-[10px] font-medium">
+                  {formatInputText(input)}
+                </p>
+              </div>
+            );
+          })}
         <div className="px-[13px] mt-[13px]">
           {(data.id.includes("metric") || data.id.includes("trigger")) && (
             <p className="text-[10px] font-medium text-[#656565]">
@@ -184,7 +271,8 @@ const CustomNode = ({ data }) => {
                   </label>
                   <input
                     type="text"
-                    className="text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full"
+                    defaultValue={APIKey}
+                    className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full"
                   />
                 </div>
               )
@@ -196,7 +284,11 @@ const CustomNode = ({ data }) => {
                   {({ open }) => (
                     <>
                       <Listbox.Label className="text-[#656565] text-[10px] font-medium mb-[5px] mt-[10px]">
-                        Evaluation Framework
+                        {data.id.includes("dataset")
+                          ? "Dataset"
+                          : data.id.includes("model")
+                          ? "Model"
+                          : "Evaluation Framework"}
                       </Listbox.Label>
                       <div className="">
                         <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal pl-[10px] pr-[20px] py-[3px] ">
@@ -225,33 +317,29 @@ const CustomNode = ({ data }) => {
                           leaveTo="opacity-0"
                         >
                           <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                            {projectList.map((project) => (
-                              <Listbox.Option
-                                key={project.project_id}
-                                className={({ active }) =>
-                                  classNames(
-                                    active
-                                      ? "bg-[#f0efef]  rounded-[6px]"
-                                      : "text-[#000]",
-                                    "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
-                                  )
-                                }
-                                value={project}
-                              >
-                                <div className="flex items-center ">
-                                  <span
-                                    className={classNames(
-                                      proname
-                                        ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                        : "font-normal",
-                                      "block truncate"
-                                    )}
-                                  >
-                                    {project.name}
-                                  </span>
-                                </div>
-                              </Listbox.Option>
-                            ))}
+                            {data.id.includes("dataset")
+                              ? datasetList.map((item) => (
+                                  <OptionItem
+                                    key={item.dataset_id}
+                                    item={item}
+                                    name="dataset"
+                                  />
+                                ))
+                              : data.id.includes("model")
+                              ? models.map((item) => (
+                                  <OptionItem
+                                    key={item.model_id}
+                                    item={item}
+                                    name="model"
+                                  />
+                                ))
+                              : projectList.map((item) => (
+                                  <OptionItem
+                                    key={item.project_id}
+                                    item={item}
+                                    name="project"
+                                  />
+                                ))}
                           </Listbox.Options>
                         </Transition>
                       </div>

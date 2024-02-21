@@ -67,6 +67,7 @@ const Chat_version = ({
   const [error, setError] = useState("");
   const [editingIndex, setEditingIndex] = useState(-1);
   const [editedMessage, setEditedMessage] = useState("");
+  const [tracesData, setTracesData] = useState([]);
   // State for settings values
   const [settings, setSettings] = useState({
     maxTokens: 500,
@@ -95,6 +96,61 @@ const Chat_version = ({
       setModels(data.models);
     }
   };
+
+  const getTraces = async () => {
+    try {
+      const response = await fetch(
+        `/api/manageTraces?playground_id=${currentPlaygroundID}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData) {
+          setTracesData(responseData.traces);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  const reconstructConversation = (traces) => {
+    let chatHistory = [];
+    traces.forEach(trace => {
+        const promptOutputPairs = trace;
+
+        // Find the root prompt-output pair where parent_id is null
+        const rootPair = promptOutputPairs.find((pair) => pair.parent_id === null);
+        if (!rootPair) {
+            return; // Move to the next trace if root pair is not found
+        }
+        chatHistory.push(rootPair);
+
+        let currentParentId = rootPair.context.span_id;
+        while (chatHistory.length < promptOutputPairs.length) {
+            // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
+            const nextPair = promptOutputPairs.find((pair) => pair.parent_id === currentParentId);
+            if (nextPair) {
+                chatHistory.push(nextPair);
+                currentParentId = nextPair.context.span_id;
+            } else {
+                break; // Exit loop if no more pairs are found
+            }
+        }
+    });
+
+    const newMessages = chatHistory.map(pair => ({
+        input: pair.attributes.prompt || "",
+        output: pair.attributes.response || pair.attributes.output || "",
+    }));
+
+    setMessages(newMessages);
+  };
+
   const providerConfig = {
     openai: {
       endpoint: "https://api.openai.com/v1/chat/completions",
@@ -339,6 +395,17 @@ const Chat_version = ({
     const key4 = localStorage.getItem("togetherAIKey") || "";
     setTogetheraiKey(key4);
   }, []);
+
+  useEffect(() => {
+    getTraces();
+  }, [currentPlaygroundID]);
+
+  useEffect(() => {
+    if (tracesData) {
+      reconstructConversation(tracesData);
+    }
+  }, [tracesData]);
+
   useEffect(() => {
     if (enabled) {
       setsyncAll(true);
