@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { RightIcon, ImageIcon } from "@/public/Assets/Icons/Allsvg";
 import Logout from "@/components/Logout/Logout";
 import WorkFlow from "@/components/WorkFlow/WorkFlow";
 
 const WorkflowDetails = () => {
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
   return (
     <>
       <div className="flex">
@@ -32,7 +34,12 @@ const WorkflowDetails = () => {
             </p>
             <ImageIcon />
           </div>
-          <WorkFlow />
+          <WorkFlow
+            nodes={nodes}
+            setNodes={setNodes}
+            edges={edges}
+            setEdges={setEdges}
+          />
         </div>
       </div>
     </>

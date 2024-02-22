@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CoinIcon,
   ColorPaletteIcon,
@@ -8,8 +8,137 @@ import {
   TimeIcon,
 } from "@/public/Assets/Icons/Allsvg";
 
-const ToolsModal = ({ toolsModal, flowData }) => {
+const flowData = [
+  {
+    id: "evaluator",
+    name: "Evaluator",
+    description: "Evaluates models using datasets and metrics.",
+    inputs: ["Trigger", "ModelInstance", "Dataset", "Metrics"],
+    outputs: ["EvaluationResults"],
+    classPath: "evaluation.Evaluator",
+    fields: [
+      {
+        name: "evaluation_framework",
+        type: "select",
+        options: ["DefaultEvaluationFramework", "MMLUEvaluationFramework"],
+        description: "Framework to use for evaluation",
+      },
+      {
+        name: "add_params",
+        type: "modal_button",
+        descriptions: "Additional Parameters",
+        values: [
+          {
+            name: "param1",
+            type: "textinput",
+            description: "Parameter 1",
+          },
+          {
+            name: "param2",
+            type: "textinput",
+            description: "Parameter 2",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "openai_model",
+    name: "Open AI Model",
+    description: "Evaluates models using datasets and metrics.",
+    inputs: ["system_prompt", "prompt"],
+    outputs: ["ModelInstance"],
+    classPath: "evaluation.Evaluator",
+    fields: [
+      {
+        name: "api_key",
+        type: "password",
+      },
+      {
+        name: "models",
+        type: "select",
+        options: ["DefaultEvaluationFramework", "MMLUEvaluationFramework"],
+        description: "Framework to use for evaluation",
+      },
+      {
+        name: "add_params",
+        type: "modal_button",
+        descriptions: "Additional Parameters",
+        values: [
+          {
+            name: "param1",
+            type: "textinput",
+            description: "Parameter 1",
+          },
+          {
+            name: "param2",
+            type: "textinput",
+            description: "Parameter 2",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "evaluation_dataset",
+    name: "Evaluation Dataset",
+    description: "Evaluates models using datasets and metrics.",
+    inputs: [],
+    outputs: ["Dataset"],
+    classPath: "evaluation.Evaluator",
+    fields: [
+      {
+        name: "datasets",
+        type: "select",
+        options: ["DefaultEvaluationFramework", "MMLUEvaluationFramework"],
+        description: "Framework to use for evaluation",
+      },
+      {
+        name: "add_params",
+        type: "modal_button",
+        descriptions: "Additional Parameters",
+        values: [
+          {
+            name: "param1",
+            type: "textinput",
+            description: "Parameter 1",
+          },
+          {
+            name: "param2",
+            type: "textinput",
+            description: "Parameter 2",
+          },
+        ],
+      },
+    ],
+  },
+];
+
+const ToolsModal = ({ toolsModal }) => {
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleDragStart = (event, tool) => {
+    event.dataTransfer.setData("application/reactflow", JSON.stringify(tool));
+  };
+
+  // const getFlowData = async () => {
+  //   try {
+  //     const response = await fetch(`/api/manageEvaluation`, {
+  //       method: "GET",
+  //     });
+
+  //     if (response.ok) {
+  //       const responseData = await response.json();
+  //       if (responseData.flow_elements) {
+  //         // console.log(responseData.flow_elements);
+  //       }
+  //     } else {
+  //       console.error("API request failed:", response.statusText);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during API request:", error);
+  //   }
+  // };
 
   const filteredCategories = {
     trigger: [],
@@ -25,15 +154,20 @@ const ToolsModal = ({ toolsModal, flowData }) => {
         ? data.name?.toLowerCase().includes(searchQuery.toLowerCase())
         : data.description?.toLowerCase().includes(searchQuery.toLowerCase())
     ) {
-      if (data.id.includes("trigger")) filteredCategories.trigger.push(data);
-      else if (data.id.includes("dataset"))
+      if (data?.id?.includes("trigger")) filteredCategories.trigger.push(data);
+      else if (data?.id?.includes("dataset"))
         filteredCategories.dataset.push(data);
-      else if (data.id.includes("model")) filteredCategories.model.push(data);
-      else if (data.id.includes("metric")) filteredCategories.metric.push(data);
-      else if (data.id.includes("evaluator"))
+      else if (data?.id?.includes("model")) filteredCategories.model.push(data);
+      else if (data?.id?.includes("metric"))
+        filteredCategories.metric.push(data);
+      else if (data?.id?.includes("evaluator"))
         filteredCategories.evaluator.push(data);
     }
   });
+
+  // useEffect(() => {
+  //   getFlowData();
+  // }, []);
 
   return (
     <>
@@ -68,6 +202,8 @@ const ToolsModal = ({ toolsModal, flowData }) => {
                     </p>
                     {dataArr.map((data, ind) => (
                       <div
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, data)}
                         key={ind}
                         className="flex gap-[9px] items-center ml-[32px] mt-[13px]"
                       >
