@@ -5,7 +5,7 @@ import {
   LayersIcon,
   TimeIcon,
 } from "@/public/Assets/Icons/Allsvg";
-import React, { useCallback, useState, Fragment, useEffect } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 import { Listbox, Switch, Transition } from "@headlessui/react";
 import { Handle, Position } from "reactflow";
 import { MdKeyboardArrowUp } from "react-icons/md";
@@ -15,7 +15,6 @@ function classNames(...classes) {
 }
 
 const CustomNode = ({ data }) => {
-  // console.log(data.fields);
   const [projectList, setProjectList] = useState([]);
   const [datasetList, setDatasetList] = useState([]);
   const [models, setModels] = useState([]);

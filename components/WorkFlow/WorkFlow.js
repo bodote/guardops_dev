@@ -10,60 +10,34 @@ import "reactflow/dist/style.css";
 import CustomNode from "./CustomNode";
 import { PlusBtnIcon } from "@/public/Assets/Icons/Allsvg";
 import ToolsModal from "../modal/ToolsModal";
+
 const nodeTypes = { custom: CustomNode };
 
 const WorkFlow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [flowData, setFlowData] = useEdgesState();
   const [toolsModal, setToolsModal] = useState(false);
 
-  const getFlowData = async () => {
-    try {
-      const response = await fetch(`/api/manageEvaluation`, {
-        method: "GET",
-      });
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const toolDataString = event.dataTransfer.getData("application/reactflow");
+    const toolData = JSON.parse(toolDataString);
+    const position = {
+      x: event.clientX - event.target.getBoundingClientRect().left,
+      y: event.clientY - event.target.getBoundingClientRect().top,
+    };
 
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData.flow_elements) {
-          setFlowData(responseData.flow_elements);
-          const updatedNodes = responseData.flow_elements.map((element) => ({
-            id: element.id,
-            type: "custom",
-            position: { x: Math.random() * 1000, y: Math.random() * 500 },
-            data: element,
-          }));
+    const newNode = {
+      id: toolData.id,
+      type: "custom",
+      position,
+      data: toolData,
+    };
 
-          const updatedEdges = [];
-
-          updatedNodes.forEach((sourceNode) => {
-            sourceNode.data.outputs.forEach((output, outputIndex) => {
-              updatedNodes.forEach((targetNode) => {
-                targetNode.data.inputs.forEach((input, inputIndex) => {
-                  if (input === output) {
-                    updatedEdges.push({
-                      id: `${sourceNode.id}-${targetNode.id}-${outputIndex}-${inputIndex}`,
-                      source: sourceNode.id,
-                      sourceHandle: `output-${sourceNode.id}-${outputIndex}`,
-                      target: targetNode.id,
-                      targetHandle: `input-${targetNode.id}-${inputIndex}`,
-                    });
-                  }
-                });
-              });
-            });
-          });
-
-          setNodes(updatedNodes);
-          setEdges(updatedEdges);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
+    setNodes((prev) => [...prev, newNode]);
+  };
+  const handleDragOver = (event) => {
+    event.preventDefault();
   };
 
   const onConnect = useCallback(
@@ -71,11 +45,13 @@ const WorkFlow = () => {
     [setEdges]
   );
 
-  useEffect(() => {
-    getFlowData();
-  }, []);
   return (
-    <div style={{ height: "100vh" }} className="relative">
+    <div
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      style={{ height: "100vh" }}
+      className="relative"
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -92,11 +68,7 @@ const WorkFlow = () => {
       >
         <PlusBtnIcon />
       </button>
-      <ToolsModal
-        toolsModal={toolsModal}
-        setToolsModal={setToolsModal}
-        flowData={flowData}
-      />
+      <ToolsModal toolsModal={toolsModal} />
     </div>
   );
 };

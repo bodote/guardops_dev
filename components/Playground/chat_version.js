@@ -120,32 +120,36 @@ const Chat_version = ({
 
   const reconstructConversation = (traces) => {
     let chatHistory = [];
-    traces.forEach(trace => {
-        const promptOutputPairs = trace;
+    traces.forEach((trace) => {
+      const promptOutputPairs = trace;
 
-        // Find the root prompt-output pair where parent_id is null
-        const rootPair = promptOutputPairs.find((pair) => pair.parent_id === null);
-        if (!rootPair) {
-            return; // Move to the next trace if root pair is not found
-        }
-        chatHistory.push(rootPair);
+      // Find the root prompt-output pair where parent_id is null
+      const rootPair = promptOutputPairs.find(
+        (pair) => pair.parent_id === null
+      );
+      if (!rootPair) {
+        return; // Move to the next trace if root pair is not found
+      }
+      chatHistory.push(rootPair);
 
-        let currentParentId = rootPair.context.span_id;
-        while (chatHistory.length < promptOutputPairs.length) {
-            // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
-            const nextPair = promptOutputPairs.find((pair) => pair.parent_id === currentParentId);
-            if (nextPair) {
-                chatHistory.push(nextPair);
-                currentParentId = nextPair.context.span_id;
-            } else {
-                break; // Exit loop if no more pairs are found
-            }
+      let currentParentId = rootPair.context.span_id;
+      while (chatHistory.length < promptOutputPairs.length) {
+        // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
+        const nextPair = promptOutputPairs.find(
+          (pair) => pair.parent_id === currentParentId
+        );
+        if (nextPair) {
+          chatHistory.push(nextPair);
+          currentParentId = nextPair.context.span_id;
+        } else {
+          break; // Exit loop if no more pairs are found
         }
+      }
     });
 
-    const newMessages = chatHistory.map(pair => ({
-        input: pair.attributes.prompt || "",
-        output: pair.attributes.response || pair.attributes.output || "",
+    const newMessages = chatHistory.map((pair) => ({
+      input: pair.attributes.prompt || "",
+      output: pair.attributes.output || "",
     }));
 
     setMessages(newMessages);
@@ -397,7 +401,9 @@ const Chat_version = ({
   }, []);
 
   useEffect(() => {
-    getTraces();
+    if (currentPlaygroundID) {
+      getTraces();
+    }
   }, [currentPlaygroundID]);
 
   useEffect(() => {
@@ -686,14 +692,20 @@ const Chat_version = ({
               </div>
             </div>
           )}
-          <div>
+          <div className="relative">
             {error && (
-              <p className="bg-[#ffe1e1bb] text-[red] p-[10px] flex gap-2 items-center">
+              <p className="bg-[#ffe1e1bb] text-[red] p-[10px] flex gap-2 items-center absolute top-0 w-full">
                 <MdErrorOutline className="text-[20px]" />
                 {error}
               </p>
             )}
-            <div className="bg-[#F7F7F7] h-[calc(100vh-247px)] overflow-y-auto">
+            <div
+              className={
+                error
+                  ? "bg-[#F7F7F7] h-[calc(100vh-248px)] overflow-y-auto pt-[44px]"
+                  : "bg-[#F7F7F7] h-[calc(100vh-248px)] overflow-y-auto"
+              }
+            >
               {messages.map((message, index) => (
                 <Fragment key={index}>
                   {message.input && (
@@ -758,7 +770,7 @@ const Chat_version = ({
                       className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]"
                     >
                       <FireIcon className="min-w-[16px]" />
-                      <div>
+                      <div className="w-[calc(100%-35px)]">
                         {parseApiResponse(message.output).map(
                           (segment, index) =>
                             segment.type === "code" ? (
