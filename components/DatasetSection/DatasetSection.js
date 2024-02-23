@@ -53,6 +53,7 @@ const DatasetSection = () => {
           setDatasetList(responseData.datasets);
         }
       } else {
+        setLoader(false);
         console.error("API request failed:", response.statusText);
       }
     } catch (error) {

@@ -41,6 +41,7 @@ const EvaluationFlow = () => {
           setEvaluationList(responseData.evaluations);
         }
       } else {
+        setLoader(false);
         console.error("API request failed:", response.statusText);
       }
     } catch (error) {
@@ -120,7 +121,11 @@ const EvaluationFlow = () => {
                             className="w-[23px]"
                           />
                           <button
-                            onClick={() => router.push("/workflowdetails")}
+                            onClick={() =>
+                              router.push(
+                                `/workflowdetails?evaluationID=${ele.evaluation_id}`
+                              )
+                            }
                             className="font-Archivo lg:text-[24px] sm:text-[20px] text-[18px] font-thin text-[#000]"
                           >
                             {ele.title}

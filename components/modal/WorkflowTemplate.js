@@ -52,8 +52,8 @@ const WorkflowTemplate = ({
             evaluation_name: "",
             evaluation_description: "",
           });
-
-          router.push("/workflowdetails");
+          const evaluationId = responseData.split(" ")[1];
+          router.push(`/workflowdetails?evaluationID=${evaluationId}`);
           setIsModalOpen(false);
         }
       }
