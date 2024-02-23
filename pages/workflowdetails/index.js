@@ -1,12 +1,23 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { RightIcon, ImageIcon } from "@/public/Assets/Icons/Allsvg";
 import Logout from "@/components/Logout/Logout";
 import WorkFlow from "@/components/WorkFlow/WorkFlow";
+import { useSearchParams } from "next/navigation";
 
 const WorkflowDetails = () => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
+  const [evaluationID, setEvaluationID] = useState("");
+  const params = useSearchParams();
+
+  useEffect(() => {
+    const ID = params.get("evaluationID");
+    if (ID) {
+      setEvaluationID(ID);
+    }
+  }, [params.get("evaluationID")]);
+
   return (
     <>
       <div className="flex">

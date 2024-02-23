@@ -132,17 +132,26 @@ const CustomNode = ({ data }) => {
     </Listbox.Option>
   );
 
+  const formatInputText = (text) => {
+    return text
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
     <div className="border border-[#A8A8A8] rounded-[6px] bg-white max-w-[196px] min-w-[196px]">
       <div>
         <div className="flex justify-center items-center gap-[21px] py-[10px]">
-          {data.id.includes("metric") && <DirectionIcon />}
-          {data.id.includes("evaluator") && <ColorPaletteIcon />}
-          {data.id.includes("model") && <LayersIcon />}
-          {data.id.includes("dataset") && <CoinIcon />}
-          {data.id.includes("trigger") && <TimeIcon />}
-          <h1 className="text-center text-[10px] font-medium font-Inter">
-            {data.name ? data.name : data.description}
+          {data.category.includes("metric") && <DirectionIcon />}
+          {data.category.includes("evaluation") && <ColorPaletteIcon />}
+          {data.category.includes("model") && <LayersIcon />}
+          {data.category.includes("dataset") && <CoinIcon />}
+          {data.category.includes("trigger") && <TimeIcon />}
+          {data.category.includes("config") && <DirectionIcon />}
+          {data.category.includes("exporting") && <TimeIcon />}
+          <h1 className="text-center text-[10px] font-medium font-Inter max-w-[130px] truncate">
+            {data.label && data.label}
           </h1>
         </div>
         <div className="text-center bg-[#F9F9F9] text-[#656565] py-[5px] text-[10px]">
@@ -150,12 +159,6 @@ const CustomNode = ({ data }) => {
         </div>
         {data.inputs &&
           data.inputs.map((input, index) => {
-            const formatInputText = (text) => {
-              return text
-                .split("_")
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" ");
-            };
             return (
               <div
                 key={index}
@@ -174,12 +177,12 @@ const CustomNode = ({ data }) => {
                   className="flow-handle"
                 />
                 <p className="ml-2 text-[#656565] text-[10px] font-medium">
-                  {formatInputText(input)}
+                  {input.label}
                 </p>
               </div>
             );
           })}
-        <div className="px-[13px] mt-[13px]">
+        {/* <div className="px-[13px] mt-[13px]">
           {(data.id.includes("metric") || data.id.includes("trigger")) && (
             <p className="text-[10px] font-medium text-[#656565]">
               {data.description}
@@ -259,9 +262,9 @@ const CustomNode = ({ data }) => {
                 </div>
               )
           )}
-        </div>
+        </div> */}
         <div className="p-[11px_16px]">
-          {data.fields.map(
+          {/* {data.fields.map(
             (field, index) =>
               field.type === "password" && (
                 <div key={index} className="mb-[10px]">
@@ -275,19 +278,29 @@ const CustomNode = ({ data }) => {
                   />
                 </div>
               )
-          )}
-          {data.fields.map(
+          )} */}
+          {data.attributes.map(
             (field, index) =>
-              field.type === "select" && (
+              field.type === "str" && (
+                <div key={index} className="mb-[10px]">
+                  <label className="text-[#656565] text-[10px] font-medium mb-[5px] block">
+                    {formatInputText(field.name)}
+                  </label>
+                  <input
+                    type="text"
+                    className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full"
+                  />
+                </div>
+              )
+          )}
+          {data.attributes.map(
+            (field, index) =>
+              field.type === "List[Dict[Any,Any]]" && (
                 <Listbox key={index} value={proname} onChange={setProname}>
                   {({ open }) => (
                     <>
                       <Listbox.Label className="text-[#656565] text-[10px] font-medium mb-[5px] mt-[10px]">
-                        {data.id.includes("dataset")
-                          ? "Dataset"
-                          : data.id.includes("model")
-                          ? "Model"
-                          : "Evaluation Framework"}
+                        {formatInputText(field.name)}
                       </Listbox.Label>
                       <div className="">
                         <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal pl-[10px] pr-[20px] py-[3px] ">
@@ -316,7 +329,7 @@ const CustomNode = ({ data }) => {
                           leaveTo="opacity-0"
                         >
                           <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                            {data.id.includes("dataset")
+                            {data.category.includes("dataset")
                               ? datasetList.map((item) => (
                                   <OptionItem
                                     key={item.dataset_id}
@@ -324,7 +337,7 @@ const CustomNode = ({ data }) => {
                                     name="dataset"
                                   />
                                 ))
-                              : data.id.includes("model")
+                              : data.category.includes("model")
                               ? models.map((item) => (
                                   <OptionItem
                                     key={item.model_id}
@@ -347,7 +360,7 @@ const CustomNode = ({ data }) => {
                 </Listbox>
               )
           )}
-          {data.fields.map(
+          {/* {data.fields.map(
             (field, index) =>
               field.type === "modal_button" && (
                 <button
@@ -357,16 +370,16 @@ const CustomNode = ({ data }) => {
                   {field.descriptions}
                 </button>
               )
-          )}
+          )} */}
         </div>
-        <div className="text-center bg-[#F9F9F9] text-[#656565] py-[5px] text-[10px]">
+        <div className="text-center bg-[#F9F9F9] rounded-b-md text-[#656565] py-[5px] text-[10px]">
           Outputs
         </div>
         {data.outputs &&
           data.outputs.map((output, index) => (
             <div key={index} style={{ position: "relative" }}>
               <p className="ml-2 text-[#656565] text-[10px] font-medium text-end mr-2 py-[12px] mb-[7px]">
-                {output}
+                {output.label}
               </p>
               <Handle
                 type="source"

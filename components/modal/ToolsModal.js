@@ -8,166 +8,65 @@ import {
   TimeIcon,
 } from "@/public/Assets/Icons/Allsvg";
 
-const flowData = [
-  {
-    id: "evaluator",
-    name: "Evaluator",
-    description: "Evaluates models using datasets and metrics.",
-    inputs: ["Trigger", "ModelInstance", "Dataset", "Metrics"],
-    outputs: ["EvaluationResults"],
-    classPath: "evaluation.Evaluator",
-    fields: [
-      {
-        name: "evaluation_framework",
-        type: "select",
-        options: ["DefaultEvaluationFramework", "MMLUEvaluationFramework"],
-        description: "Framework to use for evaluation",
-      },
-      {
-        name: "add_params",
-        type: "modal_button",
-        descriptions: "Additional Parameters",
-        values: [
-          {
-            name: "param1",
-            type: "textinput",
-            description: "Parameter 1",
-          },
-          {
-            name: "param2",
-            type: "textinput",
-            description: "Parameter 2",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "openai_model",
-    name: "Open AI Model",
-    description: "Evaluates models using datasets and metrics.",
-    inputs: ["system_prompt", "prompt"],
-    outputs: ["ModelInstance"],
-    classPath: "evaluation.Evaluator",
-    fields: [
-      {
-        name: "api_key",
-        type: "password",
-      },
-      {
-        name: "models",
-        type: "select",
-        options: ["DefaultEvaluationFramework", "MMLUEvaluationFramework"],
-        description: "Framework to use for evaluation",
-      },
-      {
-        name: "add_params",
-        type: "modal_button",
-        descriptions: "Additional Parameters",
-        values: [
-          {
-            name: "param1",
-            type: "textinput",
-            description: "Parameter 1",
-          },
-          {
-            name: "param2",
-            type: "textinput",
-            description: "Parameter 2",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "evaluation_dataset",
-    name: "Evaluation Dataset",
-    description: "Evaluates models using datasets and metrics.",
-    inputs: [],
-    outputs: ["Dataset"],
-    classPath: "evaluation.Evaluator",
-    fields: [
-      {
-        name: "datasets",
-        type: "select",
-        options: ["DefaultEvaluationFramework", "MMLUEvaluationFramework"],
-        description: "Framework to use for evaluation",
-      },
-      {
-        name: "add_params",
-        type: "modal_button",
-        descriptions: "Additional Parameters",
-        values: [
-          {
-            name: "param1",
-            type: "textinput",
-            description: "Parameter 1",
-          },
-          {
-            name: "param2",
-            type: "textinput",
-            description: "Parameter 2",
-          },
-        ],
-      },
-    ],
-  },
-];
-
 const ToolsModal = ({ toolsModal }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [flowData, setFlowData] = useState([]);
 
   const handleDragStart = (event, tool) => {
     event.dataTransfer.setData("application/reactflow", JSON.stringify(tool));
   };
 
-  // const getFlowData = async () => {
-  //   try {
-  //     const response = await fetch(`/api/manageEvaluation`, {
-  //       method: "GET",
-  //     });
+  const getFlowData = async () => {
+    try {
+      const response = await fetch(`/api/manageEvaluation`, {
+        method: "GET",
+      });
 
-  //     if (response.ok) {
-  //       const responseData = await response.json();
-  //       if (responseData.flow_elements) {
-  //         // console.log(responseData.flow_elements);
-  //       }
-  //     } else {
-  //       console.error("API request failed:", response.statusText);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error during API request:", error);
-  //   }
-  // };
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.flow_elements) {
+          setFlowData(responseData.flow_elements);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
 
   const filteredCategories = {
     trigger: [],
     dataset: [],
     model: [],
     metric: [],
-    evaluator: [],
+    evaluation: [],
+    config: [],
+    exporting: [],
   };
 
   flowData?.forEach((data) => {
-    if (
-      data.name
-        ? data.name?.toLowerCase().includes(searchQuery.toLowerCase())
-        : data.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
-      if (data?.id?.includes("trigger")) filteredCategories.trigger.push(data);
-      else if (data?.id?.includes("dataset"))
+    if (data.label?.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (data?.category?.includes("trigger"))
+        filteredCategories.trigger.push(data);
+      else if (data?.category?.includes("dataset"))
         filteredCategories.dataset.push(data);
-      else if (data?.id?.includes("model")) filteredCategories.model.push(data);
-      else if (data?.id?.includes("metric"))
+      else if (data?.category?.includes("model"))
+        filteredCategories.model.push(data);
+      else if (data?.category?.includes("metric"))
         filteredCategories.metric.push(data);
-      else if (data?.id?.includes("evaluator"))
-        filteredCategories.evaluator.push(data);
+      else if (data?.category?.includes("evaluation"))
+        filteredCategories.evaluation.push(data);
+      else if (data?.category?.includes("config"))
+        filteredCategories.config.push(data);
+      else if (data?.category?.includes("exporting"))
+        filteredCategories.exporting.push(data);
     }
   });
 
-  // useEffect(() => {
-  //   getFlowData();
-  // }, []);
+  useEffect(() => {
+    getFlowData();
+  }, []);
 
   return (
     <>
@@ -198,7 +97,9 @@ const ToolsModal = ({ toolsModal }) => {
                       {category === "dataset" && "-Datasets"}
                       {category === "model" && "-Models"}
                       {category === "metric" && "-Metrics"}
-                      {category === "evaluator" && "-Evaluation"}
+                      {category === "evaluation" && "-Evaluation"}
+                      {category === "config" && "-Config"}
+                      {category === "exporting" && "-Exporting"}
                     </p>
                     {dataArr.map((data, ind) => (
                       <div
@@ -211,9 +112,11 @@ const ToolsModal = ({ toolsModal }) => {
                         {category === "dataset" && <CoinIcon />}
                         {category === "model" && <LayersIcon />}
                         {category === "metric" && <DirectionIcon />}
-                        {category === "evaluator" && <ColorPaletteIcon />}
+                        {category === "evaluation" && <ColorPaletteIcon />}
+                        {category === "config" && <DirectionIcon />}
+                        {category === "exporting" && <TimeIcon />}
                         <p className="text-[12px] text-black">
-                          {data.name ? data.name : data.description}
+                          {data.label && data.label}
                         </p>
                       </div>
                     ))}
