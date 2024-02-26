@@ -1,16 +1,42 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import { RightIcon, ImageIcon } from "@/public/Assets/Icons/Allsvg";
+import { RightIcon, SaveIcon } from "@/public/Assets/Icons/Allsvg";
 import Logout from "@/components/Logout/Logout";
 import WorkFlow from "@/components/WorkFlow/WorkFlow";
 import { useSearchParams } from "next/navigation";
+import { useEdgesState, useNodesState } from "reactflow";
+import { toast } from "react-toastify";
 
 const WorkflowDetails = () => {
-  const [nodes, setNodes] = useState([]);
-  const [edges, setEdges] = useState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [evaluationID, setEvaluationID] = useState("");
   const params = useSearchParams();
 
+  const handleSaveFlow = async () => {
+    const flowDefinition = {
+      nodes: nodes,
+      edges: edges,
+    };
+
+    const formData = {
+      flowDefinition,
+      evaluation_id: evaluationID,
+    };
+
+    const response = await fetch("/api/manageFlow", {
+      method: "PATCH",
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      toast.success("Flow Saved successfully !!");
+      const responseData = await response.json();
+    } else {
+      toast.error("API request failed !!");
+      console.error("API request failed:", response.statusText);
+    }
+  };
   useEffect(() => {
     const ID = params.get("evaluationID");
     if (ID) {
@@ -43,13 +69,17 @@ const WorkflowDetails = () => {
             <p className="font-Archivo text-[12px] font-normal text-[#000]">
               Name of Workflow
             </p>
-            <ImageIcon />
+            <button onClick={handleSaveFlow}>
+              <SaveIcon />
+            </button>
           </div>
           <WorkFlow
             nodes={nodes}
             setNodes={setNodes}
             edges={edges}
             setEdges={setEdges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
           />
         </div>
       </div>

@@ -18,7 +18,7 @@ const ToolsModal = ({ toolsModal }) => {
 
   const getFlowData = async () => {
     try {
-      const response = await fetch(`/api/manageEvaluation`, {
+      const response = await fetch(`/api/manageFlow`, {
         method: "GET",
       });
 

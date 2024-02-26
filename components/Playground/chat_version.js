@@ -6,7 +6,7 @@ import {
   SettingIcon,
   ShareIcon,
   LoadingIcon,
-  ImageIcon,
+  SaveIcon,
   User2Icon,
   FireIcon,
 } from "@/public/Assets/Icons/Allsvg";
@@ -613,7 +613,7 @@ const Chat_version = ({
                 <LoadingIcon />
               </button>
               <button onClick={saveTracePlayground}>
-                <ImageIcon />
+                <SaveIcon />
               </button>
               <button onClick={() => setOpen(!open)}>
                 <EditIcon />

@@ -1,10 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
-import ReactFlow, {
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Background,
-} from "reactflow";
+import React, { useCallback, useState } from "react";
+import ReactFlow, { addEdge, Background } from "reactflow";
 
 import "reactflow/dist/style.css";
 import CustomNode from "./CustomNode";
@@ -13,9 +8,14 @@ import ToolsModal from "../modal/ToolsModal";
 
 const nodeTypes = { custom: CustomNode };
 
-const WorkFlow = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+const WorkFlow = ({
+  nodes,
+  setNodes,
+  onNodesChange,
+  edges,
+  setEdges,
+  onEdgesChange,
+}) => {
   const [toolsModal, setToolsModal] = useState(false);
 
   const handleDrop = (event) => {
