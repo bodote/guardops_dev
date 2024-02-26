@@ -6,7 +6,7 @@ import {
   SettingIcon,
   ShareIcon,
   LoadingIcon,
-  ImageIcon,
+  SaveIcon,
   User2Icon,
   FireIcon,
 } from "@/public/Assets/Icons/Allsvg";
@@ -14,6 +14,8 @@ import { MdKeyboardArrowUp } from "react-icons/md";
 import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
 import { Tooltip } from "react-tooltip";
+import ReactMarkdown from "react-markdown";
+import gfm from "remark-gfm";
 import { Listbox, Transition, Switch } from "@headlessui/react";
 import { AiOutlineStop } from "react-icons/ai";
 import { FiPlus } from "react-icons/fi";
@@ -65,6 +67,7 @@ const Chat_version = ({
   const [error, setError] = useState("");
   const [editingIndex, setEditingIndex] = useState(-1);
   const [editedMessage, setEditedMessage] = useState("");
+  const [tracesData, setTracesData] = useState([]);
   // State for settings values
   const [settings, setSettings] = useState({
     maxTokens: 500,
@@ -93,6 +96,65 @@ const Chat_version = ({
       setModels(data.models);
     }
   };
+
+  const getTraces = async () => {
+    try {
+      const response = await fetch(
+        `/api/manageTraces?playground_id=${currentPlaygroundID}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData) {
+          setTracesData(responseData.traces);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  const reconstructConversation = (traces) => {
+    let chatHistory = [];
+    traces.forEach((trace) => {
+      const promptOutputPairs = trace;
+
+      // Find the root prompt-output pair where parent_id is null
+      const rootPair = promptOutputPairs.find(
+        (pair) => pair.parent_id === null
+      );
+      if (!rootPair) {
+        return; // Move to the next trace if root pair is not found
+      }
+      chatHistory.push(rootPair);
+
+      let currentParentId = rootPair.context.span_id;
+      while (chatHistory.length < promptOutputPairs.length) {
+        // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
+        const nextPair = promptOutputPairs.find(
+          (pair) => pair.parent_id === currentParentId
+        );
+        if (nextPair) {
+          chatHistory.push(nextPair);
+          currentParentId = nextPair.context.span_id;
+        } else {
+          break; // Exit loop if no more pairs are found
+        }
+      }
+    });
+
+    const newMessages = chatHistory.map((pair) => ({
+      input: pair.attributes.prompt || "",
+      output: pair.attributes.output || "",
+    }));
+
+    setMessages(newMessages);
+  };
+
   const providerConfig = {
     openai: {
       endpoint: "https://api.openai.com/v1/chat/completions",
@@ -233,6 +295,50 @@ const Chat_version = ({
     }
   };
 
+  const copyToClipboard = (text) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {})
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
+  };
+
+  const CodeBox = ({ code }) => {
+    return (
+      <div className="code-box-container my-2 max-w-[700px]">
+        <pre className="code-box">{code}</pre>
+        <button className="copy-button" onClick={() => copyToClipboard(code)}>
+          Copy
+        </button>
+      </div>
+    );
+  };
+
+  const parseApiResponse = (apiResponse) => {
+    const segments = [];
+    const regex = /```(.*?)```/gs;
+    let lastIndex = 0;
+    apiResponse?.replace(regex, (match, codeBlock, index) => {
+      // Add the text segment before the code block
+      if (index > lastIndex) {
+        segments.push({
+          type: "text",
+          content: apiResponse.slice(lastIndex, index),
+        });
+      }
+      // Add the code block
+      segments.push({ type: "code", content: codeBlock });
+      lastIndex = index + match.length;
+    });
+
+    // Add any remaining text after the last code block
+    if (apiResponse && lastIndex < apiResponse.length) {
+      segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
+    }
+    return segments;
+  };
+
   const saveTracePlayground = async () => {
     if (apiCallInProgress) {
       return;
@@ -293,6 +399,19 @@ const Chat_version = ({
     const key4 = localStorage.getItem("togetherAIKey") || "";
     setTogetheraiKey(key4);
   }, []);
+
+  useEffect(() => {
+    if (currentPlaygroundID) {
+      getTraces();
+    }
+  }, [currentPlaygroundID]);
+
+  useEffect(() => {
+    if (tracesData) {
+      reconstructConversation(tracesData);
+    }
+  }, [tracesData]);
+
   useEffect(() => {
     if (enabled) {
       setsyncAll(true);
@@ -494,7 +613,7 @@ const Chat_version = ({
                 <LoadingIcon />
               </button>
               <button onClick={saveTracePlayground}>
-                <ImageIcon />
+                <SaveIcon />
               </button>
               <button onClick={() => setOpen(!open)}>
                 <EditIcon />
@@ -573,14 +692,20 @@ const Chat_version = ({
               </div>
             </div>
           )}
-          <div>
+          <div className="relative">
             {error && (
-              <p className="bg-[#ffe1e1bb] text-[red] p-[10px] flex gap-2 items-center">
+              <p className="bg-[#ffe1e1bb] text-[red] p-[10px] flex gap-2 items-center absolute top-0 w-full">
                 <MdErrorOutline className="text-[20px]" />
                 {error}
               </p>
             )}
-            <div className="bg-[#F7F7F7] h-[calc(100vh-247px)] overflow-y-auto">
+            <div
+              className={
+                error
+                  ? "bg-[#F7F7F7] h-[calc(100vh-248px)] overflow-y-auto pt-[44px]"
+                  : "bg-[#F7F7F7] h-[calc(100vh-248px)] overflow-y-auto"
+              }
+            >
               {messages.map((message, index) => (
                 <Fragment key={index}>
                   {message.input && (
@@ -630,8 +755,7 @@ const Chat_version = ({
                         </div>
                         {editingIndex !== index && (
                           <button
-                            className="text-[20px] text-[#2B3F6C]  "
-                            // className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
+                            className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
                             onClick={() => handleEditMessage(index)}
                           >
                             <RiEdit2Line />
@@ -641,11 +765,61 @@ const Chat_version = ({
                     </>
                   )}
                   {message.output && (
-                    <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
+                    <div
+                      style={{ whiteSpace: "pre-wrap" }}
+                      className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]"
+                    >
                       <FireIcon className="min-w-[16px]" />
-                      <p className="md:text-[16px] text-[14px]">
-                        {message.output}
-                      </p>
+                      <div className="w-[calc(100%-35px)]">
+                        {parseApiResponse(message.output).map(
+                          (segment, index) =>
+                            segment.type === "code" ? (
+                              <CodeBox key={index} code={segment.content} />
+                            ) : (
+                              <ReactMarkdown
+                                components={{
+                                  ul: ({ node, ...props }) => (
+                                    <ul
+                                      style={{
+                                        display: "block",
+                                        listStyleType: "disc",
+                                        paddingInlineStart: "40px",
+                                      }}
+                                      {...props}
+                                    />
+                                  ),
+                                  ol: ({ node, ...props }) => (
+                                    <ol
+                                      style={{
+                                        display: "block",
+                                        listStyleType: "decimal",
+                                        paddingInlineStart: "40px",
+                                      }}
+                                      {...props}
+                                    />
+                                  ),
+                                  h1: ({ node, ...props }) => (
+                                    <h1
+                                      className="font-bold text-6xl"
+                                      {...props}
+                                    />
+                                  ),
+                                  p: ({ node, ...props }) => (
+                                    <p
+                                      style={{
+                                        whiteSpace: "pre-wrap",
+                                      }}
+                                      {...props}
+                                    />
+                                  ),
+                                }}
+                                remarkPlugins={[gfm]}
+                                key={index}
+                                children={segment.content}
+                              />
+                            )
+                        )}
+                      </div>
                     </div>
                   )}
                 </Fragment>

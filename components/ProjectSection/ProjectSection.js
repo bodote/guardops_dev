@@ -85,6 +85,7 @@ const ProjectSection = () => {
           setProjectList(responseData.projects);
         }
       } else {
+        setLoader(false);
         console.error("API request failed:", response.statusText);
       }
     } catch (error) {

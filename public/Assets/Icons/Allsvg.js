@@ -1200,7 +1200,7 @@ export const LoadingIcon = ({ className }) => {
     </svg>
   );
 };
-export const ImageIcon = ({ className }) => {
+export const SaveIcon = ({ className }) => {
   return (
     <svg
       className={className}
@@ -1378,6 +1378,148 @@ export const PlusBtnIcon = ({ className }) => {
       <circle cx="23" cy="20" r="15" fill="#D4DB33" />
       <rect x="21" y="11" width="4" height="18" fill="white" />
       <rect x="14" y="18" width="18" height="4" fill="white" />
+    </svg>
+  );
+};
+
+export const TimeIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="22"
+      height="22"
+      viewBox="0 0 22 22"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="11" cy="11" r="10" stroke="#3F3E3E" strokeWidth="1.5" />
+      <path
+        d="M11 7V10.7324C11 10.8996 11.0836 11.0557 11.2226 11.1484L14 13"
+        stroke="#3F3E3E"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+};
+
+export const LayersIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="22"
+      viewBox="0 0 20 22"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M15.7189 8.52728L17.8442 9.67696L18.2891 9.92693C19.237 10.4595 19.237 11.8325 18.2891 12.365L12.2525 15.7566C10.8524 16.5432 9.14756 16.5432 7.74754 15.7566L1.71092 12.365C0.763024 11.8325 0.763026 10.4595 1.71093 9.92693L2.15585 9.67696L4.16334 8.52728M16.1811 13.6461L18.1129 14.6185C19.1092 15.1201 19.1412 16.5398 18.1685 17.0862L12.2525 20.4101C10.8524 21.1966 9.14756 21.1966 7.74754 20.4101L1.9178 17.1347C0.928395 16.5789 0.982913 15.1278 2.0112 14.6487L4.16334 13.6461M12.2525 10.8112L18.2891 7.41961C19.237 6.88705 19.237 5.51405 18.2891 4.98149L12.2525 1.58993C10.8524 0.803358 9.14756 0.803356 7.74754 1.58993L1.71093 4.98149C0.763027 5.51405 0.763024 6.88705 1.71092 7.41961L7.74754 10.8112C9.14756 11.5977 10.8524 11.5977 12.2525 10.8112Z"
+        stroke="#3F3E3E"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+};
+
+export const DirectionIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="22"
+      height="22"
+      viewBox="0 0 22 22"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="1"
+        y="1.00049"
+        width="20"
+        height="20"
+        rx="10"
+        stroke="#3F3E3E"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M9.82846 9.5435L14.2479 8.62762L13.0104 11.8986L8.59102 12.8145L9.82846 9.5435Z"
+        stroke="#3F3E3E"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+export const ColorPaletteIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="22"
+      height="22"
+      viewBox="0 0 22 22"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="1"
+        y="1"
+        width="10"
+        height="20"
+        rx="3"
+        stroke="#3F3E3E"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M11.1421 4L12.0208 3.12132C13.1923 1.94975 15.0918 1.94975 16.2634 3.12132L19.0918 5.94975C20.2634 7.12132 20.2634 9.02082 19.0918 10.1924L11.1421 18.1421"
+        stroke="#3F3E3E"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M18 11V11C19.6569 11 21 12.3431 21 14L21 18C21 19.6569 19.6569 21 18 21L6 21"
+        stroke="#3F3E3E"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="6"
+        cy="17"
+        r="0.75"
+        fill="#2B3F6C"
+        stroke="#3F3E3E"
+        strokeWidth="0.5"
+      />
+    </svg>
+  );
+};
+export const Search2Icon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="18"
+      viewBox="0 0 16 18"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <g clipPath="url(#clip0_1095_6990)">
+        <path
+          d="M14.6668 16.0832L11.6668 12.8957M13.3335 8.2915C13.3335 11.8123 10.6472 14.6665 7.3335 14.6665C4.01979 14.6665 1.3335 11.8123 1.3335 8.2915C1.3335 4.77069 4.01979 1.9165 7.3335 1.9165C10.6472 1.9165 13.3335 4.77069 13.3335 8.2915Z"
+          stroke="#68727D"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </g>
+      <defs>
+        <clipPath id="clip0_1095_6990">
+          <rect
+            width="16"
+            height="17"
+            fill="white"
+            transform="translate(0 0.5)"
+          />
+        </clipPath>
+      </defs>
     </svg>
   );
 };

@@ -2,6 +2,7 @@ import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { FiPlus } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { useRouter } from "next/router";
 
 const WorkflowTemplate = ({
   isModalOpen,
@@ -11,9 +12,10 @@ const WorkflowTemplate = ({
   values,
 }) => {
   const [evaluationData, setEvaluationData] = useState({
-    evaluation_name: values ? values.name : "",
+    evaluation_name: values ? values.title : "",
     evaluation_description: values ? values.description : "",
   });
+  const router = useRouter();
 
   const handleOnChange = (e) => {
     const { name, value } = e.target;
@@ -50,8 +52,9 @@ const WorkflowTemplate = ({
             evaluation_name: "",
             evaluation_description: "",
           });
+          const evaluationId = responseData.split(" ")[1];
+          router.push(`/workflowdetails?evaluationID=${evaluationId}`);
           setIsModalOpen(false);
-          updateEvaluationList(projectID);
         }
       }
       if (values) {

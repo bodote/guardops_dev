@@ -9,73 +9,24 @@ export default async function handler(req, res) {
   const user = req.cookies.user_id;
   const { method } = req;
 
-  const token = await getToken();
+  try {
+    const token = await getToken();
 
-  switch (method) {
-    case "GET":
-      Url = `${baseUrl}api/get_datasets`;
-      queryParams = new URLSearchParams({
-        user_id: user,
-      });
-      urlWithParams = `${Url}?${queryParams}`;
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-      try {
-        const response = await fetch(urlWithParams, {
-          method: "GET",
-          headers: new Headers({
-            authorization: `Bearer ${token}`,
-          }),
-        });
-
-        const data = await response.json();
-
-        res.status(response.status).json(data);
-      } catch (error) {
-        console.error("Error during API request:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
-      break;
-    case "POST":
-      bodyData = JSON.parse(req.body);
-      Url = `${baseUrl}api/create_dataset`;
-      queryParams = new URLSearchParams({
-        user_id: user,
-        dataset_name: bodyData.dataset_name,
-        dataset_description: bodyData.dataset_description,
-      });
-      urlWithParams = `${Url}?${queryParams}`;
-      try {
-        const response = await fetch(urlWithParams, {
-          method: "POST",
-          headers: new Headers({
-            authorization: `Bearer ${token}`,
-          }),
-        });
-
-        const data = await response.json();
-        res.status(response.status).json(data);
-      } catch (error) {
-        console.error("Error during API request:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
-      break;
-    case "PATCH":
-      bodyData = JSON.parse(req.body);
-      if (bodyData.trace_ids) {
-        const trace = bodyData.trace_ids;
-        Url = `${baseUrl}api/add_traces_to_dataset`;
+    switch (method) {
+      case "GET":
+        Url = `${baseUrl}api/get_datasets`;
         queryParams = new URLSearchParams({
           user_id: user,
-          dataset_id: bodyData.dataset_id,
         });
-        trace.forEach((traceId) => {
-          queryParams.append(`trace_ids`, traceId);
-        });
-
         urlWithParams = `${Url}?${queryParams}`;
+
         try {
           const response = await fetch(urlWithParams, {
-            method: "PATCH",
+            method: "GET",
             headers: new Headers({
               authorization: `Bearer ${token}`,
             }),
@@ -87,10 +38,11 @@ export default async function handler(req, res) {
           console.error("Error during API request:", error);
           res.status(500).json({ error: "Internal Server Error" });
         }
-      } else {
-        Url = `${baseUrl}api/update_dataset`;
+        break;
+      case "POST":
+        bodyData = JSON.parse(req.body);
+        Url = `${baseUrl}api/create_dataset`;
         queryParams = new URLSearchParams({
-          dataset_id: bodyData.dataset_id,
           user_id: user,
           dataset_name: bodyData.dataset_name,
           dataset_description: bodyData.dataset_description,
@@ -98,7 +50,7 @@ export default async function handler(req, res) {
         urlWithParams = `${Url}?${queryParams}`;
         try {
           const response = await fetch(urlWithParams, {
-            method: "PATCH",
+            method: "POST",
             headers: new Headers({
               authorization: `Bearer ${token}`,
             }),
@@ -110,31 +62,87 @@ export default async function handler(req, res) {
           console.error("Error during API request:", error);
           res.status(500).json({ error: "Internal Server Error" });
         }
-      }
-      break;
-    case "DELETE":
-      bodyData = JSON.parse(req.body);
-      Url = `${baseUrl}api/delete_dataset`;
-      queryParams = new URLSearchParams({
-        user_id: user,
-        dataset_id: bodyData.dataset_id,
-      });
+        break;
+      case "PATCH":
+        bodyData = JSON.parse(req.body);
+        if (bodyData.trace_ids) {
+          const trace = bodyData.trace_ids;
+          Url = `${baseUrl}api/add_traces_to_dataset`;
+          queryParams = new URLSearchParams({
+            user_id: user,
+            dataset_id: bodyData.dataset_id,
+          });
+          trace.forEach((traceId) => {
+            queryParams.append(`trace_ids`, traceId);
+          });
 
-      urlWithParams = `${Url}?${queryParams}`;
-      try {
-        const response = await fetch(urlWithParams, {
-          method: "DELETE",
-          headers: new Headers({
-            authorization: `Bearer ${token}`,
-          }),
+          urlWithParams = `${Url}?${queryParams}`;
+          try {
+            const response = await fetch(urlWithParams, {
+              method: "PATCH",
+              headers: new Headers({
+                authorization: `Bearer ${token}`,
+              }),
+            });
+
+            const data = await response.json();
+            res.status(response.status).json(data);
+          } catch (error) {
+            console.error("Error during API request:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+          }
+        } else {
+          Url = `${baseUrl}api/update_dataset`;
+          queryParams = new URLSearchParams({
+            dataset_id: bodyData.dataset_id,
+            user_id: user,
+            dataset_name: bodyData.dataset_name,
+            dataset_description: bodyData.dataset_description,
+          });
+          urlWithParams = `${Url}?${queryParams}`;
+          try {
+            const response = await fetch(urlWithParams, {
+              method: "PATCH",
+              headers: new Headers({
+                authorization: `Bearer ${token}`,
+              }),
+            });
+
+            const data = await response.json();
+            res.status(response.status).json(data);
+          } catch (error) {
+            console.error("Error during API request:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+          }
+        }
+        break;
+      case "DELETE":
+        bodyData = JSON.parse(req.body);
+        Url = `${baseUrl}api/delete_dataset`;
+        queryParams = new URLSearchParams({
+          user_id: user,
+          dataset_id: bodyData.dataset_id,
         });
 
-        const data = await response.json();
-        res.status(response.status).json(data);
-      } catch (error) {
-        console.error("Error during API request:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
-      break;
+        urlWithParams = `${Url}?${queryParams}`;
+        try {
+          const response = await fetch(urlWithParams, {
+            method: "DELETE",
+            headers: new Headers({
+              authorization: `Bearer ${token}`,
+            }),
+          });
+
+          const data = await response.json();
+          res.status(response.status).json(data);
+        } catch (error) {
+          console.error("Error during API request:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
+        break;
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }

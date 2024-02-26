@@ -229,3 +229,6 @@
   min-width: 7px !important;
   min-height: 7px !important;
 }
+.tools-border >div:last-child{
+  border: 0;
+}

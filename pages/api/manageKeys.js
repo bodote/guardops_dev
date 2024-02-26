@@ -10,72 +10,80 @@ export default async function handler(req, res) {
 
   const { method } = req;
 
-  const token = await getToken();
+  try {
+    const token = await getToken();
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
-  switch (method) {
-    case "GET":
-      Url = `${baseUrl}api/get_keys`;
-      queryParams = new URLSearchParams({
-        user_id: user,
-      });
-      urlWithParams = `${Url}?${queryParams}`;
-      try {
-        const response = await fetch(urlWithParams, {
-          method: "GET",
-          headers: new Headers({
-            authorization: `Bearer ${token}`,
-          }),
+    switch (method) {
+      case "GET":
+        Url = `${baseUrl}api/get_keys`;
+        queryParams = new URLSearchParams({
+          user_id: user,
+        });
+        urlWithParams = `${Url}?${queryParams}`;
+        try {
+          const response = await fetch(urlWithParams, {
+            method: "GET",
+            headers: new Headers({
+              authorization: `Bearer ${token}`,
+            }),
+          });
+
+          const data = await response.json();
+          res.status(response.status).json(data);
+        } catch (error) {
+          console.error("Error during API request:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
+        break;
+      case "POST":
+        Url = `${baseUrl}api/create_key`;
+        queryParams = new URLSearchParams({
+          user_id: user,
+        });
+        urlWithParams = `${Url}?${queryParams}`;
+        try {
+          const response = await fetch(urlWithParams, {
+            method: "POST",
+            headers: new Headers({
+              authorization: `Bearer ${token}`,
+            }),
+          });
+
+          const data = await response.json();
+          res.status(response.status).json(data);
+        } catch (error) {
+          console.error("Error during API request:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
+      case "DELETE":
+        bodyData = JSON.parse(req.body);
+        Url = `${baseUrl}api/delete_key`;
+        queryParams = new URLSearchParams({
+          user_id: user,
+          key_hash: bodyData.key_hash,
         });
 
-        const data = await response.json();
-        res.status(response.status).json(data);
-      } catch (error) {
-        console.error("Error during API request:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
-      break;
-    case "POST":
-      Url = `${baseUrl}api/create_key`;
-      queryParams = new URLSearchParams({
-        user_id: user,
-      });
-      urlWithParams = `${Url}?${queryParams}`;
-      try {
-        const response = await fetch(urlWithParams, {
-          method: "POST",
-          headers: new Headers({
-            authorization: `Bearer ${token}`,
-          }),
-        });
+        urlWithParams = `${Url}?${queryParams}`;
+        try {
+          const response = await fetch(urlWithParams, {
+            method: "DELETE",
+            headers: new Headers({
+              authorization: `Bearer ${token}`,
+            }),
+          });
 
-        const data = await response.json();
-        res.status(response.status).json(data);
-      } catch (error) {
-        console.error("Error during API request:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
-    case "DELETE":
-      bodyData = JSON.parse(req.body);
-      Url = `${baseUrl}api/delete_key`;
-      queryParams = new URLSearchParams({
-        user_id: user,
-        key_hash: bodyData.key_hash,
-      });
-
-      urlWithParams = `${Url}?${queryParams}`;
-      try {
-        const response = await fetch(urlWithParams, {
-          method: "DELETE",
-          headers: new Headers({
-            authorization: `Bearer ${token}`,
-          }),
-        });
-
-        const data = await response.json();
-        res.status(response.status).json(data);
-      } catch (error) {
-        console.error("Error during API request:", error);
-        res.status(500).json({ error: "Internal Server Error" });
-      }
+          const data = await response.json();
+          res.status(response.status).json(data);
+        } catch (error) {
+          console.error("Error during API request:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }

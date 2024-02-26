@@ -11,31 +11,25 @@ export default async function handler(req, res) {
 
   try {
     const token = await getToken();
+
     if (!token) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     switch (method) {
-      case "POST":
-        bodyData = JSON.parse(req.body);
-        Url = `${baseUrl}api/trace_playground_chat`;
+      case "GET":
+        Url = `${baseUrl}api/get_flow_elements`;
         queryParams = new URLSearchParams({
           user_id: user,
-          project_id: bodyData.project_id,
-          playground_id: bodyData.playground_id,
-          access_token: bodyData.access_token,
-          start_time: bodyData.start_time,
         });
-        urlWithParams = `${Url}?${queryParams.toString()}`;
+        urlWithParams = `${Url}?${queryParams}`;
 
         try {
           const response = await fetch(urlWithParams, {
-            method: "POST",
+            method: "GET",
             headers: new Headers({
               authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
             }),
-            body: JSON.stringify(bodyData.prompt_response_pairs),
           });
 
           const data = await response.json();
@@ -44,7 +38,31 @@ export default async function handler(req, res) {
           console.error("Error during API request:", error);
           res.status(500).json({ error: "Internal Server Error" });
         }
+        break;
+      case "PATCH":
+        bodyData = JSON.parse(req.body);
+        Url = `${baseUrl}api/generate_and_store_flow_definition`;
+        queryParams = new URLSearchParams({
+          user_id: user,
+          evaluation_id: bodyData.evaluation_id,
+        });
+        urlWithParams = `${Url}?${queryParams}`;
+        try {
+          const response = await fetch(urlWithParams, {
+            method: "PATCH",
+            headers: new Headers({
+              authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            }),
+            body: JSON.stringify(bodyData.flowDefinition),
+          });
 
+          const data = await response.json();
+          res.status(response.status).json(data);
+        } catch (error) {
+          console.error("Error during API request:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
         break;
     }
   } catch (error) {
