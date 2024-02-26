@@ -13,6 +13,9 @@ const Projectstabledata = ({
   const [traceProject, setTraceProject] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [option, setOption] = useState(false);
+  const [minWidth, maxWidth, defaultWidth] = [300, 1400, 977];
+  const [width, setWidth] = useState(defaultWidth);
+  const isResized = useRef(false);
   const modalRef = useRef();
 
   const openModal = (value) => {
@@ -230,12 +233,24 @@ const Projectstabledata = ({
             {isModalOpen && (
               <div
                 // ref={modalRef}
-                className="modal lg:w-[977px] w-[80%] overflow-x-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 lg:flex-row flex-col h-screen"
+                style={{ width: `${width / 16}rem` }}
+                className="modal overflow-x-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 lg:flex-row flex-col h-screen select-none"
               >
+                <div
+                  className="after:content-[''] after:absolute after:h-screen after:left-0 after:w-2 after:cursor-col-resize"
+                  onMouseDown={() => {
+                    isResized.current = true;
+                  }}
+                ></div>
                 <TraceDetails
                   traceProject={traceProject}
                   isModalOpen={isModalOpen}
                   setIsModalOpen={setIsModalOpen}
+                  width={width}
+                  setWidth={setWidth}
+                  minWidth={minWidth}
+                  maxWidth={maxWidth}
+                  isResized={isResized}
                 />
               </div>
             )}

@@ -1200,7 +1200,7 @@ export const LoadingIcon = ({ className }) => {
     </svg>
   );
 };
-export const ImageIcon = ({ className }) => {
+export const SaveIcon = ({ className }) => {
   return (
     <svg
       className={className}

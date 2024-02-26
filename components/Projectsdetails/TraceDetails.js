@@ -11,7 +11,14 @@ import { Tooltip } from "react-tooltip";
 import SelectDatasetModal from "../modal/SelectDatasetModal";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const TraceDetails = ({ traceProject, setIsModalOpen }) => {
+const TraceDetails = ({
+  traceProject,
+  setIsModalOpen,
+  minWidth,
+  maxWidth,
+  setWidth,
+  isResized,
+}) => {
   const [open, setOpen] = useState(true);
   const [selectedProject, setSelectedProject] = useState(null);
   const [currentRootTrace, setCurrentRootTrace] = useState(null);
@@ -55,6 +62,36 @@ const TraceDetails = ({ traceProject, setIsModalOpen }) => {
     e.preventDefault();
     setSelectedProject(val);
   };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResized.current) {
+        return;
+      }
+
+      setWidth((prevWidth) => {
+        const newWidth = prevWidth - e.movementX;
+        console.log("new:", newWidth);
+        if (newWidth >= minWidth && newWidth <= maxWidth) {
+          return newWidth;
+        } else {
+          return prevWidth;
+        }
+      });
+    };
+
+    const handleMouseUp = () => {
+      isResized.current = false;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [minWidth, maxWidth, setWidth]);
 
   useEffect(() => {
     traceProject.map((trace) => {
