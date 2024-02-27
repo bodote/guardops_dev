@@ -63,9 +63,9 @@ const WorkflowTemplate = ({
           body: JSON.stringify(formData),
         });
 
+        const responseData = await response.json();
         if (response.ok) {
           toast.success("Evaluation updated successfully !!");
-          const responseData = await response.json();
           setEvaluationData({
             evaluation_name: "",
             evaluation_description: "",
@@ -73,7 +73,7 @@ const WorkflowTemplate = ({
           setIsModalOpen(false);
           updateEvaluationList(projectID);
         } else {
-          toast.error("API request failed !!");
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       }

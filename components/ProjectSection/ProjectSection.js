@@ -56,12 +56,12 @@ const ProjectSection = () => {
           method: "DELETE",
           body: JSON.stringify(formData),
         });
-
+        const responseData = await response.json();
         if (response.ok) {
           toast.success(`Project deleted successfully !!`);
           getProjectList();
         } else {
-          toast.error(`API request failed !!`);
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       } catch (error) {
@@ -134,7 +134,7 @@ const ProjectSection = () => {
               return (
                 <div
                   key={i}
-                  className="hover:border-[#000] hover:bg-[#f2f2f2] border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px] cursor-pointer w-full"
+                  className="hover:border-[#000] hover:bg-[#f2f2f2] border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px] w-full"
                 >
                   <div className="flex items-center justify-between">
                     <div
@@ -148,7 +148,7 @@ const ProjectSection = () => {
                         alt=""
                         className="w-[23px]"
                       />
-                      <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] text-[18px] font-thin text-[#000]">
+                      <h2 className="font-Archivo lg:text-[24px] cursor-pointer sm:text-[20px] text-[18px] font-thin text-[#000]">
                         {ele.name}
                       </h2>
                     </div>
@@ -156,7 +156,7 @@ const ProjectSection = () => {
                       <button
                         onClick={() => handleGenerateShareCode(ele.project_id)}
                       >
-                        <Share2Icon />
+                        <Share2Icon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
                       <button
                         onClick={() => {
@@ -164,10 +164,10 @@ const ProjectSection = () => {
                           setSelectedProjectID(ele.project_id);
                         }}
                       >
-                        <LightIcon />
+                        <LightIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
                       <button onClick={() => handleProjectEdit(ele)}>
-                        <EditBlackIcon />
+                        <EditBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
                       <button
                         onClick={() => {
@@ -175,7 +175,7 @@ const ProjectSection = () => {
                           setOpen(true);
                         }}
                       >
-                        <DeleteBlackIcon />
+                        <DeleteBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
                       {open && (
                         <DeleteProjectModal

@@ -51,8 +51,8 @@ const AddDatasetModal = ({
           body: JSON.stringify(formData),
         });
 
+        const responseData = await response.json();
         if (response.ok) {
-          const responseData = await response.json();
           toast.success("Dataset created successfully !!");
           setDatasetData({
             dataset_name: "",
@@ -61,7 +61,7 @@ const AddDatasetModal = ({
           isModalOpen(false);
           updateProjectList();
         } else {
-          toast.error("API request failed !!");
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       } else {
@@ -70,9 +70,9 @@ const AddDatasetModal = ({
           body: JSON.stringify(formData),
         });
 
+        const responseData = await response.json();
         if (response.ok) {
           toast.success("Dataset updated successfully !!");
-          const responseData = await response.json();
           setDatasetData({
             dataset_name: "",
             dataset_description: "",
@@ -80,7 +80,7 @@ const AddDatasetModal = ({
           isModalOpen(false);
           updateProjectList();
         } else {
-          toast.error("API request failed !!");
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       }

@@ -232,3 +232,8 @@
 .tools-border >div:last-child{
   border: 0;
 }
+@media (max-width: 768px) {
+  .trace-modal-main{
+    max-width: 100% !important;
+  }
+}

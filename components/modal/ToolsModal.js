@@ -115,7 +115,7 @@ const ToolsModal = ({ toolsModal }) => {
                         {category === "evaluation" && <ColorPaletteIcon />}
                         {category === "config" && <DirectionIcon />}
                         {category === "exporting" && <TimeIcon />}
-                        <p className="text-[12px] text-black">
+                        <p className="text-[12px] text-black cursor-pointer">
                           {data.label && data.label}
                         </p>
                       </div>

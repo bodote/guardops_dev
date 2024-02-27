@@ -121,8 +121,8 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
           body: JSON.stringify(formData),
         });
 
+        const responseData = await response.json();
         if (response.ok) {
-          const responseData = await response.json();
           toast.success("Model created successfully !!");
           setModelData({
             name: value ? value.name : "",
@@ -136,7 +136,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
           setOpen(false);
           updateModelList();
         } else {
-          toast.error("API request failed !!");
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       } else {
@@ -148,9 +148,9 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
           method: "PATCH",
           body: JSON.stringify(formData),
         });
+        const responseData = await response.json();
         if (response.ok) {
           toast.success("Model updated successfully !!");
-          const responseData = await response.json();
           setModelData({
             name: value ? value.name : "",
             id1: value ? value.id1 : "",
@@ -163,7 +163,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
           setOpen(false);
           updateModelList();
         } else {
-          toast.error("API request failed !!");
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       }

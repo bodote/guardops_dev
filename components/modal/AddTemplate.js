@@ -26,7 +26,7 @@ const AddTemplate = ({
 
   const handleAddTemplate = async () => {
     const templateFormData = {
-      ...templateData
+      ...templateData,
     };
 
     if (
@@ -51,9 +51,9 @@ const AddTemplate = ({
           method: "POST",
           body: JSON.stringify(formData),
         });
+        const responseData = await response.json();
         if (response.ok) {
           toast.success("Template created successfully !!");
-          const responseData = await response.json();
           setTemplateData({
             template_name: "",
             template_description: "",
@@ -62,15 +62,18 @@ const AddTemplate = ({
           });
           setOpen(false);
           updateTemplatesList();
+        } else {
+          toast.error(responseData.detail);
+          console.error("API request failed:", response.statusText);
         }
       } else if (actionType === "edit") {
         const response = await fetch("/api/manageTemplates", {
           method: "PATCH",
           body: JSON.stringify(formData),
         });
+        const responseData = await response.json();
         if (response.ok) {
           toast.success("Template updated successfully !!");
-          const responseData = await response.json();
           setTemplateData({
             template_name: "",
             template_description: "",
@@ -79,10 +82,10 @@ const AddTemplate = ({
           });
           setOpen(false);
           updateTemplatesList();
+        } else {
+          toast.error(responseData.detail);
+          console.error("API request failed:", response.statusText);
         }
-      } else {
-        toast.error("API request failed");
-        console.error("API request failed:", response.statusText);
       }
     } catch (error) {
       toast.error(`${error.message}`);
