@@ -487,14 +487,14 @@ const index = () => {
                                   setActionType("edit");
                                 }}
                               >
-                                <EditBlackIcon />
+                                <EditBlackIcon className="stroke-[#000]" />
                               </button>
                               <button
                                 onClick={() => {
                                   setDeleteModalOpen(true);
                                 }}
                               >
-                                <DeleteBlackIcon />
+                                <DeleteBlackIcon className="stroke-[#000]" />
                               </button>
                             </>
                           )}

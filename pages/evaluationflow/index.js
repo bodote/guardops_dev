@@ -133,7 +133,7 @@ const EvaluationFlow = () => {
                         </div>
                         <div className="flex gap-4">
                           <button onClick={() => handleEvaluationEdit(ele)}>
-                            <EditBlackIcon />
+                            <EditBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                           </button>
                           <button
                             onClick={() => {
@@ -141,7 +141,7 @@ const EvaluationFlow = () => {
                               setOpen(true);
                             }}
                           >
-                            <DeleteBlackIcon />
+                            <DeleteBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                           </button>
                           {open && (
                             <DeleteModal

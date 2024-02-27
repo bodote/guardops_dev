@@ -1058,17 +1058,17 @@ export const EditBlackIcon = ({ className }) => {
     >
       <path
         d="M19 11V15C19 17.7614 16.7614 20 14 20H6C3.23858 20 1 17.7614 1 15V7C1 4.23858 3.23858 2 6 2H10"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
       />
       <path
         d="M11.2958 4.87469L14.7466 1.4187C15.527 0.637062 16.7929 0.636583 17.5739 1.41763L19.2334 3.07712C20.0078 3.85151 20.0158 5.10516 19.2514 5.88943L11.8225 13.5116C11.258 14.0907 10.4839 14.4172 9.67557 14.4172L7.40335 14.4171C6.76642 14.4171 6.25776 13.8861 6.28454 13.2493V13.2493L6.33366 12.0815L6.38278 10.9137V10.9137C6.41437 10.1627 6.72651 9.4509 7.25744 8.91917L8.86385 7.31032"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
       />
       <path
         d="M15.8644 5.60687L17.5719 7.29297"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -1088,24 +1088,24 @@ export const DeleteBlackIcon = ({ className }) => {
     >
       <path
         d="M3 11V9.58228C3 8.5552 2.66688 7.55584 2.05063 6.73418V6.73418C1.20573 5.60763 2.00954 4 3.41772 4H14.5823C15.9905 4 16.7943 5.60763 15.9494 6.73418V6.73418C15.3331 7.55584 15 8.5552 15 9.58228V16C15 18.2091 13.2091 20 11 20H7C4.79086 20 3 18.2091 3 16V15"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
       />
       <path
         d="M11 15L11 9"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M7 15L7 9"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M11.6368 1.31557C11.3222 1.11415 10.9504 1 10.5585 1H7.44152C7.04964 1 6.67777 1.11415 6.36322 1.31557"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
       />
     </svg>
@@ -1284,7 +1284,7 @@ export const LightIcon = ({ className }) => {
     >
       <path
         d="M8.81538 8.579C8.70492 8.579 8.61538 8.48946 8.61538 8.379V1.5558C8.61538 1.36835 8.38067 1.2839 8.26123 1.42837L0.676754 10.6024C0.407225 10.9284 0.639107 11.421 1.06211 11.421H5.18463C5.29508 11.421 5.38463 11.5105 5.38463 11.621V18.4442C5.38463 18.6316 5.61933 18.7161 5.73877 18.5716L13.3232 9.39759C13.5928 9.07158 13.3609 8.579 12.9379 8.579H8.81538Z"
-        stroke="black"
+        stroke="normal"
       />
     </svg>
   );
@@ -1301,17 +1301,17 @@ export const Share2Icon = ({ className }) => {
     >
       <path
         d="M14.3 7.1579L16 7.1579C18.2091 7.1579 20 8.94876 20 11.1579L20 16.5C20 18.7091 18.2091 20.5 16 20.5L5 20.5C2.79086 20.5 1 18.7091 1 16.5L1 11.1579C1 8.94876 2.79086 7.1579 5 7.1579L6.7 7.1579"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
       />
       <path
         d="M13.35 4.07895L11.2338 1.79282C10.838 1.36521 10.1619 1.36521 9.76611 1.79282L7.64998 4.07895"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
       />
       <path
         d="M10.5 2.02631L10.5 14.3421"
-        stroke="black"
+        stroke="normal"
         strokeLinecap="round"
       />
     </svg>

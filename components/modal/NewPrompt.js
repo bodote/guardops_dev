@@ -46,27 +46,9 @@ const NewPrompt = ({
           method: "POST",
           body: JSON.stringify(formData),
         });
+        const responseData = await response.json();
         if (response.ok) {
           toast.success("Prompt created successfully !!");
-          const responseData = await response.json();
-          setPlaygroundData({
-            playground_name: "",
-            playground_description: "",
-          });
-          setOpen(false);
-          updatePlaygroundList();
-          setCurrentPlaygroundID();
-          setCurrentPlayground();
-        }
-      } else if (actionType === "edit") {
-        const response = await fetch("/api/managePlaygrounds", {
-          method: "PATCH",
-          body: JSON.stringify(formData),
-        });
-
-        if (response.ok) {
-          toast.success("Prompt updated successfully !!");
-          const responseData = await response.json();
           setPlaygroundData({
             playground_name: "",
             playground_description: "",
@@ -76,7 +58,28 @@ const NewPrompt = ({
           setCurrentPlaygroundID();
           setCurrentPlayground();
         } else {
-          toast.error("API request failed !!");
+          toast.error(responseData.detail);
+          console.error("API request failed:", response.statusText);
+        }
+      } else if (actionType === "edit") {
+        const response = await fetch("/api/managePlaygrounds", {
+          method: "PATCH",
+          body: JSON.stringify(formData),
+        });
+
+        const responseData = await response.json();
+        if (response.ok) {
+          toast.success("Prompt updated successfully !!");
+          setPlaygroundData({
+            playground_name: "",
+            playground_description: "",
+          });
+          setOpen(false);
+          updatePlaygroundList();
+          setCurrentPlaygroundID();
+          setCurrentPlayground();
+        } else {
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       }

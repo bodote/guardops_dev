@@ -88,9 +88,9 @@ const AddProjectModal = ({
           method: "POST",
           body: JSON.stringify(formData),
         });
+        const responseData = await response.json();
         if (response.ok) {
           toast.success("Project created successfully !!");
-          const responseData = await response.json();
           setProjectData({
             project_name: "",
             project_description: "",
@@ -100,7 +100,7 @@ const AddProjectModal = ({
           setIsModalOpen(false);
           updateProjectList();
         } else {
-          toast.error("API request failed");
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       } else {
@@ -109,9 +109,9 @@ const AddProjectModal = ({
           body: JSON.stringify(formData),
         });
 
+        const responseData = await response.json();
         if (response.ok) {
           toast.success("Project updated successfully !!");
-          const responseData = await response.json();
           setProjectData({
             project_name: "",
             project_description: "",
@@ -121,7 +121,7 @@ const AddProjectModal = ({
           setIsModalOpen(false);
           updateProjectList();
         } else {
-          toast.error("API request failed");
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       }

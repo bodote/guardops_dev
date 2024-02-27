@@ -71,7 +71,6 @@ const TraceDetails = ({
 
       setWidth((prevWidth) => {
         const newWidth = prevWidth - e.movementX;
-        console.log("new:", newWidth);
         if (newWidth >= minWidth && newWidth <= maxWidth) {
           return newWidth;
         } else {
@@ -105,7 +104,7 @@ const TraceDetails = ({
   return (
     <>
       <div className="trace-scroll">
-        <div className="w-full overflow-y-auto h-screen scroll-auto">
+        <div className="w-full overflow-y-auto lg:h-screen scroll-auto">
           <div className="border-b border-b-[#CCCCCC]">
             <button
               onClick={() => setIsModalOpen(false)}
@@ -251,7 +250,7 @@ const TraceDetails = ({
         <div className="border-b border-b-[#CCCCCC]">
           <div className="h-[42px] flex items-center justify-end gap-[12px] px-[16px] border-l border-l-[#CCCCCC]">
             <button
-              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
+              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[14px] rounded-md"
               onClick={() => {
                 setIsDatasetModelOpen(!isDatasetModelOpen);
               }}
@@ -262,7 +261,7 @@ const TraceDetails = ({
               onClick={() =>
                 router.push(`/playground?data=${JSON.stringify(dataToPass)}`)
               }
-              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
+              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[14px] rounded-md"
             >
               Open in playground
             </button>

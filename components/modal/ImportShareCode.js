@@ -10,13 +10,13 @@ const ImportShareCode = ({ importShare, setImportShare, name }) => {
         method: "POST",
         body: JSON.stringify({ code, name }),
       });
-
+      const responseData = await response.json();
       if (response.ok) {
         toast.success("Project successfully imported !!");
         setImportShare(false);
       }
       if (!response.ok) {
-        toast.error("Please check your share code");
+        toast.error(responseData.detail);
       }
     } catch (error) {
       console.error("API request failed:", response.statusText);
