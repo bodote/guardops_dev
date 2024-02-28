@@ -24,6 +24,7 @@ const TraceDetails = ({
   const [currentRootTrace, setCurrentRootTrace] = useState(null);
   const [isDatasetModelOpen, setIsDatasetModelOpen] = useState(false);
   const [tab, setTab] = useState("Info");
+  const [type, setType] = useState("");
   const router = useRouter();
   const params = useSearchParams();
   const dataToPass = {
@@ -56,9 +57,16 @@ const TraceDetails = ({
   };
 
   const handleTreeRowClick = (e, val, parent = false) => {
+    setType("playground");
     if (parent) {
       setOpen(!open);
     }
+    e.preventDefault();
+    setSelectedProject(val);
+  };
+
+  const handleChatRowClick = (e, val) => {
+    setType("chat");
     e.preventDefault();
     setSelectedProject(val);
   };
@@ -70,8 +78,7 @@ const TraceDetails = ({
       }
 
       setWidth((prevWidth) => {
-        const newWidth = prevWidth - e.movementX;
-        console.log("new:", newWidth);
+        const newWidth = prevWidth - e.movementX / 20;
         if (newWidth >= minWidth && newWidth <= maxWidth) {
           return newWidth;
         } else {
@@ -105,7 +112,7 @@ const TraceDetails = ({
   return (
     <>
       <div className="trace-scroll">
-        <div className="w-full overflow-y-auto h-screen scroll-auto">
+        <div className="w-full overflow-y-auto lg:h-screen scroll-auto">
           <div className="border-b border-b-[#CCCCCC]">
             <button
               onClick={() => setIsModalOpen(false)}
@@ -115,14 +122,75 @@ const TraceDetails = ({
             </button>
           </div>
           <div className="px-[11px]">
-            <h1 className="text-[32px] font-Archivo font-normal text-[#000000] ">
+            <h1 className="text-[32px] font-Archivo font-normal text-[#000000] my-[10px_0]">
               Trace Details
             </h1>
             <div className="relative trace-detail cursor-pointer">
               <div className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[22px] after:top-[-27px] after:absolute after:w-[1px]">
                 {traceProject.map((outerEle, innerEleIndx) => {
                   return (
-                    outerEle.parent_id == null && (
+                    outerEle.kind == "SpanKind.PLAYGROUND_CHAT" && (
+                      <div
+                        onClick={(e) => handleChatRowClick(e, outerEle)}
+                        key={innerEleIndx}
+                        className="flex mb-[18px] ml-[20px] items-center relative bg-[#fff] z-[9] max-w-[466px] after:content-[''] after:w-[1px] after:h-[20px] after:bg-[#CCCCCC] after:absolute after:top-[23px] after:left-[21px] trace-det"
+                      >
+                        {/* <LinesmallIcon className="absolute top-[12px] left-[-13px]" /> */}
+                        {/* <LineverticalbigIcon className="absolute left-[-13px]" /> */}
+                        <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb]  ">
+                          <div className="p-[7px_10px_7px_16px]">
+                            <DocumentIcon />
+                          </div>
+                          <div className="md:p-[4px_0px_4px_6px] p-[8px] border-x">
+                            <h1
+                              data-tooltip-id="my-tooltip"
+                              data-tooltip-content={outerEle.kind}
+                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
+                            >
+                              {outerEle.kind}
+                            </h1>
+                          </div>
+                          <div className="md:p-[4px_0px_4px_6px] pl-[2px] border-r">
+                            <h1
+                              data-tooltip-id="my-tooltip"
+                              data-tooltip-content={outerEle.name}
+                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
+                            >
+                              {outerEle.name}
+                            </h1>
+                          </div>
+                          <div className="md:p-[4px_0px_4px_6px] p-[8px] border-r">
+                            <h1
+                              data-tooltip-id="my-tooltip"
+                              data-tooltip-content={handleSpanStartTime(
+                                outerEle.start_time
+                              )}
+                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
+                            >
+                              {handleSpanStartTime(outerEle.start_time)}
+                            </h1>
+                          </div>
+                          <div className="md:p-[4px_0px_4px_6px] p-[8px]">
+                            <h1
+                              data-tooltip-id="my-tooltip"
+                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
+                            >
+                              {handleLatency(
+                                outerEle.start_time,
+                                outerEle.end_time
+                              )}{" "}
+                              s
+                            </h1>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  );
+                })}
+                {traceProject.map((outerEle, innerEleIndx) => {
+                  return (
+                    outerEle.parent_id == null &&
+                    outerEle.kind !== "SpanKind.PLAYGROUND_CHAT" && (
                       <div
                         onClick={(e) => handleTreeRowClick(e, outerEle, true)}
                         key={innerEleIndx}
@@ -182,7 +250,8 @@ const TraceDetails = ({
                 })}
                 {traceProject.map((innerEle, innerEleIndx) => {
                   return (
-                    innerEle.parent_id !== null && (
+                    innerEle.parent_id !== null &&
+                    innerEle.kind !== "SpanKind.PLAYGROUND_CHAT" && (
                       <div key={innerEleIndx}>
                         {open && (
                           <div
@@ -251,7 +320,7 @@ const TraceDetails = ({
         <div className="border-b border-b-[#CCCCCC]">
           <div className="h-[42px] flex items-center justify-end gap-[12px] px-[16px] border-l border-l-[#CCCCCC]">
             <button
-              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
+              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[14px] rounded-md"
               onClick={() => {
                 setIsDatasetModelOpen(!isDatasetModelOpen);
               }}
@@ -262,7 +331,7 @@ const TraceDetails = ({
               onClick={() =>
                 router.push(`/playground?data=${JSON.stringify(dataToPass)}`)
               }
-              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[20px] rounded-md"
+              className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] sm:px-[35px] px-[14px] rounded-md"
             >
               Open in playground
             </button>
@@ -329,7 +398,11 @@ const TraceDetails = ({
             <Info traceProject={selectedProject?.attributes} />
           )}
           {tab === "Response" && (
-            <Response traceProject={currentRootTrace?.attributes} />
+            <Response
+              traceProject={currentRootTrace?.attributes}
+              selected={selectedProject?.attributes}
+              type={type}
+            />
           )}
           {tab === "SignalsConcepts" && <SignalsConcepts />}
         </div>

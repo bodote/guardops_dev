@@ -279,21 +279,22 @@ const CustomNode = ({ data }) => {
                 </div>
               )
           )} */}
-          {data.attributes.map(
+          {data.fields?.map(
             (field, index) =>
-              field.type === "str" && (
+              field.type === "text" && (
                 <div key={index} className="mb-[10px]">
                   <label className="text-[#656565] text-[10px] font-medium mb-[5px] block">
-                    {formatInputText(field.name)}
+                    {field.label}
                   </label>
                   <input
+                    id={field.name}
                     type="text"
-                    className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full"
+                    className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full nodrag"
                   />
                 </div>
               )
           )}
-          {data.attributes.map(
+          {/* {data.fields.map(
             (field, index) =>
               field.type === "List[Dict[Any,Any]]" && (
                 <Listbox key={index} value={proname} onChange={setProname}>
@@ -359,7 +360,7 @@ const CustomNode = ({ data }) => {
                   )}
                 </Listbox>
               )
-          )}
+          )} */}
           {/* {data.fields.map(
             (field, index) =>
               field.type === "modal_button" && (

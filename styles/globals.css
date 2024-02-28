@@ -232,3 +232,17 @@
 .tools-border >div:last-child{
   border: 0;
 }
+@media (max-width: 768px) {
+  .trace-modal-main{
+    max-width: 100% !important;
+    width: 80% !important;
+  }
+}
+@media (max-width: 576px) {
+  .trace-modal-main{
+    width: 94% !important;
+  }
+}
+.trace-det:last-child::after{
+  display: none;
+}

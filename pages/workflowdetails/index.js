@@ -14,27 +14,44 @@ const WorkflowDetails = () => {
   const params = useSearchParams();
 
   const handleSaveFlow = async () => {
-    const flowDefinition = {
-      nodes: nodes,
-      edges: edges,
-    };
+    if (nodes.length > 0) {
+      const updatedNodes = nodes.map((node) => {
+        if (node.data.fields) {
+          const updatedFields = node.data.fields.map((field) => ({
+            ...field,
+            value: document.getElementById(field.name)?.value || "",
+          }));
+          return {
+            ...node.data,
+            fields: updatedFields,
+          };
+        }
+        return node;
+      });
 
-    const formData = {
-      flowDefinition,
-      evaluation_id: evaluationID,
-    };
+      const flowDefinition = {
+        nodes: updatedNodes,
+        edges: edges,
+      };
 
-    const response = await fetch("/api/manageFlow", {
-      method: "PATCH",
-      body: JSON.stringify(formData),
-    });
+      const formData = {
+        flowDefinition,
+        evaluation_id: evaluationID,
+      };
 
-    if (response.ok) {
-      toast.success("Flow Saved successfully !!");
+      const response = await fetch("/api/manageFlow", {
+        method: "PATCH",
+        body: JSON.stringify(formData),
+      });
       const responseData = await response.json();
+      if (response.ok) {
+        toast.success("Flow Saved successfully !!");
+      } else {
+        toast.error(responseData.detail);
+        console.error("API request failed:", response.statusText);
+      }
     } else {
-      toast.error("API request failed !!");
-      console.error("API request failed:", response.statusText);
+      toast.error("Please drag the nodes from the modal");
     }
   };
   useEffect(() => {

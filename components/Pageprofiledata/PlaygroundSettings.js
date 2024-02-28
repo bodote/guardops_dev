@@ -51,12 +51,12 @@ const PlaygroundSettings = () => {
           method: "DELETE",
           body: JSON.stringify(formData),
         });
-
+        const responseData = await response.json();
         if (response.ok) {
           toast.success(`Project deleted successfully !!`);
           getModels();
         } else {
-          toast.error(`API request failed !!`);
+          toast.error(responseData.detail);
           console.error("API request failed:", response.statusText);
         }
       } catch (error) {
@@ -150,7 +150,7 @@ const PlaygroundSettings = () => {
                   key={model.model_id}
                   onClick={() => setModelsForEdit(model)}
                   onDoubleClick={() => handleModelEdit(model)}
-                  className="focus:bg-[#f0efef] block w-full text-left px-[13px]"
+                  className="focus:bg-[#0D859A] block w-full text-left px-[13px]"
                 >
                   {model.provider}/{model.id1}
                 </button>

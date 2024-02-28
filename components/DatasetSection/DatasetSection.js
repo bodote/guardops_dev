@@ -121,7 +121,7 @@ const DatasetSection = () => {
               return (
                 <div
                   key={i}
-                  className="hover:border-[#000] hover:bg-[#f2f2f2] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px] cursor-pointer"
+                  className="hover:border-[#000] hover:bg-[#f2f2f2] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px]"
                 >
                   <div className="flex items-center justify-between">
                     <div
@@ -135,7 +135,7 @@ const DatasetSection = () => {
                         alt=""
                         className="w-[23px]"
                       />
-                      <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] text-[18px] font-thin text-[#000]">
+                      <h2 className="font-Archivo lg:text-[24px] cursor-pointer sm:text-[20px] text-[18px] font-thin text-[#000]">
                         {ele.name}
                       </h2>
                     </div>
@@ -143,7 +143,7 @@ const DatasetSection = () => {
                       <button
                         onClick={() => handleGenerateShareCode(ele.dataset_id)}
                       >
-                        <Share2Icon />
+                        <Share2Icon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
                       <button
                         onClick={() => {
@@ -151,10 +151,10 @@ const DatasetSection = () => {
                           setSelectedDatasetID(ele.dataset_id);
                         }}
                       >
-                        <LightIcon />
+                        <LightIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
                       <button onClick={() => handleDatasetEdit(ele)}>
-                        <EditBlackIcon />
+                        <EditBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
                       <button
                         onClick={() => {
@@ -162,7 +162,7 @@ const DatasetSection = () => {
                           setOpen(true);
                         }}
                       >
-                        <DeleteBlackIcon />
+                        <DeleteBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
                       {open && (
                         <DeleteModal
