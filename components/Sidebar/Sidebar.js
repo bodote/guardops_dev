@@ -24,7 +24,7 @@ const Sidebar = () => {
     setIsHovered(false);
   };
 
-//*******************************Set User**************************/
+  //*******************************Set User**************************/
   // useEffect(() => {
   //   const cookie = Cookies.get("user_id");
   //   if (!cookie && user) {
@@ -38,7 +38,7 @@ const Sidebar = () => {
   const dynamicClassName = `trans ${isHovered ? "hovered-class" : ""}`;
   return (
     <div>
-      <div className="sm:p-[12px] p-[6px] flex flex-col justify-between h-screen overflow-auto border-r-[#CCCCCC] border-r-[1px] w-fit cursor-pointer trans absolute left-0 bg-[#fff] z-10">
+      <div className="sm:p-[12px] p-[6px] flex flex-col justify-between gap-[40px] h-screen overflow-auto border-r-[#CCCCCC] border-r-[1px] w-fit cursor-pointer trans absolute left-0 bg-[#fff] z-10">
         <div
           className={dynamicClassName}
           onMouseEnter={handleMouseEnter}

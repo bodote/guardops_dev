@@ -16,26 +16,18 @@ export default async function handler(req, res) {
     }
 
     switch (method) {
-      case "POST":
-        bodyData = JSON.parse(req.body);
-        Url = `${baseUrl}api/trace_playground_chat`;
+      case "GET":
+        Url = `${baseUrl}api/get_chat_playgrounds`;
         queryParams = new URLSearchParams({
           user_id: user,
-          project_id: bodyData.project_id,
-          playground_id: bodyData.playground_id,
-          access_token: bodyData.access_token,
-          start_time: bodyData.start_time,
         });
-        urlWithParams = `${Url}?${queryParams.toString()}`;
-
+        urlWithParams = `${Url}?${queryParams}`;
         try {
           const response = await fetch(urlWithParams, {
-            method: "POST",
+            method: "GET",
             headers: new Headers({
               authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
             }),
-            body: JSON.stringify(bodyData.prompt_response_pairs),
           });
 
           const data = await response.json();
@@ -44,7 +36,59 @@ export default async function handler(req, res) {
           console.error("Error during API request:", error);
           res.status(500).json({ error: "Internal Server Error" });
         }
+        break;
+      case "POST":
+        bodyData = JSON.parse(req.body);
+        if (bodyData.project_id) {
+          Url = `${baseUrl}api/trace_playground_chat`;
+          queryParams = new URLSearchParams({
+            user_id: user,
+            project_id: bodyData.project_id,
+            playground_id: bodyData.playground_id,
+            access_token: bodyData.access_token,
+            start_time: bodyData.start_time,
+          });
+          urlWithParams = `${Url}?${queryParams.toString()}`;
 
+          try {
+            const response = await fetch(urlWithParams, {
+              method: "POST",
+              headers: new Headers({
+                authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              }),
+              body: JSON.stringify(bodyData.prompt_response_pairs),
+            });
+
+            const data = await response.json();
+            res.status(response.status).json(data);
+          } catch (error) {
+            console.error("Error during API request:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+          }
+        } else {
+          Url = `${baseUrl}api/create_chat_playground`;
+          queryParams = new URLSearchParams({
+            user_id: user,
+            playground_name: bodyData.playground_name,
+            playground_description: bodyData.playground_description,
+          });
+          urlWithParams = `${Url}?${queryParams}`;
+          try {
+            const response = await fetch(urlWithParams, {
+              method: "POST",
+              headers: new Headers({
+                authorization: `Bearer ${token}`,
+              }),
+            });
+
+            const data = await response.json();
+            res.status(response.status).json(data);
+          } catch (error) {
+            console.error("Error during API request:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+          }
+        }
         break;
     }
   } catch (error) {
