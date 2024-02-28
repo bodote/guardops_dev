@@ -13,7 +13,7 @@ const Projectstabledata = ({
   const [traceProject, setTraceProject] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
   const [option, setOption] = useState(false);
-  const [minWidth, maxWidth, defaultWidth] = [300, 2000, 977];
+  const [minWidth, maxWidth, defaultWidth] = [20, 95, 80];
   const [width, setWidth] = useState(defaultWidth);
   const isResized = useRef(false);
   const modalRef = useRef();
@@ -233,7 +233,7 @@ const Projectstabledata = ({
             {isModalOpen && (
               <div
                 // ref={modalRef}
-                style={{ maxWidth: `${width / 16}rem` }}
+                style={{ width: `${width}%` }}
                 className="modal overflow-x-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 lg:flex-row flex-col h-screen select-none trace-modal-main"
               >
                 <div

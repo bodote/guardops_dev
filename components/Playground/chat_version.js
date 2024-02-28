@@ -39,7 +39,9 @@ const Chat_version = ({
   allMsg,
   setAllMsg,
   proname,
-  currentPlaygroundID,
+  currentChatID,
+  selectedModel,
+  setSelectedModel,
 }) => {
   const [userMessage, setUserMessage] = useState("");
   const [messages, setMessages] = useState([
@@ -51,9 +53,13 @@ const Chat_version = ({
   const [open, setOpen] = useState(false);
   const modalRef = useRef();
   const [sync, setSync] = useState(false);
-  const [selected, setSelected] = useState({
-    name: "Select an option",
-  });
+  const [selected, setSelected] = useState(
+    selectedModel
+      ? selectedModel
+      : {
+          name: "Select an option",
+        }
+  );
   const [enabled, setEnabled] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState("");
   const [showSettings, setShowSettings] = useState(false);
@@ -100,7 +106,7 @@ const Chat_version = ({
   const getTraces = async () => {
     try {
       const response = await fetch(
-        `/api/manageTraces?playground_id=${currentPlaygroundID}`,
+        `/api/manageTraces?playground_id=${currentChatID}`,
         {
           method: "GET",
         }
@@ -343,7 +349,7 @@ const Chat_version = ({
     if (apiCallInProgress) {
       return;
     }
-    if (proname.project_id === undefined || currentPlaygroundID.length === 0) {
+    if (proname.project_id === undefined || currentChatID.length === 0) {
       toast.error("Please select the project and playground first!!!");
       return;
     }
@@ -367,7 +373,7 @@ const Chat_version = ({
 
     const formData = {
       project_id: proname.project_id,
-      playground_id: currentPlaygroundID,
+      playground_id: currentChatID,
       access_token: localStorage.getItem("customAIKey"),
       start_time: new Date().toISOString(),
       prompt_response_pairs: APIBody,
@@ -386,6 +392,11 @@ const Chat_version = ({
     }
   };
 
+  const handleSelect = (model) => {
+    setSelected(model);
+    setSelectedModel(model);
+  };
+
   useEffect(() => {
     getModels();
     const key = localStorage.getItem("fireworksAIKey") || "";
@@ -401,10 +412,10 @@ const Chat_version = ({
   }, []);
 
   useEffect(() => {
-    if (currentPlaygroundID) {
+    if (currentChatID) {
       getTraces();
     }
-  }, [currentPlaygroundID]);
+  }, [currentChatID]);
 
   useEffect(() => {
     if (tracesData) {
@@ -480,7 +491,7 @@ const Chat_version = ({
         <div className="border-r-[#CCCCCC] border-r-[1px]">
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
             <div className="flex items-center gap-2">
-              <Listbox value={selected} onChange={setSelected}>
+              <Listbox value={selected} onChange={handleSelect}>
                 {({ open }) => (
                   <>
                     <div className="relative">
@@ -702,8 +713,8 @@ const Chat_version = ({
             <div
               className={
                 error
-                  ? "bg-[#F7F7F7] h-[calc(100vh-248px)] overflow-y-auto pt-[44px]"
-                  : "bg-[#F7F7F7] h-[calc(100vh-248px)] overflow-y-auto"
+                  ? "bg-[#F7F7F7] h-[calc(100vh-249px)] overflow-y-auto pt-[44px]"
+                  : "bg-[#F7F7F7] h-[calc(100vh-249px)] overflow-y-auto"
               }
             >
               {messages.map((message, index) => (
@@ -839,7 +850,7 @@ const Chat_version = ({
                       checked={sync}
                       onChange={() => setSync(!sync)}
                       className={classNames(
-                        sync ? "bg-[#0074fb]" : "bg-[#F7F7F8]",
+                        sync ? "bg-[#0074fb]" : "bg-[#898989]",
                         "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                       )}
                     >

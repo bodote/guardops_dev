@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
     switch (method) {
       case "GET":
-        Url = `${baseUrl}api/get_playgrounds`;
+        Url = `${baseUrl}api/get_prompt_playgrounds`;
         queryParams = new URLSearchParams({
           user_id: user,
         });
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
             res.status(500).json({ error: "Internal Server Error" });
           }
         } else if (!bodyData.project_id) {
-          Url = `${baseUrl}api/create_playground`;
+          Url = `${baseUrl}api/create_prompt_playground`;
           queryParams = new URLSearchParams({
             user_id: user,
             playground_name: bodyData.playground_name,

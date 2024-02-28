@@ -45,11 +45,17 @@ const Version = ({
   setAllPromtsDetails,
   setClear,
   clear,
+  selectedModel,
+  setSelectedModel,
 }) => {
   const [models, setModels] = useState([]);
-  const [selected, setSelected] = useState({
-    name: "Select an option",
-  });
+  const [selected, setSelected] = useState(
+    selectedModel
+      ? selectedModel
+      : {
+          name: "Select an option",
+        }
+  );
   const [apiResponse, setApiResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -352,6 +358,11 @@ const Version = ({
     }
   };
 
+  const handleSelect = (model) => {
+    setSelected(model);
+    setSelectedModel(model);
+  };
+
   useEffect(() => {
     if (enabled) {
       setsyncAll(true);
@@ -403,7 +414,7 @@ const Version = ({
         <div>
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative">
             <div className="flex items-center gap-2">
-              <Listbox value={selected} onChange={setSelected}>
+              <Listbox value={selected} onChange={handleSelect}>
                 {({ open }) => (
                   <>
                     <div className="relative">

@@ -9,8 +9,9 @@ const NewPrompt = ({
   updatePlaygroundList,
   actionType,
   playground,
-  setCurrentPlaygroundID,
+  setCurrentID,
   setCurrentPlayground,
+  page,
 }) => {
   const [playgroundData, setPlaygroundData] = useState({
     playground_name: playground ? playground.name : "",
@@ -41,47 +42,28 @@ const NewPrompt = ({
       playground_id: playground ? playground.playground_id : "",
     };
     try {
-      if (actionType === "new") {
-        const response = await fetch("/api/managePlaygrounds", {
-          method: "POST",
-          body: JSON.stringify(formData),
+      let url;
+      page === "prompt"
+        ? (url = "/api/managePlaygrounds")
+        : (url = "/api/manageChatPlayground");
+      const response = await fetch(url, {
+        method: actionType === "new" ? "POST" : "PATCH",
+        body: JSON.stringify(formData),
+      });
+      const responseData = await response.json();
+      if (response.ok) {
+        toast.success("Prompt created successfully !!");
+        setPlaygroundData({
+          playground_name: "",
+          playground_description: "",
         });
-        const responseData = await response.json();
-        if (response.ok) {
-          toast.success("Prompt created successfully !!");
-          setPlaygroundData({
-            playground_name: "",
-            playground_description: "",
-          });
-          setOpen(false);
-          updatePlaygroundList();
-          setCurrentPlaygroundID();
-          setCurrentPlayground();
-        } else {
-          toast.error(responseData.detail);
-          console.error("API request failed:", response.statusText);
-        }
-      } else if (actionType === "edit") {
-        const response = await fetch("/api/managePlaygrounds", {
-          method: "PATCH",
-          body: JSON.stringify(formData),
-        });
-
-        const responseData = await response.json();
-        if (response.ok) {
-          toast.success("Prompt updated successfully !!");
-          setPlaygroundData({
-            playground_name: "",
-            playground_description: "",
-          });
-          setOpen(false);
-          updatePlaygroundList();
-          setCurrentPlaygroundID();
-          setCurrentPlayground();
-        } else {
-          toast.error(responseData.detail);
-          console.error("API request failed:", response.statusText);
-        }
+        setOpen(false);
+        updatePlaygroundList();
+        setCurrentID();
+        setCurrentPlayground();
+      } else {
+        toast.error(responseData.detail);
+        console.error("API request failed:", response.statusText);
       }
     } catch (error) {
       toast.error(`${error.message}`);
