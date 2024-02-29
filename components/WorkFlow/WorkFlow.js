@@ -51,7 +51,12 @@ const WorkFlow = ({
       x: event.clientX - event.target.getBoundingClientRect().left,
       y: event.clientY - event.target.getBoundingClientRect().top,
     };
-    const newNodeId = uuidv4();
+    let newNodeId;
+    if (toolData) {
+      toolData.id === "config"
+        ? (newNodeId = "config")
+        : (newNodeId = uuidv4());
+    }
 
     const newNode = {
       id: newNodeId,

@@ -1,5 +1,7 @@
-import { ArrowDownIcon } from '@/public/Assets/Icons/Allsvg';
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { ArrowDownIcon } from "@/public/Assets/Icons/Allsvg";
+import ReactMarkdown from "react-markdown";
+import gfm from "remark-gfm";
 
 const Info = ({ traceProject }) => {
   const [trace, setTrace] = useState(true);
@@ -21,7 +23,7 @@ const Info = ({ traceProject }) => {
             <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
               {traceProject?.prompt
                 ? traceProject?.prompt
-                : traceProject?.llm_prompts_0_content || 'null'}
+                : traceProject?.llm_prompts_0_content || "null"}
             </div>
           )}
         </div>
@@ -38,10 +40,50 @@ const Info = ({ traceProject }) => {
             </h1>
           </div>
           {trace && (
-            <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
-              {traceProject?.output
-                ? traceProject?.output
-                : traceProject?.llm_completions_0_content || 'null'}
+            <div
+              style={{ whiteSpace: "pre-wrap" }}
+              className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]"
+            >
+              <ReactMarkdown
+                components={{
+                  ul: ({ node, ...props }) => (
+                    <ul
+                      style={{
+                        display: "block",
+                        listStyleType: "disc",
+                        paddingInlineStart: "40px",
+                      }}
+                      {...props}
+                    />
+                  ),
+                  ol: ({ node, ...props }) => (
+                    <ol
+                      style={{
+                        display: "block",
+                        listStyleType: "decimal",
+                        paddingInlineStart: "40px",
+                      }}
+                      {...props}
+                    />
+                  ),
+                  h1: ({ node, ...props }) => (
+                    <h1 className="font-bold text-6xl" {...props} />
+                  ),
+                  p: ({ node, ...props }) => (
+                    <p
+                      style={{
+                        whiteSpace: "pre-wrap",
+                      }}
+                      {...props}
+                    />
+                  ),
+                }}
+                remarkPlugins={[gfm]}
+              >
+                {traceProject?.output
+                  ? traceProject?.output
+                  : traceProject?.llm_completions_0_content || "null"}
+              </ReactMarkdown>
             </div>
           )}
         </div>
@@ -61,7 +103,7 @@ const Info = ({ traceProject }) => {
             <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
               {traceProject?.model
                 ? traceProject?.model
-                : traceProject?.llm_completions_0_content || 'null'}
+                : traceProject?.llm_completions_0_content || "null"}
             </div>
           )}
         </div>

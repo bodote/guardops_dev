@@ -218,10 +218,7 @@
   font-size: 12px !important;
   padding: 5px !important;
   z-index: 999;
-}
-.tooltip-main .tooltip-show-data{
-  background-color:transparent;
-  /* margin-top:76px */
+  background-color:transparent !important;
 }
 .flow-handle{
   background-color:#A8A8A8 !important;
@@ -245,4 +242,10 @@
 }
 .trace-det:last-child::after{
   display: none;
+}
+@media (max-width:425px) {
+  .react-tooltip{
+    top: 610px !important;
+    left: 62.75px !important;
+  }
 }
