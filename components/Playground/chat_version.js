@@ -18,7 +18,6 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import { Listbox, Transition, Switch } from "@headlessui/react";
 import { AiOutlineStop } from "react-icons/ai";
-import { FiPlus } from "react-icons/fi";
 import ModelSettings from "./modelSettings";
 import { toast } from "react-toastify";
 
@@ -73,6 +72,7 @@ const Chat_version = ({
   const [error, setError] = useState("");
   const [editingIndex, setEditingIndex] = useState(-1);
   const [editedMessage, setEditedMessage] = useState("");
+  const [tooltipData, setTooltipData] = useState({});
   const [tracesData, setTracesData] = useState([]);
   // State for settings values
   const [settings, setSettings] = useState({
@@ -524,7 +524,7 @@ const Chat_version = ({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                       >
-                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px]">
+                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[190px] overflow-auto">
                           {models.map((model) => (
                             <Listbox.Option
                               key={model.model_id}
@@ -538,6 +538,8 @@ const Chat_version = ({
                                 )
                               }
                               value={model}
+                              onMouseEnter={() => setTooltipData(model)}
+                              onMouseLeave={() => setTooltipData({})}
                             >
                               <div
                                 className="flex items-center tooltip-main"
@@ -553,46 +555,6 @@ const Chat_version = ({
                                 >
                                   {model.name}
                                 </span>
-                                <Tooltip
-                                  className="tooltip-show-data"
-                                  id={`my-tooltip-${model.model_id}`}
-                                  place="right"
-                                >
-                                  <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[9] ml-[10px] 2xl:!w-[270px] w-[230px opacity-100">
-                                    <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
-                                      {model.name}
-                                    </h1>
-                                    <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#aaa] leading-normal mt-[5px]">
-                                      {model.model_description}
-                                    </p>
-                                    <div className="my-[10px]">
-                                      <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                                        <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                          Context length:
-                                        </p>
-                                        <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                          {model.context} tokens
-                                        </p>
-                                      </div>
-                                      <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                                        <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                          Input pricing:
-                                        </p>
-                                        <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                          {model.input_price}
-                                        </p>
-                                      </div>
-                                      <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
-                                        <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                          Output princing:
-                                        </p>
-                                        <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                                          {model.output_price}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </Tooltip>
                               </div>
                             </Listbox.Option>
                           ))}
@@ -884,6 +846,48 @@ const Chat_version = ({
           </div>
         </div>
       </div>
+      {tooltipData && (
+        <Tooltip
+          className="tooltip-show-data"
+          id={`my-tooltip-${tooltipData.model_id}`}
+          place="right"
+        >
+          <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[9] ml-[10px] 2xl:!w-[270px] w-[230px opacity-100">
+            <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
+              {tooltipData.name}
+            </h1>
+            <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#aaa] leading-normal mt-[5px]">
+              {tooltipData.model_description}
+            </p>
+            <div className="my-[10px]">
+              <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+                <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                  Context length:
+                </p>
+                <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                  {tooltipData.context} tokens
+                </p>
+              </div>
+              <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+                <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                  Input pricing:
+                </p>
+                <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                  {tooltipData.input_price}
+                </p>
+              </div>
+              <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
+                <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                  Output princing:
+                </p>
+                <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                  {tooltipData.output_price}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Tooltip>
+      )}
     </div>
   );
 };
