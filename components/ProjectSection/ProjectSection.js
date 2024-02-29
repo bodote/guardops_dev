@@ -148,7 +148,7 @@ const ProjectSection = () => {
                         alt=""
                         className="w-[23px]"
                       />
-                      <h2 className="font-Archivo lg:text-[24px] cursor-pointer sm:text-[20px] text-[18px] font-thin text-[#000]">
+                      <h2 className="font-Archivo lg:text-[24px] cursor-pointer sm:text-[20px] text-[18px] font-thin text-[#000] hover:text-[#0D859A]">
                         {ele.name}
                       </h2>
                     </div>

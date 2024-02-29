@@ -22,13 +22,15 @@ const WorkflowDetails = () => {
             value: document.getElementById(field.name)?.value || "",
           }));
           return {
-            ...node.data,
-            fields: updatedFields,
+            ...node,
+            data: {
+              ...node.data,
+              fields: updatedFields,
+            },
           };
         }
         return node;
       });
-
       const flowDefinition = {
         nodes: updatedNodes,
         edges: edges,
@@ -38,7 +40,6 @@ const WorkflowDetails = () => {
         flowDefinition,
         evaluation_id: evaluationID,
       };
-
       const response = await fetch("/api/manageFlow", {
         method: "PATCH",
         body: JSON.stringify(formData),
@@ -97,6 +98,7 @@ const WorkflowDetails = () => {
             setEdges={setEdges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
+            evaluationID={evaluationID}
           />
         </div>
       </div>

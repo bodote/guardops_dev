@@ -126,7 +126,7 @@ const EvaluationFlow = () => {
                                 `/workflowdetails?evaluationID=${ele.evaluation_id}`
                               )
                             }
-                            className="font-Archivo lg:text-[24px] sm:text-[20px] text-[18px] font-thin text-[#000]"
+                            className="font-Archivo lg:text-[24px] sm:text-[20px] text-[18px] font-thin text-[#000] hover:text-[#0D859A]"
                           >
                             {ele.title}
                           </button>

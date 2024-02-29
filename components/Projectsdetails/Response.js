@@ -1,5 +1,7 @@
-import { ArrowDownIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useEffect, useState } from "react";
+import { ArrowDownIcon } from "@/public/Assets/Icons/Allsvg";
+import ReactMarkdown from "react-markdown";
+import gfm from "remark-gfm";
 
 const Response = ({ traceProject, selected, type }) => {
   const [responce, setResponce] = useState(true);
@@ -29,10 +31,48 @@ const Response = ({ traceProject, selected, type }) => {
             </h1>
           </div>
           {responce && (
-            <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  border-t border-t-[#CCCCCC]">
-              <p class="break-all">
-                {type === 'chat' ? selected?.response : apiResponse}
-              </p>
+            <div
+              style={{ whiteSpace: "pre-wrap" }}
+              className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  border-t border-t-[#CCCCCC]"
+            >
+              <ReactMarkdown
+                components={{
+                  ul: ({ node, ...props }) => (
+                    <ul
+                      style={{
+                        display: "block",
+                        listStyleType: "disc",
+                        paddingInlineStart: "40px",
+                      }}
+                      {...props}
+                    />
+                  ),
+                  ol: ({ node, ...props }) => (
+                    <ol
+                      style={{
+                        display: "block",
+                        listStyleType: "decimal",
+                        paddingInlineStart: "40px",
+                      }}
+                      {...props}
+                    />
+                  ),
+                  h1: ({ node, ...props }) => (
+                    <h1 className="font-bold text-6xl" {...props} />
+                  ),
+                  p: ({ node, ...props }) => (
+                    <p
+                      style={{
+                        whiteSpace: "pre-wrap",
+                      }}
+                      {...props}
+                    />
+                  ),
+                }}
+                remarkPlugins={[gfm]}
+              >
+                {type === "chat" ? selected?.response : apiResponse}
+              </ReactMarkdown>
             </div>
           )}
         </div>
