@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import ReactFlow, { addEdge, Background } from "reactflow";
 import { v4 as uuidv4 } from "uuid";
 import "reactflow/dist/style.css";
@@ -15,8 +15,33 @@ const WorkFlow = ({
   edges,
   setEdges,
   onEdgesChange,
+  evaluationID,
 }) => {
   const [toolsModal, setToolsModal] = useState(false);
+  const GetFlow = async () => {
+    try {
+      if (evaluationID) {
+        const response = await fetch(
+          `/api/manageFlow?evaluationID=${evaluationID}`,
+          {
+            method: "GET",
+          }
+        );
+
+        if (response.ok) {
+          const responseData = await response.json();
+          if (responseData) {
+            setNodes(responseData.nodes ? responseData.nodes : []);
+            setEdges(responseData.edges ? responseData.edges : []);
+          }
+        } else {
+          console.error("API request failed:", response.statusText);
+        }
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
 
   const handleDrop = (event) => {
     event.preventDefault();
@@ -26,7 +51,6 @@ const WorkFlow = ({
       x: event.clientX - event.target.getBoundingClientRect().left,
       y: event.clientY - event.target.getBoundingClientRect().top,
     };
-
     const newNodeId = uuidv4();
 
     const newNode = {
@@ -35,7 +59,6 @@ const WorkFlow = ({
       position,
       data: toolData,
     };
-
     setNodes((prev) => [...prev, newNode]);
   };
   const handleDragOver = (event) => {
@@ -46,6 +69,9 @@ const WorkFlow = ({
     (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
+  useEffect(() => {
+    GetFlow();
+  }, [evaluationID]);
 
   return (
     <div

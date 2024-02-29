@@ -288,7 +288,8 @@ const CustomNode = ({ data }) => {
                   </label>
                   <input
                     id={field.name}
-                    type="text"
+                    defaultValue={field.value}
+                    type={field.type}
                     className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full nodrag"
                   />
                 </div>
