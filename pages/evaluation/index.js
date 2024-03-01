@@ -28,6 +28,7 @@ const index = () => {
     name: "Select an option",
   });
   const [projectList, setProjectList] = useState([]);
+  const [searchProject, setSearchProject] = useState("");
   const [projectID, setProjectID] = useState("");
   const [evaluationList, setEvaluationList] = useState([]);
   const router = useRouter();
@@ -91,6 +92,15 @@ const index = () => {
     return `${formattedDate}, ${formattedTime}`;
   };
 
+  const filteredProjects = projectList.filter((project) => {
+    const trimmedSearchProject = searchProject.replace(/[^\w\s]/g, "").trim();
+    const regex = new RegExp(trimmedSearchProject, "gi");
+    const trimmedProjectName = project.name
+      .replace(/[^\w\s]/g, "")
+      .replace(/\s+/g, "");
+    return trimmedProjectName.match(regex);
+  });
+
   useEffect(() => {
     getProjectList();
   }, []);
@@ -153,8 +163,19 @@ const index = () => {
                           leaveFrom="opacity-100"
                           leaveTo="opacity-0"
                         >
-                          <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
-                            {projectList.map((project) => (
+                          <Listbox.Options className="absolute z-10 max-h-56 overflow-y-auto mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
+                            <div class="bg-white sticky top-0 z-[9] p-1 ">
+                              <input
+                                type="text"
+                                className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
+                                placeholder="Search..."
+                                value={searchProject}
+                                onChange={(e) =>
+                                  setSearchProject(e.target.value)
+                                }
+                              />
+                            </div>
+                            {filteredProjects.map((project) => (
                               <Listbox.Option
                                 key={project.project_id}
                                 className={({ active }) =>

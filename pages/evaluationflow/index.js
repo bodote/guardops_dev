@@ -105,13 +105,30 @@ const EvaluationFlow = () => {
             <h2 className="font-Archivo text-[32px] font-thin">
               Workflow Builder Evals & Monitoring
             </h2>
-            <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[38px] sm:gap-[20px] gap-[10px] w-full mt-[31px]">
+            <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[38px] sm:gap-[20px] gap-[10px] w-full mt-[31px] items-center">
+              <div
+                onClick={() => {
+                  setCreateDataset("new");
+                  setIsModalOpen(true);
+                }}
+                className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[22px]"
+              >
+                <div className="flex items-center gap-[8px]">
+                  <PlusIcon className="stroke-[#12131A] group-hover:stroke-white" />
+                  <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
+                    New Evaluation Workflow
+                  </h2>
+                </div>
+                <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
+                  Create a new Evaluation Workflow for your Project
+                </p>
+              </div>
               {!loader ? (
                 evaluationList.map((ele, i) => {
                   return (
                     <div
                       key={i}
-                      className="hover:border-[#000] hover:bg-[#f2f2f2] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px]"
+                      className="hover:border-[#000] hover:bg-[#f2f2f2] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[22px]"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-[8px]">
@@ -172,23 +189,6 @@ const EvaluationFlow = () => {
                 </div>
               )}
 
-              <div
-                onClick={() => {
-                  setCreateDataset("new");
-                  setIsModalOpen(true);
-                }}
-                className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
-              >
-                <div className="flex items-center gap-[8px]">
-                  <PlusIcon className="stroke-[#12131A] group-hover:stroke-white" />
-                  <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
-                    New Evaluation Workflow
-                  </h2>
-                </div>
-                <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
-                  Create a new Evaluation Workflow for your Project
-                </p>
-              </div>
               {isModalOpen && (
                 <WorkflowTemplate
                   updateEvaluationList={getEvaluationList}
