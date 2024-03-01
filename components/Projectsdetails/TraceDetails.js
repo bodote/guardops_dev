@@ -393,7 +393,7 @@ const TraceDetails = ({
             </div>
           </div>
         </div>
-        <div className="w-full overflow-x-auto border-l border-l-[#CCCCCC] h-screen">
+        <div className="w-full overflow-x-auto border-l border-l-[#CCCCCC] h-[calc(100vh-128px)]">
           {tab === "Info" && (
             <Info traceProject={selectedProject?.attributes} />
           )}

@@ -54,7 +54,7 @@ const index = () => {
     name: "Select a project to store",
   });
   const [selectedModel, setSelectedModel] = useState(null); // State to store the selected model
-
+  const [searchProject, setSearchProject] = useState("");
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
 
   const params = useSearchParams();
@@ -363,7 +363,14 @@ const index = () => {
   const appendToMessage = (text) => {
     setMessage((prevMessage) => `${prevMessage} ${text}`);
   };
-
+  const filteredProjects = projectList.filter((project) => {
+    const trimmedSearchProject = searchProject.replace(/[^\w\s]/g, "").trim();
+    const regex = new RegExp(trimmedSearchProject, "gi");
+    const trimmedProjectName = project.name
+      .replace(/[^\w\s]/g, "")
+      .replace(/\s+/g, "");
+    return trimmedProjectName.match(regex);
+  });
   // State to manage versions
   const [versions, setVersions] = useState([
     { id: 1, component: <Version key={1} /> },
@@ -445,35 +452,45 @@ const index = () => {
             </div>
             <Logout />
           </div>
-          <div className="flex sm:flex-row flex-col border-b border-b-[#CCCCCC] resize-y overflow-y-auto">
-            <div className="px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full  sm:border-r border-0 border-r-[#CCCCCC] lg:min-h-[285px] min-h-[285px] overflow-y-auto">
-              <div className="bg-[#CCCCCC] text-white rounded-[6px] text-[12px] w-fit mb-[11px]">
+          <div
+            className={`flex sm:flex-row flex-col border-b border-b-[#CCCCCC] resize-y overflow-y-auto ${
+              page === "prompt" ? "min-h-[44%] h-[44%]" : "calc(100vh - 43px)"
+            }`}
+          >
+            <div
+              className={`px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full overflow-y-auto lg:border-r lg:border-r-[#CCCCCC] ${
+                page === "prompt" ? "min-h-[285px]" : "h-[calc(100vh-44px)]"
+              }`}
+            >
+              <div className="sticky top-0 bg-white">
+                <div className="bg-[#CCCCCC] text-white rounded-[6px] text-[12px] w-fit mb-[11px]">
+                  <button
+                    onClick={() => setPage("prompt")}
+                    className={`rounded-[6px] px-[6px] py-[3px] uppercase ${
+                      page === "prompt" ? "bg-[#D4DB33]" : "bg-transparent"
+                    }`}
+                  >
+                    prompt
+                  </button>
+                  <button
+                    onClick={() => setPage("chat")}
+                    className={` py-[3px] pl-[9px] pr-[15px] uppercase rounded-[6px] ${
+                      page === "chat" ? "bg-[#D4DB33]" : "bg-transparent"
+                    }`}
+                  >
+                    chat
+                  </button>
+                </div>
                 <button
-                  onClick={() => setPage("prompt")}
-                  className={`rounded-[6px] px-[6px] py-[3px] uppercase ${
-                    page === "prompt" ? "bg-[#D4DB33]" : "bg-transparent"
-                  }`}
+                  onClick={() => {
+                    setOpen(true);
+                    setActionType("new");
+                  }}
+                  className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[12px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
                 >
-                  prompt
-                </button>
-                <button
-                  onClick={() => setPage("chat")}
-                  className={` py-[3px] pl-[9px] pr-[15px] uppercase rounded-[6px] ${
-                    page === "chat" ? "bg-[#D4DB33]" : "bg-transparent"
-                  }`}
-                >
-                  chat
+                  <FiPlus /> New Prompt
                 </button>
               </div>
-              <button
-                onClick={() => {
-                  setOpen(true);
-                  setActionType("new");
-                }}
-                className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[12px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
-              >
-                <FiPlus /> New Prompt
-              </button>
               {page === "prompt"
                 ? playgroundList.map((playground) => (
                     <div
@@ -615,8 +632,19 @@ const index = () => {
                                   leaveFrom="opacity-100"
                                   leaveTo="opacity-0"
                                 >
-                                  <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                                    {projectList.map((project) => (
+                                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[234px] overflow-auto">
+                                    <div class="bg-white sticky top-0 z-[9] p-1 ">
+                                      <input
+                                        type="text"
+                                        className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
+                                        placeholder="Search..."
+                                        value={searchProject}
+                                        onChange={(e) =>
+                                          setSearchProject(e.target.value)
+                                        }
+                                      />
+                                    </div>
+                                    {filteredProjects.map((project) => (
                                       <Listbox.Option
                                         key={project.project_id}
                                         className={({ active }) =>
@@ -766,7 +794,18 @@ const index = () => {
                               leaveTo="opacity-0"
                             >
                               <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                                {projectList.map((project) => (
+                                <div class="bg-white sticky top-0 z-[9]">
+                                  <input
+                                    type="text"
+                                    className="w-full border-b border-gray-300 rounded-[6px] focus:outline-none px-2 py-1"
+                                    placeholder="Search..."
+                                    value={searchProject}
+                                    onChange={(e) =>
+                                      setSearchProject(e.target.value)
+                                    }
+                                  />
+                                </div>
+                                {filteredProjects.map((project) => (
                                   <Listbox.Option
                                     key={project.project_id}
                                     className={({ active }) =>
@@ -825,8 +864,8 @@ const index = () => {
                       setAllMsg,
                       proname,
                       currentChatID,
-                    selectedModel,
-                    setSelectedModel,
+                      selectedModel,
+                      setSelectedModel,
                     })
                   )}
                 </div>
@@ -835,20 +874,20 @@ const index = () => {
           </div>
           {page === "prompt" && (
             <div
-              className={`flex sm:flex-row flex-col h-[calc(100vh-329px)]
+              className={`flex sm:flex-row flex-col h-[50.7%]
               `}
               // ${versions.length < 6 && "2xl:h-screen"}
             >
-              <div className="px-[16px] py-[12px] sm:w-[182px] sm:min-w-[182px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC]  ">
-                <h1 className="text-[#000000] font-medium text-[12px] font-Inter">
+              <div className="sm:w-[182px] sm:min-w-[182px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC] overflow-y-auto">
+                <h1 className="text-[#000000] font-medium text-[12px] font-Inter sticky top-0 bg-white px-[16px] pt-[12px]">
                   Versions
                 </h1>
-                <ul className="list-disc px-[8px]">
+                <ul className="list-disc px-[16px] py-[12px] pt-0 ml-[12px]">
                   {runsHistory.map((innerArray) =>
                     innerArray.map((run, innerIndex) => (
                       <li
                         key={innerIndex}
-                        className="run-link text-[#656565] text-[12px] font-Inter font-medium mt-[10px]"
+                        className="run-link text-[#656565] text-[12px] font-Inter font-medium my-[20px]"
                         onClick={() => handleRunClick(run.attributes.prompt)}
                       >
                         {run.attributes.prompt.length > 20

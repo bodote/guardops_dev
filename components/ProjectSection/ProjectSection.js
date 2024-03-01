@@ -128,13 +128,44 @@ const ProjectSection = () => {
         <h1 className="font-Archivo sm:text-[32px] text-[28px] font-thin text-[#000] sm:py-[26px] py-[20px]">
           Projects
         </h1>
-        <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full">
+        <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full items-center">
+        <div
+            onClick={() => {
+              setCreateProjectStatus("new");
+              setIsModalOpen(true);
+            }}
+            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
+          >
+            <div className="flex items-center gap-[8px]">
+              <PlusIcon className="stroke-[#12131A] group-hover:stroke-white" />
+              <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
+                New Project
+              </h2>
+            </div>
+            <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
+              Create a new Project for Logging and Tracing
+            </p>
+          </div>
+          <div
+            onClick={() => setImportShare(true)}
+            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
+          >
+            <div className="flex items-center gap-[8px]">
+              <ImportIcon className="stroke-[#12131A] group-hover:stroke-white" />
+              <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
+                Import Project
+              </h2>
+            </div>
+            <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
+              Import an existing project from a share code
+            </p>
+          </div>
           {!loader ? (
             projectList.map((ele, i) => {
               return (
                 <div
                   key={i}
-                  className="hover:border-[#000] hover:bg-[#f2f2f2] border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[8px] w-full"
+                  className="hover:border-[#000] hover:bg-[#f2f2f2] border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[22px] w-full"
                 >
                   <div className="flex items-center justify-between">
                     <div
@@ -214,37 +245,7 @@ const ProjectSection = () => {
             </div>
           )}
 
-          <div
-            onClick={() => {
-              setCreateProjectStatus("new");
-              setIsModalOpen(true);
-            }}
-            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
-          >
-            <div className="flex items-center gap-[8px]">
-              <PlusIcon className="stroke-[#12131A] group-hover:stroke-white" />
-              <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
-                New Project
-              </h2>
-            </div>
-            <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
-              Create a new Project for Logging and Tracing
-            </p>
-          </div>
-          <div
-            onClick={() => setImportShare(true)}
-            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
-          >
-            <div className="flex items-center gap-[8px]">
-              <ImportIcon className="stroke-[#12131A] group-hover:stroke-white" />
-              <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
-                Import Project
-              </h2>
-            </div>
-            <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
-              Import an existing project from a share code
-            </p>
-          </div>
+          
           {isModalOpen && (
             <div
               ref={modalRef}

@@ -74,6 +74,7 @@ const Chat_version = ({
   const [editedMessage, setEditedMessage] = useState("");
   const [tooltipData, setTooltipData] = useState({});
   const [tracesData, setTracesData] = useState([]);
+  const [searchModel, setSearchModel] = useState("");
   // State for settings values
   const [settings, setSettings] = useState({
     maxTokens: 500,
@@ -397,6 +398,15 @@ const Chat_version = ({
     setSelectedModel(model);
   };
 
+  const filteredModels = models.filter((model) => {
+    const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
+    const regex = new RegExp(trimmedSearchModel, "gi");
+    const trimmedModelName = model.name
+      .replace(/[^\w\s]/g, "")
+      .replace(/\s+/g, "");
+    return trimmedModelName.match(regex);
+  });
+
   useEffect(() => {
     getModels();
     const key = localStorage.getItem("fireworksAIKey") || "";
@@ -524,8 +534,17 @@ const Chat_version = ({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                       >
-                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[190px] overflow-auto">
-                          {models.map((model) => (
+                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[230px] overflow-auto">
+                          <div class="bg-white sticky top-0 z-[9] p-1 ">
+                            <input
+                              type="text"
+                              className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
+                              placeholder="Search..."
+                              value={searchModel}
+                              onChange={(e) => setSearchModel(e.target.value)}
+                            />
+                          </div>
+                          {filteredModels.map((model) => (
                             <Listbox.Option
                               key={model.model_id}
                               id={model.model_id}
