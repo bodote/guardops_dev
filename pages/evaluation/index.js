@@ -22,12 +22,12 @@ import { useRouter } from "next/navigation";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
-
 const index = () => {
   const [selected, setSelected] = useState({
     name: "Select an option",
   });
   const [projectList, setProjectList] = useState([]);
+  const [searchProject, setSearchProject] = useState("");
   const [projectID, setProjectID] = useState("");
   const [evaluationList, setEvaluationList] = useState([]);
   const router = useRouter();
@@ -91,6 +91,15 @@ const index = () => {
     return `${formattedDate}, ${formattedTime}`;
   };
 
+  const filteredProjects = projectList.filter((project) => {
+    const trimmedSearchProject = searchProject.replace(/[^\w\s]/g, "").trim();
+    const regex = new RegExp(trimmedSearchProject, "gi");
+    const trimmedProjectName = project.name
+      .replace(/[^\w\s]/g, "")
+      .replace(/\s+/g, "");
+    return trimmedProjectName.match(regex);
+  });
+
   useEffect(() => {
     getProjectList();
   }, []);
@@ -153,8 +162,19 @@ const index = () => {
                           leaveFrom="opacity-100"
                           leaveTo="opacity-0"
                         >
-                          <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
-                            {projectList.map((project) => (
+                          <Listbox.Options className="absolute z-10 max-h-56 overflow-y-auto mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
+                            <div className="bg-white sticky top-0 z-[9] p-1 ">
+                              <input
+                                type="text"
+                                className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
+                                placeholder="Search..."
+                                value={searchProject}
+                                onChange={(e) =>
+                                  setSearchProject(e.target.value)
+                                }
+                              />
+                            </div>
+                            {filteredProjects.map((project) => (
                               <Listbox.Option
                                 key={project.project_id}
                                 className={({ active }) =>
@@ -330,21 +350,21 @@ const index = () => {
                       </td>
                       <td className="py-[3.5px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[200px]">
                         <span className="bg-[#E9EDF5] rounded-[6px] h-[24px] text-[#464F60] p-[3.5px_8px]">
-                          138 min
+                          {data.data.eval_data.runtime &&
+                            parseInt(data.data.eval_data.runtime) + " min"}
                         </span>
                         <br />
                       </td>
                       <td className="py-[3.5px] px-[10px] text-[12px] font-medium font-Inter text-[#464F60] text-end">
                         <span className="bg-[#E9EDF5] rounded-[6px] h-[24px] text-[#464F60] p-[3.5px_8px]">
-                          4589
+                          {data.data.eval_data.total_tests &&
+                            data.data.eval_data.total_tests}
                         </span>
                       </td>
                       <td className="py-[3.5px] px-[10px] text-center">
                         <span className="bg-[#E9EDF5] rounded-[6px] h-[24px] text-[#464F60] p-[3.5px_8px] text-[12px]">
-                          {/* {data.evaluations.map(
-                            (res) => res.data.eval_data.total_score
-                          )} */}
-                          23
+                          {data.data.eval_data.total_score &&
+                            Math.round(data.data.eval_data.total_score)}
                         </span>
                       </td>
                       <td>

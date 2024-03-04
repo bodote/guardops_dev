@@ -4,6 +4,7 @@ import {
   DatasetIcon,
   HomeIcon,
   LeftIcon,
+  MonitoringIcon,
   ProjectIcon,
   SaleIcon,
   TraceIcon,
@@ -111,6 +112,15 @@ const Sidebar = () => {
                   <ChartIcon className="w-[24px]" />
                   <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
                     Evaluation
+                  </p>
+                </a>
+                <a
+                  href="/monitoring"
+                  className="flex gap-[10px] items-center mt-[30px]"
+                >
+                  <MonitoringIcon className="w-[24px]" />
+                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                    Monitoring
                   </p>
                 </a>
               </div>

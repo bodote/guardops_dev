@@ -1523,3 +1523,22 @@ export const Search2Icon = ({ className }) => {
     </svg>
   );
 };
+export const MonitoringIcon = ({ className }) => {
+  return (
+    <svg
+      width="20"
+      height="15"
+      viewBox="0 0 20 15"
+      className={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M1.20057 8.28442C0.933139 7.7954 0.933144 7.20445 1.20058 6.71544C2.9 3.60803 6.20336 1.5 9.99997 1.5C13.7966 1.5 17.1 3.60809 18.7994 6.71558C19.0669 7.2046 19.0669 7.79555 18.7994 8.28456C17.1 11.392 13.7966 13.5 10 13.5C6.20336 13.5 2.89997 11.3919 1.20057 8.28442Z"
+        stroke="#2B3F6C"
+        strokeWidth="1.5"
+      />
+      <circle cx="10" cy="7.5" r="3" stroke="#2B3F6C" strokeWidth="1.5" />
+    </svg>
+  );
+};

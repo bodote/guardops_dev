@@ -70,6 +70,7 @@ const Version = ({
   const [enabled, setEnabled] = useState(false);
   const [open, setOpen] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState("");
+  const [searchModel, setSearchModel] = useState("");
 
   const getModels = async () => {
     const response = await fetch(`/api/manageModels`, {
@@ -363,6 +364,15 @@ const Version = ({
     setSelectedModel(model);
   };
 
+  const filteredModels = models.filter((model) => {
+    const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
+    const regex = new RegExp(trimmedSearchModel, "gi");
+    const trimmedModelName = model.name
+      .replace(/[^\w\s]/g, "")
+      .replace(/\s+/g, "");
+    return trimmedModelName.match(regex);
+  });
+
   useEffect(() => {
     if (enabled) {
       setsyncAll(true);
@@ -406,8 +416,8 @@ const Version = ({
             ? "sm:min-h-0 !min-h-[464px] sm:h-auto h-[464px] sm:!pr-[10px]"
             : ""
         } ${
-          versions <= 5
-            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[566px] sm:!min-h-[600px]"
+          versions < 5
+            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[406px] sm:!min-h-[363px]"
             : ""
         }`}
       >
@@ -447,8 +457,17 @@ const Version = ({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                       >
-                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[190px] overflow-auto">
-                          {models.map((model) => (
+                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[230px] overflow-auto">
+                          <div className="bg-white sticky top-0 z-[9] p-1 ">
+                            <input
+                              type="text"
+                              className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
+                              placeholder="Search..."
+                              value={searchModel}
+                              onChange={(e) => setSearchModel(e.target.value)}
+                            />
+                          </div>
+                          {filteredModels.map((model) => (
                             <Listbox.Option
                               key={model.model_id}
                               id={model.model_id}
@@ -581,7 +600,7 @@ const Version = ({
           )}
           <div
             className={`response-output justify-center mt-[20px]  overflow-auto ${
-              versions > 4 ? "sm:max-h-auto sm:max-h-[360px] max-h-[310px]" : ""
+              versions > 4 ? "sm:max-h-auto" : ""
             }`}
           >
             {isLoading ? (
