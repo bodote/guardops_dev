@@ -454,7 +454,9 @@ const index = () => {
           </div>
           <div
             className={`flex sm:flex-row flex-col border-b border-b-[#CCCCCC] resize-y overflow-y-auto ${
-              page === "prompt" ? "min-h-[44%] h-[44%]" : "calc(100vh - 43px)"
+              page === "prompt"
+                ? "h-[44%]"
+                : "!h-[calc(100vh-43px)] !resize-none"
             }`}
           >
             <div
@@ -633,7 +635,7 @@ const index = () => {
                                   leaveTo="opacity-0"
                                 >
                                   <Listbox.Options className="absolute z-10 mt-1 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[234px] overflow-auto">
-                                    <div class="bg-white sticky top-0 z-[9] p-1 ">
+                                    <div className="bg-white sticky top-0 z-[9] p-1 ">
                                       <input
                                         type="text"
                                         className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
@@ -794,7 +796,7 @@ const index = () => {
                               leaveTo="opacity-0"
                             >
                               <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                                <div class="bg-white sticky top-0 z-[9]">
+                                <div className="bg-white sticky top-0 z-[9]">
                                   <input
                                     type="text"
                                     className="w-full border-b border-gray-300 rounded-[6px] focus:outline-none px-2 py-1"
@@ -874,7 +876,7 @@ const index = () => {
           </div>
           {page === "prompt" && (
             <div
-              className={`flex sm:flex-row flex-col h-[50.7%]
+              className={`flex sm:flex-row flex-col h-[51.2%]
               `}
               // ${versions.length < 6 && "2xl:h-screen"}
             >

@@ -458,7 +458,7 @@ const Version = ({
                         leaveTo="opacity-0"
                       >
                         <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[230px] overflow-auto">
-                          <div class="bg-white sticky top-0 z-[9] p-1 ">
+                          <div className="bg-white sticky top-0 z-[9] p-1 ">
                             <input
                               type="text"
                               className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
