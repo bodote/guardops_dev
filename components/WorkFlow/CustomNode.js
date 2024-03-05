@@ -295,20 +295,24 @@ const CustomNode = ({ data }) => {
                 </div>
               )
           )}
-          {/* {data.fields.map(
+          {data.fields?.map(
             (field, index) =>
-              field.type === "List[Dict[Any,Any]]" && (
+              field.type === "select" && (
                 <Listbox key={index} value={proname} onChange={setProname}>
                   {({ open }) => (
                     <>
                       <Listbox.Label className="text-[#656565] text-[10px] font-medium mb-[5px] mt-[10px]">
-                        {formatInputText(field.name)}
+                        {field.label}
                       </Listbox.Label>
                       <div className="">
                         <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal pl-[10px] pr-[20px] py-[3px] ">
                           <span className="flex items-center">
-                            <span className=" block truncate mr-3">
-                              {proname?.name}
+                            <span
+                              id={field.name}
+                              className=" block truncate mr-3"
+                            >
+                              {field.value && field.value}
+                              {proname.name}
                             </span>
                           </span>
                           <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
@@ -361,7 +365,7 @@ const CustomNode = ({ data }) => {
                   )}
                 </Listbox>
               )
-          )} */}
+          )}
           {/* {data.fields.map(
             (field, index) =>
               field.type === "modal_button" && (

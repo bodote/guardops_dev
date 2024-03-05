@@ -33,16 +33,19 @@ const Chat_version = ({
   setsyncAll,
   setAllSystemPrompt,
   allSystemPrompt,
+
   syncAllMsg,
   setSyncAllMsg,
-  allMsg,
-  setAllMsg,
+  allChatSystemPromot,
+  setAllChatSystemPromot,
+
   proname,
   currentChatID,
   selectedModel,
   setSelectedModel,
 }) => {
   const [userMessage, setUserMessage] = useState("");
+  const [systemPrompt, setSystemPrompt] = useState("");
   const [messages, setMessages] = useState([
     {
       input: "",
@@ -60,7 +63,7 @@ const Chat_version = ({
         }
   );
   const [enabled, setEnabled] = useState(false);
-  const [systemPrompt, setSystemPrompt] = useState("");
+
   const [showSettings, setShowSettings] = useState(false);
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [models, setModels] = useState([]);
@@ -207,6 +210,21 @@ const Chat_version = ({
     setEditingIndex(-1); // Reset editing index
     setEditedMessage(""); // Reset edited message
   };
+
+  const simulateCtrlEnter = () => {
+    const event = new Event('keydown');
+    event.ctrlKey = true;
+    event.key = 'Enter';
+    window.dispatchEvent(event);
+  };
+
+  const handleMessageSubmit = () =>{
+    if(syncAllMsg){
+      simulateCtrlEnter();
+    }else{
+      handleSendMessage()
+    }
+  }
 
   const handleSendMessage = async () => {
     if (!selected || selected.name === "Select an option") {
@@ -433,45 +451,45 @@ const Chat_version = ({
     }
   }, [tracesData]);
 
-  useEffect(() => {
-    if (enabled) {
-      setsyncAll(true);
-      setAllSystemPrompt(systemPrompt);
-    } else {
-      setsyncAll(false);
-    }
+  // useEffect(() => {
+  //   if (enabled) {
+  //     setsyncAll(true);
+  //     setAllSystemPrompt(systemPrompt);
+  //   } else {
+  //     setsyncAll(false);
+  //   }
 
-    if (sync) {
-      setSyncAllMsg(true);
-      setAllMsg(userMessage);
-    } else {
-      setSyncAllMsg(false);
-    }
-  }, [enabled, sync]);
+  //   if (sync) {
+  //     setSyncAllMsg(true);
+  //     setAllMsg(userMessage);
+  //   } else {
+  //     setSyncAllMsg(false);
+  //   }
+  // }, [enabled, sync]);
 
-  useEffect(() => {
-    if (syncAll) {
-      setSync(true);
-      setSystemPrompt(allSystemPrompt);
-    } else {
-      setSync(false);
-    }
-    if (syncAllMsg) {
-      setSync(true);
-      setUserMessage(allMsg);
-    } else {
-      setSync(false);
-    }
-  }, [syncAll, allSystemPrompt, syncAllMsg, allMsg]);
+  // useEffect(() => {
+  //   if (syncAll) {
+  //     setSync(true);
+  //     setSystemPrompt(allSystemPrompt);
+  //   } else {
+  //     setSync(false);
+  //   }
+  //   if (syncAllMsg) {
+  //     setSync(true);
+  //     setUserMessage(allMsg);
+  //   } else {
+  //     setSync(false);
+  //   }
+  // }, [syncAll, allSystemPrompt, syncAllMsg, allMsg]);
 
-  useEffect(() => {
-    if (syncAll) {
-      setAllSystemPrompt(systemPrompt);
-    }
-    if (syncAllMsg) {
-      setAllMsg(userMessage);
-    }
-  }, [systemPrompt, userMessage]);
+  // useEffect(() => {
+  //   if (syncAll) {
+  //     setAllSystemPrompt(systemPrompt);
+  //   }
+  //   if (syncAllMsg) {
+  //     setAllMsg(userMessage);
+  //   }
+  // }, [systemPrompt, userMessage]);
 
   useEffect(() => {
     if (showSettings) {
@@ -495,6 +513,37 @@ const Chat_version = ({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [userMessage, selected]);
+
+  const handleMessageInputChange = (event) => {
+    setUserMessage(event.target.value);
+    if (syncAllMsg) {
+      setAllChatSystemPromot(event.target.value);
+    }
+  };
+  useEffect(() => {
+    setUserMessage(allChatSystemPromot);
+  }, [allChatSystemPromot]);
+
+  const handleInputChange = (event) => {
+    setSystemPrompt(event.target.value);
+    if (syncAll) {
+      setAllSystemPrompt(event.target.value);
+    }
+  };
+  useEffect(() => {
+    setSystemPrompt(allSystemPrompt);
+  }, [allSystemPrompt]);
+
+
+  
+  // useEffect(()=>{
+  //   console.log("test value+++++++++++", syncAllMsg , userMessage);
+  //   if(syncAllMsg){
+  //     setAllChatSystemPromot(userMessage);
+  //   }
+  // },[syncAllMsg])
+
+
   return (
     <div className="flex sm:flex-row flex-col items-start">
       <div className="w-full">
@@ -534,8 +583,8 @@ const Chat_version = ({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                       >
-                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[230px] overflow-auto">
-                          <div className="bg-white sticky top-0 z-[9] p-1 ">
+                        <Listbox.Options className="absolute z-10 mt-1 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[230px] overflow-auto">
+                          <div className="bg-white sticky top-0 z-[9] p-1">
                             <input
                               type="text"
                               className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
@@ -646,16 +695,16 @@ const Chat_version = ({
                 name="system"
                 id="system"
                 value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
+                onChange={handleInputChange}
                 className="border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
               ></textarea>
               <div className="flex justify-between items-center gap-[10px] flex-wrap">
                 <div className="flex items-center gap-[5px]">
                   <Switch
-                    checked={enabled}
-                    onChange={() => setEnabled(!enabled)}
+                    checked={syncAll}
+                    onChange={() => setsyncAll(!syncAll)}
                     className={classNames(
-                      enabled ? "bg-[#0074fb]" : "bg-gray-200",
+                      syncAll ? "bg-[#0074fb]" : "bg-gray-200",
                       "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                     )}
                   >
@@ -663,7 +712,7 @@ const Chat_version = ({
                     <span
                       aria-hidden="true"
                       className={classNames(
-                        enabled ? "translate-x-[11px]" : "translate-x-0",
+                        syncAll ? "translate-x-[11px]" : "translate-x-0",
                         "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
                       )}
                     />
@@ -822,16 +871,16 @@ const Chat_version = ({
                 <textarea
                   placeholder="Send a message"
                   value={userMessage}
-                  onChange={(e) => setUserMessage(e.target.value)}
+                  onChange={handleMessageInputChange}
                   className="border-0 resize-none bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full rounded-md"
                 ></textarea>
                 <div className="flex justify-end gap-[10px] pr-[13px] pb-2">
                   <div className="flex items-center gap-[5px]">
                     <Switch
-                      checked={sync}
-                      onChange={() => setSync(!sync)}
+                      checked={syncAllMsg}
+                      onChange={() => setSyncAllMsg(!syncAllMsg)}
                       className={classNames(
-                        sync ? "bg-[#0074fb]" : "bg-[#898989]",
+                        syncAllMsg ? "bg-[#0074fb]" : "bg-[#898989]",
                         "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                       )}
                     >
@@ -839,7 +888,7 @@ const Chat_version = ({
                       <span
                         aria-hidden="true"
                         className={classNames(
-                          sync ? "translate-x-[11px]" : "translate-x-0",
+                          syncAllMsg ? "translate-x-[11px]" : "translate-x-0",
                           "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
                         )}
                       />
@@ -849,7 +898,7 @@ const Chat_version = ({
                     </label>
                   </div>
                   <button
-                    onClick={handleSendMessage}
+                    onClick={handleMessageSubmit}
                     className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
                       apiCallInProgress
                         ? "bg-[#CCCCCC]"

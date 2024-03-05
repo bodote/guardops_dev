@@ -44,7 +44,8 @@ const index = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [actionType, setActionType] = useState("");
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
-  const [allMsg, setAllMsg] = useState("");
+  const [allChatSystemPromot, setAllChatSystemPromot] = useState("");
+  const [chatSyncAll, setChatSyncAll] = useState(false);
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
   const [currentChatID, setCurrentChatID] = useState("");
   const [currentPlayground, setCurrentPlayground] = useState({});
@@ -460,11 +461,11 @@ const index = () => {
             }`}
           >
             <div
-              className={`px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full overflow-y-auto lg:border-r lg:border-r-[#CCCCCC] ${
+              className={`sm:w-[182px] sm:min-w-[182px] w-full overflow-y-auto lg:border-r lg:border-r-[#CCCCCC] ${
                 page === "prompt" ? "min-h-[285px]" : "h-[calc(100vh-44px)]"
               }`}
             >
-              <div className="sticky top-0 bg-white">
+              <div className="sticky top-0 bg-white px-[16px] py-[12px] border-b-[#CCCCCC] border-b-[1px]">
                 <div className="bg-[#CCCCCC] text-white rounded-[6px] text-[12px] w-fit mb-[11px]">
                   <button
                     onClick={() => setPage("prompt")}
@@ -497,7 +498,7 @@ const index = () => {
                 ? playgroundList.map((playground) => (
                     <div
                       key={playground.playground_id}
-                      className="flex items-start my-[20px] gap-2"
+                      className="flex items-start my-[22px] gap-2 px-[16px]"
                     >
                       <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
                       <div
@@ -515,7 +516,7 @@ const index = () => {
                 : chatList.map((playground) => (
                     <div
                       key={playground.playground_id}
-                      className="flex items-start my-[20px] gap-2"
+                      className="flex items-start my-[20px] gap-2 px-[16px]"
                     >
                       <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
                       <div
@@ -635,7 +636,7 @@ const index = () => {
                                   leaveTo="opacity-0"
                                 >
                                   <Listbox.Options className="absolute z-10 mt-1 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[234px] overflow-auto">
-                                    <div className="bg-white sticky top-0 z-[9] p-1 ">
+                                    <div className="bg-white sticky top-0 z-[9] p-1">
                                       <input
                                         type="text"
                                         className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
@@ -862,8 +863,10 @@ const index = () => {
                       setSyncAllMsg,
                       setAllSystemPrompt,
                       allSystemPrompt,
-                      allMsg,
-                      setAllMsg,
+                      allChatSystemPromot,
+                      setAllChatSystemPromot,
+                      chatSyncAll,
+                      setChatSyncAll,
                       proname,
                       currentChatID,
                       selectedModel,

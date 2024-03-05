@@ -1,9 +1,10 @@
-import Redis from "ioredis";
-const redisClient = new Redis(process.env.REDIS_URL);
+import { Redis } from "@upstash/redis";
+const redis = Redis.fromEnv();
+
 export const getToken = async () => {
   const redisToken = "access_token";
   try {
-    const cachedToken = await redisClient?.get(redisToken);
+    const cachedToken = await redis?.get(redisToken);
 
     if (cachedToken) {
       return cachedToken;
@@ -16,7 +17,7 @@ export const getToken = async () => {
     const newToken = data.access_token;
 
     if (newToken) {
-      await redisClient.set(redisToken, newToken, "EX", 86400);
+      await redis.set(redisToken, newToken, { ex: 86400 });
       return newToken;
     } else {
       throw new Error("Failed to fetch new token");

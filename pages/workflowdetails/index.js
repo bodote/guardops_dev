@@ -15,12 +15,24 @@ const WorkflowDetails = () => {
 
   const handleSaveFlow = async () => {
     if (nodes.length > 0) {
+      console.log("Nodes: ", nodes);
       const updatedNodes = nodes.map((node) => {
         if (node.data.fields) {
-          const updatedFields = node.data.fields.map((field) => ({
-            ...field,
-            value: document.getElementById(field.name)?.value || "",
-          }));
+          const updatedFields = node.data.fields.map((field) => {
+            if (field.type === "select") {
+              // const selectedValue =
+              //   document.getElementById(field.name)?.textContent || "";
+              // return {
+              //   ...field,
+              //   value: selectedValue,
+              // };
+            } else {
+              return {
+                ...field,
+                value: document.getElementById(field.name)?.value || "",
+              };
+            }
+          });
           return {
             ...node,
             data: {
@@ -35,22 +47,21 @@ const WorkflowDetails = () => {
         nodes: updatedNodes,
         edges: edges,
       };
-
       const formData = {
         flowDefinition,
         evaluation_id: evaluationID,
       };
-      const response = await fetch("/api/manageFlow", {
-        method: "PATCH",
-        body: JSON.stringify(formData),
-      });
-      const responseData = await response.json();
-      if (response.ok) {
-        toast.success("Flow Saved successfully !!");
-      } else {
-        toast.error(responseData.detail);
-        console.error("API request failed:", response.statusText);
-      }
+      // const response = await fetch("/api/manageFlow", {
+      //   method: "PATCH",
+      //   body: JSON.stringify(formData),
+      // });
+      // const responseData = await response.json();
+      // if (response.ok) {
+      //   toast.success("Flow Saved successfully !!");
+      // } else {
+      //   toast.error(responseData.detail);
+      //   console.error("API request failed:", response.statusText);
+      // }
     } else {
       toast.error("Please drag the nodes from the modal");
     }
