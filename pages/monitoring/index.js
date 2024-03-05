@@ -35,6 +35,71 @@ const Monitoring = () => {
     }
   };
 
+  const getEvalsData = async (project_id) => {
+    try {
+      const response = await fetch(
+        `/api/manageMonitoring?projectID=${project_id}&type=eval`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData) {
+          // console.log("EVAL: ", responseData);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  const getTracesData = async (project_id) => {
+    try {
+      const response = await fetch(
+        `/api/manageMonitoring?projectID=${project_id}&type=trace`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData) {
+          // console.log("TRACE: ", responseData);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  const getThresholdData = async (project_id) => {
+    try {
+      const response = await fetch(
+        `/api/manageMonitoring?projectID=${project_id}&type=threshold`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (response.ok) {
+        const responseData = await response.json();
+        if (responseData) {
+          // console.log("THRESHOLD: ", responseData);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
   const filteredProjects = projectList.filter((project) => {
     const trimmedSearchProject = searchProject.replace(/[^\w\s]/g, "").trim();
     const regex = new RegExp(trimmedSearchProject, "gi");
@@ -160,7 +225,7 @@ const Monitoring = () => {
     annotations: {
       yaxis: [
         {
-          y: 0.5,
+          y: 0.6,
           y2: 1,
           borderColor: "#f7cecd",
           fillColor: "#b75758",
@@ -168,7 +233,7 @@ const Monitoring = () => {
         },
         {
           y: 0.4,
-          y2: 0.5,
+          y2: 0.6,
           borderColor: "#ffff00",
           fillColor: "#ffff00",
           opacity: 0.3,
@@ -177,6 +242,12 @@ const Monitoring = () => {
     },
   });
 
+  const handleSelect = (value) => {
+    setSelected(value);
+    getEvalsData(value.project_id);
+    getTracesData(value.project_id);
+    getThresholdData(value.project_id);
+  };
   const [traceSeries, setTraceSeries] = useState([
     {
       type: "rangeArea",
@@ -238,7 +309,7 @@ const Monitoring = () => {
               <div className="flex gap-[33px] items-center justify-between flex-wrap mt-2">
                 <Listbox
                   value={selected}
-                  onChange={(value) => setSelected(value)}
+                  onChange={(value) => handleSelect(value)}
                 >
                   {({ open }) => (
                     <>
@@ -269,7 +340,7 @@ const Monitoring = () => {
                           leaveTo="opacity-0"
                         >
                           <Listbox.Options className="absolute z-10 max-h-56 overflow-y-auto mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
-                            <div className="bg-white sticky top-0 z-[9] p-1 ">
+                            <div className="bg-white sticky top-0 z-[9] p-1">
                               <input
                                 type="text"
                                 className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"

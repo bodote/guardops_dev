@@ -14,14 +14,13 @@ import { MdKeyboardArrowUp } from "react-icons/md";
 import { RiFilter2Fill } from "react-icons/ri";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
 import { JsonViewer } from "@textea/json-viewer";
-
-import dynamic from "next/dynamic";
 import Logout from "@/components/Logout/Logout";
 import { useRouter } from "next/navigation";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
+
 const index = () => {
   const [selected, setSelected] = useState({
     name: "Select an option",
@@ -163,7 +162,7 @@ const index = () => {
                           leaveTo="opacity-0"
                         >
                           <Listbox.Options className="absolute z-10 max-h-56 overflow-y-auto mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
-                            <div className="bg-white sticky top-0 z-[9] p-1 ">
+                            <div className="bg-white sticky top-0 z-[9] p-1">
                               <input
                                 type="text"
                                 className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
@@ -351,7 +350,7 @@ const index = () => {
                       <td className="py-[3.5px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[200px]">
                         <span className="bg-[#E9EDF5] rounded-[6px] h-[24px] text-[#464F60] p-[3.5px_8px]">
                           {data.data.eval_data.runtime &&
-                            parseInt(data.data.eval_data.runtime) + " min"}
+                            data.data.eval_data.runtime + " sec"}
                         </span>
                         <br />
                       </td>
@@ -364,7 +363,7 @@ const index = () => {
                       <td className="py-[3.5px] px-[10px] text-center">
                         <span className="bg-[#E9EDF5] rounded-[6px] h-[24px] text-[#464F60] p-[3.5px_8px] text-[12px]">
                           {data.data.eval_data.total_score &&
-                            Math.round(data.data.eval_data.total_score)}
+                            data.data.eval_data.total_score}
                         </span>
                       </td>
                       <td>
