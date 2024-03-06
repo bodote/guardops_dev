@@ -234,7 +234,7 @@ const Projectstabledata = ({
               <div
                 // ref={modalRef}
                 style={{ width: `${width}%` }}
-                className="modal overflow-x-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 lg:flex-row flex-col h-screen select-none trace-modal-main"
+                className="modal overflow-x-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 lg:flex-row flex-col h-screen trace-modal-main"
               >
                 <div
                   className="after:content-[''] after:absolute after:h-screen after:left-0 after:w-2 after:cursor-col-resize"

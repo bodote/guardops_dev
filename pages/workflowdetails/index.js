@@ -15,21 +15,28 @@ const WorkflowDetails = () => {
 
   const handleSaveFlow = async () => {
     if (nodes.length > 0) {
-      console.log("Nodes: ", nodes);
-      const updatedNodes = nodes.map((node) => {
+      const updatedNodes = nodes.map((node, index) => {
         if (node.data.fields) {
           const updatedFields = node.data.fields.map((field) => {
             if (field.type === "select") {
-              // const selectedValue =
-              //   document.getElementById(field.name)?.textContent || "";
-              // return {
-              //   ...field,
-              //   value: selectedValue,
-              // };
-            } else {
+              let t1 = "datasetDrop";
+              const selectedOption = [
+                ...document.querySelectorAll(`[proname=${t1}]`),
+              ];
+              // const idOfSelectedOption = selectedOption.getAttribute('id');
+
+              const datasetId = selectedOption[index]?.getAttribute("id");
               return {
                 ...field,
-                value: document.getElementById(field.name)?.value || "",
+                value: datasetId,
+              };
+            } else {
+              const selectedOption = [
+                ...document.querySelectorAll(`#${field.name}`),
+              ];
+              return {
+                ...field,
+                value: selectedOption[index].value || "",
               };
             }
           });
@@ -51,17 +58,17 @@ const WorkflowDetails = () => {
         flowDefinition,
         evaluation_id: evaluationID,
       };
-      // const response = await fetch("/api/manageFlow", {
-      //   method: "PATCH",
-      //   body: JSON.stringify(formData),
-      // });
-      // const responseData = await response.json();
-      // if (response.ok) {
-      //   toast.success("Flow Saved successfully !!");
-      // } else {
-      //   toast.error(responseData.detail);
-      //   console.error("API request failed:", response.statusText);
-      // }
+      const response = await fetch("/api/manageFlow", {
+        method: "PATCH",
+        body: JSON.stringify(formData),
+      });
+      const responseData = await response.json();
+      if (response.ok) {
+        toast.success("Flow Saved successfully !!");
+      } else {
+        toast.error(responseData.detail);
+        console.error("API request failed:", response.statusText);
+      }
     } else {
       toast.error("Please drag the nodes from the modal");
     }
