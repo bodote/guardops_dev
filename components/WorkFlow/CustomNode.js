@@ -132,6 +132,18 @@ const CustomNode = ({ data }) => {
     </Listbox.Option>
   );
 
+  const getDataSetname = (datasetID) => {
+    const datasetDetails = datasetList?.find(
+      (ele) => ele.dataset_id === datasetID
+    );
+
+    if (datasetDetails) {
+      return datasetDetails.name;
+    } else {
+      return null;
+    }
+  };
+
   const formatInputText = (text) => {
     return text
       .split("_")
@@ -308,11 +320,15 @@ const CustomNode = ({ data }) => {
                         <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal pl-[10px] pr-[20px] py-[3px] ">
                           <span className="flex items-center">
                             <span
-                              id={field.name}
                               className=" block truncate mr-3"
+                              id={
+                                field.value ? field.value : proname.dataset_id
+                              }
+                              proname="datasetDrop"
                             >
-                              {field.value && field.value}
-                              {proname.name}
+                              {field.value
+                                ? getDataSetname(field.value)
+                                : proname.name}
                             </span>
                           </span>
                           <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">

@@ -4,22 +4,27 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 
 const Info = ({ traceProject }) => {
-  const [trace, setTrace] = useState(true);
-  const [click, setClick] = useState(true);
+  const [showInput, setShowInput] = useState(true);
+  const [showOutput, setShowOutput] = useState(true);
+  const [showModel, setShowModel] = useState(true);
   return (
     <>
       <div className="lg:m-[38px_45px_10px_49px] m-[20px_16px_20px_16px]">
-        <div
-          onClick={() => setClick(!click)}
-          className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] "
-        >
-          <div className="flex gap-[13px] items-center p-[13px_23px_15px_23px] ">
-            <ArrowDownIcon className="fill-[#334851]" />
+        <div className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] ">
+          <div
+            onClick={() => setShowInput(!showInput)}
+            className="flex gap-[13px] items-center p-[13px_23px_15px_23px] cursor-pointer"
+          >
+            <ArrowDownIcon
+              className={`fill-[#334851] ${
+                showInput ? "rotate-[180deg]" : "rotate-[0]"
+              }`}
+            />
             <h1 className="text-[18px] font-Archivo font-normal text-[#000000]">
               Input
             </h1>
           </div>
-          {click && (
+          {showInput && (
             <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
               {traceProject?.prompt
                 ? traceProject?.prompt
@@ -29,17 +34,21 @@ const Info = ({ traceProject }) => {
         </div>
       </div>
       <div className="lg:m-[39px_45px_10px_49px] m-[0px_16px_0px_16px]">
-        <div
-          onClick={() => setTrace(!trace)}
-          className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] bg-[rgba(13,133,150,0.2)]"
-        >
-          <div className="flex gap-[13px] items-center p-[13px_23px_15px_23px] ">
-            <ArrowDownIcon className="fill-[#334851]" />
+        <div className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] bg-[rgba(13,133,150,0.2)]">
+          <div
+            onClick={() => setShowOutput(!showOutput)}
+            className="flex gap-[13px] items-center p-[13px_23px_15px_23px] cursor-pointer"
+          >
+            <ArrowDownIcon
+              className={`fill-[#334851] ${
+                showOutput ? "rotate-[180deg]" : "rotate-[0]"
+              }`}
+            />
             <h1 className="text-[18px] font-Archivo font-normal text-[#000000]">
               Output
             </h1>
           </div>
-          {trace && (
+          {showOutput && (
             <div
               style={{ whiteSpace: "pre-wrap" }}
               className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]"
@@ -89,17 +98,21 @@ const Info = ({ traceProject }) => {
         </div>
       </div>
       <div className="lg:m-[39px_45px_10px_49px] m-[0px_16px_0px_16px]">
-        <div
-          onClick={() => setTrace(!trace)}
-          className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] bg-[rgba(13,133,150,0.2)]"
-        >
-          <div className="flex gap-[13px] items-center p-[13px_23px_15px_23px] ">
-            <ArrowDownIcon className="fill-[#334851]" />
+        <div className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] bg-[rgba(13,133,150,0.2)]">
+          <div
+            onClick={() => setShowModel(!showModel)}
+            className="flex gap-[13px] items-center p-[13px_23px_15px_23px] cursor-pointer"
+          >
+            <ArrowDownIcon
+              className={`fill-[#334851] ${
+                showModel ? "rotate-[180deg]" : "rotate-[0]"
+              }`}
+            />
             <h1 className="text-[18px] font-Archivo font-normal text-[#000000]">
               Model
             </h1>
           </div>
-          {trace && (
+          {showModel && (
             <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
               {traceProject?.model
                 ? traceProject?.model

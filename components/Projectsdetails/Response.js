@@ -23,9 +23,13 @@ const Response = ({ traceProject, selected, type }) => {
         <div className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] ">
           <div
             onClick={() => setResponce(!responce)}
-            className="flex gap-[13px] items-center p-[13px_23px_15px_23px] "
+            className="flex gap-[13px] items-center p-[13px_23px_15px_23px] cursor-pointer"
           >
-            <ArrowDownIcon className="fill-[#334851]" />
+            <ArrowDownIcon
+              className={`fill-[#334851] ${
+                responce ? "rotate-[180deg]" : "rotate-[0]"
+              }`}
+            />
             <h1 className="text-[18px] font-Archivo font-normal text-[#000000]">
               API Response
             </h1>
