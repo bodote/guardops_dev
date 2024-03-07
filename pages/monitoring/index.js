@@ -248,36 +248,259 @@ const Monitoring = () => {
     getTracesData(value.project_id);
     getThresholdData(value.project_id);
   };
-  const [traceSeries, setTraceSeries] = useState([
-    {
-      type: "rangeArea",
-      name: "Team A Range",
-      data: [
-        { x: "01-03-2024", y: [0.1, 0.3] },
-        { x: "08-03-2024", y: [0.1, 0.2] },
-        { x: "15-03-2024", y: [0.05, 0.15] },
-        { x: "22-03-2024", y: [0.2, 0.5] },
-        { x: "01-04-2024", y: [0.1, 0.3] },
-        { x: "08-04-2024", y: [0.3, 0.4] },
-        { x: "15-04-2024", y: [0.5, 1] },
-      ],
-    },
-    {
-      type: "line",
-      name: "Team A Median",
-      data: [
-        { x: "Jan", y: 0.19 },
-        { x: "Feb", y: 0.14 },
-        { x: "Mar", y: 0.09 },
-        { x: "Apr", y: 0.4 },
-        { x: "May", y: 0.2 },
-        { x: "Jun", y: 0.35 },
-        { x: "Jul", y: 0.7 },
-      ],
-    },
-  ]);
+  const [traceSeries, setTraceSeries] = useState();
   useEffect(() => {
     getProjectList();
+  }, []);
+
+  const data22 = {
+    0: {
+      start_time: "2024-01-30T18:06:25.481000",
+      runtime: 0.198,
+    },
+    1: {
+      start_time: "2024-01-30T17:25:10.102000",
+      runtime: 0.157,
+    },
+    2: {
+      start_time: "2024-01-30T17:25:10.102000",
+      runtime: 0.149,
+    },
+    3: {
+      start_time: "2024-02-03T12:31:38.970000",
+      runtime: 0.124,
+    },
+    4: {
+      start_time: "2024-02-08T09:37:26.451000",
+      runtime: 0.264,
+    },
+    5: {
+      start_time: "2024-02-01T07:22:37.192000",
+      runtime: 0.115,
+    },
+    6: {
+      start_time: "2024-02-03T12:30:57.156000",
+      runtime: 0.074,
+    },
+    7: {
+      start_time: "2024-01-30T17:02:07.882000",
+      runtime: 0.206,
+    },
+    8: {
+      start_time: "2024-02-01T07:24:38.815000",
+      runtime: 0.107,
+    },
+    9: {
+      start_time: "2024-01-30T17:12:58.595000",
+      runtime: 0.142,
+    },
+    10: {
+      start_time: "2024-01-30T17:32:08.722000",
+      runtime: 0.183,
+    },
+    11: {
+      start_time: "2024-01-30T18:10:48.131000",
+      runtime: 0.198,
+    },
+    12: {
+      start_time: "2024-01-30T17:24:41.052000",
+      runtime: 0.162,
+    },
+    13: {
+      start_time: "2024-03-04T11:59:34.281000",
+      runtime: 0.273,
+    },
+    14: {
+      start_time: "2024-03-04T11:59:34.281000",
+      runtime: 0.573,
+    },
+    15: {
+      start_time: "2024-03-04T11:59:34.281000",
+      runtime: 0.278,
+    },
+    16: {
+      start_time: "2024-03-04T11:59:34.281000",
+      runtime: 0.873,
+    },
+    17: {
+      start_time: "2024-02-03T11:52:48.002000",
+      runtime: 0.073,
+    },
+    18: {
+      start_time: "2024-02-01T07:23:59.272000",
+      runtime: 0.109,
+    },
+    19: {
+      start_time: "2024-02-09T20:25:30.104000",
+      runtime: 0.821,
+    },
+    20: {
+      start_time: "2024-02-09T20:25:30.104000",
+      runtime: 0.821,
+    },
+    21: {
+      start_time: "2024-02-09T20:25:30.104000",
+      runtime: 0.821,
+    },
+    22: {
+      start_time: "2024-02-05T15:00:11.518000",
+      runtime: 0.155,
+    },
+    23: {
+      start_time: "2024-01-30T18:00:31.552000",
+      runtime: 0.202,
+    },
+    24: {
+      start_time: "2024-01-30T17:34:07.308000",
+      runtime: 0.195,
+    },
+    25: {
+      start_time: "2024-01-30T17:05:30.790000",
+      runtime: 0.142,
+    },
+    26: {
+      start_time: "2024-02-03T12:37:08.143000",
+      runtime: 0.149,
+    },
+    27: {
+      start_time: "2024-01-30T17:09:26.700000",
+      runtime: 0.156,
+    },
+    28: {
+      start_time: "2024-01-30T17:05:30.790000",
+      runtime: 0.134,
+    },
+    29: {
+      start_time: "2024-02-05T09:46:31.991000",
+      runtime: 0.104,
+    },
+    30: {
+      start_time: "2024-01-30T17:02:07.882000",
+      runtime: 0.214,
+    },
+    31: {
+      start_time: "2024-01-30T18:20:36.347000",
+      runtime: 0.204,
+    },
+    32: {
+      start_time: "2024-02-08T09:15:34.637000",
+      runtime: 0.775,
+    },
+    33: {
+      start_time: "2024-01-30T18:09:49.100000",
+      runtime: 0.205,
+    },
+    34: {
+      start_time: "2024-02-08T09:15:34.637000",
+      runtime: 0.785,
+    },
+    35: {
+      start_time: "2024-01-30T17:11:18.583000",
+      runtime: 0.143,
+    },
+    36: {
+      start_time: "2024-01-30T16:51:44.674000",
+      runtime: 0.165,
+    },
+    37: {
+      start_time: "2024-01-30T16:51:44.674000",
+      runtime: 0.157,
+    },
+    38: {
+      start_time: "2024-01-30T17:10:29.153000",
+      runtime: 0.055,
+    },
+    39: {
+      start_time: "2024-02-08T09:37:26.451000",
+      runtime: 0.261,
+    },
+    40: {
+      start_time: "2024-01-30T18:20:14.062000",
+      runtime: 0.214,
+    },
+    41: {
+      start_time: "2024-01-30T16:50:04.738000",
+      runtime: 0.182,
+    },
+    42: {
+      start_time: "2024-01-30T17:55:32.541000",
+      runtime: 0.205,
+    },
+    43: {
+      start_time: "2024-02-01T07:23:10.895000",
+      runtime: 0.144,
+    },
+    44: {
+      start_time: "2024-01-30T17:09:26.700000",
+      runtime: 0.164,
+    },
+    45: {
+      start_time: "2024-01-30T16:50:04.738000",
+      runtime: 0.175,
+    },
+    46: {
+      start_time: "2024-01-30T17:34:07.308000",
+      runtime: 0.187,
+    },
+    47: {
+      start_time: "2024-01-30T17:55:32.541000",
+      runtime: 0.212,
+    },
+    48: {
+      start_time: "2024-02-01T07:21:20.424000",
+      runtime: 0.118,
+    },
+    49: {
+      start_time: "2024-02-08T09:36:15.848000",
+      runtime: 1.194,
+    },
+    50: {
+      start_time: "2024-02-08T09:15:34.637000",
+      runtime: 0.793,
+    },
+  };
+
+  useEffect(() => {
+    const parsedData = Object.values(data22);
+
+    // Calculate mean, minimum, and maximum values per day
+    const dailyData = parsedData.reduce((acc, item) => {
+      const date = new Date(item.start_time).toISOString().slice(0, 10);
+      if (!acc[date]) {
+        acc[date] = { count: 0, total: 0, min: Infinity, max: -Infinity };
+      }
+      const runtime = parseFloat(item.runtime.toFixed(3)); // Convert runtime to have 3 digits after the decimal point
+      acc[date].count++;
+      acc[date].total += runtime;
+      acc[date].min = Math.min(acc[date].min, runtime);
+      acc[date].max = Math.max(acc[date].max, runtime);
+      return acc;
+    }, {});
+
+    // Format data for traceSeries
+    const traceData = Object.entries(dailyData).map(([date, values]) => ({
+      x: date,
+      y: [values.min, values.max],
+    }));
+
+    const traceSeries = [
+      {
+        type: "rangeArea",
+        name: "Team A Range",
+        data: traceData,
+      },
+      {
+        type: "line",
+        name: "Team A Median",
+        data: Object.entries(dailyData).map(([date, values]) => ({
+          x: date,
+          y: parseFloat((values.total / values.count).toFixed(3)), // Convert mean value to have 3 digits after the decimal point
+        })),
+      },
+    ];
+
+    // Set the traceSeries state
+    setTraceSeries(traceSeries);
   }, []);
 
   const ReactApexChart = dynamic(() => import("react-apexcharts"), {

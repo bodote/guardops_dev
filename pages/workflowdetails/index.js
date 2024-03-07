@@ -36,7 +36,7 @@ const WorkflowDetails = () => {
               ];
               return {
                 ...field,
-                value: selectedOption[index].value || "",
+                value: selectedOption[index]?.value || "",
               };
             }
           });
