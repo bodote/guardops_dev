@@ -13,11 +13,6 @@ const ToolsModal = ({ toolsModal }) => {
   const [flowData, setFlowData] = useState([]);
 
   const handleDragStart = (event, tool) => {
-    // const nodeDetails = { nodeId: uuidv4(), ...tool };
-    // event.dataTransfer.setData(
-    //   "application/reactflow",
-    //   JSON.stringify(nodeDetails)
-    // );
     event.dataTransfer.setData("application/reactflow", JSON.stringify(tool));
   };
 

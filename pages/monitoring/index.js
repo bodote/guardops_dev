@@ -9,12 +9,234 @@ import { MdKeyboardArrowUp } from "react-icons/md";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
+
 const Monitoring = () => {
   const [selected, setSelected] = useState({
     name: "Select a project",
   });
   const [projectList, setProjectList] = useState([]);
   const [searchProject, setSearchProject] = useState("");
+  const [evalSeries, setEvalSeries] = useState();
+  const [options, setOptions] = useState({
+    chart: {
+      height: 350,
+      type: "rangeArea",
+      animations: {
+        speed: 500,
+      },
+    },
+    colors: ["#5c78af", "#5c78af"],
+    dataLabels: {
+      enabled: false,
+    },
+    fill: {
+      opacity: [0.24, 1],
+    },
+    stroke: {
+      curve: "straight",
+      width: [0, 2],
+    },
+    markers: {
+      hover: {
+        sizeOffset: 5,
+      },
+    },
+    yaxis: {
+      title: {
+        text: "Summarization Total Accuracy", // Your y-axis title
+        style: {
+          fontSize: "12px",
+          fontWeight: 600,
+        },
+      },
+    },
+  });
+  const [traceSeries, setTraceSeries] = useState();
+  const [traceOptions, setTraceOptions] = useState({
+    chart: {
+      height: 350,
+      type: "rangeArea",
+      animations: {
+        speed: 500,
+      },
+    },
+    colors: ["#e5e5e5", "#000af5"],
+    dataLabels: {
+      enabled: false,
+    },
+    fill: {
+      opacity: [0.5, 1],
+    },
+    stroke: {
+      curve: "straight",
+      width: [0, 2],
+    },
+    legend: {
+      show: false,
+      customLegendItems: ["Team A"],
+      inverseOrder: true,
+    },
+    markers: {
+      hover: {
+        sizeOffset: 5,
+      },
+    },
+    yaxis: {
+      title: {
+        text: "Latency (seconds)", // Your y-axis title
+        style: {
+          fontSize: "12px",
+          fontWeight: 600,
+        },
+      },
+    },
+  });
+
+  const [evalData, setEvalData] = useState({});
+  const [traceGraphData, setTraceData] = useState();
+  const [selectedTimeDuration, setSelectedTimeDuration] = useState("all");
+
+  const handleSetChart = (selectedTimeframe, data) => {
+    const traceSeriesArray = [];
+    let filteredData = null;
+    setSelectedTimeDuration(selectedTimeframe);
+    for (const [datasetName, dataset] of Object.entries(
+      data ? data : evalData
+    )) {
+      const parsedData = Object.values(dataset);
+
+      if (selectedTimeframe !== "all") {
+        filteredData = parsedData.filter((item) =>
+          isWithinTimeframe(item.Date, selectedTimeframe)
+        );
+      } else {
+        filteredData = parsedData;
+      }
+
+      const timeframeData = filteredData.reduce((acc, item) => {
+        const date = new Date(item.Date).toISOString().slice(0, 10);
+        if (!acc[date]) {
+          acc[date] = {
+            count: 0,
+            total: 0,
+            min: Infinity,
+            max: -Infinity,
+          };
+        }
+        const value = parseFloat(item.Value.toFixed(3));
+        acc[date].count++;
+        acc[date].total += value;
+        acc[date].min = Math.min(acc[date].min, value);
+        acc[date].max = Math.max(acc[date].max, value);
+        return acc;
+      }, {});
+
+      const traceData = Object.entries(timeframeData).map(([date, values]) => ({
+        x: date,
+        y: [values.min, values.max],
+      }));
+      const newTraceSeries = [
+        {
+          type: "rangeArea",
+          name: `${datasetName}`,
+          data: traceData,
+        },
+        {
+          type: "line",
+          name: `${datasetName} Median`,
+          data: Object.entries(timeframeData).map(([date, values]) => ({
+            x: date,
+            y: parseFloat((values.total / values.count).toFixed(3)),
+          })),
+        },
+      ];
+
+      traceSeriesArray.push(newTraceSeries);
+    }
+    setEvalSeries(traceSeriesArray);
+  };
+
+  const handleSetTraceChart = (selectedTimeframe, responseData) => {
+    const parsedData = Object.values(
+      responseData ? responseData : traceGraphData
+    );
+    let filteredData = null;
+
+    if (selectedTimeframe !== "all") {
+      filteredData = parsedData.filter((item) =>
+        isWithinTimeframe(item.start_time, selectedTimeframe)
+      );
+    } else {
+      filteredData = parsedData;
+    }
+
+    const timeframeData = filteredData.reduce((acc, item) => {
+      const date = new Date(item.start_time).toISOString().slice(0, 10);
+      if (!acc[date]) {
+        acc[date] = { count: 0, total: 0, min: Infinity, max: -Infinity };
+      }
+      const runtime = parseFloat(item.runtime.toFixed(3));
+      acc[date].count++;
+      acc[date].total += runtime;
+      acc[date].min = Math.min(acc[date].min, runtime);
+      acc[date].max = Math.max(acc[date].max, runtime);
+      return acc;
+    }, {});
+
+    const traceData = Object.entries(timeframeData).map(([date, values]) => ({
+      x: date,
+      y: [values.min, values.max],
+    }));
+
+    const newTraceSeries = [
+      {
+        type: "rangeArea",
+        name: "Team A Range",
+        data: traceData,
+      },
+      {
+        type: "line",
+        name: "Team A Median",
+        data: Object.entries(timeframeData).map(([date, values]) => ({
+          x: date,
+          y:
+            values.count > 0
+              ? parseFloat((values.total / values.count).toFixed(3))
+              : 0,
+        })),
+      },
+    ];
+    setTraceSeries(newTraceSeries);
+  };
+
+  const isWithinTimeframe = (dateString, selectedTimeframe) => {
+    const currentDate = new Date(dateString);
+    const currentTime = currentDate.getTime();
+    const currentTimeframe =
+      Date.now() - getTimeframeInMilliseconds(selectedTimeframe);
+    return currentTime >= currentTimeframe;
+  };
+
+  const getTimeframeInMilliseconds = (selectedTimeframe) => {
+    switch (selectedTimeframe) {
+      case "1h":
+        return 3600000;
+      case "6h":
+        return 21600000;
+      case "1d":
+        return 86400000;
+      case "3d":
+        return 259200000;
+      case "7d":
+        return 604800000;
+      case "15d":
+        return 1296000000;
+      case "30d":
+        return 2592000000;
+      default:
+        return 0;
+    }
+  };
 
   const getProjectList = async () => {
     try {
@@ -47,7 +269,8 @@ const Monitoring = () => {
       if (response.ok) {
         const responseData = await response.json();
         if (responseData) {
-          // console.log("EVAL: ", responseData);
+          setEvalData(responseData);
+          await handleSetChart("all", responseData);
         }
       } else {
         console.error("API request failed:", response.statusText);
@@ -69,7 +292,8 @@ const Monitoring = () => {
       if (response.ok) {
         const responseData = await response.json();
         if (responseData) {
-          // console.log("TRACE: ", responseData);
+          setTraceData(responseData);
+          handleSetTraceChart("all", responseData);
         }
       } else {
         console.error("API request failed:", response.statusText);
@@ -91,7 +315,30 @@ const Monitoring = () => {
       if (response.ok) {
         const responseData = await response.json();
         if (responseData) {
-          // console.log("THRESHOLD: ", responseData);
+          const newTraceOptions = {
+            ...traceOptions,
+            annotations: {
+              yaxis: [
+                {
+                  y: responseData.latency_critical_thresholds,
+                  y2: 999,
+                  borderColor: "#f7cecd",
+                  fillColor: "#b75758",
+                  opacity: 0.3,
+                },
+                {
+                  y: responseData.latency_warning_thresholds,
+                  y2: responseData.latency_critical_thresholds,
+                  borderColor: "#ffff00",
+                  fillColor: "#ffff00",
+                  opacity: 0.3,
+                },
+              ],
+            },
+          };
+
+          // Set the updated traceOptions state
+          setTraceOptions(newTraceOptions);
         }
       } else {
         console.error("API request failed:", response.statusText);
@@ -109,398 +356,15 @@ const Monitoring = () => {
     return trimmedProjectName.match(regex);
   });
 
-  const [options, setOptions] = useState({
-    chart: {
-      height: 350,
-      type: "rangeArea",
-      animations: {
-        speed: 500,
-      },
-    },
-    colors: ["#5c78af", "#5c78af"],
-    dataLabels: {
-      enabled: false,
-    },
-    fill: {
-      opacity: [0.24, 1],
-    },
-    stroke: {
-      curve: "straight",
-      width: [0, 2],
-    },
-    legend: {
-      show: false,
-      customLegendItems: ["Team A"],
-      inverseOrder: true,
-    },
-    // title: {
-    //   text: "Range Area with Forecast Line (Team A)",
-    // },
-    markers: {
-      hover: {
-        sizeOffset: 5,
-      },
-    },
-    yaxis: {
-      title: {
-        text: "Summarization Total Accuracy", // Your y-axis title
-        style: {
-          fontSize: "12px",
-          fontWeight: 600,
-        },
-      },
-    },
-  });
-
-  const [series, setSeries] = useState([
-    {
-      type: "rangeArea",
-      name: "Team A Range",
-      data: [
-        { x: "01-03-2024", y: [3100, 3400] },
-        { x: "08-03-2024", y: [4200, 5200] },
-        { x: "15-03-2024", y: [3900, 4900] },
-        { x: "22-03-2024", y: [3400, 3900] },
-        { x: "01-04-2024", y: [5100, 5900] },
-        { x: "08-04-2024", y: [5400, 6700] },
-        { x: "15-04-2024", y: [4300, 4600] },
-      ],
-    },
-    {
-      type: "line",
-      name: "Team A Median",
-      data: [
-        { x: "Jan", y: 3300 },
-        { x: "Feb", y: 4900 },
-        { x: "Mar", y: 4300 },
-        { x: "Apr", y: 3700 },
-        { x: "May", y: 5500 },
-        { x: "Jun", y: 5900 },
-        { x: "Jul", y: 4500 },
-      ],
-    },
-  ]);
-
-  const [traceOptions, setTraceOptions] = useState({
-    chart: {
-      height: 350,
-      type: "rangeArea",
-      animations: {
-        speed: 500,
-      },
-    },
-    colors: ["#e5e5e5", "#000af5"],
-    dataLabels: {
-      enabled: false,
-    },
-    fill: {
-      opacity: [0.5, 1],
-    },
-    stroke: {
-      curve: "straight",
-      width: [0, 2],
-    },
-    legend: {
-      show: false,
-      customLegendItems: ["Team A"],
-      inverseOrder: true,
-    },
-    // title: {
-    //   text: "Range Area with Forecast Line (Team A)",
-    // },
-    markers: {
-      hover: {
-        sizeOffset: 5,
-      },
-    },
-    yaxis: {
-      title: {
-        text: "Latency (seconds)", // Your y-axis title
-        style: {
-          fontSize: "12px",
-          fontWeight: 600,
-        },
-      },
-    },
-    annotations: {
-      yaxis: [
-        {
-          y: 0.6,
-          y2: 1,
-          borderColor: "#f7cecd",
-          fillColor: "#b75758",
-          opacity: 0.3,
-        },
-        {
-          y: 0.4,
-          y2: 0.6,
-          borderColor: "#ffff00",
-          fillColor: "#ffff00",
-          opacity: 0.3,
-        },
-      ],
-    },
-  });
-
   const handleSelect = (value) => {
     setSelected(value);
     getEvalsData(value.project_id);
     getTracesData(value.project_id);
     getThresholdData(value.project_id);
   };
-  const [traceSeries, setTraceSeries] = useState();
+
   useEffect(() => {
     getProjectList();
-  }, []);
-
-  const data22 = {
-    0: {
-      start_time: "2024-01-30T18:06:25.481000",
-      runtime: 0.198,
-    },
-    1: {
-      start_time: "2024-01-30T17:25:10.102000",
-      runtime: 0.157,
-    },
-    2: {
-      start_time: "2024-01-30T17:25:10.102000",
-      runtime: 0.149,
-    },
-    3: {
-      start_time: "2024-02-03T12:31:38.970000",
-      runtime: 0.124,
-    },
-    4: {
-      start_time: "2024-02-08T09:37:26.451000",
-      runtime: 0.264,
-    },
-    5: {
-      start_time: "2024-02-01T07:22:37.192000",
-      runtime: 0.115,
-    },
-    6: {
-      start_time: "2024-02-03T12:30:57.156000",
-      runtime: 0.074,
-    },
-    7: {
-      start_time: "2024-01-30T17:02:07.882000",
-      runtime: 0.206,
-    },
-    8: {
-      start_time: "2024-02-01T07:24:38.815000",
-      runtime: 0.107,
-    },
-    9: {
-      start_time: "2024-01-30T17:12:58.595000",
-      runtime: 0.142,
-    },
-    10: {
-      start_time: "2024-01-30T17:32:08.722000",
-      runtime: 0.183,
-    },
-    11: {
-      start_time: "2024-01-30T18:10:48.131000",
-      runtime: 0.198,
-    },
-    12: {
-      start_time: "2024-01-30T17:24:41.052000",
-      runtime: 0.162,
-    },
-    13: {
-      start_time: "2024-03-04T11:59:34.281000",
-      runtime: 0.273,
-    },
-    14: {
-      start_time: "2024-03-04T11:59:34.281000",
-      runtime: 0.573,
-    },
-    15: {
-      start_time: "2024-03-04T11:59:34.281000",
-      runtime: 0.278,
-    },
-    16: {
-      start_time: "2024-03-04T11:59:34.281000",
-      runtime: 0.873,
-    },
-    17: {
-      start_time: "2024-02-03T11:52:48.002000",
-      runtime: 0.073,
-    },
-    18: {
-      start_time: "2024-02-01T07:23:59.272000",
-      runtime: 0.109,
-    },
-    19: {
-      start_time: "2024-02-09T20:25:30.104000",
-      runtime: 0.821,
-    },
-    20: {
-      start_time: "2024-02-09T20:25:30.104000",
-      runtime: 0.821,
-    },
-    21: {
-      start_time: "2024-02-09T20:25:30.104000",
-      runtime: 0.821,
-    },
-    22: {
-      start_time: "2024-02-05T15:00:11.518000",
-      runtime: 0.155,
-    },
-    23: {
-      start_time: "2024-01-30T18:00:31.552000",
-      runtime: 0.202,
-    },
-    24: {
-      start_time: "2024-01-30T17:34:07.308000",
-      runtime: 0.195,
-    },
-    25: {
-      start_time: "2024-01-30T17:05:30.790000",
-      runtime: 0.142,
-    },
-    26: {
-      start_time: "2024-02-03T12:37:08.143000",
-      runtime: 0.149,
-    },
-    27: {
-      start_time: "2024-01-30T17:09:26.700000",
-      runtime: 0.156,
-    },
-    28: {
-      start_time: "2024-01-30T17:05:30.790000",
-      runtime: 0.134,
-    },
-    29: {
-      start_time: "2024-02-05T09:46:31.991000",
-      runtime: 0.104,
-    },
-    30: {
-      start_time: "2024-01-30T17:02:07.882000",
-      runtime: 0.214,
-    },
-    31: {
-      start_time: "2024-01-30T18:20:36.347000",
-      runtime: 0.204,
-    },
-    32: {
-      start_time: "2024-02-08T09:15:34.637000",
-      runtime: 0.775,
-    },
-    33: {
-      start_time: "2024-01-30T18:09:49.100000",
-      runtime: 0.205,
-    },
-    34: {
-      start_time: "2024-02-08T09:15:34.637000",
-      runtime: 0.785,
-    },
-    35: {
-      start_time: "2024-01-30T17:11:18.583000",
-      runtime: 0.143,
-    },
-    36: {
-      start_time: "2024-01-30T16:51:44.674000",
-      runtime: 0.165,
-    },
-    37: {
-      start_time: "2024-01-30T16:51:44.674000",
-      runtime: 0.157,
-    },
-    38: {
-      start_time: "2024-01-30T17:10:29.153000",
-      runtime: 0.055,
-    },
-    39: {
-      start_time: "2024-02-08T09:37:26.451000",
-      runtime: 0.261,
-    },
-    40: {
-      start_time: "2024-01-30T18:20:14.062000",
-      runtime: 0.214,
-    },
-    41: {
-      start_time: "2024-01-30T16:50:04.738000",
-      runtime: 0.182,
-    },
-    42: {
-      start_time: "2024-01-30T17:55:32.541000",
-      runtime: 0.205,
-    },
-    43: {
-      start_time: "2024-02-01T07:23:10.895000",
-      runtime: 0.144,
-    },
-    44: {
-      start_time: "2024-01-30T17:09:26.700000",
-      runtime: 0.164,
-    },
-    45: {
-      start_time: "2024-01-30T16:50:04.738000",
-      runtime: 0.175,
-    },
-    46: {
-      start_time: "2024-01-30T17:34:07.308000",
-      runtime: 0.187,
-    },
-    47: {
-      start_time: "2024-01-30T17:55:32.541000",
-      runtime: 0.212,
-    },
-    48: {
-      start_time: "2024-02-01T07:21:20.424000",
-      runtime: 0.118,
-    },
-    49: {
-      start_time: "2024-02-08T09:36:15.848000",
-      runtime: 1.194,
-    },
-    50: {
-      start_time: "2024-02-08T09:15:34.637000",
-      runtime: 0.793,
-    },
-  };
-
-  useEffect(() => {
-    const parsedData = Object.values(data22);
-
-    // Calculate mean, minimum, and maximum values per day
-    const dailyData = parsedData.reduce((acc, item) => {
-      const date = new Date(item.start_time).toISOString().slice(0, 10);
-      if (!acc[date]) {
-        acc[date] = { count: 0, total: 0, min: Infinity, max: -Infinity };
-      }
-      const runtime = parseFloat(item.runtime.toFixed(3)); // Convert runtime to have 3 digits after the decimal point
-      acc[date].count++;
-      acc[date].total += runtime;
-      acc[date].min = Math.min(acc[date].min, runtime);
-      acc[date].max = Math.max(acc[date].max, runtime);
-      return acc;
-    }, {});
-
-    // Format data for traceSeries
-    const traceData = Object.entries(dailyData).map(([date, values]) => ({
-      x: date,
-      y: [values.min, values.max],
-    }));
-
-    const traceSeries = [
-      {
-        type: "rangeArea",
-        name: "Team A Range",
-        data: traceData,
-      },
-      {
-        type: "line",
-        name: "Team A Median",
-        data: Object.entries(dailyData).map(([date, values]) => ({
-          x: date,
-          y: parseFloat((values.total / values.count).toFixed(3)), // Convert mean value to have 3 digits after the decimal point
-        })),
-      },
-    ];
-
-    // Set the traceSeries state
-    setTraceSeries(traceSeries);
   }, []);
 
   const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -612,82 +476,146 @@ const Monitoring = () => {
                   )}
                 </Listbox>
                 <div className="border-[#CCCCCC] border-[1px] rounded-[12px]">
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin rounded-[12px_0_0_12px] ${
+                      selectedTimeDuration === "1h" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("1h", evalData),
+                        handleSetTraceChart("1h", traceGraphData);
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     1 h
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "6h" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("6h"), handleSetTraceChart("6h");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     6 h
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "1d" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("1d"), handleSetTraceChart("1d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     1 d
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "3d" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("3d"), handleSetTraceChart("3d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     3 d
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "7d" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("7d"), handleSetTraceChart("7d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     7 d
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "15d" &&
+                      "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("15d"), handleSetTraceChart("15d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     15 d
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "30d" &&
+                      "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("30d"), handleSetTraceChart("30d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     30 d
                   </button>
-                  <button className="lg:w-[53px] w-[48px] font-thin h-[27px]">
+                  <button
+                    className={`lg:w-[53px] w-[48px] font-thin rounded-[0_12px_12px_0] p-[6px] ${
+                      selectedTimeDuration === "all" &&
+                      selected.project_id &&
+                      "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("all"), handleSetTraceChart("all");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     All
                   </button>
                 </div>
               </div>
-              <div className="grid lg:grid-cols-2 mt-[40px] xl:gap-[80px] gap-[40px]">
-                <div>
-                  <h1 className="text-[20px] font-Archivo font-thin">
-                    Evaluation Runs in Project over Time
-                  </h1>
-                  <h2 className="text-[18px] font-Archivo font-thin mt-[16px]">
-                    Sum 1 Evaluation
-                  </h2>
-                  <div className="chart-monitoring">
-                    <div id="chart">
-                      <ReactApexChart
-                        options={options}
-                        series={series}
-                        type="rangeArea"
-                        height={350}
-                      />
-                    </div>
-                    <div id="html-dist"></div>
+              <div className="flex w-full mt-[40px] xl:gap-[80px]">
+                <div className="flex flex-col w-full gap-[32px]">
+                  <div>
+                    <h1 className="text-[20px] font-Archivo font-thin">
+                      Evaluation Runs in Project over Time
+                    </h1>
+                    {evalSeries &&
+                      evalSeries.map((series, index) => (
+                        <div key={index}>
+                          <h2 className="text-[18px] font-Archivo font-thin mt-[16px]">
+                            {series[0].name}
+                          </h2>
+                          <div className="chart-monitoring">
+                            <div id="chart">
+                              <ReactApexChart
+                                options={options}
+                                series={series}
+                                type="rangeArea"
+                                height={350}
+                              />
+                            </div>
+                          </div>
+                          <div id="html-dist"></div>
+                        </div>
+                      ))}
                   </div>
                 </div>
-                <div>
-                  <h1 className="text-[20px] font-Archivo font-thin mb-[43px]">
-                    Latency of the Traces in Project over Time
-                  </h1>
-                  <div className="chart-monitoring">
-                    <div id="chart">
-                      <ReactApexChart
-                        options={traceOptions}
-                        series={traceSeries}
-                        type="rangeArea"
-                        height={350}
-                      />
+                <div className="w-full">
+                  <div>
+                    <h1 className="text-[20px] font-Archivo font-thin mb-[43px]">
+                      Latency of the Traces in Project over Time
+                    </h1>
+                    <div className="chart-monitoring">
+                      <div id="chart">
+                        {traceSeries && (
+                          <ReactApexChart
+                            options={traceOptions}
+                            series={traceSeries}
+                            type="rangeArea"
+                            height={350}
+                          />
+                        )}
+                      </div>
+                      <div id="html-dist"></div>
                     </div>
-                    <div id="html-dist"></div>
-                  </div>
-                </div>
-                <div>
-                  <h1 className="text-[20px] font-Archivo font-thin">
-                    Total Evaluation Simulation2
-                  </h1>
-                  <div className="chart-monitoring">
-                    <div id="chart">
-                      <ReactApexChart
-                        options={options}
-                        series={series}
-                        type="rangeArea"
-                        height={350}
-                      />
-                    </div>
-                    <div id="html-dist"></div>
                   </div>
                 </div>
               </div>
