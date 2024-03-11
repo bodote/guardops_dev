@@ -9,88 +9,6 @@ import { MdKeyboardArrowUp } from "react-icons/md";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
-const dataAPI = {
-  "Sum1 Evaluation": {
-    0: {
-      Date: "2024-03-03T17:35:20.892000",
-      Value: 48,
-    },
-    1: {
-      Date: "2024-03-03T17:44:24.961000",
-      Value: 48,
-    },
-    2: {
-      Date: "2024-03-03T17:49:00.545000",
-      Value: 0.6097078263759613,
-    },
-    3: {
-      Date: "2024-03-03T17:51:08.065000",
-      Value: 0.5873412869193337,
-    },
-    4: {
-      Date: "2024-03-03T17:53:07.255000",
-      Value: 0.5637056463294559,
-    },
-    5: {
-      Date: "2024-03-03T17:55:15.287000",
-      Value: 0.5368134184525564,
-    },
-    6: {
-      Date: "2024-03-03T17:57:50.392000",
-      Value: 0.5440701510225023,
-    },
-    7: {
-      Date: "2024-03-03T18:00:26.954000",
-      Value: 0.547993008295695,
-    },
-    8: {
-      Date: "2024-03-03T18:03:37.432000",
-      Value: 0.554340234292405,
-    },
-    9: {
-      Date: "2024-03-03T18:06:56.468000",
-      Value: 0.5466712161022074,
-    },
-    10: {
-      Date: "2024-03-03T18:10:25.565000",
-      Value: 0.5487073479611196,
-    },
-  },
-  "Total Evaluation Simulation2": {
-    0: {
-      Date: "2024-03-03T18:15:12.526000",
-      Value: 0.514406755566597,
-    },
-    1: {
-      Date: "2024-03-03T18:16:12.635000",
-      Value: 0.5569723606109619,
-    },
-    2: {
-      Date: "2024-03-03T18:17:33.229000",
-      Value: 0.5979314545790354,
-    },
-    3: {
-      Date: "2024-03-03T18:18:58.620000",
-      Value: 0.5966737674815314,
-    },
-    4: {
-      Date: "2024-03-03T18:20:50.859000",
-      Value: 0.6066305220127106,
-    },
-    5: {
-      Date: "2024-03-03T18:22:59.515000",
-      Value: 0.6013812566245044,
-    },
-    6: {
-      Date: "2024-03-03T18:25:16.157000",
-      Value: 0.5791817852428981,
-    },
-    7: {
-      Date: "2024-03-03T18:27:52.946000",
-      Value: 0.571568445048549,
-    },
-  },
-};
 
 const Monitoring = () => {
   const [selected, setSelected] = useState({
@@ -174,12 +92,28 @@ const Monitoring = () => {
     },
   });
 
-  const handleSetChart = async (data) => {
-    const traceSeriesArray = [];
+  const [evalData, setEvalData] = useState({});
+  const [traceGraphData, setTraceData] = useState();
+  const [selectedTimeDuration, setSelectedTimeDuration] = useState("all");
 
-    for (const [datasetName, dataset] of Object.entries(data)) {
+  const handleSetChart = (selectedTimeframe, data) => {
+    const traceSeriesArray = [];
+    let filteredData = null;
+    setSelectedTimeDuration(selectedTimeframe);
+    for (const [datasetName, dataset] of Object.entries(
+      data ? data : evalData
+    )) {
       const parsedData = Object.values(dataset);
-      const dailyData = parsedData.reduce((acc, item) => {
+
+      if (selectedTimeframe !== "all") {
+        filteredData = parsedData.filter((item) =>
+          isWithinTimeframe(item.Date, selectedTimeframe)
+        );
+      } else {
+        filteredData = parsedData;
+      }
+
+      const timeframeData = filteredData.reduce((acc, item) => {
         const date = new Date(item.Date).toISOString().slice(0, 10);
         if (!acc[date]) {
           acc[date] = {
@@ -197,11 +131,10 @@ const Monitoring = () => {
         return acc;
       }, {});
 
-      const traceData = Object.entries(dailyData).map(([date, values]) => ({
+      const traceData = Object.entries(timeframeData).map(([date, values]) => ({
         x: date,
         y: [values.min, values.max],
       }));
-
       const newTraceSeries = [
         {
           type: "rangeArea",
@@ -211,9 +144,9 @@ const Monitoring = () => {
         {
           type: "line",
           name: `${datasetName} Median`,
-          data: Object.entries(dailyData).map(([date, values]) => ({
+          data: Object.entries(timeframeData).map(([date, values]) => ({
             x: date,
-            y: parseFloat((values.total / values.count).toFixed(3)), // Convert mean value to have 3 digits after the decimal point
+            y: parseFloat((values.total / values.count).toFixed(3)),
           })),
         },
       ];
@@ -221,6 +154,88 @@ const Monitoring = () => {
       traceSeriesArray.push(newTraceSeries);
     }
     setEvalSeries(traceSeriesArray);
+  };
+
+  const handleSetTraceChart = (selectedTimeframe, responseData) => {
+    const parsedData = Object.values(
+      responseData ? responseData : traceGraphData
+    );
+    let filteredData = null;
+
+    if (selectedTimeframe !== "all") {
+      filteredData = parsedData.filter((item) =>
+        isWithinTimeframe(item.start_time, selectedTimeframe)
+      );
+    } else {
+      filteredData = parsedData;
+    }
+
+    const timeframeData = filteredData.reduce((acc, item) => {
+      const date = new Date(item.start_time).toISOString().slice(0, 10);
+      if (!acc[date]) {
+        acc[date] = { count: 0, total: 0, min: Infinity, max: -Infinity };
+      }
+      const runtime = parseFloat(item.runtime.toFixed(3));
+      acc[date].count++;
+      acc[date].total += runtime;
+      acc[date].min = Math.min(acc[date].min, runtime);
+      acc[date].max = Math.max(acc[date].max, runtime);
+      return acc;
+    }, {});
+
+    const traceData = Object.entries(timeframeData).map(([date, values]) => ({
+      x: date,
+      y: [values.min, values.max],
+    }));
+
+    const newTraceSeries = [
+      {
+        type: "rangeArea",
+        name: "Team A Range",
+        data: traceData,
+      },
+      {
+        type: "line",
+        name: "Team A Median",
+        data: Object.entries(timeframeData).map(([date, values]) => ({
+          x: date,
+          y:
+            values.count > 0
+              ? parseFloat((values.total / values.count).toFixed(3))
+              : 0,
+        })),
+      },
+    ];
+    setTraceSeries(newTraceSeries);
+  };
+
+  const isWithinTimeframe = (dateString, selectedTimeframe) => {
+    const currentDate = new Date(dateString);
+    const currentTime = currentDate.getTime();
+    const currentTimeframe =
+      Date.now() - getTimeframeInMilliseconds(selectedTimeframe);
+    return currentTime >= currentTimeframe;
+  };
+
+  const getTimeframeInMilliseconds = (selectedTimeframe) => {
+    switch (selectedTimeframe) {
+      case "1h":
+        return 3600000;
+      case "6h":
+        return 21600000;
+      case "1d":
+        return 86400000;
+      case "3d":
+        return 259200000;
+      case "7d":
+        return 604800000;
+      case "15d":
+        return 1296000000;
+      case "30d":
+        return 2592000000;
+      default:
+        return 0;
+    }
   };
 
   const getProjectList = async () => {
@@ -253,10 +268,9 @@ const Monitoring = () => {
 
       if (response.ok) {
         const responseData = await response.json();
-        if (responseData.length) {
-          await handleSetChart(responseData);
-        } else {
-          await handleSetChart(dataAPI);
+        if (responseData) {
+          setEvalData(responseData);
+          await handleSetChart("all", responseData);
         }
       } else {
         console.error("API request failed:", response.statusText);
@@ -278,40 +292,8 @@ const Monitoring = () => {
       if (response.ok) {
         const responseData = await response.json();
         if (responseData) {
-          const parsedData = Object.values(responseData);
-          const dailyData = parsedData.reduce((acc, item) => {
-            const date = new Date(item.start_time).toISOString().slice(0, 10);
-            if (!acc[date]) {
-              acc[date] = { count: 0, total: 0, min: Infinity, max: -Infinity };
-            }
-            const runtime = parseFloat(item.runtime.toFixed(3));
-            acc[date].count++;
-            acc[date].total += runtime;
-            acc[date].min = Math.min(acc[date].min, runtime);
-            acc[date].max = Math.max(acc[date].max, runtime);
-            return acc;
-          }, {});
-          const traceData = Object.entries(dailyData).map(([date, values]) => ({
-            x: date,
-            y: [values.min, values.max],
-          }));
-
-          const newTraceSeries = [
-            {
-              type: "rangeArea",
-              name: "Team A Range",
-              data: traceData,
-            },
-            {
-              type: "line",
-              name: "Team A Median",
-              data: Object.entries(dailyData).map(([date, values]) => ({
-                x: date,
-                y: parseFloat((values.total / values.count).toFixed(3)), // Convert mean value to have 3 digits after the decimal point
-              })),
-            },
-          ];
-          setTraceSeries(newTraceSeries);
+          setTraceData(responseData);
+          handleSetTraceChart("all", responseData);
         }
       } else {
         console.error("API request failed:", response.statusText);
@@ -494,28 +476,97 @@ const Monitoring = () => {
                   )}
                 </Listbox>
                 <div className="border-[#CCCCCC] border-[1px] rounded-[12px]">
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin rounded-[12px_0_0_12px] ${
+                      selectedTimeDuration === "1h" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("1h", evalData),
+                        handleSetTraceChart("1h", traceGraphData);
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     1 h
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "6h" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("6h"), handleSetTraceChart("6h");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     6 h
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "1d" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("1d"), handleSetTraceChart("1d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     1 d
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "3d" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("3d"), handleSetTraceChart("3d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     3 d
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "7d" && "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("7d"), handleSetTraceChart("7d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     7 d
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "15d" &&
+                      "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("15d"), handleSetTraceChart("15d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     15 d
                   </button>
-                  <button className="lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin">
+                  <button
+                    className={`lg:w-[53px] md:w-[48px] p-[6px] whitespace-nowrap border-r-[#CCCCCC] border-r-[1px] font-thin ${
+                      selectedTimeDuration === "30d" &&
+                      "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("30d"), handleSetTraceChart("30d");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     30 d
                   </button>
-                  <button className="lg:w-[53px] w-[48px] font-thin h-[27px]">
+                  <button
+                    className={`lg:w-[53px] w-[48px] font-thin rounded-[0_12px_12px_0] p-[6px] ${
+                      selectedTimeDuration === "all" &&
+                      selected.project_id &&
+                      "bg-[#0D859A] text-white"
+                    }`}
+                    onClick={() => {
+                      handleSetChart("all"), handleSetTraceChart("all");
+                    }}
+                    disabled={!selected.project_id}
+                  >
                     All
                   </button>
                 </div>
@@ -534,12 +585,6 @@ const Monitoring = () => {
                           </h2>
                           <div className="chart-monitoring">
                             <div id="chart">
-                              {/* <ReactApexChart
-                          options={options}
-                          series={series}
-                          type="rangeArea"
-                          height={350}
-                        /> */}
                               <ReactApexChart
                                 options={options}
                                 series={series}
