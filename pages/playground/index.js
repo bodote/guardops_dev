@@ -44,7 +44,8 @@ const index = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [actionType, setActionType] = useState("");
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
-  const [allMsg, setAllMsg] = useState("");
+  const [allChatSystemPromot, setAllChatSystemPromot] = useState("");
+  const [chatSyncAll, setChatSyncAll] = useState(false);
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
   const [currentChatID, setCurrentChatID] = useState("");
   const [currentPlayground, setCurrentPlayground] = useState({});
@@ -435,6 +436,29 @@ const index = () => {
   // Calculate grid columns based on number of versions
   const gridCols = `grid-cols-${versions.length > 1 ? versions.length : 1}`;
 
+  const initialHeight = 391; // Initial height in pixels
+  const [height, setHeight] = useState(`${initialHeight}px`);
+
+  const handleMouseDown = (e) => {
+    const startY = e.clientY;
+    const initialHeight = parseFloat(height);
+
+    const handleMouseMove = (e) => {
+      const newHeight = initialHeight + (e.clientY - startY);
+      if (newHeight > 0 && newHeight < window.innerHeight) {
+        setHeight(`${newHeight}px`);
+      }
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
   return (
     <>
       <div className="flex">
@@ -452,420 +476,495 @@ const index = () => {
             </div>
             <Logout />
           </div>
-          <div
-            className={`flex sm:flex-row flex-col border-b border-b-[#CCCCCC] resize-y overflow-y-auto ${
-              page === "prompt"
-                ? "h-[44%]"
-                : "!h-[calc(100vh-43px)] !resize-none"
-            }`}
-          >
+          <div>
             <div
-              className={`px-[16px] pt-[12px] sm:w-[182px] sm:min-w-[182px] w-full overflow-y-auto lg:border-r lg:border-r-[#CCCCCC] ${
-                page === "prompt" ? "min-h-[285px]" : "h-[calc(100vh-44px)]"
+              style={{ height: `${height}` }}
+              className={`flex sm:flex-row flex-col border-b border-b-[#CCCCCC] overflow-y-auto relative ${
+                page === "prompt"
+                  ? "h-[48.5%]"
+                  : "!h-[calc(100vh-43px)] !resize-none"
               }`}
             >
-              <div className="sticky top-0 bg-white">
-                <div className="bg-[#CCCCCC] text-white rounded-[6px] text-[12px] w-fit mb-[11px]">
+              <div
+                className={`sm:w-[182px] sm:min-w-[182px] w-full overflow-y-auto lg:border-r lg:border-r-[#CCCCCC] ${
+                  page === "prompt" ? "min-h-[285px]" : "h-[calc(100vh-44px)]"
+                }`}
+              >
+                <div className="sticky top-0 bg-white px-[16px] py-[12px] border-b-[#CCCCCC] border-b-[1px]">
+                  <div className="bg-[#CCCCCC] text-white rounded-[6px] text-[12px] w-fit mb-[11px]">
+                    <button
+                      onClick={() => setPage("prompt")}
+                      className={`rounded-[6px] px-[6px] py-[3px] uppercase ${
+                        page === "prompt" ? "bg-[#D4DB33]" : "bg-transparent"
+                      }`}
+                    >
+                      prompt
+                    </button>
+                    <button
+                      onClick={() => setPage("chat")}
+                      className={` py-[3px] pl-[9px] pr-[15px] uppercase rounded-[6px] ${
+                        page === "chat" ? "bg-[#D4DB33]" : "bg-transparent"
+                      }`}
+                    >
+                      chat
+                    </button>
+                  </div>
                   <button
-                    onClick={() => setPage("prompt")}
-                    className={`rounded-[6px] px-[6px] py-[3px] uppercase ${
-                      page === "prompt" ? "bg-[#D4DB33]" : "bg-transparent"
-                    }`}
+                    onClick={() => {
+                      setOpen(true);
+                      setActionType("new");
+                    }}
+                    className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[12px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
                   >
-                    prompt
-                  </button>
-                  <button
-                    onClick={() => setPage("chat")}
-                    className={` py-[3px] pl-[9px] pr-[15px] uppercase rounded-[6px] ${
-                      page === "chat" ? "bg-[#D4DB33]" : "bg-transparent"
-                    }`}
-                  >
-                    chat
+                    <FiPlus /> New Prompt
                   </button>
                 </div>
-                <button
-                  onClick={() => {
-                    setOpen(true);
-                    setActionType("new");
-                  }}
-                  className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[12px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
-                >
-                  <FiPlus /> New Prompt
-                </button>
-              </div>
-              {page === "prompt"
-                ? playgroundList.map((playground) => (
-                    <div
-                      key={playground.playground_id}
-                      className="flex items-start my-[20px] gap-2"
-                    >
-                      <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
+                {page === "prompt"
+                  ? playgroundList.map((playground) => (
                       <div
-                        onClick={() => handleSetTraces(playground)}
-                        className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
-                          currentPlaygroundID === playground.playground_id
-                            ? "underline"
-                            : ""
-                        }`}
+                        key={playground.playground_id}
+                        className="flex items-start my-[22px] gap-2 px-[16px]"
                       >
-                        {playground.name}
-                      </div>
-                    </div>
-                  ))
-                : chatList.map((playground) => (
-                    <div
-                      key={playground.playground_id}
-                      className="flex items-start my-[20px] gap-2"
-                    >
-                      <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
-                      <div
-                        onClick={() =>
-                          setCurrentChatID(playground.playground_id)
-                        }
-                        className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
-                          currentChatID === playground.playground_id
-                            ? "underline"
-                            : ""
-                        }`}
-                      >
-                        {playground.name}
-                      </div>
-                    </div>
-                  ))}
-            </div>
-            {page === "prompt" ? (
-              <div className="px-[16px] pt-[12px] w-full flex flex-col justify-between">
-                <div className="h-full mb-[10px]">
-                  <div className="flex justify-between w-full sm:flex-row flex-col gap-3">
-                    <label
-                      htmlFor="name"
-                      className="font-Archivo text-[12px] font-normal text-[#000]"
-                    >
-                      Prompt
-                    </label>
-                    <div className="lg:flex items-center gap-[20px]">
-                      <div className="flex gap-[20px] sm:mt-0 mt-2 items-center">
-                        {currentPlaygroundID && (
-                          <>
-                            <button
-                              onClick={() => {
-                                setOpen(true);
-                                setActionType("edit");
-                              }}
-                            >
-                              <EditBlackIcon className="stroke-[#000]" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setDeleteModalOpen(true);
-                              }}
-                            >
-                              <DeleteBlackIcon className="stroke-[#000]" />
-                            </button>
-                          </>
-                        )}
-                        {deleteModalOpen && (
-                          <DeleteModal
-                            open={deleteModalOpen}
-                            setOpen={setDeleteModalOpen}
-                            selectedDataForDelete={currentPlayground}
-                            handleDeleteData={handleDeletePlaygroundData}
-                            name="playground"
-                          />
-                        )}
-                        <div className="flex items-center gap-[5px]">
-                          <Switch
-                            checked={PiiCheckEnable}
-                            onChange={setPiiCheckEnable}
-                            className={classNames(
-                              PiiCheckEnable ? "bg-[#0074fb]" : "bg-gray-200",
-                              "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                            )}
-                          >
-                            <span className="sr-only">Use setting</span>
-                            <span
-                              aria-hidden="true"
-                              className={classNames(
-                                PiiCheckEnable
-                                  ? "translate-x-[11px]"
-                                  : "translate-x-0",
-                                "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                              )}
-                            />
-                          </Switch>
-                          <label className="text-[#252525] text-[12px] font-medium">
-                            PII checker
-                          </label>
+                        <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
+                        <div
+                          onClick={() => handleSetTraces(playground)}
+                          className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
+                            currentPlaygroundID === playground.playground_id
+                              ? "underline"
+                              : ""
+                          }`}
+                        >
+                          {playground.name}
                         </div>
                       </div>
-                      <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start lg:mt-0 mt-[10px]">
-                        <label
-                          htmlFor="project"
-                          className="block font-Archivo text-[12px] text-[#000000] font-normal"
+                    ))
+                  : chatList.map((playground) => (
+                      <div
+                        key={playground.playground_id}
+                        className="flex items-start my-[20px] gap-2 px-[16px]"
+                      >
+                        <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
+                        <div
+                          onClick={() =>
+                            setCurrentChatID(playground.playground_id)
+                          }
+                          className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
+                            currentChatID === playground.playground_id
+                              ? "underline"
+                              : ""
+                          }`}
                         >
-                          Input Tokens: 245
-                        </label>
-                        <Listbox value={proname} onChange={setProname}>
-                          {({ open }) => (
+                          {playground.name}
+                        </div>
+                      </div>
+                    ))}
+              </div>
+              {page === "prompt" ? (
+                <div className="px-[16px] pt-[12px] w-full flex flex-col justify-between">
+                  <div className="h-full mb-[10px]">
+                    <div className="flex justify-between w-full sm:flex-row flex-col gap-3">
+                      <label
+                        htmlFor="name"
+                        className="font-Archivo text-[12px] font-normal text-[#000]"
+                      >
+                        Prompt
+                      </label>
+                      <div className="lg:flex items-center gap-[20px]">
+                        <div className="flex gap-[20px] sm:mt-0 mt-2 items-center">
+                          {currentPlaygroundID && (
                             <>
-                              <div className="relative sm:w-[180px]">
-                                <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
-                                  <span className="flex items-center">
-                                    <span className=" block truncate mr-3">
-                                      {proname?.name}
-                                    </span>
-                                  </span>
-                                  <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                                    <MdKeyboardArrowUp
-                                      className={
-                                        open
-                                          ? "h-5 w-5 text-gray-400 rotate-[0]"
-                                          : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                                      }
-                                      aria-hidden="true"
-                                    />
-                                  </span>
-                                </Listbox.Button>
-
-                                <Transition
-                                  show={open}
-                                  as={Fragment}
-                                  leave="transition ease-in duration-100"
-                                  leaveFrom="opacity-100"
-                                  leaveTo="opacity-0"
-                                >
-                                  <Listbox.Options className="absolute z-10 mt-1 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[234px] overflow-auto">
-                                    <div className="bg-white sticky top-0 z-[9] p-1 ">
-                                      <input
-                                        type="text"
-                                        className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
-                                        placeholder="Search..."
-                                        value={searchProject}
-                                        onChange={(e) =>
-                                          setSearchProject(e.target.value)
-                                        }
-                                      />
-                                    </div>
-                                    {filteredProjects.map((project) => (
-                                      <Listbox.Option
-                                        key={project.project_id}
-                                        className={({ active }) =>
-                                          classNames(
-                                            active
-                                              ? "bg-[#f0efef]  rounded-[6px]"
-                                              : "text-[#000]",
-                                            "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
-                                          )
-                                        }
-                                        value={project}
-                                      >
-                                        <div className="flex items-center ">
-                                          <span
-                                            className={classNames(
-                                              proname
-                                                ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                                : "font-normal",
-                                              "block truncate"
-                                            )}
-                                          >
-                                            {project.name}
-                                          </span>
-                                        </div>
-                                      </Listbox.Option>
-                                    ))}
-                                  </Listbox.Options>
-                                </Transition>
-                              </div>
+                              <button
+                                onClick={() => {
+                                  setOpen(true);
+                                  setActionType("edit");
+                                }}
+                              >
+                                <EditBlackIcon className="stroke-[#000]" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDeleteModalOpen(true);
+                                }}
+                              >
+                                <DeleteBlackIcon className="stroke-[#000]" />
+                              </button>
                             </>
                           )}
-                        </Listbox>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="lg:flex h-[90%]">
-                    <textarea
-                      type="text"
-                      name="message"
-                      id="message"
-                      className=" border-0 rounded  w-full  text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none min-h-[127px]"
-                      placeholder=" Start entering your prompt for the selected models. Press
-                    Button Run Playground or Shift + Return to get the results."
-                      value={message}
-                      onChange={handleTextChange}
-                    />
-                    {PiiCheckEnable && (
-                      <div className=" w-full text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto min-h-[127px]">
-                        {getParsedText()}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center mt-3">
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
-                  >
-                    Prompt Templates
-                  </button>
-                  <button
-                    className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
-                    onClick={clearMessage}
-                  >
-                    Clear
-                  </button>
-                  <button
-                    className={`flex items-center gap-[2px]  text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md ${
-                      apiCallInProgress
-                        ? "bg-[#D4DB33] hover:bg-[#0D859A]"
-                        : " bg-[#CCCCCC] text-[#666666]"
-                    }`}
-                    disabled={!apiCallInProgress}
-                  >
-                    Stop
-                  </button>
-                  <button
-                    className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
-                    onClick={runPlayground}
-                  >
-                    Run Playground
-                  </button>
-                </div>
-                {isModalOpen && (
-                  <div className="modal z-[2] sm:w-[600px] w-[76%] absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto">
-                    <PromptTemplates
-                      setIsModalOpen={setIsModalOpen}
-                      onPromptOpen={handleAddToPrompt}
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="w-full sm:mt-0 mt-3">
-                <div className="border-b-[#CCCCCC] border-b-[1px] flex justify-between items-center w-full p-[7px_7px_6px_13px] gap-3 flex-wrap sm:border-r-0 sm:border-t-0 border-t-[1px] border-t-[#CCCCCC]">
-                  <p className="text-[12px] text-black">Chat Prompt </p>
-                  <div className="flex md:justify-between justify-end items-center gap-[16px] flex-wrap">
-                    <div className="flex items-center gap-[5px]">
-                      <Switch
-                        checked={ActiveTool}
-                        onChange={setActiveTool}
-                        className={classNames(
-                          ActiveTool ? "bg-[#0074fb]" : "bg-gray-200",
-                          "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                        )}
-                      >
-                        <span className="sr-only">Use setting</span>
-                        <span
-                          aria-hidden="true"
-                          className={classNames(
-                            ActiveTool ? "translate-x-[11px]" : "translate-x-0",
-                            "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                          {deleteModalOpen && (
+                            <DeleteModal
+                              open={deleteModalOpen}
+                              setOpen={setDeleteModalOpen}
+                              selectedDataForDelete={currentPlayground}
+                              handleDeleteData={handleDeletePlaygroundData}
+                              name="playground"
+                            />
                           )}
-                        />
-                      </Switch>
-                      <label className="text-[#252525] text-[12px] font-medium">
-                        Activating Tools
-                      </label>
-                    </div>
-                    <Listbox value={proname} onChange={setProname}>
-                      {({ open }) => (
-                        <>
-                          <div className="relative sm:w-[180px]">
-                            <Listbox.Button className=" relative cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[1px] ">
-                              <span className="flex items-center">
-                                <span className=" block truncate mr-3">
-                                  {proname?.name}
-                                </span>
-                              </span>
-                              <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                                <MdKeyboardArrowUp
-                                  className={
-                                    open
-                                      ? "h-5 w-5 text-gray-400 rotate-[0]"
-                                      : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                                  }
-                                  aria-hidden="true"
-                                />
-                              </span>
-                            </Listbox.Button>
-
-                            <Transition
-                              show={open}
-                              as={Fragment}
-                              leave="transition ease-in duration-100"
-                              leaveFrom="opacity-100"
-                              leaveTo="opacity-0"
+                          <div className="flex items-center gap-[5px]">
+                            <Switch
+                              checked={PiiCheckEnable}
+                              onChange={setPiiCheckEnable}
+                              className={classNames(
+                                PiiCheckEnable ? "bg-[#0074fb]" : "bg-gray-200",
+                                "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                              )}
                             >
-                              <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                                <div className="bg-white sticky top-0 z-[9]">
-                                  <input
-                                    type="text"
-                                    className="w-full border-b border-gray-300 rounded-[6px] focus:outline-none px-2 py-1"
-                                    placeholder="Search..."
-                                    value={searchProject}
-                                    onChange={(e) =>
-                                      setSearchProject(e.target.value)
-                                    }
-                                  />
-                                </div>
-                                {filteredProjects.map((project) => (
-                                  <Listbox.Option
-                                    key={project.project_id}
-                                    className={({ active }) =>
-                                      classNames(
-                                        active
-                                          ? "bg-[#f0efef]  rounded-[6px]"
-                                          : "text-[#000]",
-                                        "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
-                                      )
-                                    }
-                                    value={project}
-                                  >
-                                    <div className="flex items-center ">
-                                      <span
-                                        className={classNames(
-                                          proname
-                                            ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                            : "font-normal",
-                                          "block truncate"
-                                        )}
-                                      >
-                                        {project.name}
-                                      </span>
-                                    </div>
-                                  </Listbox.Option>
-                                ))}
-                              </Listbox.Options>
-                            </Transition>
+                              <span className="sr-only">Use setting</span>
+                              <span
+                                aria-hidden="true"
+                                className={classNames(
+                                  PiiCheckEnable
+                                    ? "translate-x-[11px]"
+                                    : "translate-x-0",
+                                  "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                                )}
+                              />
+                            </Switch>
+                            <label className="text-[#252525] text-[12px] font-medium">
+                              PII checker
+                            </label>
                           </div>
-                        </>
+                        </div>
+                        <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start lg:mt-0 mt-[10px]">
+                          <label
+                            htmlFor="project"
+                            className="block font-Archivo text-[12px] text-[#000000] font-normal"
+                          >
+                            Input Tokens: 245
+                          </label>
+                          <Listbox value={proname} onChange={setProname}>
+                            {({ open }) => (
+                              <>
+                                <div className="relative sm:w-[180px]">
+                                  <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
+                                    <span className="flex items-center">
+                                      <span className=" block truncate mr-3">
+                                        {proname?.name}
+                                      </span>
+                                    </span>
+                                    <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                      <MdKeyboardArrowUp
+                                        className={
+                                          open
+                                            ? "h-5 w-5 text-gray-400 rotate-[0]"
+                                            : "h-5 w-5 text-gray-400 rotate-[180deg]"
+                                        }
+                                        aria-hidden="true"
+                                      />
+                                    </span>
+                                  </Listbox.Button>
+
+                                  <Transition
+                                    show={open}
+                                    as={Fragment}
+                                    leave="transition ease-in duration-100"
+                                    leaveFrom="opacity-100"
+                                    leaveTo="opacity-0"
+                                  >
+                                    <Listbox.Options className="absolute z-10 mt-1 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[234px] overflow-auto">
+                                      <div className="bg-white sticky top-0 z-[9] p-1">
+                                        <input
+                                          type="text"
+                                          className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
+                                          placeholder="Search..."
+                                          value={searchProject}
+                                          onChange={(e) =>
+                                            setSearchProject(e.target.value)
+                                          }
+                                        />
+                                      </div>
+                                      {filteredProjects.map((project) => (
+                                        <Listbox.Option
+                                          key={project.project_id}
+                                          className={({ active }) =>
+                                            classNames(
+                                              active
+                                                ? "bg-[#f0efef]  rounded-[6px]"
+                                                : "text-[#000]",
+                                              "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
+                                            )
+                                          }
+                                          value={project}
+                                        >
+                                          <div className="flex items-center ">
+                                            <span
+                                              className={classNames(
+                                                proname
+                                                  ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                                  : "font-normal",
+                                                "block truncate"
+                                              )}
+                                            >
+                                              {project.name}
+                                            </span>
+                                          </div>
+                                        </Listbox.Option>
+                                      ))}
+                                    </Listbox.Options>
+                                  </Transition>
+                                </div>
+                              </>
+                            )}
+                          </Listbox>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="lg:flex h-[90%]">
+                      <textarea
+                        type="text"
+                        name="message"
+                        id="message"
+                        className=" border-0 rounded  w-full  text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none min-h-[127px]"
+                        placeholder=" Start entering your prompt for the selected models. Press
+                    Button Run Playground or Shift + Return to get the results."
+                        value={message}
+                        onChange={handleTextChange}
+                      />
+                      {PiiCheckEnable && (
+                        <div className=" w-full text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto min-h-[127px]">
+                          {getParsedText()}
+                        </div>
                       )}
-                    </Listbox>
+                    </div>
                   </div>
+                  <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center mt-3">
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                    >
+                      Prompt Templates
+                    </button>
+                    <button
+                      className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                      onClick={clearMessage}
+                    >
+                      Clear
+                    </button>
+                    <button
+                      className={`flex items-center gap-[2px]  text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md ${
+                        apiCallInProgress
+                          ? "bg-[#D4DB33] hover:bg-[#0D859A]"
+                          : " bg-[#CCCCCC] text-[#666666]"
+                      }`}
+                      disabled={!apiCallInProgress}
+                    >
+                      Stop
+                    </button>
+                    <button
+                      className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                      onClick={runPlayground}
+                    >
+                      Run Playground
+                    </button>
+                  </div>
+                  {isModalOpen && (
+                    <div className="modal z-[2] sm:w-[600px] w-[76%] absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto">
+                      <PromptTemplates
+                        setIsModalOpen={setIsModalOpen}
+                        onPromptOpen={handleAddToPrompt}
+                      />
+                    </div>
+                  )}
                 </div>
-                <div
-                  className={`grid w-full
+              ) : (
+                <div className="w-full sm:mt-0 mt-3">
+                  <div className="border-b-[#CCCCCC] border-b-[1px] flex justify-between items-center w-full p-[7px_7px_6px_13px] gap-3 flex-wrap sm:border-r-0 sm:border-t-0 border-t-[1px] border-t-[#CCCCCC]">
+                    <p className="text-[12px] text-black">Chat Prompt </p>
+                    <div className="flex md:justify-between justify-end items-center gap-[16px] flex-wrap">
+                      <div className="flex items-center gap-[5px]">
+                        <Switch
+                          checked={ActiveTool}
+                          onChange={setActiveTool}
+                          className={classNames(
+                            ActiveTool ? "bg-[#0074fb]" : "bg-gray-200",
+                            "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                          )}
+                        >
+                          <span className="sr-only">Use setting</span>
+                          <span
+                            aria-hidden="true"
+                            className={classNames(
+                              ActiveTool
+                                ? "translate-x-[11px]"
+                                : "translate-x-0",
+                              "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                            )}
+                          />
+                        </Switch>
+                        <label className="text-[#252525] text-[12px] font-medium">
+                          Activating Tools
+                        </label>
+                      </div>
+                      <Listbox value={proname} onChange={setProname}>
+                        {({ open }) => (
+                          <>
+                            <div className="relative sm:w-[180px]">
+                              <Listbox.Button className=" relative cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[1px] ">
+                                <span className="flex items-center">
+                                  <span className=" block truncate mr-3">
+                                    {proname?.name}
+                                  </span>
+                                </span>
+                                <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                  <MdKeyboardArrowUp
+                                    className={
+                                      open
+                                        ? "h-5 w-5 text-gray-400 rotate-[0]"
+                                        : "h-5 w-5 text-gray-400 rotate-[180deg]"
+                                    }
+                                    aria-hidden="true"
+                                  />
+                                </span>
+                              </Listbox.Button>
+
+                              <Transition
+                                show={open}
+                                as={Fragment}
+                                leave="transition ease-in duration-100"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
+                              >
+                                <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
+                                  <div className="bg-white sticky top-0 z-[9]">
+                                    <input
+                                      type="text"
+                                      className="w-full border-b border-gray-300 rounded-[6px] focus:outline-none px-2 py-1"
+                                      placeholder="Search..."
+                                      value={searchProject}
+                                      onChange={(e) =>
+                                        setSearchProject(e.target.value)
+                                      }
+                                    />
+                                  </div>
+                                  {filteredProjects.map((project) => (
+                                    <Listbox.Option
+                                      key={project.project_id}
+                                      className={({ active }) =>
+                                        classNames(
+                                          active
+                                            ? "bg-[#f0efef]  rounded-[6px]"
+                                            : "text-[#000]",
+                                          "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
+                                        )
+                                      }
+                                      value={project}
+                                    >
+                                      <div className="flex items-center ">
+                                        <span
+                                          className={classNames(
+                                            proname
+                                              ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                              : "font-normal",
+                                            "block truncate"
+                                          )}
+                                        >
+                                          {project.name}
+                                        </span>
+                                      </div>
+                                    </Listbox.Option>
+                                  ))}
+                                </Listbox.Options>
+                              </Transition>
+                            </div>
+                          </>
+                        )}
+                      </Listbox>
+                    </div>
+                  </div>
+                  <div
+                    className={`grid w-full
                       ${chatVersion.length > 1 && "lg:grid-cols-2"}
                       ${chatVersion.length > 2 && "xl:grid-cols-3"}
                       ${chatVersion.length > 3 && "2xl:!grid-cols-4"}
                       ${chatVersion.length > 4 && "3xl:!grid-cols-5"}
                   `}
+                  >
+                    {chatVersion.map((version) =>
+                      React.cloneElement(version.component, {
+                        key: version.id,
+                        addChatVersion,
+                        removeChatVersion: () => removeChatVersion(version.id),
+                        versions: chatVersion.length,
+                        syncAll,
+                        setsyncAll,
+                        syncAllMsg,
+                        setSyncAllMsg,
+                        setAllSystemPrompt,
+                        allSystemPrompt,
+                        allChatSystemPromot,
+                        setAllChatSystemPromot,
+                        chatSyncAll,
+                        setChatSyncAll,
+                        proname,
+                        currentChatID,
+                        selectedModel,
+                        setSelectedModel,
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+              <div
+                onMouseDown={handleMouseDown}
+                className="resize-div after:w-full after:left-0 after:bottom-0 after:content-[''] after:absolute after:h-[4px] after:bg-transparent after:cursor-row-resize"
+              ></div>
+            </div>
+            {page === "prompt" && (
+              <div
+                style={{ height: `calc(100vh - ${height} - 43px)` }}
+                className={`flex sm:flex-row flex-col`}
+                // ${versions.length < 6 && "2xl:h-screen"}
+              >
+                <div className="sm:w-[182px] sm:min-w-[182px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC] overflow-y-auto">
+                  <h1 className="text-[#000000] font-medium text-[12px] font-Inter sticky top-0 bg-white px-[16px] pt-[12px]">
+                    Versions
+                  </h1>
+                  <ul className="list-disc px-[16px] py-[12px] pt-0 ml-[12px]">
+                    {runsHistory.map((innerArray) =>
+                      innerArray.map((run, innerIndex) => (
+                        <li
+                          key={innerIndex}
+                          className="run-link text-[#656565] text-[12px] font-Inter font-medium my-[20px]"
+                          onClick={() => handleRunClick(run.attributes.prompt)}
+                        >
+                          {run.attributes.prompt.length > 20
+                            ? run.attributes.prompt.substring(0, 16) + "..."
+                            : run.attributes.prompt}{" "}
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                </div>
+                <div
+                  className={`grid w-full overflow-y-auto
+              ${versions.length > 1 && "lg:grid-cols-2"}
+              ${versions.length > 2 && "xl:grid-cols-3"}
+              ${versions.length > 3 && "2xl:!grid-cols-4"}
+              ${versions.length > 4 && "3xl:!grid-cols-5"}
+              `}
                 >
-                  {chatVersion.map((version) =>
+                  {versions.map((version) =>
                     React.cloneElement(version.component, {
+                      addVersion,
+                      removeVersion: () => removeVersion(version.id),
+                      message: version.message, // pass the message here
+                      versionId: version.id, // pass the version ID here
+                      runPressed: runPressed,
+                      versions: versions.length,
+                      resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
+                      appendToMessage: appendToMessage, // pass the appendToMessage function here
                       key: version.id,
-                      addChatVersion,
-                      removeChatVersion: () => removeChatVersion(version.id),
-                      versions: chatVersion.length,
+                      setApiCallInProgress: setApiCallInProgress,
+                      apiCallInProgress: apiCallInProgress,
                       syncAll,
                       setsyncAll,
-                      syncAllMsg,
-                      setSyncAllMsg,
                       setAllSystemPrompt,
                       allSystemPrompt,
-                      allMsg,
-                      setAllMsg,
-                      proname,
-                      currentChatID,
+                      analysisModelOpen,
+                      setAnalysisModelOpen,
+                      setAllPromtsDetails,
+                      allPromtsDetails,
+                      setClear,
+                      clear,
                       selectedModel,
                       setSelectedModel,
                     })
@@ -874,70 +973,6 @@ const index = () => {
               </div>
             )}
           </div>
-          {page === "prompt" && (
-            <div
-              className={`flex sm:flex-row flex-col h-[51.2%]
-              `}
-              // ${versions.length < 6 && "2xl:h-screen"}
-            >
-              <div className="sm:w-[182px] sm:min-w-[182px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC] overflow-y-auto">
-                <h1 className="text-[#000000] font-medium text-[12px] font-Inter sticky top-0 bg-white px-[16px] pt-[12px]">
-                  Versions
-                </h1>
-                <ul className="list-disc px-[16px] py-[12px] pt-0 ml-[12px]">
-                  {runsHistory.map((innerArray) =>
-                    innerArray.map((run, innerIndex) => (
-                      <li
-                        key={innerIndex}
-                        className="run-link text-[#656565] text-[12px] font-Inter font-medium my-[20px]"
-                        onClick={() => handleRunClick(run.attributes.prompt)}
-                      >
-                        {run.attributes.prompt.length > 20
-                          ? run.attributes.prompt.substring(0, 16) + "..."
-                          : run.attributes.prompt}{" "}
-                      </li>
-                    ))
-                  )}
-                </ul>
-              </div>
-              <div
-                className={`grid w-full overflow-y-auto
-              ${versions.length > 1 && "lg:grid-cols-2"}
-              ${versions.length > 2 && "xl:grid-cols-3"}
-              ${versions.length > 3 && "2xl:!grid-cols-4"}
-              ${versions.length > 4 && "3xl:!grid-cols-5"}
-              `}
-              >
-                {versions.map((version) =>
-                  React.cloneElement(version.component, {
-                    addVersion,
-                    removeVersion: () => removeVersion(version.id),
-                    message: version.message, // pass the message here
-                    versionId: version.id, // pass the version ID here
-                    runPressed: runPressed,
-                    versions: versions.length,
-                    resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
-                    appendToMessage: appendToMessage, // pass the appendToMessage function here
-                    key: version.id,
-                    setApiCallInProgress: setApiCallInProgress,
-                    apiCallInProgress: apiCallInProgress,
-                    syncAll,
-                    setsyncAll,
-                    setAllSystemPrompt,
-                    allSystemPrompt,
-                    analysisModelOpen,
-                    setAnalysisModelOpen,
-                    setAllPromtsDetails,
-                    allPromtsDetails,
-                    setClear,
-                    clear,
-                    selectedModel,
-                    setSelectedModel,
-                  })
-                )}
-              </div>
-            </div>
-          )}
         </div>
         {open && (
           <NewPrompt

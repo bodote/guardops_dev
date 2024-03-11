@@ -31,7 +31,10 @@ const WorkFlow = ({
         if (response.ok) {
           const responseData = await response.json();
           if (responseData) {
-            setNodes(responseData.nodes ? responseData.nodes : []);
+            if (responseData.nodes) {
+              const slicedNodes = responseData.nodes.slice(1);
+              setNodes(slicedNodes ? slicedNodes : []);
+            }
             setEdges(responseData.edges ? responseData.edges : []);
           }
         } else {

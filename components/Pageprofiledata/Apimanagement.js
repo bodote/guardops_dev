@@ -12,12 +12,9 @@ const Apimanagement = () => {
 
   const getUserKeyDetails = async () => {
     try {
-      const response = await fetch(
-        `/api/manageKeys`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetch(`/api/manageKeys`, {
+        method: "GET",
+      });
 
       if (response.ok) {
         const responseData = await response.json();
@@ -73,6 +70,19 @@ const Apimanagement = () => {
       }
     } catch (error) {
       console.error("Error during API request:", error);
+    }
+  };
+
+  const handleCopyText = () => {
+    if (latestGeneratedKey) {
+      navigator.clipboard
+        .writeText(latestGeneratedKey)
+        .then(() => {
+          setModal(false);
+        })
+        .catch((err) => {
+          console.error("Unable to copy text: ", err);
+        });
     }
   };
 
@@ -278,7 +288,7 @@ const Apimanagement = () => {
 
                           <div className="flex justify-center my-[18px] sm:gap-[36px] gap-[15px] flex-wrap">
                             <button
-                              onClick={() => setModal(false)}
+                              onClick={handleCopyText}
                               className=" bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
                             >
                               Copy key to clipboard

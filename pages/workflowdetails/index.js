@@ -15,12 +15,31 @@ const WorkflowDetails = () => {
 
   const handleSaveFlow = async () => {
     if (nodes.length > 0) {
-      const updatedNodes = nodes.map((node) => {
+      const updatedNodes = nodes.map((node, index) => {
         if (node.data.fields) {
-          const updatedFields = node.data.fields.map((field) => ({
-            ...field,
-            value: document.getElementById(field.name)?.value || "",
-          }));
+          const updatedFields = node.data.fields.map((field) => {
+            if (field.type === "select") {
+              let t1 = "datasetDrop";
+              const selectedOption = [
+                ...document.querySelectorAll(`[proname=${t1}]`),
+              ];
+              // const idOfSelectedOption = selectedOption.getAttribute('id');
+
+              const datasetId = selectedOption[index]?.getAttribute("id");
+              return {
+                ...field,
+                value: datasetId,
+              };
+            } else {
+              const selectedOption = [
+                ...document.querySelectorAll(`#${field.name}`),
+              ];
+              return {
+                ...field,
+                value: selectedOption[index]?.value || "",
+              };
+            }
+          });
           return {
             ...node,
             data: {
@@ -35,7 +54,6 @@ const WorkflowDetails = () => {
         nodes: updatedNodes,
         edges: edges,
       };
-
       const formData = {
         flowDefinition,
         evaluation_id: evaluationID,
