@@ -71,11 +71,6 @@ const Monitoring = () => {
       curve: "straight",
       width: [0, 2],
     },
-    legend: {
-      show: false,
-      customLegendItems: ["Team A"],
-      inverseOrder: true,
-    },
     markers: {
       hover: {
         sizeOffset: 5,
@@ -93,18 +88,15 @@ const Monitoring = () => {
   });
 
   const [evalData, setEvalData] = useState({});
-  const [traceGraphData, setTraceData] = useState();
+  const [traceGraphData, setTraceGraphData] = useState();
   const [selectedTimeDuration, setSelectedTimeDuration] = useState("all");
 
   const handleSetChart = (selectedTimeframe, data) => {
-    const traceSeriesArray = [];
+    const evalSeriesArray = [];
     let filteredData = null;
     setSelectedTimeDuration(selectedTimeframe);
-    for (const [datasetName, dataset] of Object.entries(
-      data ? data : evalData
-    )) {
+    for (const [datasetName, dataset] of Object.entries(data)) {
       const parsedData = Object.values(dataset);
-
       if (selectedTimeframe !== "all") {
         filteredData = parsedData.filter((item) =>
           isWithinTimeframe(item.Date, selectedTimeframe)
@@ -112,56 +104,59 @@ const Monitoring = () => {
       } else {
         filteredData = parsedData;
       }
+      if (filteredData.length === 0) {
+        const newEvalSeries = [];
+        evalSeriesArray.push(newEvalSeries);
+      } else {
+        const timeframeData = filteredData.reduce((acc, item) => {
+          const date = new Date(item.Date).toISOString().slice(0, 10);
+          if (!acc[date]) {
+            acc[date] = {
+              count: 0,
+              total: 0,
+              min: Infinity,
+              max: -Infinity,
+            };
+          }
+          const value = parseFloat(item.Value.toFixed(3));
+          acc[date].count++;
+          acc[date].total += value;
+          acc[date].min = Math.min(acc[date].min, value);
+          acc[date].max = Math.max(acc[date].max, value);
+          return acc;
+        }, {});
 
-      const timeframeData = filteredData.reduce((acc, item) => {
-        const date = new Date(item.Date).toISOString().slice(0, 10);
-        if (!acc[date]) {
-          acc[date] = {
-            count: 0,
-            total: 0,
-            min: Infinity,
-            max: -Infinity,
-          };
-        }
-        const value = parseFloat(item.Value.toFixed(3));
-        acc[date].count++;
-        acc[date].total += value;
-        acc[date].min = Math.min(acc[date].min, value);
-        acc[date].max = Math.max(acc[date].max, value);
-        return acc;
-      }, {});
-
-      const traceData = Object.entries(timeframeData).map(([date, values]) => ({
-        x: date,
-        y: [values.min, values.max],
-      }));
-      const newTraceSeries = [
-        {
-          type: "rangeArea",
-          name: `${datasetName}`,
-          data: traceData,
-        },
-        {
-          type: "line",
-          name: `${datasetName} Median`,
-          data: Object.entries(timeframeData).map(([date, values]) => ({
+        const evalData = Object.entries(timeframeData).map(
+          ([date, values]) => ({
             x: date,
-            y: parseFloat((values.total / values.count).toFixed(3)),
-          })),
-        },
-      ];
+            y: [values.min, values.max],
+          })
+        );
+        const newEvalSeries = [
+          {
+            type: "rangeArea",
+            name: `${datasetName}`,
+            data: evalData,
+          },
+          {
+            type: "line",
+            name: `${datasetName} Median`,
+            data: Object.entries(timeframeData).map(([date, values]) => ({
+              x: date,
+              y: parseFloat((values.total / values.count).toFixed(3)),
+            })),
+          },
+        ];
 
-      traceSeriesArray.push(newTraceSeries);
+        evalSeriesArray.push(newEvalSeries);
+      }
     }
-    setEvalSeries(traceSeriesArray);
+    setEvalSeries(evalSeriesArray);
   };
 
-  const handleSetTraceChart = (selectedTimeframe, responseData) => {
-    const parsedData = Object.values(
-      responseData ? responseData : traceGraphData
-    );
+  const handleSetTraceChart = (selectedTimeframe, data) => {
+    const parsedData = Object.values(data);
     let filteredData = null;
-
     if (selectedTimeframe !== "all") {
       filteredData = parsedData.filter((item) =>
         isWithinTimeframe(item.start_time, selectedTimeframe)
@@ -169,44 +164,48 @@ const Monitoring = () => {
     } else {
       filteredData = parsedData;
     }
+    if (filteredData.length === 0) {
+      const newTraceSeries = [];
+      setTraceSeries(newTraceSeries);
+    } else {
+      const timeframeData = filteredData.reduce((acc, item) => {
+        const date = new Date(item.start_time).toISOString().slice(0, 10);
+        if (!acc[date]) {
+          acc[date] = { count: 0, total: 0, min: Infinity, max: -Infinity };
+        }
+        const runtime = parseFloat(item.runtime.toFixed(3));
+        acc[date].count++;
+        acc[date].total += runtime;
+        acc[date].min = Math.min(acc[date].min, runtime);
+        acc[date].max = Math.max(acc[date].max, runtime);
+        return acc;
+      }, {});
 
-    const timeframeData = filteredData.reduce((acc, item) => {
-      const date = new Date(item.start_time).toISOString().slice(0, 10);
-      if (!acc[date]) {
-        acc[date] = { count: 0, total: 0, min: Infinity, max: -Infinity };
-      }
-      const runtime = parseFloat(item.runtime.toFixed(3));
-      acc[date].count++;
-      acc[date].total += runtime;
-      acc[date].min = Math.min(acc[date].min, runtime);
-      acc[date].max = Math.max(acc[date].max, runtime);
-      return acc;
-    }, {});
+      const traceData = Object.entries(timeframeData).map(([date, values]) => ({
+        x: date,
+        y: [values.min, values.max],
+      }));
 
-    const traceData = Object.entries(timeframeData).map(([date, values]) => ({
-      x: date,
-      y: [values.min, values.max],
-    }));
-
-    const newTraceSeries = [
-      {
-        type: "rangeArea",
-        name: "Team A Range",
-        data: traceData,
-      },
-      {
-        type: "line",
-        name: "Team A Median",
-        data: Object.entries(timeframeData).map(([date, values]) => ({
-          x: date,
-          y:
-            values.count > 0
-              ? parseFloat((values.total / values.count).toFixed(3))
-              : 0,
-        })),
-      },
-    ];
-    setTraceSeries(newTraceSeries);
+      const newTraceSeries = [
+        {
+          type: "rangeArea",
+          name: "Range",
+          data: traceData,
+        },
+        {
+          type: "line",
+          name: "Median",
+          data: Object.entries(timeframeData).map(([date, values]) => ({
+            x: date,
+            y:
+              values.count > 0
+                ? parseFloat((values.total / values.count).toFixed(3))
+                : 0,
+          })),
+        },
+      ];
+      setTraceSeries(newTraceSeries);
+    }
   };
 
   const isWithinTimeframe = (dateString, selectedTimeframe) => {
@@ -292,7 +291,7 @@ const Monitoring = () => {
       if (response.ok) {
         const responseData = await response.json();
         if (responseData) {
-          setTraceData(responseData);
+          setTraceGraphData(responseData);
           handleSetTraceChart("all", responseData);
         }
       } else {
@@ -363,6 +362,15 @@ const Monitoring = () => {
     getThresholdData(value.project_id);
   };
 
+  const isDataAvailable = () => {
+    return (
+      evalData &&
+      Object.keys(evalData).length > 0 &&
+      traceGraphData &&
+      Object.keys(traceGraphData).length > 0
+    );
+  };
+
   useEffect(() => {
     getProjectList();
   }, []);
@@ -426,7 +434,7 @@ const Monitoring = () => {
                           leaveFrom="opacity-100"
                           leaveTo="opacity-0"
                         >
-                          <Listbox.Options className="absolute z-10 max-h-56 overflow-y-auto mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
+                          <Listbox.Options className="absolute z-[8] max-h-56 overflow-y-auto mt-1 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[209px]">
                             <div className="bg-white sticky top-0 z-[9] p-1">
                               <input
                                 type="text"
@@ -484,7 +492,7 @@ const Monitoring = () => {
                       handleSetChart("1h", evalData),
                         handleSetTraceChart("1h", traceGraphData);
                     }}
-                    disabled={!selected.project_id}
+                    disabled={!isDataAvailable()}
                   >
                     1 h
                   </button>
@@ -493,9 +501,10 @@ const Monitoring = () => {
                       selectedTimeDuration === "6h" && "bg-[#0D859A] text-white"
                     }`}
                     onClick={() => {
-                      handleSetChart("6h"), handleSetTraceChart("6h");
+                      handleSetChart("6h", evalData),
+                        handleSetTraceChart("6h", traceGraphData);
                     }}
-                    disabled={!selected.project_id}
+                    disabled={!isDataAvailable()}
                   >
                     6 h
                   </button>
@@ -504,9 +513,10 @@ const Monitoring = () => {
                       selectedTimeDuration === "1d" && "bg-[#0D859A] text-white"
                     }`}
                     onClick={() => {
-                      handleSetChart("1d"), handleSetTraceChart("1d");
+                      handleSetChart("1d", evalData),
+                        handleSetTraceChart("1d", traceGraphData);
                     }}
-                    disabled={!selected.project_id}
+                    disabled={!isDataAvailable()}
                   >
                     1 d
                   </button>
@@ -515,9 +525,10 @@ const Monitoring = () => {
                       selectedTimeDuration === "3d" && "bg-[#0D859A] text-white"
                     }`}
                     onClick={() => {
-                      handleSetChart("3d"), handleSetTraceChart("3d");
+                      handleSetChart("3d", evalData),
+                        handleSetTraceChart("3d", traceGraphData);
                     }}
-                    disabled={!selected.project_id}
+                    disabled={!isDataAvailable()}
                   >
                     3 d
                   </button>
@@ -526,9 +537,10 @@ const Monitoring = () => {
                       selectedTimeDuration === "7d" && "bg-[#0D859A] text-white"
                     }`}
                     onClick={() => {
-                      handleSetChart("7d"), handleSetTraceChart("7d");
+                      handleSetChart("7d", evalData),
+                        handleSetTraceChart("7d", traceGraphData);
                     }}
-                    disabled={!selected.project_id}
+                    disabled={!isDataAvailable()}
                   >
                     7 d
                   </button>
@@ -538,9 +550,10 @@ const Monitoring = () => {
                       "bg-[#0D859A] text-white"
                     }`}
                     onClick={() => {
-                      handleSetChart("15d"), handleSetTraceChart("15d");
+                      handleSetChart("15d", evalData),
+                        handleSetTraceChart("15d", traceGraphData);
                     }}
-                    disabled={!selected.project_id}
+                    disabled={!isDataAvailable()}
                   >
                     15 d
                   </button>
@@ -550,9 +563,10 @@ const Monitoring = () => {
                       "bg-[#0D859A] text-white"
                     }`}
                     onClick={() => {
-                      handleSetChart("30d"), handleSetTraceChart("30d");
+                      handleSetChart("30d", evalData),
+                        handleSetTraceChart("30d", traceGraphData);
                     }}
-                    disabled={!selected.project_id}
+                    disabled={!isDataAvailable()}
                   >
                     30 d
                   </button>
@@ -563,9 +577,10 @@ const Monitoring = () => {
                       "bg-[#0D859A] text-white"
                     }`}
                     onClick={() => {
-                      handleSetChart("all"), handleSetTraceChart("all");
+                      handleSetChart("all", evalData),
+                        handleSetTraceChart("all", traceGraphData);
                     }}
-                    disabled={!selected.project_id}
+                    disabled={!isDataAvailable()}
                   >
                     All
                   </button>
@@ -577,25 +592,26 @@ const Monitoring = () => {
                     <h1 className="text-[20px] font-Archivo font-thin">
                       Evaluation Runs in Project over Time
                     </h1>
-                    {evalSeries &&
-                      evalSeries.map((series, index) => (
-                        <div key={index}>
-                          <h2 className="text-[18px] font-Archivo font-thin mt-[16px]">
-                            {series[0].name}
-                          </h2>
-                          <div className="chart-monitoring">
-                            <div id="chart">
-                              <ReactApexChart
-                                options={options}
-                                series={series}
-                                type="rangeArea"
-                                height={350}
-                              />
+                    {evalSeries && evalSeries.flat().length
+                      ? evalSeries.map((series, index) => (
+                          <div key={index}>
+                            <h2 className="text-[18px] font-Archivo font-thin mt-[16px]">
+                              {series[0].name}
+                            </h2>
+                            <div className="chart-monitoring">
+                              <div id="chart">
+                                <ReactApexChart
+                                  options={options}
+                                  series={series}
+                                  type="rangeArea"
+                                  height={350}
+                                />
+                              </div>
                             </div>
+                            <div id="html-dist"></div>
                           </div>
-                          <div id="html-dist"></div>
-                        </div>
-                      ))}
+                        ))
+                      : ""}
                   </div>
                 </div>
                 <div className="w-full">
@@ -605,13 +621,15 @@ const Monitoring = () => {
                     </h1>
                     <div className="chart-monitoring">
                       <div id="chart">
-                        {traceSeries && (
+                        {traceSeries && traceSeries.length ? (
                           <ReactApexChart
                             options={traceOptions}
                             series={traceSeries}
                             type="rangeArea"
                             height={350}
                           />
+                        ) : (
+                          ""
                         )}
                       </div>
                       <div id="html-dist"></div>

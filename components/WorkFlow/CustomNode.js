@@ -21,9 +21,14 @@ const CustomNode = ({ data }) => {
   const [ActiveTool, setActiveTool] = useState(false);
   const [selectedDayIndex, setSelectedDayIndex] = useState(null);
   const [APIKey, setAPIKey] = useState("");
+  const [isStatUpdate, setIsStateUpdate] = useState(false);
+  const [isTextUpdate, setIsTextUpdate] = useState(false);
+  const [text, setText] = useState("");
   const [proname, setProname] = useState({
     name: "Select",
   });
+
+  const [updatedEle, setUpdatedEle] = useState("");
 
   const getProjectList = async () => {
     try {
@@ -149,6 +154,28 @@ const CustomNode = ({ data }) => {
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
+  };
+
+  const handleChange = (field) => {
+    setIsStateUpdate(true);
+    console.log("check value+++++++++++", field);
+    setProname(field);
+  };
+
+  const handleTextChange = (text) => {
+    setIsTextUpdate(true);
+    setText(text);
+  };
+
+  const getInputValue = (field) => {
+    if (isTextUpdate) {
+      return text;
+    }
+    if (!isTextUpdate && field.value) {
+      return field.value;
+    } else {
+      return text;
+    }
   };
 
   return (
@@ -299,10 +326,11 @@ const CustomNode = ({ data }) => {
                     {field.label}
                   </label>
                   <input
-                    id={field.name}
-                    defaultValue={field.value}
+                    id="TextField"
+                    value={getInputValue(field)}
                     type={field.type}
                     className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full nodrag"
+                    onChange={(e) => handleTextChange(e.target.value)}
                   />
                 </div>
               )
@@ -310,7 +338,11 @@ const CustomNode = ({ data }) => {
           {data.fields?.map(
             (field, index) =>
               field.type === "select" && (
-                <Listbox key={index} value={proname} onChange={setProname}>
+                <Listbox
+                  key={index}
+                  value={proname}
+                  onChange={(values) => handleChange(values)}
+                >
                   {({ open }) => (
                     <>
                       <Listbox.Label className="text-[#656565] text-[10px] font-medium mb-[5px] mt-[10px]">
@@ -321,14 +353,36 @@ const CustomNode = ({ data }) => {
                           <span className="flex items-center">
                             <span
                               className=" block truncate mr-3"
-                              id={
-                                field.value ? field.value : proname.dataset_id
-                              }
+                              // id={
+                              //   field.value ? field.value : proname.dataset_id
+                              // }
                               proname="datasetDrop"
                             >
+                              <span style={{ display: "none" }}>
+                                {isStatUpdate && proname.dataset_id}
+
+                                {!isStatUpdate &&
+                                  !field.value &&
+                                  proname.dataset_id}
+                                {!isStatUpdate && field.value && field.value}
+                              </span>
+                              {isStatUpdate && proname.name}
+
+                              {!isStatUpdate && !field.value && proname.name}
+                              {!isStatUpdate &&
+                                field.value &&
+                                getDataSetname(field.value)}
+
+                              {/* 
+                                if(!isStatUpdate && field.value )
+                                
+                                
+                                
+                                proname.dataset_id ? getDataSetname(proname.dataset_id) :  }
+
                               {field.value
                                 ? getDataSetname(field.value)
-                                : proname.name}
+                                : proname.name} */}
                             </span>
                           </span>
                           <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">

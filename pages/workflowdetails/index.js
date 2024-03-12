@@ -17,26 +17,31 @@ const WorkflowDetails = () => {
     if (nodes.length > 0) {
       const updatedNodes = nodes.map((node, index) => {
         if (node.data.fields) {
-          const updatedFields = node.data.fields.map((field) => {
+          const updatedFields = node.data.fields.map((field, i) => {
             if (field.type === "select") {
               let t1 = "datasetDrop";
               const selectedOption = [
                 ...document.querySelectorAll(`[proname=${t1}]`),
               ];
+              const datasetId =
+                selectedOption[index].querySelector("span").textContent;
+
               // const idOfSelectedOption = selectedOption.getAttribute('id');
 
-              const datasetId = selectedOption[index]?.getAttribute("id");
               return {
                 ...field,
                 value: datasetId,
               };
             } else {
               const selectedOption = [
-                ...document.querySelectorAll(`#${field.name}`),
+                ...document.querySelectorAll(`#TextField`),
               ];
+
+              console.log("check value++++++++", selectedOption, i);
+
               return {
                 ...field,
-                value: selectedOption[index]?.value || "",
+                value: "",
               };
             }
           });
@@ -50,6 +55,7 @@ const WorkflowDetails = () => {
         }
         return node;
       });
+      console.log("Update: ", updatedNodes);
       const flowDefinition = {
         nodes: updatedNodes,
         edges: edges,
