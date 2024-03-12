@@ -39,7 +39,20 @@ def test_evaluation(driver: webdriver.Chrome):
     time.sleep(0.2)
     ActionChains(driver).drag_and_drop(driver.find_element(By.XPATH, value="//*[contains(text(),'Evaluation Exporter')]"),driver.find_element(By.XPATH, value="//*[contains(text(),'MLSUM Dataset')]")).perform()
     time.sleep(0.2)
+    driver.find_element(By.TAG_NAME, value="input").send_keys("unittest")
+    time.sleep(0.2)
     driver.find_elements(By.TAG_NAME, value="button")[-2].click()
+    driver.get("http://localhost:3000/evaluation")
+    time.sleep(2)
+    driver.find_element(By.XPATH, value="//*[contains(text(),'Select an option')]").click()
+    time.sleep(0.2)
+    driver.find_element(By.XPATH, value="//*[contains(text(),'Prompt project 1')]").click()
+    time.sleep(0.2)
+    driver.find_element(By.XPATH, value="//*[contains(text(),'Create & Plan Workflow')]").click()
+    time.sleep(0.5)
+    driver.find_element(By.XPATH, value="//*[contains(text(),'unittest')]").click()
+    time.sleep(1)
+    assert driver.find_element(By.ID,value="TextField").get_attribute(name="value") == "unittest", "flow field values not stored"    
 
 if __name__ == "__main__":
     unittest.main()
