@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 import time
 import unittest
 
-class ProjectCRUDTest(unittest.TestCase):
+class LoginTests(unittest.TestCase):
 
     def setUp(self):
         self.driver = webdriver.Chrome()

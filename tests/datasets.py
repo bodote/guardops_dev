@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 import time
 import unittest
 
-class ProjectCRUDTest(unittest.TestCase):
+class DatasetTests(unittest.TestCase):
 
     def setUp(self):
         self.driver = webdriver.Chrome()
@@ -23,18 +23,16 @@ class ProjectCRUDTest(unittest.TestCase):
 
 def test_dataset_creation(driver: webdriver.Chrome):
 
-    new_dataset = driver.find_element(By.XPATH, value="//*[contains(text(),'New Dataset')]")
+    driver.find_element(By.XPATH, value="//*[contains(text(),'New Dataset')]").click()
     #import_dataset = driver.find_element(By.XPATH, value="//*[contains(text(),'Import Dataset')]")
 
-    new_dataset.click()
     dataset_name = driver.find_element(By.NAME, value="dataset_name")
     dataset_name.send_keys("Name")
 
     dataset_desc = driver.find_element(By.NAME, value="dataset_description")
     dataset_desc.send_keys("Description")
 
-    save_button = driver.find_element(By.XPATH, value="//*[contains(text(),'Save Dataset')]")
-    save_button.click()
+    save_button = driver.find_element(By.XPATH, value="//*[contains(text(),'Save Dataset')]").click()
 
 
 if __name__ == "__main__":
