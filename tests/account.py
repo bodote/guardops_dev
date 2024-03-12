@@ -5,7 +5,7 @@ import time
 import unittest
 import pyperclip
 
-class DatasetTests(unittest.TestCase):
+class AccountTests(unittest.TestCase):
 
     def setUp(self):
         self.driver = webdriver.Chrome()
