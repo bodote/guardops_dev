@@ -757,7 +757,7 @@ const index = () => {
                     </button>
                   </div>
                   {isModalOpen && (
-                    <div className="modal z-[2] sm:w-[600px] w-[76%] absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto">
+                    <div className="modal z-[2] sm:w-[600px] w-[76%] fixed bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto">
                       <PromptTemplates
                         setIsModalOpen={setIsModalOpen}
                         onPromptOpen={handleAddToPrompt}
