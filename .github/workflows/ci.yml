@@ -30,6 +30,7 @@ jobs:
       run: |
         pip install selenium
         pip install pyperclip
+    - name: Install Chrome
       run: |
        chmod +x ./tests/InstallChrome.sh
         ./tests/InstallChrome.sh
