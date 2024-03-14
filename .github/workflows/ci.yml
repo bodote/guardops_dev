@@ -32,8 +32,8 @@ jobs:
         pip install pyperclip
     - name: Install Chrome
       run: |
-       chmod +x ./tests/InstallChrome.sh
-        ./tests/InstallChrome.sh
+       chmod +x ./tests/installChrome.sh
+        ./tests/installChrome.sh
 
     - name: Run unit tests
       run: |
