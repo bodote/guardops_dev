@@ -31,7 +31,7 @@ const Pageprofile = () => {
             {/* <a href="/">
               <LockIcon />
             </a> */}
-            <Logout/>
+            <Logout />
           </div>
 
           <div className="sm:px-[22px] px-[16px] ">

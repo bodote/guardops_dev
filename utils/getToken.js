@@ -26,3 +26,27 @@ export const getToken = async () => {
     throw error;
   }
 };
+
+export const getRoleToken = async () => {
+  const redisToken = "access_role_token";
+  try {
+    const cachedToken = await redis?.get(redisToken);
+    if (cachedToken) {
+      return cachedToken;
+    }
+
+    const response = await fetch(
+      `${process.env.AUTH0_BASE_URL}/api/auth/roletoken`
+    );
+    const data = await response.json();
+    const newToken = data.access_token;
+    if (newToken) {
+      await redis.set(redisToken, newToken, { ex: 86400 });
+      return newToken;
+    } else {
+      throw new Error("Failed to fetch new token");
+    }
+  } catch (error) {
+    throw error;
+  }
+};

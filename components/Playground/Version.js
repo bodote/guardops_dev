@@ -550,7 +550,14 @@ const Version = ({
               </div>
             )}
           </div>
-          <div className="h-[calc(100vh-548px)] overflow-auto">
+          <div
+            className={`${
+              versions > 4
+                ? "h-[calc(100vh-515px)] overflow-auto"
+                : "h-[calc(100vh-550px)] overflow-auto"
+            }`}
+            // className="h-[calc(100vh-548px)] overflow-auto"
+          >
             {open && (
               <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px] heyy">
                 <p className="text-[#252525] font-medium text-[14px]">
@@ -601,7 +608,7 @@ const Version = ({
             )}
             <div
               className={`response-output justify-center mt-[20px]  overflow-auto ${
-                open && "h-[calc(100vh-822px)]"
+                open && "2xl:h-[calc(100vh-822px)] h-[calc(100vh-778px)]"
               } ${versions > 4 && "sm:max-h-auto"}`}
             >
               {isLoading ? (
