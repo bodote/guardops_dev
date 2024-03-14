@@ -27,7 +27,12 @@ jobs:
         python-version: 3.x
 
     - name: Install Python dependencies
-      run: pip install selenium
+      run: |
+        pip install selenium
+        pip install pyperclip
+      run: |
+       chmod +x ./tests/InstallChrome.sh
+        ./tests/InstallChrome.sh
 
     - name: Run unit tests
       run: |
