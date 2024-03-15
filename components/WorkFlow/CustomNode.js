@@ -27,7 +27,6 @@ const CustomNode = ({ data }) => {
   const [proname, setProname] = useState({
     name: "Select",
   });
-
   const [updatedEle, setUpdatedEle] = useState("");
 
   const getProjectList = async () => {
@@ -138,14 +137,16 @@ const CustomNode = ({ data }) => {
   );
 
   const getDataSetname = (datasetID) => {
-    const datasetDetails = datasetList?.find(
-      (ele) => ele.dataset_id === datasetID
-    );
+    if (datasetList) {
+      const datasetDetails = datasetList?.find(
+        (ele) => ele.dataset_id === datasetID
+      );
 
-    if (datasetDetails) {
-      return datasetDetails.name;
-    } else {
-      return null;
+      if (datasetDetails) {
+        return datasetDetails.name;
+      } else {
+        return null;
+      }
     }
   };
 
@@ -158,7 +159,6 @@ const CustomNode = ({ data }) => {
 
   const handleChange = (field) => {
     setIsStateUpdate(true);
-    console.log("check value+++++++++++", field);
     setProname(field);
   };
 
@@ -180,7 +180,7 @@ const CustomNode = ({ data }) => {
 
   return (
     <div className="border border-[#A8A8A8] rounded-[6px] bg-white max-w-[196px] min-w-[196px]">
-      <div>
+      <div proname="datasetDrop">
         <div className="flex justify-center items-center gap-[21px] py-[10px]">
           {data.category.includes("metric") && <DirectionIcon />}
           {data.category.includes("evaluation") && <ColorPaletteIcon />}
@@ -353,10 +353,7 @@ const CustomNode = ({ data }) => {
                           <span className="flex items-center">
                             <span
                               className=" block truncate mr-3"
-                              // id={
-                              //   field.value ? field.value : proname.dataset_id
-                              // }
-                              proname="datasetDrop"
+                              id="SelectField"
                             >
                               <span style={{ display: "none" }}>
                                 {isStatUpdate && proname.dataset_id}
@@ -367,22 +364,10 @@ const CustomNode = ({ data }) => {
                                 {!isStatUpdate && field.value && field.value}
                               </span>
                               {isStatUpdate && proname.name}
-
                               {!isStatUpdate && !field.value && proname.name}
                               {!isStatUpdate &&
                                 field.value &&
                                 getDataSetname(field.value)}
-
-                              {/* 
-                                if(!isStatUpdate && field.value )
-                                
-                                
-                                
-                                proname.dataset_id ? getDataSetname(proname.dataset_id) :  }
-
-                              {field.value
-                                ? getDataSetname(field.value)
-                                : proname.name} */}
                             </span>
                           </span>
                           <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">

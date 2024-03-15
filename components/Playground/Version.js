@@ -417,7 +417,7 @@ const Version = ({
             : ""
         } ${
           versions < 5
-            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[406px] sm:!min-h-[363px]"
+            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[374px] sm:!min-h-[363px]"
             : ""
         }`}
       >
@@ -550,101 +550,110 @@ const Version = ({
               </div>
             )}
           </div>
-          {open && (
-            <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px]">
-              <p className="text-[#252525] font-medium text-[14px]">
-                System Prompt
-              </p>
-              <textarea
-                placeholder="Your system prompt to the model"
-                name="system"
-                id="system"
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
-                className="border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
-              ></textarea>
-              <div className="flex justify-between items-center gap-[10px] flex-wrap">
-                <div className="flex items-center gap-[5px]">
-                  <Switch
-                    checked={enabled}
-                    onChange={() => setEnabled(!enabled)}
-                    className={classNames(
-                      enabled ? "bg-[#0074fb]" : "bg-gray-200",
-                      "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                    )}
-                  >
-                    <span className="sr-only">Use setting</span>
-                    <span
-                      aria-hidden="true"
-                      className={classNames(
-                        enabled ? "translate-x-[11px]" : "translate-x-0",
-                        "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                      )}
-                    />
-                  </Switch>
-                  <label className="text-[#252525] text-[12px] font-medium">
-                    Sync to all
-                  </label>
-                </div>
-                <button
-                  onClick={() =>
-                    systemPrompt &&
-                    toast.success("System prompt saved successfully")
-                  }
-                  className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
-                >
-                  Save System Prompt
-                </button>
-              </div>
-            </div>
-          )}
           <div
-            className={`response-output justify-center mt-[20px]  overflow-auto ${
-              versions > 4 ? "sm:max-h-auto" : ""
+            className={`${
+              versions > 4
+                ? "h-[calc(100vh-515px)] overflow-auto"
+                : "h-[calc(100vh-550px)] overflow-auto"
             }`}
+            // className="h-[calc(100vh-548px)] overflow-auto"
           >
-            {isLoading ? (
-              <p>Loading...</p>
-            ) : apiResponse ? (
-              segments.map((segment, index) =>
-                segment.type === "code" ? (
-                  <CodeBox key={index} code={segment.content} />
-                ) : (
-                  <ReactMarkdown
-                    components={{
-                      ul: ({ node, ...props }) => (
-                        <ul
-                          style={{
-                            display: "block",
-                            listStyleType: "disc",
-                            paddingInlineStart: "40px",
-                          }}
-                          {...props}
-                        />
-                      ),
-                      ol: ({ node, ...props }) => (
-                        <ol
-                          style={{
-                            display: "block",
-                            listStyleType: "decimal",
-                            paddingInlineStart: "40px",
-                          }}
-                          {...props}
-                        />
-                      ),
-                      h1: ({ node, ...props }) => (
-                        <h1 className="font-bold text-6xl" {...props} />
-                      ),
-                    }}
-                    remarkPlugins={[gfm]}
-                    key={index}
-                    children={segment.content}
-                  />
+            {open && (
+              <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px] heyy">
+                <p className="text-[#252525] font-medium text-[14px]">
+                  System Prompt
+                </p>
+                <textarea
+                  placeholder="Your system prompt to the model"
+                  name="system"
+                  id="system"
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  className="border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
+                ></textarea>
+                <div className="flex justify-between items-center gap-[10px] flex-wrap">
+                  <div className="flex items-center gap-[5px]">
+                    <Switch
+                      checked={enabled}
+                      onChange={() => setEnabled(!enabled)}
+                      className={classNames(
+                        enabled ? "bg-[#0074fb]" : "bg-gray-200",
+                        "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      )}
+                    >
+                      <span className="sr-only">Use setting</span>
+                      <span
+                        aria-hidden="true"
+                        className={classNames(
+                          enabled ? "translate-x-[11px]" : "translate-x-0",
+                          "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                        )}
+                      />
+                    </Switch>
+                    <label className="text-[#252525] text-[12px] font-medium">
+                      Sync to all
+                    </label>
+                  </div>
+                  <button
+                    onClick={() =>
+                      systemPrompt &&
+                      toast.success("System prompt saved successfully")
+                    }
+                    className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                  >
+                    Save System Prompt
+                  </button>
+                </div>
+              </div>
+            )}
+            <div
+              className={`response-output justify-center mt-[20px]  overflow-auto ${
+                open && "2xl:h-[calc(100vh-822px)] h-[calc(100vh-778px)]"
+              } ${versions > 4 && "sm:max-h-auto"}`}
+            >
+              {isLoading ? (
+                <p>Loading...</p>
+              ) : apiResponse ? (
+                segments.map((segment, index) =>
+                  segment.type === "code" ? (
+                    <CodeBox key={index} code={segment.content} />
+                  ) : (
+                    <ReactMarkdown
+                      components={{
+                        ul: ({ node, ...props }) => (
+                          <ul
+                            style={{
+                              display: "block",
+                              listStyleType: "disc",
+                              paddingInlineStart: "40px",
+                            }}
+                            {...props}
+                          />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol
+                            style={{
+                              display: "block",
+                              listStyleType: "decimal",
+                              paddingInlineStart: "40px",
+                            }}
+                            {...props}
+                          />
+                        ),
+                        h1: ({ node, ...props }) => (
+                          <h1 className="font-bold text-6xl" {...props} />
+                        ),
+                      }}
+                      remarkPlugins={[gfm]}
+                      key={index}
+                      children={segment.content}
+                    />
+                  )
                 )
-              )
-            ) : error ? (
-              <p>Error: {error}</p>
-            ) : null}
+              ) : error ? (
+                <p>Error: {error}</p>
+              ) : null}
+            </div>
           </div>
           <div className="flex gap-[10px] justify-center my-[17px]">
             <CopyIcon onClick={handleCopyClick} />

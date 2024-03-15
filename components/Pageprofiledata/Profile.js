@@ -7,11 +7,23 @@ const Profile = () => {
     email: "",
     contact: "",
   });
+  const [role, setRole] = useState("");
 
   const handleOnChange = (event) => {
     setUserInfo({ ...userInfo, [event.target.name]: event.target.value });
   };
 
+  const getRole = async () => {
+    const response = await fetch(`/api/manageRole`, {
+      method: "GET",
+    });
+    if (response.ok) {
+      const responseData = await response.json();
+      if (responseData) {
+        setRole(responseData.map((rsp) => rsp.name).join(", "));
+      }
+    }
+  };
   useEffect(() => {
     if (user) {
       setUserInfo({
@@ -20,6 +32,7 @@ const Profile = () => {
         contact: "",
       });
     }
+    getRole();
   }, [user]);
   return (
     <>
@@ -84,7 +97,9 @@ const Profile = () => {
               The phone number associated with this account
             </p>
           </div>
-
+          <p className="text-[#252525] text-[14px] font-medium font-Inter my-[21px]">
+            User roles: {role}
+          </p>
           <div className="flex sm:justify-start justify-center">
             <button className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[50px] rounded-md">
               Save

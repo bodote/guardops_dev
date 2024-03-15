@@ -479,14 +479,14 @@ const index = () => {
           <div>
             <div
               style={{ height: `${height}` }}
-              className={`flex sm:flex-row flex-col border-b border-b-[#CCCCCC] overflow-y-auto relative ${
+              className={`flex md:flex-row flex-col border-b border-b-[#CCCCCC] overflow-y-auto relative ${
                 page === "prompt"
                   ? "h-[48.5%]"
                   : "!h-[calc(100vh-43px)] !resize-none"
               }`}
             >
               <div
-                className={`sm:w-[182px] sm:min-w-[182px] w-full overflow-y-auto lg:border-r lg:border-r-[#CCCCCC] ${
+                className={`md:w-[182px] md:min-w-[182px] w-full overflow-y-auto md:border-r md:border-r-[#CCCCCC] ${
                   page === "prompt" ? "min-h-[285px]" : "h-[calc(100vh-44px)]"
                 }`}
               >
@@ -911,10 +911,10 @@ const index = () => {
             {page === "prompt" && (
               <div
                 style={{ height: `calc(100vh - ${height} - 43px)` }}
-                className={`flex sm:flex-row flex-col`}
+                className={`flex md:flex-row flex-col`}
                 // ${versions.length < 6 && "2xl:h-screen"}
               >
-                <div className="sm:w-[182px] sm:min-w-[182px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC] overflow-y-auto">
+                <div className="md:w-[182px] sm:min-w-[182px] w-full sm:border-r border-0 border-r-[#CCCCCC] lg:border-r lg:border-r-[#CCCCCC] overflow-y-auto">
                   <h1 className="text-[#000000] font-medium text-[12px] font-Inter sticky top-0 bg-white px-[16px] pt-[12px]">
                     Versions
                   </h1>
