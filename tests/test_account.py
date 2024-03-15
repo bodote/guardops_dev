@@ -16,7 +16,7 @@ class AccountTests(unittest.TestCase):
     def test_datasets(self):
         driver = self.driver
         driver.get("http://localhost:3000/pageprofile")
-        
+        time.sleep(10)
         test_keys(driver)
 
 
