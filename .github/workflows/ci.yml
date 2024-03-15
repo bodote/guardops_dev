@@ -20,9 +20,9 @@ jobs:
       run: |
         sudo apt-get install xclip
         sudo apt-get install xsel
-        apt-get install -y xclip xvfb
+        sudo apt-get install -y xclip xvfb
         DISPLAY=:99
-        nohup bash -c "Xvfb :99 -screen 0 1280x720x16 &"
+        sudo nohup bash -c "Xvfb :99 -screen 0 1280x720x16 &"
               
     - name: Setup Python
       uses: actions/setup-python@v2
