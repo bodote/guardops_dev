@@ -2,6 +2,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 import unittest
 
@@ -23,14 +25,11 @@ class LoginTests(unittest.TestCase):
 
 def test_login(driver):
         driver.get("http://localhost:3000/")
-        time.sleep(2)
+        WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.NAME,"username")))
         username = driver.find_element(By.NAME, value="username")
         username.send_keys("coaidev@gmail.com")
-        time.sleep(2)
         password = driver.find_element(By.NAME, value="password")
         password.send_keys("Coaidev!")
-        time.sleep(2)
-
         login_button = driver.find_element(By.NAME, value="action")
         login_button.click()
 

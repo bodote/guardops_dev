@@ -6,7 +6,8 @@ import unittest
 import pyperclip
 from selenium.webdriver.chrome.options import Options
 from test_login import test_login
-
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 class AccountTests(unittest.TestCase):
 
     def setUp(self):
@@ -17,7 +18,6 @@ class AccountTests(unittest.TestCase):
     def test_datasets(self):
         driver = self.driver
         test_login(driver)
-        time.sleep(2)
         test_keys(driver)
 
 
@@ -28,10 +28,10 @@ class AccountTests(unittest.TestCase):
 
 def test_keys(driver: webdriver.Chrome):
     driver.get("http://localhost:3000/pageprofile")
-    time.sleep(2)
+    WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.XPATH,"//*[contains(text(),'API-Management')]")))
     driver.find_element(By.XPATH, value="//*[contains(text(),'API-Management')]").click()
-    time.sleep(0.2)
     driver.find_element(By.XPATH, value="//*[contains(text(),'Create a new secret')]").click()
+    WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.XPATH,"//*[contains(text(),'Copy key to clipboard')]")))
     time.sleep(0.2)
     driver.find_element(By.XPATH, value="//*[contains(text(),'Copy key to clipboard')]").click()
     clipboard_content = pyperclip.paste()
