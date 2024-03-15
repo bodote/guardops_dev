@@ -35,14 +35,25 @@ jobs:
        chmod +x ./tests/installChrome.sh
         ./tests/installChrome.sh
       
-    - name: Launch App
-      run: npm run dev    
+ #   - name: Launch App
+ #     run: npm run dev    
 
-    - name: Run unit tests
-      run: |
-        python tests/login.py 
-        python tests/account.py  
-        python tests/projects.py 
-        python tests/datasets.py
-        python tests/playground.py 
-        python tests/evaluation.py 
+    - name: Test Login
+      run: python tests/test_login.py 
+    - name: Test Account
+      run: python tests/test_account.py  
+    - name: Test Projects
+      run: python tests/test_projects.py 
+    - name: Test Datasets
+      run: python tests/test_datasets.py
+    - name: Test Playground
+      run: python tests/test_playground.py 
+    - name: Test Evaluation
+      run: python tests/test_evaluation.py 
+    - name: Test Monitoring
+      run: python tests/test_monitoring.py 
+
+
+    
+    
+
