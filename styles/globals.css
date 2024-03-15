@@ -252,3 +252,23 @@
 .chart-monitoring .apexcharts-toolbar{
   display:none !important;
 }
+
+.loading-screen {
+  height: 0;
+  width: 0;
+  padding: 22px;
+  border: 8px solid #ccc;
+  border-right-color: #0D859A;
+  border-radius: 50%;
+  /* -webkit-animation: rotate 1s infinite linear; */
+  animation: rotate 1s infinite linear;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
