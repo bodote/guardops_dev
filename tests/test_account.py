@@ -5,6 +5,7 @@ import time
 import unittest
 import pyperclip
 from selenium.webdriver.chrome.options import Options
+from test_login import test_login
 
 class AccountTests(unittest.TestCase):
 
@@ -16,7 +17,9 @@ class AccountTests(unittest.TestCase):
     def test_datasets(self):
         driver = self.driver
         driver.get("http://localhost:3000/pageprofile")
-        time.sleep(10)
+        time.sleep(2)
+        test_login(driver)
+        time.sleep(2)
         test_keys(driver)
 
 

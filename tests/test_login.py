@@ -11,9 +11,14 @@ class LoginTests(unittest.TestCase):
         options = Options()
         options.add_argument('--headless=new')
         self.driver = webdriver.Chrome(options=options)
+        test_login(self.driver)
+    
+        
 
-    def test_login(self):
-        driver = self.driver
+    def tearDown(self):
+        self.driver.quit()
+
+def test_login(driver):
         driver.get("http://localhost:3000/")
         time.sleep(10)
         username = driver.find_element(By.NAME, value="username")
@@ -25,12 +30,6 @@ class LoginTests(unittest.TestCase):
 
         login_button = driver.find_element(By.NAME, value="action")
         login_button.click()
-
-        
-
-    def tearDown(self):
-        self.driver.quit()
-
 
 if __name__ == "__main__":
     unittest.main()
