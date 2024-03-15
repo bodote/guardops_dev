@@ -19,7 +19,7 @@ jobs:
         node-version: 14.x
 
     - name: Install dependencies
-      run: npm ci
+      run: npm i
 
     - name: Setup Python
       uses: actions/setup-python@v2
