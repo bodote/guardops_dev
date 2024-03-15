@@ -15,7 +15,7 @@ class LoginTests(unittest.TestCase):
     def test_login(self):
         driver = self.driver
         driver.get("http://localhost:3000/")
-        
+        time.sleep(10)
         username = driver.find_element(By.NAME, value="username")
         username.send_keys("coaidev@gmail.com")
         time.sleep(1)
