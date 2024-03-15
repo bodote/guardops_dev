@@ -34,6 +34,9 @@ jobs:
       run: |
        chmod +x ./tests/installChrome.sh
         ./tests/installChrome.sh
+      
+    - name: Launch App
+      run: npm run dev    
 
     - name: Run unit tests
       run: |
