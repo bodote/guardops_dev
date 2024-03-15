@@ -12,9 +12,9 @@ import clipboard
 class AccountTests(unittest.TestCase):
 
     def setUp(self):
-        #options = Options()
-        #options.add_argument('--headless=new')
-        self.driver = webdriver.Chrome()
+        options = Options()
+        options.add_argument('--headless=new')
+        self.driver = webdriver.Chrome(options=options)
 
     def test_datasets(self):
         driver = self.driver
