@@ -29,7 +29,6 @@ class DatasetTests(unittest.TestCase):
 def test_dataset_creation(driver: webdriver.Chrome):
 
     driver.find_element(By.XPATH, value="//*[contains(text(),'New Dataset')]").click()
-    #import_dataset = driver.find_element(By.XPATH, value="//*[contains(text(),'Import Dataset')]")
 
     dataset_name = driver.find_element(By.NAME, value="dataset_name")
     dataset_name.send_keys("Name")

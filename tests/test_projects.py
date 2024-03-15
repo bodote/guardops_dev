@@ -16,7 +16,7 @@ class ProjectTests(unittest.TestCase):
     def test_projects(self):
         driver = self.driver
         test_login(driver)
-        driver.get("http://localhost:3000/projects")
+        
 
         test_project_creation(driver)
 
@@ -25,9 +25,8 @@ class ProjectTests(unittest.TestCase):
 
 
 def test_project_creation(driver: webdriver.Chrome):
-
+    driver.get("http://localhost:3000/projects")
     driver.find_element(By.XPATH, value="//*[contains(text(),'New Project')]").click()
-    #import_dataset = driver.find_element(By.XPATH, value="//*[contains(text(),'Import Dataset')]")
 
     project_name = driver.find_element(By.NAME, value="project_name")
     project_name.send_keys("Name")
