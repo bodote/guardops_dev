@@ -5,9 +5,14 @@ import Intromodel from "@/components/modal/AddProjectModal";
 import Link from "next/link";
 import ProjectSection from "@/components/ProjectSection/ProjectSection";
 import Logout from "@/components/Logout/Logout";
+import { getUserRole } from "@/helper/getRole";
+import Loader from "@/components/Loader/Loader";
 
 const ProjectList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [role, setRole] = useState("");
+  const [loader, setLoader] = useState(true);
+
   const modalRef = useRef();
 
   const openModal = () => {
@@ -16,6 +21,14 @@ const ProjectList = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
+  };
+
+  const getRole = async () => {
+    const roles = await getUserRole();
+    if (roles) {
+      setRole(roles);
+      setLoader(false);
+    }
   };
 
   const handleOutsideClick = (event) => {
@@ -36,26 +49,38 @@ const ProjectList = () => {
     };
   }, [isModalOpen]);
 
+  useEffect(() => {
+    getRole();
+  }, []);
+
   return (
     <>
-      <div className="flex">
-        <Sidebar />
-        <div className="h-screen overflow-y-auto sm:ml-[96px] ml-[72px] w-full">
-          <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
-            <div className="flex items-center gap-[5px]">
-              <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                COAI
-              </h1>
-              <RightIcon />
-              <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                Projects
-              </h1>
+      {loader ? (
+        <Loader />
+      ) : role.includes("Projects") || role.includes("Full_Access") ? (
+        <div className="flex">
+          <Sidebar />
+          <div className="h-screen overflow-y-auto sm:ml-[96px] ml-[72px] w-full">
+            <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
+              <div className="flex items-center gap-[5px]">
+                <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
+                  COAI
+                </h1>
+                <RightIcon />
+                <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
+                  Projects
+                </h1>
+              </div>
+              <Logout />
             </div>
-            <Logout/>
+            <ProjectSection />
           </div>
-          <ProjectSection />
         </div>
-      </div>
+      ) : (
+        <div className="flex h-screen items-center justify-center">
+          <p className="text-[20px]">You don't have permission to access this page.</p>
+        </div>
+      )}
     </>
   );
 };
