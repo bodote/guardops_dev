@@ -5,12 +5,15 @@ import unittest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import ActionChains
+from selenium.webdriver.chrome.options import Options
 
 class EvaluationTests(unittest.TestCase):
 
     def setUp(self):
-        self.driver = webdriver.Chrome()
-
+        options = Options()
+        options.add_argument('--headless=new')
+        self.driver = webdriver.Chrome(options=options)
+        
     def test_projects(self):
         driver = self.driver
         driver.get("http://localhost:3000/evaluation")

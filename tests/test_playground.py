@@ -4,11 +4,14 @@ from selenium.webdriver.common.by import By
 import time
 import unittest
 import pyperclip
+from selenium.webdriver.chrome.options import Options
 
 class PlaygroundTests(unittest.TestCase):
 
     def setUp(self):
-        self.driver = webdriver.Chrome()
+        options = Options()
+        options.add_argument('--headless=new')
+        self.driver = webdriver.Chrome(options=options)
 
     def test_datasets(self):
         driver = self.driver

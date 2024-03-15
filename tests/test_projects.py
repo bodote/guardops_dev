@@ -3,11 +3,14 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import time
 import unittest
+from selenium.webdriver.chrome.options import Options
 
 class ProjectTests(unittest.TestCase):
 
     def setUp(self):
-        self.driver = webdriver.Chrome()
+        options = Options()
+        options.add_argument('--headless=new')
+        self.driver = webdriver.Chrome(options=options)
 
     def test_projects(self):
         driver = self.driver

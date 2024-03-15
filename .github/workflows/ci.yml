@@ -35,8 +35,8 @@ jobs:
        chmod +x ./tests/installChrome.sh
         ./tests/installChrome.sh
       
- #   - name: Launch App
- #     run: npm run dev    
+    - name: Launch App
+      run: npm run dev  
 
     - name: Test Login
       run: python tests/test_login.py 
