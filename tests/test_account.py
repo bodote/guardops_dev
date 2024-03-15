@@ -17,8 +17,6 @@ class AccountTests(unittest.TestCase):
     def test_datasets(self):
         driver = self.driver
         test_login(driver)
-        time.sleep(1)
-        driver.get("http://localhost:3000/pageprofile")
         time.sleep(2)
         test_keys(driver)
 
@@ -29,7 +27,8 @@ class AccountTests(unittest.TestCase):
 
 
 def test_keys(driver: webdriver.Chrome):
-
+    driver.get("http://localhost:3000/pageprofile")
+    time.sleep(2)
     driver.find_element(By.XPATH, value="//*[contains(text(),'API-Management')]").click()
     time.sleep(0.2)
     driver.find_element(By.XPATH, value="//*[contains(text(),'Create a new secret')]").click()
