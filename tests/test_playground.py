@@ -5,6 +5,7 @@ import time
 import unittest
 import pyperclip
 from selenium.webdriver.chrome.options import Options
+from test_login import test_login
 
 class PlaygroundTests(unittest.TestCase):
 
@@ -15,6 +16,7 @@ class PlaygroundTests(unittest.TestCase):
 
     def test_datasets(self):
         driver = self.driver
+        test_login(driver)
         driver.get("http://localhost:3000/playground")
         
         test_templates(driver)

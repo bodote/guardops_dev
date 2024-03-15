@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 import time
 import unittest
 from selenium.webdriver.chrome.options import Options
+from test_login import test_login
 
 class ProjectTests(unittest.TestCase):
 
@@ -14,6 +15,7 @@ class ProjectTests(unittest.TestCase):
 
     def test_projects(self):
         driver = self.driver
+        test_login(driver)
         driver.get("http://localhost:3000/projects")
 
         test_project_creation(driver)

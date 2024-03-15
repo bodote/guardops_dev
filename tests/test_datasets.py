@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 import time
 import unittest
 from selenium.webdriver.chrome.options import Options
+from test_login import test_login
 
 class DatasetTests(unittest.TestCase):
 
@@ -14,6 +15,7 @@ class DatasetTests(unittest.TestCase):
 
     def test_datasets(self):
         driver = self.driver
+        test_login(driver)
         driver.get("http://localhost:3000/datasetlist")
         
         test_dataset_creation(driver)

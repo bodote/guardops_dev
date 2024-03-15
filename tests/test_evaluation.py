@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import ActionChains
 from selenium.webdriver.chrome.options import Options
+from test_login import test_login
 
 class EvaluationTests(unittest.TestCase):
 
@@ -16,6 +17,7 @@ class EvaluationTests(unittest.TestCase):
         
     def test_projects(self):
         driver = self.driver
+        test_login(driver)
         driver.get("http://localhost:3000/evaluation")
 
         test_evaluation(driver)
