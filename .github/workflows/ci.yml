@@ -17,7 +17,9 @@ jobs:
       run: npm i
 
     - name: Install Clipboard
-      run: sudo apt-get install xclip
+      run: |
+        sudo apt-get install xclip
+        sudo apt-get install xsel
       
     - name: Setup Python
       uses: actions/setup-python@v2
@@ -27,8 +29,10 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install selenium
-        pip install clipboard
+        pip install pyperclip
         pip install QtPy
+        pip install PyQt4
+        
     - name: Install Chrome
       run: |
        chmod +x ./tests/installChrome.sh
