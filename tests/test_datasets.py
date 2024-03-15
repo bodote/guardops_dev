@@ -37,7 +37,7 @@ def test_dataset_creation(driver: webdriver.Chrome):
     dataset_desc = driver.find_element(By.NAME, value="dataset_description")
     dataset_desc.send_keys("Description")
 
-    save_button = driver.find_element(By.XPATH, value="//*[contains(text(),'Save Dataset')]").click()
+    driver.find_element(By.XPATH, value="//*[contains(text(),'Save Dataset')]").click()
 
 
 if __name__ == "__main__":
