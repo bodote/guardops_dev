@@ -31,7 +31,6 @@ jobs:
         pip install selenium
         pip install pyperclip
         pip install QtPy
-        pip install PyQt4
         
     - name: Install Chrome
       run: |
