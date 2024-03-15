@@ -1,3 +1,4 @@
+from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -7,7 +8,9 @@ import unittest
 class LoginTests(unittest.TestCase):
 
     def setUp(self):
-        self.driver = webdriver.Chrome()
+        options = Options()
+        options.add_argument('--headless=new')
+        self.driver = webdriver.Chrome(options=options)
 
     def test_login(self):
         driver = self.driver
