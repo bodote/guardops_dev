@@ -31,7 +31,10 @@ jobs:
         ./tests/installChrome.sh
       
     - name: Launch App
-      run: npm run dev  
+      run: |
+        npm run dev &
+        sleep 10
+      
 
     - name: Test Login
       run: python tests/test_login.py 
