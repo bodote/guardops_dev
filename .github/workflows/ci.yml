@@ -27,7 +27,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install selenium
-        pip install pyperclip
+        pip install clipboard
         pip install QtPy
     - name: Install Chrome
       run: |
