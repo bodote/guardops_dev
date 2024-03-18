@@ -15,7 +15,6 @@ class EvaluationTests(unittest.TestCase):
         options = Options()
         options.add_argument('--headless=new')
         self.driver = webdriver.Chrome(options=options)
-        self.driver = webdriver.Chrome()
         
     def test_projects(self):
         driver = self.driver
