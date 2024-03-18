@@ -23,6 +23,7 @@ jobs:
         sudo apt-get install -y xclip xvfb
         DISPLAY=:99
         sudo nohup bash -c "Xvfb :99 -screen 0 1280x720x16 &"
+        export DISPLAY=":0"
         xclip
               
     - name: Setup Python
