@@ -31,6 +31,7 @@ def test_project_creation(driver: webdriver.Chrome):
     driver.find_element(By.NAME, value="project_name").send_keys("Testing Project")
     driver.find_element(By.NAME, value="project_description").send_keys("Description")
     driver.find_element(By.XPATH, value="//*[contains(text(),'Save Project')]").click()
+    WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.XPATH,"//*[contains(text(),'Testing Project')]")))
     project_created = driver.find_element(By.XPATH, value="//*[contains(text(),'Testing Project')]")
     assert project_created, "Project was not created"
 
