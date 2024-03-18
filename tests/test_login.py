@@ -23,15 +23,13 @@ class LoginTests(unittest.TestCase):
     def tearDown(self):
         self.driver.quit()
 
-def test_login(driver):
+def test_login(driver: webdriver.Chrome):
         driver.get("http://localhost:3000/")
         WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.NAME,"username")))
-        username = driver.find_element(By.NAME, value="username")
-        username.send_keys("coaidev@gmail.com")
-        password = driver.find_element(By.NAME, value="password")
-        password.send_keys("Coaidev!")
-        login_button = driver.find_element(By.NAME, value="action")
-        login_button.click()
+        driver.find_element(By.NAME, value="username").send_keys("coaidev@gmail.com")
+        driver.find_element(By.NAME, value="password").send_keys("Coaidev!")
+        driver.find_element(By.NAME, value="action").click()
+     
 
 if __name__ == "__main__":
     unittest.main()
