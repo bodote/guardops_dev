@@ -16,7 +16,7 @@ const Profile = () => {
 
   const getRole = async () => {
     const roles = await getUserRole();
-    setRole(roles.join(", "));
+    setRole(roles?.join(", "));
   };
   useEffect(() => {
     if (user) {
