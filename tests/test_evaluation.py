@@ -15,11 +15,12 @@ class EvaluationTests(unittest.TestCase):
         options = Options()
         options.add_argument('--headless=new')
         self.driver = webdriver.Chrome(options=options)
+        self.driver = webdriver.Chrome()
         
     def test_projects(self):
         driver = self.driver
         test_login(driver)
-        driver.get("http://localhost:3000/evaluation")
+        
 
         test_evaluation(driver)
 
@@ -27,6 +28,9 @@ class EvaluationTests(unittest.TestCase):
         self.driver.quit()
 
 def test_evaluation(driver: webdriver.Chrome):
+    time.sleep(0.2)
+    driver.get("http://localhost:3000/evaluation")
+    WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.XPATH,"//*[contains(text(),'Select an option')]")))
     driver.find_element(By.XPATH, value="//*[contains(text(),'Select an option')]").click()
     WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.XPATH,"//*[contains(text(),'Prompt project 1')]")))
     driver.find_element(By.XPATH, value="//*[contains(text(),'Prompt project 1')]").click()
@@ -53,8 +57,8 @@ def test_evaluation(driver: webdriver.Chrome):
     driver.find_element(By.XPATH, value="//*[contains(text(),'Prompt project 1')]").click()
     WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.XPATH,"//*[contains(text(),'Create & Plan Workflow')]")))
     driver.find_element(By.XPATH, value="//*[contains(text(),'Create & Plan Workflow')]").click()
-    WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.XPATH,"//*[contains(text(),'unittest')]")))
-    driver.find_element(By.XPATH, value="//*[contains(text(),'unittest')]").click()
+    WebDriverWait(driver,10).until(EC.presence_of_element_located(locator=(By.XPATH,"//*[contains(text(),'Unit Test')]")))
+    driver.find_element(By.XPATH, value="//*[contains(text(),'Unit Test')]").click()
     time.sleep(1)
     assert driver.find_element(By.ID,value="TextField").get_attribute(name="value") == "unittest", "flow field values not stored"    
 
