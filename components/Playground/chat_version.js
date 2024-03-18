@@ -33,12 +33,10 @@ const Chat_version = ({
   setsyncAll,
   setAllSystemPrompt,
   allSystemPrompt,
-
   syncAllMsg,
   setSyncAllMsg,
   allChatSystemPromot,
   setAllChatSystemPromot,
-
   proname,
   currentChatID,
   selectedModel,
@@ -447,6 +445,10 @@ const Chat_version = ({
 
   useEffect(() => {
     if (tracesData) {
+      const modelName = tracesData[0]?.[0]?.attributes?.model || "";
+      if (modelName) {
+        setSelected(models.find((model) => model.name === modelName));
+      }
       reconstructConversation(tracesData);
     }
   }, [tracesData]);
@@ -738,7 +740,9 @@ const Chat_version = ({
                   </div>
                 </div>
               )}
-              <div className={open && "h-[calc(100vh-520px)] overflow-auto"}>
+              <div
+                className={open ? "h-[calc(100vh-520px)] overflow-auto" : ""}
+              >
                 {messages.map((message, index) => (
                   <Fragment key={index}>
                     {message.input && (

@@ -123,6 +123,7 @@ const Version = ({
   };
 
   const fetchApiResponse = async () => {
+    setTokens();
     setApiResponse("");
     setIsLoading(true);
     const providerInfo = providerConfig[selected.provider];
@@ -198,7 +199,14 @@ const Version = ({
           const { value, done: doneReading } = await reader.read();
           done = doneReading;
           const chunkValue = decoder.decode(value);
-          setApiResponse((prev) => prev + chunkValue);
+          if (chunkValue.includes("tokens")) {
+            const jsonData = JSON.parse(chunkValue);
+            const tokens = jsonData.tokens;
+            setTokens(tokens);
+          } else {
+            setApiResponse((prev) => prev + chunkValue);
+            completeString += chunkValue;
+          }
           completeString += chunkValue;
         }
         setIsLoading(false);
@@ -411,13 +419,13 @@ const Version = ({
   return (
     <>
       <div
-        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px]  lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[476px] !min-h-[400px] overflow-auto ${
+        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px] lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[441px] !min-h-[478px] overflow-auto ${
           versions > 4
             ? "sm:min-h-0 !min-h-[464px] sm:h-auto h-[464px] sm:!pr-[10px]"
             : ""
         } ${
           versions < 5
-            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[374px] sm:!min-h-[363px]"
+            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[441px] sm:!min-h-[363px]"
             : ""
         }`}
       >
@@ -706,8 +714,9 @@ const Version = ({
         {tokens && (
           <div>
             <p className="text-[12px] text-black text-center font-normal">
-              Total Tokens: {tokens.total_tokens} - Input Tokens:{" "}
-              {tokens.prompt_tokens} - Output Tokens: {tokens.completion_tokens}
+              {/* Total Tokens: {tokens.total_tokens} - Input Tokens:{" "}
+              {tokens.prompt_tokens} - Output Tokens: {tokens.completion_tokens} */}
+              Completion Tokens: {tokens}
             </p>
           </div>
         )}

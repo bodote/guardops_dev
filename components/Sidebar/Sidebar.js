@@ -69,15 +69,17 @@ const Sidebar = () => {
                 </p>
               </button>
               <div>
-                <a
-                  href="/projects"
-                  className="flex gap-[10px] items-center mt-[47px]"
-                >
-                  <HomeIcon className="w-[24px]" />
-                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                    Home
-                  </p>
-                </a>
+                {role?.includes("Full_Access") && (
+                  <a
+                    href="/projects"
+                    className="flex gap-[10px] items-center mt-[47px]"
+                  >
+                    <HomeIcon className="w-[24px]" />
+                    <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                      Home
+                    </p>
+                  </a>
+                )}
                 {(role?.includes("Projects") ||
                   role?.includes("Full_Access")) && (
                   <a

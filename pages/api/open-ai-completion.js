@@ -12,6 +12,7 @@ export default async function handler(req, res) {
     data,
   } = req.body;
   try {
+    let tokens = 0;
     // Set appropriate headers for streaming data
     res.setHeader("Content-Type", "application/octet-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -37,9 +38,11 @@ export default async function handler(req, res) {
           while (true) {
             const { done, value } = await reader.read();
             if (done) {
+              res.write(JSON.stringify({ tokens }));
               res.end();
               break;
             }
+            tokens++;
             res.write(value);
             res.flush();
           }

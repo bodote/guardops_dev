@@ -1,25 +1,32 @@
 import React, { useEffect, useState, useRef } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import { LockIcon, PlusIcon, RightIcon } from "@/public/Assets/Icons/Allsvg";
+import { RightIcon } from "@/public/Assets/Icons/Allsvg";
 import ProjectSection from "@/components/ProjectSection/ProjectSection";
 import DatasetSection from "@/components/DatasetSection/DatasetSection";
 import EvaluationSection from "@/components/EvaluationSection/EvaluationSection";
 import Logout from "@/components/Logout/Logout";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import Cookies from "js-cookie";
+import { getUserRole } from "@/helper/getRole";
+import Loader from "@/components/Loader/Loader";
 
 const projects = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isUser, setUser] = useState("");
+  const [role, setRole] = useState("");
+  const [loader, setLoader] = useState(true);
   const modalRef = useRef();
-
-  const { user } = useUser();
   const openModal = () => {
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
+  };
+
+  const getRole = async () => {
+    const roles = await getUserRole();
+    if (roles) {
+      setRole(roles);
+      setLoader(false);
+    }
   };
 
   const handleOutsideClick = (event) => {
@@ -40,19 +47,14 @@ const projects = () => {
   }, [isModalOpen]);
 
   useEffect(() => {
-    const cookie = Cookies.get("user_id");
-    if (cookie) {
-      setUser(cookie);
-    }
-    if (!cookie && user) {
-      Cookies.set("user_id", user?.sub);
-      setUser(user?.sub);
-    }
-  }, [user]);
+    getRole();
+  }, []);
 
   return (
     <>
-      {isUser && (
+      {loader ? (
+        <Loader />
+      ) : role.includes("Full_Access") ? (
         <div className="flex">
           <Sidebar />
           <div className="h-screen overflow-y-auto sm:ml-[96px] ml-[72px] w-full">
@@ -74,6 +76,12 @@ const projects = () => {
               <EvaluationSection />
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="flex h-screen items-center justify-center">
+          <p className="text-[20px]">
+            You don't have permission to access this page.
+          </p>
         </div>
       )}
     </>

@@ -1,6 +1,7 @@
 import { getRoleToken } from "@/utils/getToken";
 
 export default async function handler(req, res) {
+  let Url = null;
   const user = req.cookies.user_id;
   const { method } = req;
 
@@ -13,7 +14,7 @@ export default async function handler(req, res) {
 
     switch (method) {
       case "GET":
-        const Url = `${process.env.AUTH0_ISSUER_BASE_URL}/api/v2/users/${user}/roles`;
+        Url = `${process.env.AUTH0_ISSUER_BASE_URL}/api/v2/users/${user}/roles`;
         try {
           const response = await fetch(Url, {
             method: "GET",
