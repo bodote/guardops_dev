@@ -12,11 +12,13 @@ import {
 } from "@/public/Assets/Icons/Allsvg";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Cookies from "js-cookie";
+import { getUserRole } from "@/helper/getRole";
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const { user } = useUser();
+  const [role, setRole] = useState("");
   const handleMouseEnter = () => {
     setIsHovered(true);
   };
@@ -24,17 +26,15 @@ const Sidebar = () => {
   const handleMouseLeave = () => {
     setIsHovered(false);
   };
-
-  //*******************************Set User**************************/
-  // useEffect(() => {
-  //   const cookie = Cookies.get("user_id");
-  //   if (!cookie && user) {
-  //     Cookies.set("user_id", user?.sub);
-  //   }
-  //   console.log("front end side++", Cookies.get("user_id"));
-  // }, [user]);
-
-  //*******************************Set User**************************/
+  const getRole = async () => {
+    const roles = await getUserRole();
+    if (roles) {
+      setRole(roles);
+    }
+  };
+  useEffect(() => {
+    getRole();
+  }, []);
 
   const dynamicClassName = `trans ${isHovered ? "hovered-class" : ""}`;
   return (
@@ -78,51 +78,66 @@ const Sidebar = () => {
                     Home
                   </p>
                 </a>
-                <a
-                  href="/projectlist"
-                  className="flex gap-[10px] items-center mt-[30px]"
-                >
-                  <ProjectIcon className="w-[24px]" />
-                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                    Projects
-                  </p>
-                </a>
-                <a
-                  href="/datasetlist"
-                  className="flex gap-[10px] items-center mt-[30px]"
-                >
-                  <DatasetIcon className="w-[24px]" />
-                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                    Datasets
-                  </p>
-                </a>
-                <a
-                  href="/playground"
-                  className="flex gap-[10px] items-center mt-[30px]"
-                >
-                  <TraceIcon className="w-[24px]" />
-                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                    Playground
-                  </p>
-                </a>
-                <a
-                  href="/evaluation"
-                  className="flex gap-[10px] items-center mt-[30px]"
-                >
-                  <ChartIcon className="w-[24px]" />
-                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                    Evaluation
-                  </p>
-                </a>
-                <a
-                  href="/monitoring"
-                  className="flex gap-[10px] items-center mt-[30px]"
-                >
-                  <MonitoringIcon className="w-[24px]" />
-                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                    Monitoring
-                  </p>
-                </a>
+                {(role?.includes("Projects") ||
+                  role?.includes("Full_Access")) && (
+                  <a
+                    href="/projectlist"
+                    className="flex gap-[10px] items-center mt-[30px]"
+                  >
+                    <ProjectIcon className="w-[24px]" />
+                    <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                      Projects
+                    </p>
+                  </a>
+                )}
+                {(role?.includes("Datasets") ||
+                  role?.includes("Full_Access")) && (
+                  <a
+                    href="/datasetlist"
+                    className="flex gap-[10px] items-center mt-[30px]"
+                  >
+                    <DatasetIcon className="w-[24px]" />
+                    <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                      Datasets
+                    </p>
+                  </a>
+                )}
+                {(role?.includes("Playground") ||
+                  role?.includes("Full_Access")) && (
+                  <a
+                    href="/playground"
+                    className="flex gap-[10px] items-center mt-[30px]"
+                  >
+                    <TraceIcon className="w-[24px]" />
+                    <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                      Playground
+                    </p>
+                  </a>
+                )}
+                {(role?.includes("Evaluation") ||
+                  role?.includes("Full_Access")) && (
+                  <a
+                    href="/evaluation"
+                    className="flex gap-[10px] items-center mt-[30px]"
+                  >
+                    <ChartIcon className="w-[24px]" />
+                    <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                      Evaluation
+                    </p>
+                  </a>
+                )}
+                {(role?.includes("Monitoring") ||
+                  role?.includes("Full_Access")) && (
+                  <a
+                    href="/monitoring"
+                    className="flex gap-[10px] items-center mt-[30px]"
+                  >
+                    <MonitoringIcon className="w-[24px]" />
+                    <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                      Monitoring
+                    </p>
+                  </a>
+                )}
               </div>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { getUserRole } from "@/helper/getRole";
 const Profile = () => {
   const { user, error, isLoading } = useUser();
   const [userInfo, setUserInfo] = useState({
@@ -14,15 +15,8 @@ const Profile = () => {
   };
 
   const getRole = async () => {
-    const response = await fetch(`/api/manageRole`, {
-      method: "GET",
-    });
-    if (response.ok) {
-      const responseData = await response.json();
-      if (responseData) {
-        setRole(responseData.map((rsp) => rsp.name).join(", "));
-      }
-    }
+    const roles = await getUserRole();
+    setRole(roles.join(", "));
   };
   useEffect(() => {
     if (user) {
