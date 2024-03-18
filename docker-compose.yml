@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: coai_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - /home/bot/data/maag/mongodb/data
+      - /home/bot/data/maag/mongodb/data/mongo_dumps:/home/bot/data/maag/mongodb/data/mongo_dumps
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: coai
+      MONGO_INITDB_ROOT_PASSWORD: coai
+    networks:
+      - coai_services
+   
+
+
+  backend:
+    container_name: coai_fastapi_backend
+    build:
+      context: .
+      dockerfile: coai_backend
+    tty: true   
+    volumes:
+      - ./:/project
+    working_dir: /project
+    ports:
+      - "8888:8000" 
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000","--root-path","/tracing"]
+    depends_on:
+      - coai_mongodb
+    networks:
+      - coai_services
+
+  frontend:
+    container_name: coai_frontend
+    build:
+      context: .
+      dockerfile: coai_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - coai_fastapi_backend
+    networks:
+      - coai_services
+
+networks:
+  coai_services:
+    driver: bridge

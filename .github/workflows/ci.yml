@@ -22,7 +22,7 @@ jobs:
         sudo apt-get install xsel
         sudo apt-get install -y xclip xvfb
         sudo nohup bash -c "Xvfb :99 -screen 0 1280x720x16 &"
-        xdotool
+        
               
     - name: Setup Python
       uses: actions/setup-python@v2
