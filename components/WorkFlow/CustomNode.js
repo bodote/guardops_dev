@@ -182,13 +182,13 @@ const CustomNode = ({ data }) => {
     <div className="border border-[#A8A8A8] rounded-[6px] bg-white max-w-[196px] min-w-[196px]">
       <div proname="datasetDrop">
         <div className="flex justify-center items-center gap-[21px] py-[10px]">
-          {data.category.includes("metric") && <DirectionIcon />}
-          {data.category.includes("evaluation") && <ColorPaletteIcon />}
-          {data.category.includes("model") && <LayersIcon />}
-          {data.category.includes("dataset") && <CoinIcon />}
-          {data.category.includes("trigger") && <TimeIcon />}
-          {data.category.includes("config") && <DirectionIcon />}
-          {data.category.includes("exporting") && <TimeIcon />}
+          {data?.category?.includes("metric") && <DirectionIcon />}
+          {data?.category?.includes("evaluation") && <ColorPaletteIcon />}
+          {data?.category?.includes("model") && <LayersIcon />}
+          {data?.category?.includes("dataset") && <CoinIcon />}
+          {data?.category?.includes("trigger") && <TimeIcon />}
+          {data?.category?.includes("config") && <DirectionIcon />}
+          {data?.category?.includes("exporting") && <TimeIcon />}
           <h1 className="text-center text-[10px] font-medium font-Inter max-w-[130px] truncate">
             {data.label && data.label}
           </h1>
@@ -390,7 +390,7 @@ const CustomNode = ({ data }) => {
                           leaveTo="opacity-0"
                         >
                           <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                            {data.category.includes("dataset")
+                            {data?.category?.includes("dataset")
                               ? datasetList.map((item) => (
                                   <OptionItem
                                     key={item.dataset_id}
@@ -398,7 +398,7 @@ const CustomNode = ({ data }) => {
                                     name="dataset"
                                   />
                                 ))
-                              : data.category.includes("model")
+                              : data?.category?.includes("model")
                               ? models.map((item) => (
                                   <OptionItem
                                     key={item.model_id}
