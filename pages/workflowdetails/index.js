@@ -22,7 +22,7 @@ const WorkflowDetails = () => {
             let selectedOption = [
               ...document.querySelectorAll(`[proname=${t1}]`),
             ];
-            if (field.type === "select") {
+            if (field?.type === "select") {
               const datasetId = selectedOption[index]?.querySelector(
                 "#SelectField > span"
               )?.textContent;
@@ -31,12 +31,55 @@ const WorkflowDetails = () => {
                 ...field,
                 value: datasetId,
               };
-            } else if (field.type === "text") {
-              const textValue =
-                selectedOption[index]?.querySelector("#TextField")?.value;
+            } else if (field?.type === "text") {
+              const textValue = selectedOption[index]?.querySelector(
+                `#TextField-${i}`
+              )?.value;
               return {
                 ...field,
                 value: textValue,
+              };
+            } else if (field?.type === "predefined") {
+              const textValue =
+                selectedOption[index]?.querySelector("#ApiKeyField")?.value;
+              return {
+                ...field,
+                value: textValue,
+              };
+            } else if (field?.type === "boolean") {
+              const switchValue = selectedOption[index]?.querySelector(
+                "#SwitchField button"
+              );
+              const ariaChecked = switchValue?.getAttribute("aria-checked");
+              return {
+                ...field,
+                value: ariaChecked,
+              };
+            } else if (field?.type === "selection") {
+              const selectedDivs = selectedOption[index]?.querySelectorAll(
+                "#DaySelectionField > div.bg-\\[\\#A8A8A8\\]"
+              );
+              const selectedValues = Array.from(selectedDivs).map(
+                (div) => div.textContent
+              );
+              return {
+                ...field,
+                value: selectedValues,
+              };
+            } else if (field?.type === "time_selector") {
+              const timeField =
+                selectedOption[index]?.querySelector("#TimeField");
+              const inputs = timeField?.querySelectorAll("input");
+              let hoursValue = "";
+              let minsValue = "";
+
+              if (inputs && inputs.length === 2) {
+                hoursValue = inputs[0].value.trim();
+                minsValue = inputs[1].value.trim();
+              }
+              return {
+                ...field,
+                value: `${hoursValue} : ${minsValue}`,
               };
             }
           });
