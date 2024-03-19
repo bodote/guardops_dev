@@ -19,15 +19,17 @@ const CustomNode = ({ data }) => {
   const [datasetList, setDatasetList] = useState([]);
   const [models, setModels] = useState([]);
   const [ActiveTool, setActiveTool] = useState(false);
-  const [selectedDayIndex, setSelectedDayIndex] = useState(null);
-  const [APIKey, setAPIKey] = useState("");
+  const [isSwitchUpdate, setIsSwitchUpdate] = useState(false);
+  const [selectedDayIndices, setSelectedDayIndices] = useState([]);
   const [isStatUpdate, setIsStateUpdate] = useState(false);
   const [isTextUpdate, setIsTextUpdate] = useState(false);
-  const [text, setText] = useState("");
+  const [textValues, setTextValues] = useState([]);
   const [proname, setProname] = useState({
     name: "Select",
   });
-  const [updatedEle, setUpdatedEle] = useState("");
+  const [time, setTime] = useState({ hours: "", mins: "" });
+  const [isTimeUpdate, setIsTimeUpdate] = useState(false);
+  const [isDayUpdate, setIsDayUpdate] = useState(false);
 
   const getProjectList = async () => {
     try {
@@ -77,24 +79,6 @@ const CustomNode = ({ data }) => {
     }
   };
 
-  const handleDaySelection = (index) => {
-    if (selectedDayIndex === index) {
-      setSelectedDayIndex(null);
-    } else {
-      setSelectedDayIndex(index);
-    }
-  };
-
-  const handleSetApiKey = (item) => {
-    item.provider === "openai" && setAPIKey(localStorage.getItem("openAIKey"));
-    item.provider === "fireworks" &&
-      setAPIKey(localStorage.getItem("fireworksAIKey"));
-    item.provider === "custom" &&
-      setAPIKey(localStorage.getItem("customAIKey"));
-    item.provider === "togethercompute" &&
-      setAPIKey(localStorage.getItem("togetherAIKey"));
-  };
-
   useEffect(() => {
     getProjectList();
     getDatasetList();
@@ -117,9 +101,9 @@ const CustomNode = ({ data }) => {
         )
       }
       value={item}
-      onClick={() => {
-        item.model_id && handleSetApiKey(item);
-      }}
+      // onClick={() => {
+      //   item.model_id && handleSetApiKey(item);
+      // }}
     >
       <div className="flex items-center">
         <span
@@ -150,31 +134,121 @@ const CustomNode = ({ data }) => {
     }
   };
 
-  const formatInputText = (text) => {
-    return text
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
   const handleChange = (field) => {
     setIsStateUpdate(true);
     setProname(field);
   };
 
-  const handleTextChange = (text) => {
-    setIsTextUpdate(true);
-    setText(text);
+  const handleInputTimeChange = (event, field) => {
+    setIsTimeUpdate(true);
+    const { value } = event.target;
+    setTime((prevTime) => ({
+      ...prevTime,
+      [field]: value,
+    }));
   };
 
-  const getInputValue = (field) => {
+  const handleGetTime = (field) => {
+    if (isTimeUpdate) {
+      return time;
+    }
+    if (!isTimeUpdate && field.value) {
+      const [hours, mins] = field.value.split(":");
+      return { hours, mins };
+    } else {
+      return time;
+    }
+  };
+
+  const handleKeyPress = (event) => {
+    const pattern = /[0-9]/;
+    const inputChar = String.fromCharCode(event.charCode);
+    const inputValue = event.target.value;
+    if (!pattern.test(inputChar) || inputValue.length >= 2) {
+      event.preventDefault();
+    }
+  };
+
+  const handleTextChange = (text, index) => {
+    setIsTextUpdate(true);
+    const newTextValues = [...textValues];
+    newTextValues[index] = text;
+    setTextValues(newTextValues);
+  };
+
+  const getInputValue = (field, index) => {
     if (isTextUpdate) {
-      return text;
+      return textValues[index];
     }
     if (!isTextUpdate && field.value) {
       return field.value;
     } else {
-      return text;
+      return textValues[index];
+    }
+  };
+
+  const getApiKey = (field) => {
+    const localStorageKey = field.source.split(".")[1]; // Extract the key from the source
+    return localStorage.getItem(localStorageKey);
+  };
+
+  const handleSwitchChange = (field) => {
+    if (!isSwitchUpdate && field.value) {
+      if (field.value == "true") {
+        setActiveTool(false);
+      } else {
+        setActiveTool(true);
+      }
+    } else {
+      setActiveTool((prevActiveTool) => !prevActiveTool);
+    }
+    setIsSwitchUpdate(true);
+  };
+
+  const getToggleStatus = (field) => {
+    if (isSwitchUpdate) {
+      return ActiveTool;
+    }
+    if (!isSwitchUpdate && field.value) {
+      if (field.value == "true") {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return ActiveTool;
+    }
+  };
+
+  const handleDaySelection = (day, field) => {
+    if (!selectedDayIndices.length && !isDayUpdate) {
+      const isDaySelected = field.value.includes(day);
+      if (isDaySelected) {
+        const updatedSelection = field.value.filter(
+          (selectedDay) => selectedDay !== day
+        );
+        setSelectedDayIndices(updatedSelection);
+      } else {
+        setSelectedDayIndices([...field.value, day]);
+      }
+    } else {
+      if (selectedDayIndices.includes(day)) {
+        setSelectedDayIndices(selectedDayIndices.filter((i) => i !== day));
+      } else {
+        setSelectedDayIndices([...selectedDayIndices, day]);
+      }
+    }
+    setIsDayUpdate(true);
+  };
+
+  const getDay = (field) => {
+    if (isDayUpdate) {
+      return selectedDayIndices;
+    }
+    if (!isDayUpdate && field.value) {
+      return field.value;
+    } else {
+      return selectedDayIndices;
     }
   };
 
@@ -221,24 +295,25 @@ const CustomNode = ({ data }) => {
               </div>
             );
           })}
-        {/* <div className="px-[13px] mt-[13px]">
-          {(data.id.includes("metric") || data.id.includes("trigger")) && (
+        <div className="px-[13px] mt-[13px]">
+          {(data?.id?.includes("metric") || data?.id?.includes("trigger")) && (
             <p className="text-[10px] font-medium text-[#656565]">
-              {data.description}
+              {data.label}
             </p>
           )}
-          {data.fields.map(
+          {data?.fields?.map(
             (field, index) =>
-              field.type === "boolean" && (
+              field?.type === "boolean" && (
                 <div
+                  id="SwitchField"
                   key={index}
                   className="flex items-center gap-[16px] mt-[8px] mx-1"
                 >
                   <Switch
-                    checked={ActiveTool}
-                    onChange={setActiveTool}
+                    checked={getToggleStatus(field)}
+                    onChange={() => handleSwitchChange(field)}
                     className={classNames(
-                      ActiveTool ? "bg-[#0D859A]" : "bg-gray-200",
+                      getToggleStatus(field) ? "bg-[#0D859A]" : "bg-gray-200",
                       "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                     )}
                   >
@@ -246,7 +321,9 @@ const CustomNode = ({ data }) => {
                     <span
                       aria-hidden="true"
                       className={classNames(
-                        ActiveTool ? "translate-x-[11px]" : "translate-x-0",
+                        getToggleStatus(field)
+                          ? "translate-x-[11px]"
+                          : "translate-x-0",
                         "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
                       )}
                     />
@@ -255,22 +332,25 @@ const CustomNode = ({ data }) => {
                 </div>
               )
           )}
-          {data.fields.map(
+          {data?.fields?.map(
             (field, index) =>
-              field.type === "selection" && (
+              field?.type === "selection" && (
                 <div
                   key={index}
                   className="mx-1 flex items-center gap-[10px] mt-[22px]"
                 >
                   <p className="text-[#656565] text-[8px] font-medium">Day:</p>
-                  <div className="border-[#A8A8A8] border-[1px] flex items-center">
-                    {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => (
+                  <div
+                    id="DaySelectionField"
+                    className="border-[#A8A8A8] border-[1px] flex items-center"
+                  >
+                    {field.options?.map((day, dayIndex) => (
                       <div
-                        key={index}
+                        key={dayIndex}
                         className={`border-r-[#A8A8A8] border-r-[1px] w-[16px] h-[16px] flex justify-center items-center text-[#656565] text-[8px] font-medium pt-[3px] ${
-                          selectedDayIndex === index ? "bg-[#A8A8A8]" : ""
+                          getDay(field).includes(day) ? "bg-[#A8A8A8]" : ""
                         }`}
-                        onClick={() => handleDaySelection(index)}
+                        onClick={() => handleDaySelection(day, field)}
                       >
                         {day}
                       </div>
@@ -279,65 +359,74 @@ const CustomNode = ({ data }) => {
                 </div>
               )
           )}
-          {data.fields.map(
+          {data?.fields?.map(
             (field, index) =>
-              field.type === "time_selector" && (
+              field?.type === "time_selector" && (
                 <div
                   key={index}
                   className="mt-[25px] flex items-center gap-[6px]"
                 >
                   <p className="text-[#656565] text-[8px] font-medium">Time:</p>
-                  <div className="flex items-center">
+                  <div id="TimeField" className="flex items-center">
                     <input
                       type="text"
+                      value={handleGetTime(field)?.hours}
+                      onChange={(event) =>
+                        handleInputTimeChange(event, "hours")
+                      }
                       className="border-[#A8A8A8] border-[1px] rounded-[3px] h-[17px] w-[25px] px-[3px] text-[8px] text-center"
+                      onKeyPress={handleKeyPress}
                     />
                     <p className="text-[#656565] mx-[6px]"> : </p>
                     <input
                       type="text"
+                      value={handleGetTime(field)?.mins}
+                      onChange={(event) => handleInputTimeChange(event, "mins")}
                       className="border-[#A8A8A8] border-[1px] rounded-[3px] h-[17px] w-[25px] px-[3px] text-[8px] text-center"
+                      onKeyPress={handleKeyPress}
                     />
                   </div>
                 </div>
               )
           )}
-        </div> */}
+        </div>
         <div className="p-[11px_16px]">
-          {/* {data.fields.map(
+          {data.fields.map(
             (field, index) =>
-              field.type === "password" && (
-                <div key={index} className="mb-[10px]">
-                  <label className="text-[#656565] text-[10px] font-medium mb-[5px] block">
-                    API Key
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={APIKey}
-                    className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full"
-                  />
-                </div>
-              )
-          )} */}
-          {data.fields?.map(
-            (field, index) =>
-              field.type === "text" && (
+              field?.type === "predefined" && (
                 <div key={index} className="mb-[10px]">
                   <label className="text-[#656565] text-[10px] font-medium mb-[5px] block">
                     {field.label}
                   </label>
                   <input
-                    id="TextField"
-                    value={getInputValue(field)}
-                    type={field.type}
-                    className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full nodrag"
-                    onChange={(e) => handleTextChange(e.target.value)}
+                    id="ApiKeyField"
+                    type="text"
+                    defaultValue={getApiKey(field)}
+                    className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full"
                   />
                 </div>
               )
           )}
           {data.fields?.map(
             (field, index) =>
-              field.type === "select" && (
+              field?.type === "text" && (
+                <div key={index} className="mb-[10px]">
+                  <label className="text-[#656565] text-[10px] font-medium mb-[5px] block">
+                    {field.label}
+                  </label>
+                  <input
+                    id={`TextField-${index}`}
+                    value={getInputValue(field, index)}
+                    type={field.type}
+                    className="text-[#656565] text-[12px] text border border-[#CCCCCC] rounded-[6px] h-[22px] w-full nodrag"
+                    onChange={(e) => handleTextChange(e.target.value, index)}
+                  />
+                </div>
+              )
+          )}
+          {data.fields?.map(
+            (field, index) =>
+              field?.type === "select" && (
                 <Listbox
                   key={index}
                   value={proname}
@@ -423,7 +512,7 @@ const CustomNode = ({ data }) => {
           )}
           {/* {data.fields.map(
             (field, index) =>
-              field.type === "modal_button" && (
+              field?.type === "modal_button" && (
                 <button
                   key={index}
                   className="border-[#A8A8A8] border-[1px] rounded-[6px] text-[#464F60] text-[10px] h-[22px] flex justify-center items-center w-full mt-[20px]"
