@@ -22,6 +22,7 @@ import Logout from "@/components/Logout/Logout";
 import Chat_version from "@/components/Playground/chat_version";
 import { getUserRole } from "@/helper/getRole";
 import Loader from "@/components/Loader/Loader";
+import { toast } from "react-toastify";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -37,6 +38,7 @@ const index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
   const [PiiCheckEnable, setPiiCheckEnable] = useState(false);
+  const [arenaCheck, setArenaCheck] = useState(false);
   const [syncAll, setsyncAll] = useState(false);
   const [syncAllMsg, setSyncAllMsg] = useState(false);
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
@@ -61,7 +63,7 @@ const index = () => {
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [role, setRole] = useState("");
   const [loader, setLoader] = useState(true);
-
+  const [review, setReview] = useState(false);
   const params = useSearchParams();
   const data = params.get("data");
 
@@ -332,6 +334,7 @@ const index = () => {
       });
       if (response.ok) {
         const responseData = await response.json();
+        arenaCheck && setReview(true);
       }
     } catch (error) {
       console.error("Error during API request:", error);
@@ -362,6 +365,12 @@ const index = () => {
     setAnalysisModelOpen(false);
     if (apiCallInProgress) {
       return;
+    }
+    if (arenaCheck) {
+      if (!proname.project_id) {
+        toast.error("Please select the project first!!!");
+        return;
+      }
     }
 
     setAllPromtsDetails([]);
@@ -471,6 +480,20 @@ const index = () => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
+  const renderButtons = () => {
+    const buttons = [];
+    for (let i = 0; i < versions.length; i++) {
+      buttons.push(
+        <button
+          key={i}
+          className="bg-[#D4DB33] border-[#ABABAB] border-[1px] sm:text-[14px] text-[10px] rounded-[6px] sm:w-[20px] w-[16px] sm:h-[20px] h-[16px] flex justify-center items-center"
+        >
+          {String.fromCharCode(65 + i)}
+        </button>
+      );
+    }
+    return buttons;
+  };
   return (
     <>
       {loader ? (
@@ -614,6 +637,33 @@ const index = () => {
                                 name="playground"
                               />
                             )}
+
+                            <div className="flex items-center gap-[5px]">
+                              <Switch
+                                checked={arenaCheck}
+                                onChange={setArenaCheck}
+                                onClick={() => {
+                                  versions.length === 1 && addVersion();
+                                }}
+                                className={classNames(
+                                  arenaCheck ? "bg-[#0074fb]" : "bg-gray-200",
+                                  "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                                )}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className={classNames(
+                                    arenaCheck
+                                      ? "translate-x-[11px]"
+                                      : "translate-x-0",
+                                    "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                                  )}
+                                />
+                              </Switch>
+                              <label className="text-[#252525] text-[12px] font-medium">
+                                Arena
+                              </label>
+                            </div>
                             <div className="flex items-center gap-[5px]">
                               <Switch
                                 checked={PiiCheckEnable}
@@ -625,7 +675,6 @@ const index = () => {
                                   "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                                 )}
                               >
-                                <span className="sr-only">Use setting</span>
                                 <span
                                   aria-hidden="true"
                                   className={classNames(
@@ -955,13 +1004,40 @@ const index = () => {
                     </ul>
                   </div>
                   <div
-                    className={`grid w-full overflow-y-auto
+                    className={`grid w-full overflow-y-auto relative
               ${versions.length > 1 && "lg:grid-cols-2"}
               ${versions.length > 2 && "xl:grid-cols-3"}
               ${versions.length > 3 && "2xl:!grid-cols-4"}
               ${versions.length > 4 && "3xl:!grid-cols-5"}
               `}
                   >
+                    {review && (
+                      <div className="fixed md:bottom-[72px] bottom-[42px] z-[1] md:w-[calc(100vw-279px)] sm:w-[calc(100vw-99px)] w-[calc(100vw-72px)] flex justify-center">
+                        <div className="bg-[#D9D9D9] rounded-[12px] flex flex-wrap items-center sm:p-[5px_29px_5px_23px] p-[5px_8px_5px_8px]">
+                          <div className="flex items-center md:gap-[6px] gap-[4px] flex-wrap">
+                            <p className="text-[12px] text-black mr-[7px] sm:whitespace-nowrap whitespace-normal">
+                              Which model output is best for your use-case? :
+                            </p>
+                            {renderButtons()}
+                            <div className="bg-[#ABABAB] h-[28px] w-[1px] sm:mx-[8px]" />
+                            <div className="flex items-center sm:gap-[12px] gap-[8px]">
+                              <button
+                                onClick={() => setReview(false)}
+                                className="bg-[#D4DB33] border-[#ABABAB] border-[1px] sm:text-[14px] text-[10px] rounded-[6px] p-[4px] h-[20px] flex justify-center items-center"
+                              >
+                                Equal
+                              </button>
+                              <button
+                                onClick={() => setReview(false)}
+                                className="bg-[#D4DB33] border-[#ABABAB] border-[1px] sm:text-[14px] text-[10px] rounded-[6px] p-[4px] h-[20px] flex justify-center items-center"
+                              >
+                                None
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {versions.map((version) =>
                       React.cloneElement(version.component, {
                         addVersion,
@@ -970,6 +1046,7 @@ const index = () => {
                         versionId: version.id, // pass the version ID here
                         runPressed: runPressed,
                         versions: versions.length,
+                        allVersions: versions,
                         resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
                         appendToMessage: appendToMessage, // pass the appendToMessage function here
                         key: version.id,
@@ -987,6 +1064,7 @@ const index = () => {
                         clear,
                         selectedModel,
                         setSelectedModel,
+                        arenaCheck,
                       })
                     )}
                   </div>

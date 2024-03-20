@@ -29,6 +29,7 @@ const Version = ({
   removeVersion,
   message,
   versions,
+  allVersions,
   versionId,
   runPressed,
   resetRunPressed,
@@ -46,6 +47,7 @@ const Version = ({
   clear,
   selectedModel,
   setSelectedModel,
+  arenaCheck,
 }) => {
   const [models, setModels] = useState([]);
   const [selected, setSelected] = useState(
@@ -199,14 +201,17 @@ const Version = ({
           const { value, done: doneReading } = await reader.read();
           done = doneReading;
           const chunkValue = decoder.decode(value);
-          if (chunkValue.includes("tokens")) {
-            const jsonData = JSON.parse(chunkValue);
-            const tokens = jsonData.tokens;
-            setTokens(tokens);
+          const tokenRegex = /{"tokens":(\d+)}/g;
+          const match = tokenRegex.exec(chunkValue);
+          let tokenChunk = "";
+          if (match) {
+            const tokensValue = parseInt(match[1]);
+            setTokens(tokensValue);
+            tokenChunk += chunkValue.substring(0, match.index);
           } else {
-            setApiResponse((prev) => prev + chunkValue);
-            completeString += chunkValue;
+            tokenChunk += chunkValue;
           }
+          setApiResponse((prev) => prev + tokenChunk);
           completeString += chunkValue;
         }
         setIsLoading(false);
@@ -381,6 +386,12 @@ const Version = ({
     return trimmedModelName.match(regex);
   });
 
+  const getModelLabel = () => {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const index = allVersions.findIndex((version) => version.id === versionId);
+    return `Model ${alphabet[index]}`;
+  };
+
   useEffect(() => {
     if (enabled) {
       setsyncAll(true);
@@ -419,16 +430,21 @@ const Version = ({
   return (
     <>
       <div
-        className={`py-[9px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px] lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[441px] !min-h-[478px] overflow-auto ${
+        className={`py-[16px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px] lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[calc(100vh-434px)] !min-h-[calc(100vh-396px)] overflow-auto relative ${
           versions > 4
             ? "sm:min-h-0 !min-h-[464px] sm:h-auto h-[464px] sm:!pr-[10px]"
             : ""
         } ${
           versions < 5
-            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[441px] sm:!min-h-[363px]"
+            ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[calc(100vh-434px)] sm:!min-h-[363px]"
             : ""
         }`}
       >
+        {arenaCheck && (
+          <div className="bg-[#D9D9D9] w-[66px] h-[16px] text-[10px] font-inter rounded-[0_0_12px_12px] flex justify-center p-[1px_0_3px_0] absolute top-0 left-[50%] translate-x-[-50%]">
+            {getModelLabel()}
+          </div>
+        )}
         <div>
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative">
             <div className="flex items-center gap-2">
@@ -526,7 +542,7 @@ const Version = ({
               <button onClick={() => setOpen(!open)}>
                 <EditIcon />
               </button>
-              <button>
+              <button disabled={arenaCheck}>
                 <MinusIcon onClick={() => removeVersion()} />
               </button>
               <button>
@@ -559,15 +575,14 @@ const Version = ({
             )}
           </div>
           <div
-            className={`${
-              versions > 4
-                ? "h-[calc(100vh-515px)] overflow-auto"
-                : "h-[calc(100vh-550px)] overflow-auto"
+            className={`overflow-auto ${
+              tokens
+                ? "h-[calc(100vh-555px)]"
+                : "sm:h-[calc(100vh-527px)] h-[calc(100vh-607px)]"
             }`}
-            // className="h-[calc(100vh-548px)] overflow-auto"
           >
             {open && (
-              <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px] heyy">
+              <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px]">
                 <p className="text-[#252525] font-medium text-[14px]">
                   System Prompt
                 </p>
@@ -663,7 +678,7 @@ const Version = ({
               ) : null}
             </div>
           </div>
-          <div className="flex gap-[10px] justify-center my-[17px]">
+          <div className="flex gap-[10px] justify-center mt-[17px]">
             <CopyIcon onClick={handleCopyClick} />
             <DownArrowIcon />
             <UpArrowIcon />
@@ -713,10 +728,8 @@ const Version = ({
         </div>
         {tokens && (
           <div>
-            <p className="text-[12px] text-black text-center font-normal">
-              {/* Total Tokens: {tokens.total_tokens} - Input Tokens:{" "}
-              {tokens.prompt_tokens} - Output Tokens: {tokens.completion_tokens} */}
-              Completion Tokens: {tokens}
+            <p className="text-[12px] text-black text-center font-normal mt-[10px]">
+              Output Tokens: {tokens}
             </p>
           </div>
         )}
