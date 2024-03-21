@@ -14,7 +14,7 @@ const Logout = () => {
     }
   return (
     <>
-        <button onClick={logoutUser} >
+        <button id="logout" onClick={logoutUser} >
         <LockIcon  />
         </button>
     </>

@@ -184,12 +184,12 @@ const ProjectSection = () => {
                       </h2>
                     </div>
                     <div className="flex gap-4">
-                      <button
+                      <button id="project_sharer"
                         onClick={() => handleGenerateShareCode(ele.project_id)}
                       >
                         <Share2Icon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
-                      <button
+                      <button id="project_code"
                         onClick={() => {
                           setActive(true);
                           setSelectedProjectID(ele.project_id);
@@ -197,10 +197,10 @@ const ProjectSection = () => {
                       >
                         <LightIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
-                      <button onClick={() => handleProjectEdit(ele)}>
+                      <button id="project_edit" onClick={() => handleProjectEdit(ele)}>
                         <EditBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
-                      <button
+                      <button id="project_delete"
                         onClick={() => {
                           setSelectedProjectForDelete(ele);
                           setOpen(true);
