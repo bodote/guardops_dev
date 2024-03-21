@@ -22,6 +22,7 @@ import Logout from "@/components/Logout/Logout";
 import Chat_version from "@/components/Playground/chat_version";
 import { getUserRole } from "@/helper/getRole";
 import Loader from "@/components/Loader/Loader";
+import { toast } from "react-toastify";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -37,6 +38,7 @@ const index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
   const [PiiCheckEnable, setPiiCheckEnable] = useState(false);
+  const [arenaCheck, setArenaCheck] = useState(false);
   const [syncAll, setsyncAll] = useState(false);
   const [syncAllMsg, setSyncAllMsg] = useState(false);
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
@@ -61,9 +63,19 @@ const index = () => {
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [role, setRole] = useState("");
   const [loader, setLoader] = useState(true);
-
+  const [review, setReview] = useState(false);
+  const [traces, setTraces] = useState([]);
+  const [selectedModels, setSelectedModels] = useState([]);
   const params = useSearchParams();
   const data = params.get("data");
+
+  const handleSelectModel = (modelId, index) => {
+    setSelectedModels((prevState) => {
+      const updatedModels = [...prevState];
+      updatedModels[index] = modelId;
+      return updatedModels;
+    });
+  };
 
   useEffect(() => {
     const parsedData = JSON.parse(data);
@@ -313,7 +325,7 @@ const index = () => {
         [item.model]: {
           system_prompt: item.systemPrompt,
           input: item.input,
-          output: item.output,
+          output: item.output.replace(/\{"tokens":\d+\}/g, ""),
           model_params: formatModelParams(item.settings),
         },
       }));
@@ -332,6 +344,10 @@ const index = () => {
       });
       if (response.ok) {
         const responseData = await response.json();
+        if (responseData) {
+          setTraces(responseData.traces);
+          arenaCheck && setReview(true);
+        }
       }
     } catch (error) {
       console.error("Error during API request:", error);
@@ -362,6 +378,12 @@ const index = () => {
     setAnalysisModelOpen(false);
     if (apiCallInProgress) {
       return;
+    }
+    if (arenaCheck) {
+      if (!proname.project_id) {
+        toast.error("Please select the project first!!!");
+        return;
+      }
     }
 
     setAllPromtsDetails([]);
@@ -395,6 +417,9 @@ const index = () => {
 
   // Function to add a new version
   const addVersion = () => {
+    const modelId = selectedModels[selectedModels.length - 1];
+    setSelectedModels((prevState) => [...prevState, modelId]);
+
     const newId =
       versions.length > 0 ? versions[versions.length - 1].id + 1 : 1;
     setVersions([
@@ -430,11 +455,17 @@ const index = () => {
     ]);
   };
   // Function to remove a version
-  const removeVersion = (id) => {
+  const removeVersion = (id, index) => {
     if (versions.length === 1) {
       // If there's only one version, do not remove it
       return;
     }
+
+    setSelectedModels((prevState) => {
+      const updatedModels = [...prevState];
+      updatedModels.splice(index, 1);
+      return updatedModels;
+    });
     setVersions(versions.filter((version) => version.id !== id));
   };
 
@@ -471,6 +502,44 @@ const index = () => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
+  const handleStoreArenaScore = async (i) => {
+    const winningModelId = selectedModels[i];
+    const losingModelIds = selectedModels.filter((id, index) => index !== i);
+    const formData = {
+      project_id: proname.project_id,
+      winner_trace_id: traces[i],
+      winning_model_id: winningModelId,
+      losing_model_ids: losingModelIds,
+    };
+    try {
+      const response = await fetch("/api/manageArena", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const responseData = await response.json();
+        setReview(false);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
+  const renderButtons = () => {
+    const buttons = [];
+    for (let i = 0; i < versions.length; i++) {
+      buttons.push(
+        <button
+          onClick={() => handleStoreArenaScore(i)}
+          key={i}
+          className="bg-[#D4DB33] border-[#ABABAB] border-[1px] sm:text-[14px] text-[10px] rounded-[6px] sm:w-[20px] w-[16px] sm:h-[20px] h-[16px] flex justify-center items-center"
+        >
+          {String.fromCharCode(65 + i)}
+        </button>
+      );
+    }
+    return buttons;
+  };
   return (
     <>
       {loader ? (
@@ -614,6 +683,33 @@ const index = () => {
                                 name="playground"
                               />
                             )}
+
+                            <div className="flex items-center gap-[5px]">
+                              <Switch
+                                checked={arenaCheck}
+                                onChange={setArenaCheck}
+                                onClick={() => {
+                                  versions.length === 1 && addVersion();
+                                }}
+                                className={classNames(
+                                  arenaCheck ? "bg-[#0074fb]" : "bg-gray-200",
+                                  "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                                )}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className={classNames(
+                                    arenaCheck
+                                      ? "translate-x-[11px]"
+                                      : "translate-x-0",
+                                    "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                                  )}
+                                />
+                              </Switch>
+                              <label className="text-[#252525] text-[12px] font-medium">
+                                Arena
+                              </label>
+                            </div>
                             <div className="flex items-center gap-[5px]">
                               <Switch
                                 checked={PiiCheckEnable}
@@ -625,7 +721,6 @@ const index = () => {
                                   "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                                 )}
                               >
-                                <span className="sr-only">Use setting</span>
                                 <span
                                   aria-hidden="true"
                                   className={classNames(
@@ -955,21 +1050,49 @@ const index = () => {
                     </ul>
                   </div>
                   <div
-                    className={`grid w-full overflow-y-auto
+                    className={`grid w-full overflow-y-auto relative
               ${versions.length > 1 && "lg:grid-cols-2"}
               ${versions.length > 2 && "xl:grid-cols-3"}
               ${versions.length > 3 && "2xl:!grid-cols-4"}
               ${versions.length > 4 && "3xl:!grid-cols-5"}
               `}
                   >
-                    {versions.map((version) =>
+                    {arenaCheck && review && (
+                      <div className="fixed md:bottom-[72px] bottom-[42px] z-[1] md:w-[calc(100vw-279px)] sm:w-[calc(100vw-99px)] w-[calc(100vw-72px)] flex justify-center">
+                        <div className="bg-[#D9D9D9] rounded-[12px] flex flex-wrap items-center sm:p-[5px_29px_5px_23px] p-[5px_8px_5px_8px]">
+                          <div className="flex items-center md:gap-[6px] gap-[4px] flex-wrap">
+                            <p className="text-[12px] text-black mr-[7px] sm:whitespace-nowrap whitespace-normal">
+                              Which model output is best for your use-case? :
+                            </p>
+                            {renderButtons()}
+                            <div className="bg-[#ABABAB] h-[28px] w-[1px] sm:mx-[8px]" />
+                            <div className="flex items-center sm:gap-[12px] gap-[8px]">
+                              <button
+                                onClick={() => setReview(false)}
+                                className="bg-[#D4DB33] border-[#ABABAB] border-[1px] sm:text-[14px] text-[10px] rounded-[6px] p-[4px] h-[20px] flex justify-center items-center"
+                              >
+                                Equal
+                              </button>
+                              <button
+                                onClick={() => setReview(false)}
+                                className="bg-[#D4DB33] border-[#ABABAB] border-[1px] sm:text-[14px] text-[10px] rounded-[6px] p-[4px] h-[20px] flex justify-center items-center"
+                              >
+                                None
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {versions.map((version, index) =>
                       React.cloneElement(version.component, {
                         addVersion,
-                        removeVersion: () => removeVersion(version.id),
+                        removeVersion: () => removeVersion(version.id, index),
                         message: version.message, // pass the message here
                         versionId: version.id, // pass the version ID here
                         runPressed: runPressed,
                         versions: versions.length,
+                        allVersions: versions,
                         resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
                         appendToMessage: appendToMessage, // pass the appendToMessage function here
                         key: version.id,
@@ -987,6 +1110,8 @@ const index = () => {
                         clear,
                         selectedModel,
                         setSelectedModel,
+                        arenaCheck,
+                        handleSelectModel,
                       })
                     )}
                   </div>

@@ -75,7 +75,9 @@ const Response = ({ traceProject, selected, type }) => {
                 }}
                 remarkPlugins={[gfm]}
               >
-                {type === "chat" ? selected?.response : apiResponse}
+                {type === "chat"
+                  ? selected?.response.replace(/\{"tokens":\d+\}/g, "")
+                  : apiResponse.replace(/\{"tokens":\d+\}/g, "")}
               </ReactMarkdown>
             </div>
           )}
