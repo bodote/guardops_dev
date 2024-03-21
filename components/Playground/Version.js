@@ -48,6 +48,7 @@ const Version = ({
   selectedModel,
   setSelectedModel,
   arenaCheck,
+  handleSelectModel,
 }) => {
   const [models, setModels] = useState([]);
   const [selected, setSelected] = useState(
@@ -375,6 +376,8 @@ const Version = ({
   const handleSelect = (model) => {
     setSelected(model);
     setSelectedModel(model);
+    const index = allVersions.findIndex((version) => version.id === versionId);
+    handleSelectModel(model.model_id, index);
   };
 
   const filteredModels = models.filter((model) => {
@@ -542,7 +545,7 @@ const Version = ({
               <button onClick={() => setOpen(!open)}>
                 <EditIcon />
               </button>
-              <button disabled={arenaCheck}>
+              <button disabled={arenaCheck && versions <= 2}>
                 <MinusIcon onClick={() => removeVersion()} />
               </button>
               <button>

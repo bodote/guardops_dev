@@ -90,7 +90,7 @@ const Info = ({ traceProject }) => {
                 remarkPlugins={[gfm]}
               >
                 {traceProject?.output
-                  ? traceProject?.output
+                  ? traceProject?.output.replace(/\{"tokens":\d+\}/g, "")
                   : traceProject?.llm_completions_0_content || "null"}
               </ReactMarkdown>
             </div>

@@ -64,8 +64,18 @@ const index = () => {
   const [role, setRole] = useState("");
   const [loader, setLoader] = useState(true);
   const [review, setReview] = useState(false);
+  const [traces, setTraces] = useState([]);
+  const [selectedModels, setSelectedModels] = useState([]);
   const params = useSearchParams();
   const data = params.get("data");
+
+  const handleSelectModel = (modelId, index) => {
+    setSelectedModels((prevState) => {
+      const updatedModels = [...prevState];
+      updatedModels[index] = modelId;
+      return updatedModels;
+    });
+  };
 
   useEffect(() => {
     const parsedData = JSON.parse(data);
@@ -315,7 +325,7 @@ const index = () => {
         [item.model]: {
           system_prompt: item.systemPrompt,
           input: item.input,
-          output: item.output,
+          output: item.output.replace(/\{"tokens":\d+\}/g, ""),
           model_params: formatModelParams(item.settings),
         },
       }));
@@ -334,7 +344,10 @@ const index = () => {
       });
       if (response.ok) {
         const responseData = await response.json();
-        arenaCheck && setReview(true);
+        if (responseData) {
+          setTraces(responseData.traces);
+          arenaCheck && setReview(true);
+        }
       }
     } catch (error) {
       console.error("Error during API request:", error);
@@ -404,6 +417,9 @@ const index = () => {
 
   // Function to add a new version
   const addVersion = () => {
+    const modelId = selectedModels[selectedModels.length - 1];
+    setSelectedModels((prevState) => [...prevState, modelId]);
+
     const newId =
       versions.length > 0 ? versions[versions.length - 1].id + 1 : 1;
     setVersions([
@@ -439,11 +455,17 @@ const index = () => {
     ]);
   };
   // Function to remove a version
-  const removeVersion = (id) => {
+  const removeVersion = (id, index) => {
     if (versions.length === 1) {
       // If there's only one version, do not remove it
       return;
     }
+
+    setSelectedModels((prevState) => {
+      const updatedModels = [...prevState];
+      updatedModels.splice(index, 1);
+      return updatedModels;
+    });
     setVersions(versions.filter((version) => version.id !== id));
   };
 
@@ -480,11 +502,35 @@ const index = () => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
+  const handleStoreArenaScore = async (i) => {
+    const winningModelId = selectedModels[i];
+    const losingModelIds = selectedModels.filter((id, index) => index !== i);
+    const formData = {
+      project_id: proname.project_id,
+      winner_trace_id: traces[i],
+      winning_model_id: winningModelId,
+      losing_model_ids: losingModelIds,
+    };
+    try {
+      const response = await fetch("/api/manageArena", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const responseData = await response.json();
+        setReview(false);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
   const renderButtons = () => {
     const buttons = [];
     for (let i = 0; i < versions.length; i++) {
       buttons.push(
         <button
+          onClick={() => handleStoreArenaScore(i)}
           key={i}
           className="bg-[#D4DB33] border-[#ABABAB] border-[1px] sm:text-[14px] text-[10px] rounded-[6px] sm:w-[20px] w-[16px] sm:h-[20px] h-[16px] flex justify-center items-center"
         >
@@ -1011,7 +1057,7 @@ const index = () => {
               ${versions.length > 4 && "3xl:!grid-cols-5"}
               `}
                   >
-                    {review && (
+                    {arenaCheck && review && (
                       <div className="fixed md:bottom-[72px] bottom-[42px] z-[1] md:w-[calc(100vw-279px)] sm:w-[calc(100vw-99px)] w-[calc(100vw-72px)] flex justify-center">
                         <div className="bg-[#D9D9D9] rounded-[12px] flex flex-wrap items-center sm:p-[5px_29px_5px_23px] p-[5px_8px_5px_8px]">
                           <div className="flex items-center md:gap-[6px] gap-[4px] flex-wrap">
@@ -1038,10 +1084,10 @@ const index = () => {
                         </div>
                       </div>
                     )}
-                    {versions.map((version) =>
+                    {versions.map((version, index) =>
                       React.cloneElement(version.component, {
                         addVersion,
-                        removeVersion: () => removeVersion(version.id),
+                        removeVersion: () => removeVersion(version.id, index),
                         message: version.message, // pass the message here
                         versionId: version.id, // pass the version ID here
                         runPressed: runPressed,
@@ -1065,6 +1111,7 @@ const index = () => {
                         selectedModel,
                         setSelectedModel,
                         arenaCheck,
+                        handleSelectModel,
                       })
                     )}
                   </div>
