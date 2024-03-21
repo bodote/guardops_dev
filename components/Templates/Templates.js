@@ -58,17 +58,17 @@ const Templates = ({
           </a>
         </div>
         <div className="flex gap-[16px] items-center">
-          <button
+          <button id="template_add_to_prompt"
             onClick={() => handleAddToPromptClick(data.template)}
             className="bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium w-[119px] sm:text-[12px] text-[12px] font-Inter py-[6px] px-[4px] rounded-md flex items-center gap-[8px]"
           >
             <FiPlus />
             Add to Prompt
           </button>
-          <button onClick={() => handleUpdateTemplate(data)}>
+          <button id="template_edit" onClick={() => handleUpdateTemplate(data)}>
             <EditBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
           </button>
-          <button onClick={() => handleDeleteTemplate(data.template_id)}>
+          <button id="template_delete" onClick={() => handleDeleteTemplate(data.template_id)}>
             <DeleteBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
           </button>
         </div>

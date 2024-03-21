@@ -171,12 +171,12 @@ const DatasetSection = () => {
                       </h2>
                     </div>
                     <div className="flex gap-4">
-                      <button
+                      <button id="dataset_share"
                         onClick={() => handleGenerateShareCode(ele.dataset_id)}
                       >
                         <Share2Icon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
-                      <button
+                      <button id="dataset_code"
                         onClick={() => {
                           setActive(true);
                           setSelectedDatasetID(ele.dataset_id);
@@ -184,10 +184,10 @@ const DatasetSection = () => {
                       >
                         <LightIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
-                      <button onClick={() => handleDatasetEdit(ele)}>
+                      <button id="dataset_edit" onClick={() => handleDatasetEdit(ele)}>
                         <EditBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
-                      <button
+                      <button id="dataset_delete"
                         onClick={() => {
                           setSelectedDatasetForDelete(ele);
                           setOpen(true);
