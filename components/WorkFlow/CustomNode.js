@@ -221,7 +221,7 @@ const CustomNode = ({ data }) => {
   };
 
   const handleDaySelection = (day, field) => {
-    if (!selectedDayIndices.length && !isDayUpdate) {
+    if (!selectedDayIndices.length && !isDayUpdate && field.value) {
       const isDaySelected = field.value.includes(day);
       if (isDaySelected) {
         const updatedSelection = field.value.filter(
@@ -232,7 +232,7 @@ const CustomNode = ({ data }) => {
         setSelectedDayIndices([...field.value, day]);
       }
     } else {
-      if (selectedDayIndices.includes(day)) {
+      if (selectedDayIndices?.includes(day)) {
         setSelectedDayIndices(selectedDayIndices.filter((i) => i !== day));
       } else {
         setSelectedDayIndices([...selectedDayIndices, day]);
@@ -391,7 +391,7 @@ const CustomNode = ({ data }) => {
           )}
         </div>
         <div className="p-[11px_16px]">
-          {data.fields.map(
+          {data.fields?.map(
             (field, index) =>
               field?.type === "predefined" && (
                 <div key={index} className="mb-[10px]">

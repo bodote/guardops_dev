@@ -304,7 +304,10 @@ const Chat_version = ({
             const lastIndex = prevMessages.length - 1;
             return prevMessages.map((message, index) => {
               if (index === lastIndex) {
-                return { ...message, output: completeString };
+                return {
+                  ...message,
+                  output: completeString.replace(/\{"tokens":\d+\}/g, ""),
+                };
               } else {
                 return message;
               }
@@ -383,11 +386,10 @@ const Chat_version = ({
         [modelId]: {
           system_prompt: systemPrompt,
           input: item.input,
-          output: item.output,
+          output: item.output.replace(/\{"tokens":\d+\}/g, ""),
           model_params: formatModelParams(settings),
         },
       }));
-
     const formData = {
       project_id: proname.project_id,
       playground_id: currentChatID,
@@ -452,46 +454,6 @@ const Chat_version = ({
       reconstructConversation(tracesData);
     }
   }, [tracesData]);
-
-  // useEffect(() => {
-  //   if (enabled) {
-  //     setsyncAll(true);
-  //     setAllSystemPrompt(systemPrompt);
-  //   } else {
-  //     setsyncAll(false);
-  //   }
-
-  //   if (sync) {
-  //     setSyncAllMsg(true);
-  //     setAllMsg(userMessage);
-  //   } else {
-  //     setSyncAllMsg(false);
-  //   }
-  // }, [enabled, sync]);
-
-  // useEffect(() => {
-  //   if (syncAll) {
-  //     setSync(true);
-  //     setSystemPrompt(allSystemPrompt);
-  //   } else {
-  //     setSync(false);
-  //   }
-  //   if (syncAllMsg) {
-  //     setSync(true);
-  //     setUserMessage(allMsg);
-  //   } else {
-  //     setSync(false);
-  //   }
-  // }, [syncAll, allSystemPrompt, syncAllMsg, allMsg]);
-
-  // useEffect(() => {
-  //   if (syncAll) {
-  //     setAllSystemPrompt(systemPrompt);
-  //   }
-  //   if (syncAllMsg) {
-  //     setAllMsg(userMessage);
-  //   }
-  // }, [systemPrompt, userMessage]);
 
   useEffect(() => {
     if (showSettings) {
@@ -686,11 +648,9 @@ const Chat_version = ({
             )}
 
             <div
-              className={
-                error
-                  ? "bg-[#F7F7F7] h-[calc(100vh-249px)] overflow-y-auto pt-[44px]"
-                  : "bg-[#F7F7F7] h-[calc(100vh-249px)] overflow-y-auto"
-              }
+              className={`bg-[#F7F7F7] h-[calc(100vh-249px)] overflow-y-auto ${
+                error ? "pt-[44px]" : ""
+              }`}
             >
               {open && (
                 <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] m-[10px] mt-[16px]">
