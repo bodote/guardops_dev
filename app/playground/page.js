@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+'use client'
+import  {cloneElement, useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import {
   DeleteBlackIcon,
@@ -991,7 +992,7 @@ const index = () => {
                   `}
                     >
                       {chatVersion.map((version) =>
-                        React.cloneElement(version.component, {
+                        cloneElement(version.component, {
                           key: version.id,
                           addChatVersion,
                           removeChatVersion: () =>
@@ -1085,7 +1086,7 @@ const index = () => {
                       </div>
                     )}
                     {versions.map((version, index) =>
-                      React.cloneElement(version.component, {
+                      cloneElement(version.component, {
                         addVersion,
                         removeVersion: () => removeVersion(version.id, index),
                         message: version.message, // pass the message here
