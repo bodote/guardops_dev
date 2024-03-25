@@ -19,6 +19,17 @@ import ModelSettings from "./modelSettings";
 import { Switch } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { AiOutlineStop } from "react-icons/ai";
+// import vercel providers
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAIStream, Message, StreamingTextResponse } from 'ai';
+import Anthropic from '@anthropic-ai/sdk';
+import { AnthropicStream } from 'ai';
+import { CohereStream } from 'ai';
+import { CohereClient, Cohere } from 'cohere-ai';
+import OpenAI from 'openai';
+import { OpenAIStream } from 'ai';
+import { MistralStream } from 'ai';
+import MistralClient from '@mistralai/mistralai'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -66,6 +77,12 @@ const Version = ({
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
   const [togetheraiKey, setTogetheraiKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState(""); // State for the API key
+  // vercel keys
+  const [anthropicKey, setAnthropicKey] = useState(""); 
+  const [cohereKey, setCohereKey] = useState(""); 
+  const [googleKey, setGoogleKey] = useState(""); 
+  const [mistralKey, setMistralKey] = useState(""); 
+  //
   const [customEndpoint, setCustomEndpoint] = useState(""); // State for the API endpoint
   const modalRef = useRef();
   const [analysisData, setAnalysisData] = useState([]);
@@ -98,7 +115,47 @@ const Version = ({
     setCustomEndpoint(key3);
     const key4 = localStorage.getItem("togetherAIKey") || "";
     setTogetheraiKey(key4);
+    const key5 = localStorage.getItem("anthropicKey") || "";
+    setAnthropicKey(key5);
+    const key6 = localStorage.getItem("cohereKey") || "";
+    setCohereKey(key6);
+    const key7 = localStorage.getItem("googleKey") || "";
+    setGoogleKey(key7);
+    const key8 = localStorage.getItem("mistralKey") || "";
+    setMistralKey(key8);
   }, []);
+
+  //new Mapping for vercel usage
+  const providerMapping = {
+    openai: new OpenAI({apiKey: openaiKey, dangerouslyAllowBrowser:true}),
+
+    fireworks: new OpenAI({
+      apiKey: fireworksAIKey || '',
+      baseURL: 'https://api.fireworks.ai/inference/v1',
+      dangerouslyAllowBrowser:true
+    }),
+
+    custom: {endpoint: customEndpoint, apiKey: customAIKey},
+
+    togethercompute: {
+      endpoint: "https://api.together.xyz/v1/chat/completions", 
+      apiKey: togetheraiKey
+    },
+
+    anthropic: new Anthropic({
+      apiKey: anthropicKey || '',
+    }),
+
+    cohere: new CohereClient({
+      token: cohereKey,
+    }),
+
+    google: new GoogleGenerativeAI(googleKey || ''),
+
+    mistral: new MistralClient(mistralKey || ''),
+
+
+  };
 
   const providerConfig = {
     openai: {
