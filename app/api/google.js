@@ -1,11 +1,11 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { GoogleGenerativeAIStream, Message, StreamingTextResponse } from 'ai';
- 
+
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
- 
+
 // IMPORTANT! Set the runtime to edge
 export const runtime = 'edge';
- 
+
 // convert messages from the Vercel AI SDK Format to the format
 // that is expected by the Google GenAI SDK
 const buildGoogleGenAIPrompt = (messages) => ({
@@ -16,21 +16,32 @@ const buildGoogleGenAIPrompt = (messages) => ({
       parts: [{ text: message.content }],
     })),
 });
- 
+
 export async function POST(req) {
-  const { api_key, model } = req.body;
+  const { api_key, model, type } = req.body;
 
   const genAI = new GoogleGenerativeAI(api_key || '');
-  // Extract the `prompt` from the body of the request
-  const { messages } = await req.body;
- 
-  const geminiStream = await genAI
-    .getGenerativeModel({ model: model})
-    .generateContentStream(buildGoogleGenAIPrompt(messages));
- 
+  if (type === "chat") {
+    // Extract the `prompt` from the body of the request
+    const { messages } = await req.body;
+
+    const geminiStream = await genAI
+      .getGenerativeModel({ model: model })
+      .generateContentStream(buildGoogleGenAIPrompt(messages));
+  } else if (type === "prompt") {
+    // Extract the `prompt` from the body of the request
+    const { prompt } = await req.body;
+
+    // Ask Google Generative AI for a streaming completion given the prompt
+    const response = await genAI
+      .getGenerativeModel({ model: model })
+      .generateContentStream({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      });
+  }
   // Convert the response into a friendly text-stream
   const stream = GoogleGenerativeAIStream(geminiStream);
- 
+
   // Respond with the stream
   return new StreamingTextResponse(stream);
 }

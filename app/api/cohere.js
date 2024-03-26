@@ -17,7 +17,7 @@ const toCohereRole = (role) => {
 };
  
 export default async function handler(req) {
-  const { api_key } = req.body;
+  const { api_key,type, model = ""} = req.body;
   if (!api_key) {
     throw new Error('Missing COHERE_API_KEY environment variable');
   }
@@ -26,6 +26,7 @@ export default async function handler(req) {
     token: api_key,
   });
   // Extract the `prompt` from the body of the request
+  if (type==="chat"){
   const { messages } = await req.body;
   const chatHistory = messages.map((message) => ({
     message: message.content,
@@ -48,6 +49,39 @@ export default async function handler(req) {
       controller.close();
     },
   });
+  }else if (type==="prompt"){
+
+    // Extract the `prompt` from the body of the request
+  const { prompt } = await req.body;
  
+  const body = JSON.stringify({
+    prompt,
+    model: model,
+    max_tokens: max_tokens,
+    stop_sequences: [],
+    temperature: 0.9,
+    return_likelihoods: 'NONE',
+    stream: true,
+  });
+ 
+  const response = await fetch('https://api.cohere.ai/v1/generate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${api_key}`,
+    },
+    body,
+  });
+ 
+  // Check for errors
+  if (!response.ok) {
+    return new Response(await response.text(), {
+      status: response.status,
+    });
+  }
+ 
+  // Extract the text response from the Cohere stream
+  const stream = CohereStream(response);
+  }
   return new Response(stream);
 }
