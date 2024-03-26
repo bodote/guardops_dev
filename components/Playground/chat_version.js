@@ -27,6 +27,7 @@ function classNames(...classes) {
 
 const Chat_version = ({
   versions,
+  chatVersionId,
   removeChatVersion,
   addChatVersion,
   syncAll,
@@ -37,10 +38,12 @@ const Chat_version = ({
   setSyncAllMsg,
   allChatSystemPromot,
   setAllChatSystemPromot,
+  setAllChatsDetails,
   proname,
   currentChatID,
   selectedModel,
   setSelectedModel,
+  saveTraceChatPlayground,
 }) => {
   const [userMessage, setUserMessage] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
@@ -154,13 +157,35 @@ const Chat_version = ({
         }
       }
     });
-
     const newMessages = chatHistory.map((pair) => ({
       input: pair.attributes.prompt || "",
       output: pair.attributes.output || "",
     }));
 
     setMessages(newMessages);
+    setAllChatsDetails((prevDetails) => [
+      ...prevDetails,
+      ...chatHistory.map((pair) => {
+        // const model = models.find((m) => m.name === pair.attributes.model);
+        const modelParams = pair.attributes.model_params || "";
+        const parsedModelParams = modelParams
+          .split(",")
+          .reduce((acc, param) => {
+            const [key, value] = param.split(":");
+            acc[key.trim()] = parseFloat(value.trim());
+            return acc;
+          }, {});
+        return {
+          isValid: true,
+          chatVersionId: chatVersionId,
+          // model: model ? model.model_id : "",
+          input: pair.attributes.prompt,
+          output: pair.attributes.output.replace(/\{"tokens":\d+\}/g, ""),
+          systemPrompt: pair.attributes.system_prompt || "",
+          settings: parsedModelParams,
+        };
+      }),
+    ]);
   };
 
   const providerConfig = {
@@ -244,7 +269,6 @@ const Chat_version = ({
       setError("Please select the valid model");
       return;
     }
-
     const apiEndpoint =
       selected.provider === "custom"
         ? providerInfo.endpoint()
@@ -282,6 +306,13 @@ const Chat_version = ({
         selected.provider === "openai" && setError(errorMessage.error.message);
         selected.provider === "fireworks" && setError(errorMessage.error);
         selected.provider === "togethercompute" && setError(errorMessage.error);
+        setAllChatsDetails((prevDetails) => [
+          ...prevDetails,
+          {
+            isValid: false,
+            chatVersionId: chatVersionId,
+          },
+        ]);
         throw new Error(res.statusText);
       } else {
         const data = res.body;
@@ -315,6 +346,18 @@ const Chat_version = ({
           });
         }
         setApiCallInProgress(false);
+        setAllChatsDetails((prevDetails) => [
+          ...prevDetails,
+          {
+            isValid: true,
+            chatVersionId: chatVersionId,
+            model: selected.model_id,
+            input: editedMessage ? editedMessage : userMessage,
+            output: completeString.replace(/\{"tokens":\d+\}/g, ""),
+            systemPrompt: systemPrompt,
+            settings: settings,
+          },
+        ]);
       }
     } catch (error) {
       console.error("API request failed:", error.message);
@@ -369,46 +412,47 @@ const Chat_version = ({
     if (apiCallInProgress) {
       return;
     }
-    if (proname.project_id === undefined || currentChatID.length === 0) {
-      toast.error("Please select the project and playground first!!!");
-      return;
-    }
     const modelId = selected.model_id;
-    const formatModelParams = (settings) => {
-      const paramsArray = Object.entries(settings).map(
-        ([key, value]) => `${key}:${value}`
-      );
-      return paramsArray.join(", ");
-    };
-    const APIBody = messages
-      .filter((item) => item.input !== "" || item.output !== "")
-      .map((item) => ({
-        [modelId]: {
-          system_prompt: systemPrompt,
-          input: item.input,
-          output: item.output.replace(/\{"tokens":\d+\}/g, ""),
-          model_params: formatModelParams(settings),
-        },
-      }));
-    const formData = {
-      project_id: proname.project_id,
-      playground_id: currentChatID,
-      access_token: localStorage.getItem("customAIKey"),
-      start_time: new Date().toISOString(),
-      prompt_response_pairs: APIBody,
-    };
-    try {
-      const response = await fetch("/api/manageChatPlayground", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        const responseData = await response.json();
-        toast.success("The traces are successfully stored!!!");
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
+    // if (proname.project_id === undefined || currentChatID.length === 0) {
+    //   toast.error("Please select the project and playground first!!!");
+    //   return;
+    // }
+    saveTraceChatPlayground(modelId);
+    // const formatModelParams = (settings) => {
+    //   const paramsArray = Object.entries(settings).map(
+    //     ([key, value]) => `${key}:${value}`
+    //   );
+    //   return paramsArray.join(", ");
+    // };
+    // const APIBody = messages
+    //   .filter((item) => item.input !== "" || item.output !== "")
+    //   .map((item) => ({
+    //     [modelId]: {
+    //       system_prompt: systemPrompt,
+    //       input: item.input,
+    //       output: item.output.replace(/\{"tokens":\d+\}/g, ""),
+    //       model_params: formatModelParams(settings),
+    //     },
+    //   }));
+    // const formData = {
+    //   project_id: proname.project_id,
+    //   playground_id: currentChatID,
+    //   access_token: localStorage.getItem("customAIKey"),
+    //   start_time: new Date().toISOString(),
+    //   prompt_response_pairs: APIBody,
+    // };
+    // try {
+    //   const response = await fetch("/api/manageChatPlayground", {
+    //     method: "POST",
+    //     body: JSON.stringify(formData),
+    //   });
+    //   const responseData = await response.json();
+    //   if (response.ok) {
+    //     toast.success("The traces are successfully stored!!!");
+    //   }
+    // } catch (error) {
+    //   console.error("Error during API request:", error);
+    // }
   };
 
   const handleSelect = (model) => {

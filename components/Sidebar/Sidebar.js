@@ -7,6 +7,7 @@ import {
   MonitoringIcon,
   ProjectIcon,
   SaleIcon,
+  StarIcon,
   TraceIcon,
   UserIcon,
 } from "@/public/Assets/Icons/Allsvg";
@@ -140,6 +141,15 @@ const Sidebar = () => {
                     </p>
                   </a>
                 )}
+                <a
+                  href="/leaderboard"
+                  className="flex gap-[10px] items-center mt-[30px]"
+                >
+                  <StarIcon className="w-[24px]" />
+                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                    Leaderboard
+                  </p>
+                </a>
               </div>
             </div>
           </div>
