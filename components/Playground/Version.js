@@ -125,37 +125,6 @@ const Version = ({
     setMistralKey(key8);
   }, []);
 
-  //new Mapping for vercel usage
-  const providerMapping = {
-    openai: new OpenAI({apiKey: openaiKey, dangerouslyAllowBrowser:true}),
-
-    fireworks: new OpenAI({
-      apiKey: fireworksAIKey || '',
-      baseURL: 'https://api.fireworks.ai/inference/v1',
-      dangerouslyAllowBrowser:true
-    }),
-
-    custom: {endpoint: customEndpoint, apiKey: customAIKey},
-
-    togethercompute: {
-      endpoint: "https://api.together.xyz/v1/chat/completions", 
-      apiKey: togetheraiKey
-    },
-
-    anthropic: new Anthropic({
-      apiKey: anthropicKey || '',
-    }),
-
-    cohere: new CohereClient({
-      token: cohereKey,
-    }),
-
-    google: new GoogleGenerativeAI(googleKey || ''),
-
-    mistral: new MistralClient(mistralKey || ''),
-
-
-  };
 
   const providerConfig = {
     openai: {
@@ -180,6 +149,59 @@ const Version = ({
   // Function to append apiResponse to message
   const handleCopyClick = () => {
     appendToMessage(apiResponse);
+  };
+// Vercel integration
+  const fetchVerselResponse = async () => {
+    let res = null;
+    setTokens();
+    setApiResponse("");
+    setIsLoading(true);
+    const providerInfo = providerConfig[selected.provider];
+    if (!providerInfo) {
+      setError(`Provider ${selected.provider} is not supported.`);
+      setIsLoading(false);
+      return;
+    }
+    try{
+      const formData = {
+        settings: settings,
+        modal: selected,
+        message: message,
+        systemPrompt: open ? systemPrompt : "",
+        type: "prompt",
+      };
+        switch(selected.provider){
+          case openai:
+            formData[authKey] = openaiKey
+            res = await fetch("/api/openai", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;
+          case fireworks:
+            break;
+          case custom:
+            break;
+          case togethercompute:
+            break;
+          case anthropic:
+            break;
+          case cohere:
+            break;
+          case google:
+            break;
+          case mistral:
+            break;
+          }
+        }
+      catch (error) {
+        console.error("API request failed:", error.message);
+        setError("Error: " + error.message);
+        setIsLoading(false);
+      }
   };
 
   const fetchApiResponse = async () => {
