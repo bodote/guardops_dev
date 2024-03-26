@@ -182,18 +182,62 @@ const Version = ({
             })
             break;
           case fireworks:
+            formData[authKey] = fireworksAIKey
+            res = await fetch("/api/fireworks", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
             break;
           case custom:
+            formData[authKey] = customAIKey
+           //TODO: custom endpoint logic
             break;
           case togethercompute:
+            formData[authKey] = togetheraiKey
+            //TODO: togetherai logic
             break;
           case anthropic:
+            formData[authKey] = anthropicKey
+            res = await fetch("/api/anthropic", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
             break;
           case cohere:
+            formData[authKey] = cohereKey
+            res = await fetch("/api/cohere", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
             break;
           case google:
+            formData[authKey] = googleKey
+            res = await fetch("/api/google", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
             break;
           case mistral:
+            formData[authKey] = mistralKey
+            res = await fetch("/api/mistral", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
             break;
           }
         }

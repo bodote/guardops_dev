@@ -7,13 +7,7 @@ export const runtime = 'edge';
 // Prevent nextjs to cache this route
 export const dynamic = 'force-dynamic';
  
-if (!process.env.COHERE_API_KEY) {
-  throw new Error('Missing COHERE_API_KEY environment variable');
-}
- 
-const cohere = new CohereClient({
-  token: process.env.COHERE_API_KEY,
-});
+
  
 const toCohereRole = (role) => {
   if (role === 'user') {
@@ -22,9 +16,17 @@ const toCohereRole = (role) => {
   return Cohere.ChatMessageRole.Chatbot;
 };
  
-export async function POST(req) {
+export default async function handler(req) {
+  const { api_key } = req.body;
+  if (!api_key) {
+    throw new Error('Missing COHERE_API_KEY environment variable');
+  }
+   
+  const cohere = new CohereClient({
+    token: api_key,
+  });
   // Extract the `prompt` from the body of the request
-  const { messages } = await req.json();
+  const { messages } = await req.body;
   const chatHistory = messages.map((message) => ({
     message: message.content,
     role: toCohereRole(message.role),

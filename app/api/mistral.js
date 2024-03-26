@@ -5,12 +5,15 @@ import MistralClient from '@mistralai/mistralai';
 const mistral = new MistralClient(process.env.MISTRAL_API_KEY || '');
  
 export async function POST(req) {
+  const { api_key, model, max_tokens } = req.body;
+
+  const mistral = new MistralClient(api_key || '');
   // Extract the `messages` from the body of the request
   const { messages } = await req.json();
  
   const response = mistral.chatStream({
-    model: 'mistral-small',
-    maxTokens: 1000,
+    model: model,
+    maxTokens: max_tokens,
     messages,
   });
  

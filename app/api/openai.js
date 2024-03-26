@@ -5,13 +5,14 @@ import { OpenAIStream, StreamingTextResponse } from 'ai';
 // IMPORTANT! Set the runtime to edge
 export const runtime = 'edge';
  
-export default async function handler(req, api_key, model) {
+export default async function handler(req) {
+const { api_key, model } = req.body;
   // Create an OpenAI API client (that's edge friendly!)
 const openai = new OpenAI({
   apiKey: api_key,
 });
  
-  const { messages } = await req.json();
+  const { messages } = await req.body;
  
   // Ask OpenAI for a streaming chat completion given the prompt
   const response = await openai.chat.completions.create({

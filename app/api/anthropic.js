@@ -5,15 +5,15 @@ import { AnthropicStream, StreamingTextResponse } from 'ai';
 // IMPORTANT! Set the runtime to edge
 export const runtime = 'edge';
  
-export default async function handler(req, api_key, model, max_tokens=300) {
-
+export default async function handler(req) {
+  const { api_key, model, max_tokens } = req.body;
   // Create an Anthropic API client (that's edge friendly)
   const anthropic = new Anthropic({
     apiKey: api_key || '',
   });
  
   // Extract the `prompt` from the body of the request
-  const { messages } = await req.json();
+  const { messages } = await req.body;
  
   // Ask Claude for a streaming chat completion given the prompt
   const response = await anthropic.messages.create({
