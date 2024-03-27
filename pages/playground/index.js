@@ -312,7 +312,7 @@ const index = () => {
     }
   }, [allPromtsDetails]);
 
-  const saveTraceChatPlayground = async (modelId) => {
+  const saveTraceChatPlayground = async () => {
     if (proname.project_id === undefined || currentChatID.length === 0) {
       toast.error("Please select the project and playground first!!!");
       return;
@@ -323,29 +323,45 @@ const index = () => {
       );
       return paramsArray.join(", ");
     };
-    // console.log("Chat: ", allChatsDetails);
-    const APIBody = allChatsDetails
-      .filter(
-        (item) => item.isValid && (item.input !== "" || item.output !== "")
-      )
-      .map((item) => ({
-        [modelId]: {
-          system_prompt: item.systemPrompt,
-          input: item.input,
-          output: item.output.replace(/\{"tokens":\d+\}/g, ""),
-          model_params: formatModelParams(item.settings),
-        },
-      }));
-    const formData = {
-      project_id: proname.project_id,
-      playground_id: currentChatID,
-      access_token: localStorage.getItem("customAIKey"),
-      start_time: new Date().toISOString(),
-      prompt_response_pairs: APIBody,
-    };
-    // console.log("Form: ", formData);
+    const uniqueChatVersionIds = [
+      ...new Set(allChatsDetails.map((item) => item.chatVersionId)),
+    ];
 
     try {
+      let combinedAPIBody = [];
+      await Promise.all(
+        uniqueChatVersionIds.map(async (chatVersionId) => {
+          const chatDetails = allChatsDetails.filter(
+            (item) => item.chatVersionId === chatVersionId
+          );
+
+          const lastModel = chatDetails[chatDetails.length - 1].model;
+          const APIBody = chatDetails
+            .filter(
+              (item) =>
+                item.isValid && (item.input !== "" || item.output !== "")
+            )
+            .map((item) => ({
+              [lastModel]: {
+                system_prompt: item.systemPrompt,
+                input: item.input,
+                output: item.output.replace(/\{"tokens":\d+\}/g, ""),
+                model_params: formatModelParams(item.settings),
+              },
+            }));
+
+          combinedAPIBody.push(APIBody);
+        })
+      );
+      const formData = {
+        project_id: proname.project_id,
+        playground_id: currentChatID,
+        access_token: localStorage.getItem("customAIKey"),
+        start_time: new Date().toISOString(),
+        prompt_response_pairs: combinedAPIBody,
+      };
+
+      // Make API call with the combined form data
       const response = await fetch("/api/manageChatPlayground", {
         method: "POST",
         body: JSON.stringify(formData),
@@ -359,144 +375,6 @@ const index = () => {
       console.error("Error during API request:", error);
     }
   };
-
-  // const saveTraceChatPlayground = async (modelId) => {
-  //   if (proname.project_id === undefined || currentChatID.length === 0) {
-  //     toast.error("Please select the project and playground first!!!");
-  //     return;
-  //   }
-  //   const formatModelParams = (settings) => {
-  //     const paramsArray = Object.entries(settings).map(
-  //       ([key, value]) => `${key}:${value}`
-  //     );
-  //     return paramsArray.join(", ");
-  //   };
-  //   console.log("Chat: ", allChatsDetails);
-
-  //   // Find unique chatVersionIds
-  //   const uniqueChatVersionIds = [
-  //     ...new Set(allChatsDetails.map((item) => item.chatVersionId)),
-  //   ];
-
-  //   try {
-  //     // Iterate over each unique chatVersionId
-  //     await Promise.all(
-  //       uniqueChatVersionIds.map(async (chatVersionId) => {
-  //         // Filter chat details for the current chatVersionId
-  //         const chatDetails = allChatsDetails.filter(
-  //           (item) => item.chatVersionId === chatVersionId
-  //         );
-
-  //         // Construct API body for the current chatVersionId
-  //         const APIBody = chatDetails
-  //           .filter(
-  //             (item) =>
-  //               item.isValid && (item.input !== "" || item.output !== "")
-  //           )
-  //           .map((item) => ({
-  //             [modelId]: {
-  //               system_prompt: item.systemPrompt,
-  //               input: item.input,
-  //               output: item.output.replace(/\{"tokens":\d+\}/g, ""),
-  //               model_params: formatModelParams(item.settings),
-  //             },
-  //           }));
-
-  //         // Construct form data for the current chatVersionId
-  //         const formData = {
-  //           project_id: proname.project_id,
-  //           playground_id: currentChatID,
-  //           access_token: localStorage.getItem("customAIKey"),
-  //           start_time: new Date().toISOString(),
-  //           prompt_response_pairs: APIBody,
-  //         };
-  //         console.log("FOrm: ", formData);
-  //         // Make API call for the current chatVersionId
-  //         const response = await fetch("/api/manageChatPlayground", {
-  //           method: "POST",
-  //           body: JSON.stringify(formData),
-  //         });
-
-  //         const responseData = await response.json();
-  //         if (response.ok) {
-  //           toast.success("The traces are successfully stored!!!");
-  //         }
-  //       })
-  //     );
-  //   } catch (error) {
-  //     console.error("Error during API request:", error);
-  //   }
-  // };
-
-  // const saveTraceChatPlayground = async (modelId) => {
-  //   if (proname.project_id === undefined || currentChatID.length === 0) {
-  //     toast.error("Please select the project and playground first!!!");
-  //     return;
-  //   }
-  //   const formatModelParams = (settings) => {
-  //     const paramsArray = Object.entries(settings).map(
-  //       ([key, value]) => `${key}:${value}`
-  //     );
-  //     return paramsArray.join(", ");
-  //   };
-
-  //   // Group chats based on chatVersionId
-  //   const groupedChats = {};
-  //   allChatsDetails.forEach((chat) => {
-  //     if (!groupedChats.hasOwnProperty(chat.chatVersionId)) {
-  //       groupedChats[chat.chatVersionId] = [];
-  //     }
-  //     groupedChats[chat.chatVersionId].push(chat);
-  //   });
-
-  //   // Iterate over each group of chats
-  //   for (const chatVersionId in groupedChats) {
-  //     if (!groupedChats.hasOwnProperty(chatVersionId)) continue;
-
-  //     // Construct prompt_response_pairs for this group
-  //     const APIBody = groupedChats[chatVersionId]
-  //       .filter(
-  //         (chat) => chat.isValid && (chat.input !== "" || chat.output !== "")
-  //       )
-  //       .map((chat) => ({
-  //         [chat.model]: {
-  //           system_prompt: chat.systemPrompt,
-  //           input: chat.input,
-  //           output: chat.output.replace(/\{"tokens":\d+\}/g, ""),
-  //           model_params: formatModelParams(chat.settings),
-  //         },
-  //       }));
-
-  //     if (APIBody.length === 0) continue; // Skip if no valid chats in this group
-
-  //     // Construct form data for this group
-  //     const formData = {
-  //       project_id: proname.project_id,
-  //       playground_id: currentChatID,
-  //       access_token: localStorage.getItem("customAIKey"),
-  //       start_time: new Date().toISOString(),
-  //       prompt_response_pairs: APIBody,
-  //     };
-
-  //     console.log("Form for chatVersionId: ", chatVersionId, formData);
-
-  //     // Make API call for this group
-
-  //     try {
-  //       const response = await fetch("/api/manageChatPlayground", {
-  //         method: "POST",
-  //         body: JSON.stringify(formData),
-  //       });
-
-  //       const responseData = await response.json();
-  //       if (response.ok) {
-  //         toast.success("The traces are successfully stored!!!");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error during API request:", error);
-  //     }
-  //   }
-  // };
 
   const saveTracePlayground = async () => {
     const formatModelParams = (settings) => {
@@ -727,6 +605,77 @@ const index = () => {
     }
     return buttons;
   };
+
+  // const getTraces = async (playgroundId) => {
+  //   try {
+  //     const response = await fetch(
+  //       `/api/manageTraces?playground_id=${playgroundId}`,
+  //       {
+  //         method: "GET",
+  //       }
+  //     );
+  //     if (response.ok) {
+  //       const responseData = await response.json();
+  //       if (responseData) {
+  //         console.log(responseData.traces);
+  //         reconstructConversation(responseData.traces);
+  //       }
+  //     } else {
+  //       console.error("API request failed:", response.statusText);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during API request:", error);
+  //   }
+  // };
+
+  // const reconstructConversation = (traces) => {
+  //   console.log("Traces: ", traces);
+  //   let chatHistory = [];
+
+  //   // Iterate over each trace
+  //   traces.forEach((trace) => {
+  //     let traceChatHistory = [];
+
+  //     // Process each trace individually
+
+  //     const promptOutputPairs = trace;
+
+  //     // Find the root prompt-output pair where parent_id is null
+  //     const rootPair = promptOutputPairs.find(
+  //       (pair) => pair.parent_id === null
+  //     );
+  //     if (!rootPair) {
+  //       return; // Move to the next trace if root pair is not found
+  //     }
+  //     traceChatHistory.push(rootPair);
+
+  //     let currentParentId = rootPair.context.span_id;
+  //     while (traceChatHistory.length < promptOutputPairs.length) {
+  //       // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
+  //       const nextPair = promptOutputPairs.find(
+  //         (pair) => pair.parent_id === currentParentId
+  //       );
+  //       if (nextPair) {
+  //         traceChatHistory.push(nextPair);
+  //         currentParentId = nextPair.context.span_id;
+  //       } else {
+  //         break; // Exit loop if no more pairs are found
+  //       }
+  //     }
+
+  //     // Concatenate the trace chat history to the main chat history
+  //     console.log("TRChat: ", traceChatHistory);
+  //     chatHistory = chatHistory.concat(traceChatHistory);
+  //   });
+
+  //   // After processing all traces, map chat history to newMessages
+  //   const newMessages = chatHistory.map((pair) => ({
+  //     input: pair.attributes.prompt || "",
+  //     output: pair.attributes.output || "",
+  //   }));
+  //   console.log("New: ", newMessages);
+  //   // setMessages(newMessages); // Assuming setMessages is defined elsewhere
+  // };
   return (
     <>
       {loader ? (
@@ -816,9 +765,10 @@ const index = () => {
                         >
                           <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
                           <div
-                            onClick={() =>
-                              setCurrentChatID(playground.playground_id)
-                            }
+                            onClick={() => {
+                              // getTraces(playground.playground_id);
+                              setCurrentChatID(playground.playground_id);
+                            }}
                             className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
                               currentChatID === playground.playground_id
                                 ? "underline"

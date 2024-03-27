@@ -131,7 +131,13 @@ const Chat_version = ({
 
   const reconstructConversation = (traces) => {
     let chatHistory = [];
+
+    // Iterate over each trace
     traces.forEach((trace) => {
+      let traceChatHistory = [];
+
+      // Process each trace individually
+
       const promptOutputPairs = trace;
 
       // Find the root prompt-output pair where parent_id is null
@@ -141,51 +147,32 @@ const Chat_version = ({
       if (!rootPair) {
         return; // Move to the next trace if root pair is not found
       }
-      chatHistory.push(rootPair);
+      traceChatHistory.push(rootPair);
 
       let currentParentId = rootPair.context.span_id;
-      while (chatHistory.length < promptOutputPairs.length) {
+      while (traceChatHistory.length < promptOutputPairs.length) {
         // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
         const nextPair = promptOutputPairs.find(
           (pair) => pair.parent_id === currentParentId
         );
         if (nextPair) {
-          chatHistory.push(nextPair);
+          traceChatHistory.push(nextPair);
           currentParentId = nextPair.context.span_id;
         } else {
           break; // Exit loop if no more pairs are found
         }
       }
+
+      // Concatenate the trace chat history to the main chat history
+      chatHistory = chatHistory.concat(traceChatHistory);
     });
+
+    // After processing all traces, map chat history to newMessages
     const newMessages = chatHistory.map((pair) => ({
       input: pair.attributes.prompt || "",
       output: pair.attributes.output || "",
     }));
-
-    setMessages(newMessages);
-    setAllChatsDetails((prevDetails) => [
-      ...prevDetails,
-      ...chatHistory.map((pair) => {
-        // const model = models.find((m) => m.name === pair.attributes.model);
-        const modelParams = pair.attributes.model_params || "";
-        const parsedModelParams = modelParams
-          .split(",")
-          .reduce((acc, param) => {
-            const [key, value] = param.split(":");
-            acc[key.trim()] = parseFloat(value.trim());
-            return acc;
-          }, {});
-        return {
-          isValid: true,
-          chatVersionId: chatVersionId,
-          // model: model ? model.model_id : "",
-          input: pair.attributes.prompt,
-          output: pair.attributes.output.replace(/\{"tokens":\d+\}/g, ""),
-          systemPrompt: pair.attributes.system_prompt || "",
-          settings: parsedModelParams,
-        };
-      }),
-    ]);
+    setMessages(newMessages); // Assuming setMessages is defined elsewhere
   };
 
   const providerConfig = {
@@ -412,47 +399,7 @@ const Chat_version = ({
     if (apiCallInProgress) {
       return;
     }
-    const modelId = selected.model_id;
-    // if (proname.project_id === undefined || currentChatID.length === 0) {
-    //   toast.error("Please select the project and playground first!!!");
-    //   return;
-    // }
-    saveTraceChatPlayground(modelId);
-    // const formatModelParams = (settings) => {
-    //   const paramsArray = Object.entries(settings).map(
-    //     ([key, value]) => `${key}:${value}`
-    //   );
-    //   return paramsArray.join(", ");
-    // };
-    // const APIBody = messages
-    //   .filter((item) => item.input !== "" || item.output !== "")
-    //   .map((item) => ({
-    //     [modelId]: {
-    //       system_prompt: systemPrompt,
-    //       input: item.input,
-    //       output: item.output.replace(/\{"tokens":\d+\}/g, ""),
-    //       model_params: formatModelParams(settings),
-    //     },
-    //   }));
-    // const formData = {
-    //   project_id: proname.project_id,
-    //   playground_id: currentChatID,
-    //   access_token: localStorage.getItem("customAIKey"),
-    //   start_time: new Date().toISOString(),
-    //   prompt_response_pairs: APIBody,
-    // };
-    // try {
-    //   const response = await fetch("/api/manageChatPlayground", {
-    //     method: "POST",
-    //     body: JSON.stringify(formData),
-    //   });
-    //   const responseData = await response.json();
-    //   if (response.ok) {
-    //     toast.success("The traces are successfully stored!!!");
-    //   }
-    // } catch (error) {
-    //   console.error("Error during API request:", error);
-    // }
+    saveTraceChatPlayground();
   };
 
   const handleSelect = (model) => {
