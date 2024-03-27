@@ -70,6 +70,7 @@ const Version = ({
         }
   );
   const [apiResponse, setApiResponse] = useState("");
+  const [vercelResponse, setVercelResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tokens, setTokens] = useState();
@@ -152,7 +153,7 @@ const Version = ({
   };
 // Vercel integration
   const fetchVerselResponse = async () => {
-    let res = null;
+    var res = null;
     setTokens();
     setApiResponse("");
     setIsLoading(true);
@@ -164,7 +165,7 @@ const Version = ({
     }
     try{
       var formData = {
-        settings: settings,
+        max_tokens: settings.maxTokens,
         model: selected.id1,
         prompt: message,
         systemPrompt: open ? systemPrompt : "",
@@ -173,7 +174,7 @@ const Version = ({
         switch(selected.provider){
           case "openai":
             formData.api_key = openaiKey
-            res = await fetch("/api/openai", {
+            res = await fetch("/api/anthropic", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -240,6 +241,7 @@ const Version = ({
             })
             break;
           }
+          setVercelResponse(res)
         }
       catch (error) {
         console.error("API request failed:", error.message);
@@ -365,17 +367,27 @@ const Version = ({
     const apiKey = providerInfo ? providerInfo.getKey() : null;
 
     if (message && isValidModelSelected && apiKey && runPressed) {
+      
+      // fetchApiResponse()
+      //   .then(() => {
+      //     resetRunPressed(); // Reset runPressed after the API call
+      //     setApiCallInProgress(false);
+      //   })
+      //   .catch((error) => {
+      //     console.error("Error fetching API response:", error);
+      //     setError("Error: " + error.message); // Set error state
+      //     setApiCallInProgress(false);
+      //   });
       fetchVerselResponse()
-      fetchApiResponse()
-        .then(() => {
-          resetRunPressed(); // Reset runPressed after the API call
-          setApiCallInProgress(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching API response:", error);
-          setError("Error: " + error.message); // Set error state
-          setApiCallInProgress(false);
-        });
+      .then(() => {
+        resetRunPressed(); // Reset runPressed after the API call
+        setApiCallInProgress(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching API response:", error);
+        setError("Error: " + error.message); // Set error state
+        setApiCallInProgress(false);
+      });
     } else if (runPressed) {
       let missingItems = [];
       if (!message) missingItems.push("message");
@@ -761,48 +773,9 @@ const Version = ({
                 open && "2xl:h-[calc(100vh-822px)] h-[calc(100vh-778px)]"
               } ${versions > 4 && "sm:max-h-auto"}`}
             >
-              {isLoading ? (
-                <p>Loading...</p>
-              ) : apiResponse ? (
-                segments.map((segment, index) =>
-                  segment.type === "code" ? (
-                    <CodeBox key={index} code={segment.content} />
-                  ) : (
-                    <ReactMarkdown
-                      components={{
-                        ul: ({ node, ...props }) => (
-                          <ul
-                            style={{
-                              display: "block",
-                              listStyleType: "disc",
-                              paddingInlineStart: "40px",
-                            }}
-                            {...props}
-                          />
-                        ),
-                        ol: ({ node, ...props }) => (
-                          <ol
-                            style={{
-                              display: "block",
-                              listStyleType: "decimal",
-                              paddingInlineStart: "40px",
-                            }}
-                            {...props}
-                          />
-                        ),
-                        h1: ({ node, ...props }) => (
-                          <h1 className="font-bold text-6xl" {...props} />
-                        ),
-                      }}
-                      remarkPlugins={[gfm]}
-                      key={index}
-                      children={segment.content}
-                    />
-                  )
-                )
-              ) : error ? (
-                <p>Error: {error}</p>
-              ) : null}
+           {vercelResponse}
+              
+              
             </div>
           </div>
           <div className="flex gap-[10px] justify-center mt-[17px]">
