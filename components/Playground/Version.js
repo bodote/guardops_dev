@@ -241,8 +241,45 @@ const Version = ({
             })
             break;
           }
-          setVercelResponse(res)
+          const data = res.body;
+          setIsLoading(false);
+        const reader = data.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+        let completeString = "";
+
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          const chunkValue = decoder.decode(value);
+          const tokenRegex = /{"tokens":(\d+)}/g;
+          const match = tokenRegex.exec(chunkValue);
+          let tokenChunk = "";
+          if (match) {
+            const tokensValue = parseInt(match[1]);
+            setTokens(tokensValue);
+            tokenChunk += chunkValue.substring(0, match.index);
+          } else {
+            tokenChunk += chunkValue;
+          }
+          setVercelResponse((prev) => prev + tokenChunk);
+          completeString += chunkValue;
         }
+        setIsLoading(false);
+        setAllPromtsDetails((prevDetails) => [
+          ...prevDetails,
+          {
+            isValid: true,
+            versionId: versionId,
+            model: selected.model_id,
+            input: message,
+            output: completeString,
+            systemPrompt: systemPrompt,
+            settings: settings,
+          },
+        ]);
+      }
+        
       catch (error) {
         console.error("API request failed:", error.message);
         setError("Error: " + error.message);
@@ -483,7 +520,7 @@ const Version = ({
     return segments;
   };
 
-  const segments = parseApiResponse(apiResponse);
+  const segments = parseApiResponse(vercelResponse);
 
   // Settings Modal Window
   // State to manage settings visibility
@@ -773,8 +810,48 @@ const Version = ({
                 open && "2xl:h-[calc(100vh-822px)] h-[calc(100vh-778px)]"
               } ${versions > 4 && "sm:max-h-auto"}`}
             >
-           {vercelResponse}
-              
+               {isLoading ? (
+                <p>Loading...</p>
+              ) : vercelResponse ? (
+                segments.map((segment, index) =>
+                  segment.type === "code" ? (
+                    <CodeBox key={index} code={segment.content} />
+                  ) : (
+                    <ReactMarkdown
+                      components={{
+                        ul: ({ node, ...props }) => (
+                          <ul
+                            style={{
+                              display: "block",
+                              listStyleType: "disc",
+                              paddingInlineStart: "40px",
+                            }}
+                            {...props}
+                          />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol
+                            style={{
+                              display: "block",
+                              listStyleType: "decimal",
+                              paddingInlineStart: "40px",
+                            }}
+                            {...props}
+                          />
+                        ),
+                        h1: ({ node, ...props }) => (
+                          <h1 className="font-bold text-6xl" {...props} />
+                        ),
+                      }}
+                      remarkPlugins={[gfm]}
+                      key={index}
+                      children={segment.content}
+                    />
+                  )
+                )
+              ) : error ? (
+                <p>Error: {error}</p>
+              ) : null}
               
             </div>
           </div>
