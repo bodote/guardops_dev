@@ -6,7 +6,10 @@ import { AnthropicStream, StreamingTextResponse } from 'ai';
 export const runtime = 'edge';
 
 export default async function handler(req) {
-  const { api_key, model, max_tokens, type } = req.body;
+  const body = await req.json()
+
+  try {
+    const { api_key, model, type, max_tokens, messages, prompt } = body;
   // Create an Anthropic API client (that's edge friendly)
   const anthropic = new Anthropic({
     apiKey: api_key || '',
@@ -14,7 +17,6 @@ export default async function handler(req) {
 
   if (type === "chat") {
     // Extract the `prompt` from the body of the request
-    const { messages } = await req.body;
 
     // Ask Claude for a streaming chat completion given the prompt
     const response = await anthropic.messages.create({
@@ -25,7 +27,6 @@ export default async function handler(req) {
     });
   } else if (type === "prompt") {
     // Extract the `prompt` from the body of the request
-    const { prompt } = await req.body;
 
     // Ask Claude for a streaming chat completion given the prompt
     const response = await anthropic.completions.create({
@@ -40,4 +41,8 @@ export default async function handler(req) {
 
   // Respond with the stream
   return new StreamingTextResponse(stream);
+} catch (error) {
+  console.log(error)
+  return new NextResponse(error)
+}
 }

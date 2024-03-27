@@ -5,12 +5,14 @@ import MistralClient from '@mistralai/mistralai';
 const mistral = new MistralClient(process.env.MISTRAL_API_KEY || '');
  
 export async function POST(req) {
-  const { api_key, model, max_tokens, type } = req.body;
+  const body = await req.json()
+
+  try {
+    const { api_key, model, type, max_tokens, messages, prompt } = body;
 
   const mistral = new MistralClient(api_key || '');
   // Extract the `messages` from the body of the request
   if (type ==="chat"){
-  const { messages } = await req.json();
  
   const response = mistral.chatStream({
     model: model,
@@ -19,7 +21,6 @@ export async function POST(req) {
   });
 } else if (type==="prompt"){
    // Extract the `prompt` from the body of the request
-   const { prompt } = await req.body;
  
    // Ask Mistral for a streaming completion given the prompt
    const response = mistral.chatStream({
@@ -34,4 +35,8 @@ export async function POST(req) {
  
   // Respond with the stream
   return new StreamingTextResponse(stream);
+} catch (error) {
+  console.log(error)
+  return new NextResponse(error)
+}
 }

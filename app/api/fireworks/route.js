@@ -5,7 +5,10 @@ import { OpenAIStream, StreamingTextResponse } from 'ai';
 // IMPORTANT! Set the runtime to edge
 export const runtime = 'edge';
 export default async function handler(req) {
-  const { api_key, model, max_tokens, type } = req.body;
+  const body = await req.json()
+
+  try {
+    const { api_key, model, type, max_tokens, messages, prompt } = body;
   // Create an OpenAI API client (that's edge friendly!)
   // but configure it to point to fireworks.ai
   const fireworks = new OpenAI({
@@ -14,7 +17,6 @@ export default async function handler(req) {
   });
   if (type === "chat") {
     // Extract the `messages` from the body of the request
-    const { messages } = await req.body;
 
     // Ask Fireworks for a streaming chat completion using Llama 2 70b model
     // @see https://app.fireworks.ai/models/fireworks/llama-v2-70b-chat
@@ -27,7 +29,6 @@ export default async function handler(req) {
     // Convert the response into a friendly text-stream.
   } else if (type === "prompt") {
     // Extract the `prompt` from the body of the request
-    const { prompt } = await req.body;
 
     // Ask Fireworks for a streaming chat completion using Llama 2 70b model
     // @see https://app.fireworks.ai/models/fireworks/llama-v2-70b-chat
@@ -43,4 +44,8 @@ export default async function handler(req) {
 
   // Respond with the stream
   return new StreamingTextResponse(stream);
+} catch (error) {
+  console.log(error)
+  return new NextResponse(error)
+}
 }

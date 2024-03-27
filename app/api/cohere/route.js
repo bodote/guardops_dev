@@ -17,7 +17,10 @@ const toCohereRole = (role) => {
 };
  
 export default async function handler(req) {
-  const { api_key,type, model = ""} = req.body;
+  const body = await req.json()
+
+  try {
+    const { api_key, model, type, max_tokens, messages, prompt } = body;
   if (!api_key) {
     throw new Error('Missing COHERE_API_KEY environment variable');
   }
@@ -27,8 +30,7 @@ export default async function handler(req) {
   });
   // Extract the `prompt` from the body of the request
   if (type==="chat"){
-  const { messages } = await req.body;
-  const chatHistory = messages.map((message) => ({
+   const chatHistory = messages.map((message) => ({
     message: message.content,
     role: toCohereRole(message.role),
   }));
@@ -52,7 +54,6 @@ export default async function handler(req) {
   }else if (type==="prompt"){
 
     // Extract the `prompt` from the body of the request
-  const { prompt } = await req.body;
  
   const body = JSON.stringify({
     prompt,
@@ -84,4 +85,8 @@ export default async function handler(req) {
   const stream = CohereStream(response);
   }
   return new Response(stream);
+} catch (error) {
+  console.log(error)
+  return new NextResponse(error)
+}
 }

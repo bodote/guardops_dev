@@ -163,26 +163,27 @@ const Version = ({
       return;
     }
     try{
-      const formData = {
+      var formData = {
         settings: settings,
-        modal: selected,
-        message: message,
+        model: selected.id1,
+        prompt: message,
         systemPrompt: open ? systemPrompt : "",
         type: "prompt",
       };
         switch(selected.provider){
-          case openai:
-            formData[authKey] = openaiKey
+          case "openai":
+            formData.api_key = openaiKey
             res = await fetch("/api/openai", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(formData),
+              body: {model:200}
+              //body: JSON.stringify(formData),
             })
             break;
-          case fireworks:
-            formData[authKey] = fireworksAIKey
+          case "fireworks":
+            formData[api_key] = fireworksAIKey
             res = await fetch("/api/fireworks", {
               method: "POST",
               headers: {
@@ -191,16 +192,16 @@ const Version = ({
               body: JSON.stringify(formData),
             })
             break;
-          case custom:
-            formData[authKey] = customAIKey
+          case "custom":
+            formData[api_key] = customAIKey
            //TODO: custom endpoint logic
             break;
-          case togethercompute:
-            formData[authKey] = togetheraiKey
+          case "togethercompute":
+            formData[api_key] = togetheraiKey
             //TODO: togetherai logic
             break;
-          case anthropic:
-            formData[authKey] = anthropicKey
+          case "anthropic":
+            formData[api_key] = anthropicKey
             res = await fetch("/api/anthropic", {
               method: "POST",
               headers: {
@@ -209,8 +210,8 @@ const Version = ({
               body: JSON.stringify(formData),
             })
             break;
-          case cohere:
-            formData[authKey] = cohereKey
+          case "cohere":
+            formData[api_key] = cohereKey
             res = await fetch("/api/cohere", {
               method: "POST",
               headers: {
@@ -219,8 +220,8 @@ const Version = ({
               body: JSON.stringify(formData),
             })
             break;
-          case google:
-            formData[authKey] = googleKey
+          case "google":
+            formData[api_key] = googleKey
             res = await fetch("/api/google", {
               method: "POST",
               headers: {
@@ -229,8 +230,8 @@ const Version = ({
               body: JSON.stringify(formData),
             })
             break;
-          case mistral:
-            formData[authKey] = mistralKey
+          case "mistral":
+            formData[api_key] = mistralKey
             res = await fetch("/api/mistral", {
               method: "POST",
               headers: {
@@ -365,6 +366,7 @@ const Version = ({
     const apiKey = providerInfo ? providerInfo.getKey() : null;
 
     if (message && isValidModelSelected && apiKey && runPressed) {
+      fetchVerselResponse()
       fetchApiResponse()
         .then(() => {
           resetRunPressed(); // Reset runPressed after the API call
