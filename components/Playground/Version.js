@@ -178,8 +178,7 @@ const Version = ({
               headers: {
                 "Content-Type": "application/json",
               },
-              body: {model:200}
-              //body: JSON.stringify(formData),
+              body: JSON.stringify(formData),
             })
             break;
           case "fireworks":

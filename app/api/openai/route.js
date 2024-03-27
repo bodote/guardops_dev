@@ -8,12 +8,13 @@ export const runtime = 'edge';
 
 export async function POST(req, res) {
   const body = await req.json()
-
+  console.log("vercel")
   try {
     const { api_key, model, type, max_tokens, messages, prompt } = body;
     // Create an OpenAI API client (that's edge friendly!)
-    const openai = new OpenAI({
+    var openai = new OpenAI({
       apiKey: api_key,
+      
     });
     if (type === "chat") {
       // Ask OpenAI for a streaming chat completion given the prompt
@@ -35,8 +36,7 @@ export async function POST(req, res) {
     // Convert the response into a friendly text-stream
     const stream = OpenAIStream(response);
     // Respond with the stream
-    res = new StreamingTextResponse(stream);
-    return res
+    return new StreamingTextResponse(stream);
   } catch (error) {
     console.log(error)
     return new NextResponse(error)
