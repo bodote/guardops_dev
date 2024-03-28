@@ -275,8 +275,9 @@ const Version = ({
             tokenChunk += chunkValue.substring(0, match.index);
           } else {
             tokenChunk += chunkValue;
-            //completeString += chunkValue;
+            
           }
+          completeString += chunkValue;
           setVercelResponse((prev) => prev + tokenChunk);
           
         }
