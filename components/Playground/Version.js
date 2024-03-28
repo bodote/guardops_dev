@@ -64,7 +64,7 @@ const Version = ({
   const [tokens, setTokens] = useState();
   const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
-  const [togetheraiKey, setTogetheraiKey] = useState(""); // State for the API key
+  const [togetherKey, setTogetherKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState(""); // State for the API key
   // vercel keys
   const [anthropicKey, setAnthropicKey] = useState(""); 
@@ -102,8 +102,8 @@ const Version = ({
     setCustomAIKey(key2);
     const key3 = localStorage.getItem("customEndpoint") || "";
     setCustomEndpoint(key3);
-    const key4 = localStorage.getItem("togetherAIKey") || "";
-    setTogetheraiKey(key4);
+    const key4 = localStorage.getItem("togetherKey") || "";
+    setTogetherKey(key4);
     const key5 = localStorage.getItem("anthropicKey") || "";
     setAnthropicKey(key5);
     const key6 = localStorage.getItem("cohereKey") || "";
@@ -130,7 +130,7 @@ const Version = ({
     },
     togethercompute: {
       endpoint: "https://api.together.xyz/v1/chat/completions",
-      getKey: () => togetheraiKey,
+      getKey: () => togetherKey,
     },
     // Add more providers here as needed
   };
@@ -189,9 +189,9 @@ const Version = ({
               },
               body: JSON.stringify(formData),
             })
-            break;            break;
+            break;           
           case "together":
-            formData[api_key] = togetheraiKey
+            formData[api_key] = togetherKey
             res = await fetch("/api/together", {
               method: "POST",
               headers: {
@@ -199,7 +199,7 @@ const Version = ({
               },
               body: JSON.stringify(formData),
             })
-            break;            break;
+            break;          
           case "anthropic":
             formData[api_key] = anthropicKey
             res = await fetch("/api/anthropic", {
@@ -240,6 +240,16 @@ const Version = ({
               body: JSON.stringify(formData),
             })
             break;
+          case "perplexity":
+              formData[api_key] = perplexityKey
+              res = await fetch("/api/perplexity", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+              })
+              break;
           }
         const data = res.body;
         

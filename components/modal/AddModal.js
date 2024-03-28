@@ -35,6 +35,10 @@ const providerList = [
   },
   {
     id: 8,
+    name: "perplexity",
+  },
+  {
+    id: 9,
     name: "together",
   },
 ];

@@ -20,7 +20,7 @@ const PlaygroundSettings = () => {
   const [cohereKey, setCohereKey] = useState("");
   const [mistralKey, setMistralKey] = useState("");
   const [togetherKey, setTogetherKey] = useState("");
-
+  const [perplexityKey, setPerplexityKey] = useState("");
   const [customAIKey, setCustomAIKey] = useState("");
   const [customEndpoint, setCustomEndpoint] = useState("");
 
@@ -83,6 +83,8 @@ const PlaygroundSettings = () => {
     setCohereKey(localStorage.getItem("cohereKey")|| "");
     setMistralKey(localStorage.getItem("mistralKey")|| "");
     setTogetherKey(localStorage.getItem("togetherKey")|| "");
+    setPerplexityKey(localStorage.getItem("perplexityKey")|| "");
+
   }, []);
 
   // Save API key to Local Storage
@@ -158,6 +160,12 @@ const PlaygroundSettings = () => {
               setApiKey={setTogetherKey}
               saveApiKey={() => saveApiKey("togetherKey", togetherKey)}
               label="Together.ai"
+            />
+            <APIKeyInput
+              apiKey={perplexityKey}
+              setApiKey={setPerplexityKey}
+              saveApiKey={() => saveApiKey("perplexityKey", perplexityKey)}
+              label="Perplexity.ai"
             />
             <CustomAPIEndpoint
               apiKey={customAIKey}
