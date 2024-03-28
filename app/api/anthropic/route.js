@@ -11,7 +11,6 @@ export  async function POST(req) {
   var response;
   try {
     const { api_key, model, type, max_tokens, messages, prompt } = body;
-    console.log(api_key)
   // Create an Anthropic API client (that's edge friendly)
   const anthropic = new Anthropic({
     apiKey: api_key || '',
