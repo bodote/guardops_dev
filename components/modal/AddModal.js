@@ -15,10 +15,26 @@ const providerList = [
   },
   {
     id: 3,
-    name: "togethercompute",
+    name: "anthropic",
   },
   {
     id: 4,
+    name: "cohere",
+  },
+  {
+    id: 5,
+    name: "google",
+  },
+  {
+    id: 6,
+    name: "mistral",
+  },
+  {
+    id: 6,
+    name: "together",
+  },
+  {
+    id: 7,
     name: "custom",
   },
 ];

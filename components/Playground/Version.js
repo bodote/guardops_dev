@@ -182,12 +182,24 @@ const Version = ({
             break;
           case "custom":
             formData[api_key] = customAIKey
-           //TODO: custom endpoint logic
-            break;
-          case "togethercompute":
+            res = await fetch("/api/custom", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;            break;
+          case "together":
             formData[api_key] = togetheraiKey
-            //TODO: togetherai logic
-            break;
+            res = await fetch("/api/together", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;            break;
           case "anthropic":
             formData[api_key] = anthropicKey
             res = await fetch("/api/anthropic", {
