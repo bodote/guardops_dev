@@ -7,19 +7,19 @@ import { toast } from "react-toastify";
 const providerList = [
   {
     id: 1,
-    name: "openai",
-  },
-  {
-    id: 2,
-    name: "fireworks",
-  },
-  {
-    id: 3,
     name: "anthropic",
   },
   {
-    id: 4,
+    id: 2,
     name: "cohere",
+  },
+  {
+    id: 3,
+    name: "custom",
+  },
+  {
+    id: 4,
+    name: "fireworks",
   },
   {
     id: 5,
@@ -30,12 +30,12 @@ const providerList = [
     name: "mistral",
   },
   {
-    id: 6,
-    name: "together",
+    id: 7,
+    name: "openai",
   },
   {
-    id: 7,
-    name: "custom",
+    id: 8,
+    name: "together",
   },
 ];
 
