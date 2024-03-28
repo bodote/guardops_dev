@@ -44,6 +44,7 @@ const Chat_version = ({
   selectedModel,
   setSelectedModel,
   saveTraceChatPlayground,
+  chatPromptData,
 }) => {
   const [userMessage, setUserMessage] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
@@ -108,73 +109,60 @@ const Chat_version = ({
     }
   };
 
-  const getTraces = async () => {
-    try {
-      const response = await fetch(
-        `/api/manageTraces?playground_id=${currentChatID}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData) {
-          setTracesData(responseData.traces);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
-
   const reconstructConversation = (traces) => {
+    const modelName = traces[0]?.attributes?.model || "";
+    // console.log("++++++++Name: ", modelName);
+    const getModel = models;
     let chatHistory = [];
 
     // Iterate over each trace
-    traces.forEach((trace) => {
-      let traceChatHistory = [];
+    // traces.forEach((trace) => {
+    let traceChatHistory = [];
 
-      // Process each trace individually
+    // Process each trace individually
 
-      const promptOutputPairs = trace;
+    // const promptOutputPairs = traces;
+    const model = models.find((model) => model.name === modelName);
 
-      // Find the root prompt-output pair where parent_id is null
-      const rootPair = promptOutputPairs.find(
-        (pair) => pair.parent_id === null
+    // Find the root prompt-output pair where parent_id is null
+    const rootPair = traces.find((pair) => pair.parent_id === null);
+    if (!rootPair) {
+      return; // Move to the next trace if root pair is not found
+    }
+    traceChatHistory.push(rootPair);
+
+    let currentParentId = rootPair.context.span_id;
+    while (traceChatHistory.length < traces.length) {
+      // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
+      const nextPair = traces.find(
+        (pair) => pair.parent_id === currentParentId
       );
-      if (!rootPair) {
-        return; // Move to the next trace if root pair is not found
+      if (nextPair) {
+        traceChatHistory.push(nextPair);
+        currentParentId = nextPair.context.span_id;
+      } else {
+        break; // Exit loop if no more pairs are found
       }
-      traceChatHistory.push(rootPair);
+    }
 
-      let currentParentId = rootPair.context.span_id;
-      while (traceChatHistory.length < promptOutputPairs.length) {
-        // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
-        const nextPair = promptOutputPairs.find(
-          (pair) => pair.parent_id === currentParentId
-        );
-        if (nextPair) {
-          traceChatHistory.push(nextPair);
-          currentParentId = nextPair.context.span_id;
-        } else {
-          break; // Exit loop if no more pairs are found
-        }
-      }
-
-      // Concatenate the trace chat history to the main chat history
-      chatHistory = chatHistory.concat(traceChatHistory);
-    });
+    // Concatenate the trace chat history to the main chat history
+    chatHistory = chatHistory.concat(traceChatHistory);
 
     // After processing all traces, map chat history to newMessages
     const newMessages = chatHistory.map((pair) => ({
       input: pair.attributes.prompt || "",
       output: pair.attributes.output || "",
     }));
+
+    // if (model) {
+    //   // console.log("Model found:", model);
+    //   setSelected(model);
+    //   // Do whatever you need with the found model
+    // } else {
+    //   // console.log("Model not found");
+    // }
     setMessages(newMessages); // Assuming setMessages is defined elsewhere
   };
-
   const providerConfig = {
     openai: {
       endpoint: "https://api.openai.com/v1/chat/completions",
@@ -431,20 +419,10 @@ const Chat_version = ({
   }, []);
 
   useEffect(() => {
-    if (currentChatID) {
-      getTraces();
+    if (chatPromptData) {
+      reconstructConversation(chatPromptData);
     }
-  }, [currentChatID]);
-
-  useEffect(() => {
-    if (tracesData) {
-      const modelName = tracesData[0]?.[0]?.attributes?.model || "";
-      if (modelName) {
-        setSelected(models.find((model) => model.name === modelName));
-      }
-      reconstructConversation(tracesData);
-    }
-  }, [tracesData]);
+  }, [chatPromptData]);
 
   useEffect(() => {
     if (showSettings) {
@@ -492,7 +470,7 @@ const Chat_version = ({
     <div className="flex sm:flex-row flex-col items-start">
       <div className="w-full">
         <div className="border-r-[#CCCCCC] border-r-[1px]">
-          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
+          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative 2xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
             <div className="flex items-center gap-2">
               <Listbox value={selected} onChange={handleSelect}>
                 {({ open }) => (
@@ -500,7 +478,7 @@ const Chat_version = ({
                     <div className="relative">
                       <Listbox.Button
                         className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
-                          versions > 2 ? "sm:!w-[140px]" : ""
+                          versions > 2 ? "sm:!w-[130px]" : ""
                         }`}
                       >
                         <span className="flex items-center">
@@ -582,7 +560,7 @@ const Chat_version = ({
             </div>
             <div
               className={`flex gap-[17px] sm:mt-0 mt-[20px] ${
-                versions > 2 ? "!gap-[10px]" : ""
+                versions > 2 ? "2xl:!gap-[10px] xl:!gap-[6px] !gap-[10px]" : ""
               }`}
             >
               <button
