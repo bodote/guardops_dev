@@ -71,6 +71,8 @@ const Version = ({
   const [cohereKey, setCohereKey] = useState(""); 
   const [googleKey, setGoogleKey] = useState(""); 
   const [mistralKey, setMistralKey] = useState(""); 
+  const [perplexityKey, setPerplexityKey] = useState(""); 
+
   //
   const [customEndpoint, setCustomEndpoint] = useState(""); // State for the API endpoint
   const modalRef = useRef();
@@ -112,12 +114,13 @@ const Version = ({
     setGoogleKey(key7);
     const key8 = localStorage.getItem("mistralKey") || "";
     setMistralKey(key8);
+    const key9 = localStorage.getItem("perplexityKey") || "";
+    setPerplexityKey(key9);
   }, []);
 
 
   const providerConfig = {
     openai: {
-      endpoint: "https://api.openai.com/v1/chat/completions",
       getKey: () => openaiKey,
     },
     fireworks: {
@@ -145,8 +148,8 @@ const Version = ({
     setTokens();
     setVercelResponse("");
     setIsLoading(true);
-    const providerInfo = providerConfig[selected.provider];
-    if (!providerInfo) {
+    const provider =selected.provider;
+    if (!provider) {
       setError(`Provider ${selected.provider} is not supported.`);
       setIsLoading(false);
       return;
@@ -171,7 +174,7 @@ const Version = ({
             })
             break;
           case "fireworks":
-            formData[api_key] = fireworksAIKey
+            formData.api_key = fireworksAIKey
             res = await fetch("/api/fireworks", {
               method: "POST",
               headers: {
@@ -181,7 +184,7 @@ const Version = ({
             })
             break;
           case "custom":
-            formData[api_key] = customAIKey
+            formData.api_key = customAIKey
             res = await fetch("/api/custom", {
               method: "POST",
               headers: {
@@ -191,7 +194,7 @@ const Version = ({
             })
             break;           
           case "together":
-            formData[api_key] = togetherKey
+            formData.api_key = togetherKey
             res = await fetch("/api/together", {
               method: "POST",
               headers: {
@@ -201,7 +204,7 @@ const Version = ({
             })
             break;          
           case "anthropic":
-            formData[api_key] = anthropicKey
+            formData.api_key = anthropicKey
             res = await fetch("/api/anthropic", {
               method: "POST",
               headers: {
@@ -211,7 +214,7 @@ const Version = ({
             })
             break;
           case "cohere":
-            formData[api_key] = cohereKey
+            formData.api_key = cohereKey
             res = await fetch("/api/cohere", {
               method: "POST",
               headers: {
@@ -221,7 +224,7 @@ const Version = ({
             })
             break;
           case "google":
-            formData[api_key] = googleKey
+            formData.api_key = googleKey
             res = await fetch("/api/google", {
               method: "POST",
               headers: {
@@ -231,7 +234,7 @@ const Version = ({
             })
             break;
           case "mistral":
-            formData[api_key] = mistralKey
+            formData.api_key = mistralKey
             res = await fetch("/api/mistral", {
               method: "POST",
               headers: {
@@ -241,7 +244,7 @@ const Version = ({
             })
             break;
           case "perplexity":
-              formData[api_key] = perplexityKey
+              formData.api_key = perplexityKey
               res = await fetch("/api/perplexity", {
                 method: "POST",
                 headers: {
@@ -302,10 +305,9 @@ const Version = ({
 
   useEffect(() => {
     const isValidModelSelected = selected?.id1 && selected?.id1 !== "None";
-    const providerInfo = providerConfig[selected?.provider];
-    const apiKey = providerInfo ? providerInfo.getKey() : null;
 
-    if (message && isValidModelSelected && apiKey && runPressed) {
+
+    if (message && isValidModelSelected && runPressed) {
       fetchVerselResponse()
       .then(() => {
         resetRunPressed(); // Reset runPressed after the API call
@@ -320,7 +322,6 @@ const Version = ({
       let missingItems = [];
       if (!message) missingItems.push("message");
       if (!isValidModelSelected) missingItems.push("valid model selection");
-      if (!apiKey) missingItems.push("API key");
 
       setVercelResponse(
         `Please provide the following: ${missingItems.join(", ")}.`
