@@ -8,7 +8,6 @@ export const runtime = 'edge';
 
 export async function POST(req, res) {
   const body = await req.json()
-  console.log("vercel")
   var response;
   try {
     const { api_key, model, type, max_tokens, messages, prompt } = body;

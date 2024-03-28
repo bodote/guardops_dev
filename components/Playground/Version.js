@@ -19,17 +19,6 @@ import ModelSettings from "./modelSettings";
 import { Switch } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { AiOutlineStop } from "react-icons/ai";
-// import vercel providers
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { GoogleGenerativeAIStream, Message, StreamingTextResponse } from 'ai';
-import Anthropic from '@anthropic-ai/sdk';
-import { AnthropicStream } from 'ai';
-import { CohereStream } from 'ai';
-import { CohereClient, Cohere } from 'cohere-ai';
-import OpenAI from 'openai';
-import { OpenAIStream } from 'ai';
-import { MistralStream } from 'ai';
-import MistralClient from '@mistralai/mistralai'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -69,7 +58,6 @@ const Version = ({
           name: "Select an option",
         }
   );
-  const [apiResponse, setApiResponse] = useState("");
   const [vercelResponse, setVercelResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -147,15 +135,15 @@ const Version = ({
     // Add more providers here as needed
   };
 
-  // Function to append apiResponse to message
+  // Function to append vercelResponse to message
   const handleCopyClick = () => {
-    appendToMessage(apiResponse);
+    appendToMessage(vercelResponse);
   };
 // Vercel integration
   const fetchVerselResponse = async () => {
     var res = null;
     setTokens();
-    setApiResponse("");
+    setVercelResponse("");
     setIsLoading(true);
     const providerInfo = providerConfig[selected.provider];
     if (!providerInfo) {
@@ -174,7 +162,7 @@ const Version = ({
         switch(selected.provider){
           case "openai":
             formData.api_key = openaiKey
-            res = await fetch("/api/anthropic", {
+            res = await fetch("/api/openai", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -241,8 +229,9 @@ const Version = ({
             })
             break;
           }
-          const data = res.body;
-          setIsLoading(false);
+        const data = res.body;
+        
+        setIsLoading(false);
         const reader = data.getReader();
         const decoder = new TextDecoder();
         let done = false;
@@ -261,10 +250,12 @@ const Version = ({
             tokenChunk += chunkValue.substring(0, match.index);
           } else {
             tokenChunk += chunkValue;
+            //completeString += chunkValue;
           }
           setVercelResponse((prev) => prev + tokenChunk);
-          completeString += chunkValue;
+          
         }
+        
         setIsLoading(false);
         setAllPromtsDetails((prevDetails) => [
           ...prevDetails,
@@ -287,134 +278,12 @@ const Version = ({
       }
   };
 
-  const fetchApiResponse = async () => {
-    setTokens();
-    setApiResponse("");
-    setIsLoading(true);
-    const providerInfo = providerConfig[selected.provider];
-    if (!providerInfo) {
-      setError(`Provider ${selected.provider} is not supported.`);
-      setIsLoading(false);
-      return;
-    }
-
-    const apiEndpoint =
-      selected.provider === "custom"
-        ? providerInfo.endpoint()
-        : providerInfo.endpoint;
-    const authKey =
-      selected.provider === "custom"
-        ? `${providerInfo.getKey()}`
-        : `Bearer ${providerInfo.getKey()}`;
-
-    const formData = {
-      settings: settings,
-      modal: selected,
-      apiEndpoint: apiEndpoint,
-      authKey: authKey,
-      message: message,
-      systemPrompt: open ? systemPrompt : "",
-      type: "prompt",
-    };
-
-    try {
-      const res = await fetch("/api/open-ai-completion", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        setIsLoading(false);
-        // setApiResponse("No content available");
-        const errorText = await res.text();
-        let errorMessage = JSON.parse(errorText);
-        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
-        selected.provider === "openai" &&
-          setApiResponse(errorMessage.error.message);
-        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
-        selected.provider === "togethercompute" &&
-          setApiResponse(errorMessage.error);
-        setAllPromtsDetails((prevDetails) => [
-          ...prevDetails,
-          {
-            isValid: false,
-            versionId: versionId,
-            model: selected.id,
-            input: message,
-            output: "",
-          },
-        ]);
-        throw new Error(res.statusText);
-      } else {
-        const data = res.body;
-        if (!data) {
-          setApiResponse("No content available");
-          return;
-        }
-        setIsLoading(false);
-        const reader = data.getReader();
-        const decoder = new TextDecoder();
-        let done = false;
-        let completeString = "";
-
-        while (!done) {
-          const { value, done: doneReading } = await reader.read();
-          done = doneReading;
-          const chunkValue = decoder.decode(value);
-          const tokenRegex = /{"tokens":(\d+)}/g;
-          const match = tokenRegex.exec(chunkValue);
-          let tokenChunk = "";
-          if (match) {
-            const tokensValue = parseInt(match[1]);
-            setTokens(tokensValue);
-            tokenChunk += chunkValue.substring(0, match.index);
-          } else {
-            tokenChunk += chunkValue;
-          }
-          setApiResponse((prev) => prev + tokenChunk);
-          completeString += chunkValue;
-        }
-        setIsLoading(false);
-        setAllPromtsDetails((prevDetails) => [
-          ...prevDetails,
-          {
-            isValid: true,
-            versionId: versionId,
-            model: selected.model_id,
-            input: message,
-            output: completeString,
-            systemPrompt: systemPrompt,
-            settings: settings,
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error("API request failed:", error.message);
-      setError("Error: " + error.message);
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
     const isValidModelSelected = selected?.id1 && selected?.id1 !== "None";
     const providerInfo = providerConfig[selected?.provider];
     const apiKey = providerInfo ? providerInfo.getKey() : null;
 
     if (message && isValidModelSelected && apiKey && runPressed) {
-      
-      // fetchApiResponse()
-      //   .then(() => {
-      //     resetRunPressed(); // Reset runPressed after the API call
-      //     setApiCallInProgress(false);
-      //   })
-      //   .catch((error) => {
-      //     console.error("Error fetching API response:", error);
-      //     setError("Error: " + error.message); // Set error state
-      //     setApiCallInProgress(false);
-      //   });
       fetchVerselResponse()
       .then(() => {
         resetRunPressed(); // Reset runPressed after the API call
@@ -431,9 +300,9 @@ const Version = ({
       if (!isValidModelSelected) missingItems.push("valid model selection");
       if (!apiKey) missingItems.push("API key");
 
-      setApiResponse(
+      setVercelResponse(
         `Please provide the following: ${missingItems.join(", ")}.`
-      ); // Set error message in apiResponse
+      ); // Set error message in vercelResponse
       setApiCallInProgress(false);
       resetRunPressed();
     }
@@ -443,7 +312,7 @@ const Version = ({
   const handleAnalysis = async () => {
     const formData = {
       input: message,
-      response: apiResponse,
+      response: vercelResponse,
     };
     try {
       const response = await fetch("/api/manageModelChecks", {
@@ -467,7 +336,7 @@ const Version = ({
 
   useEffect(() => {
     if (clear) {
-      setApiResponse("");
+      setVercelResponse("");
       setClear(false);
     }
   }, [clear]);
@@ -494,17 +363,17 @@ const Version = ({
     );
   };
 
-  const parseApiResponse = (apiResponse) => {
+  const parsevercelResponse = (vercelResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
     let lastIndex = 0;
 
-    apiResponse?.replace(regex, (match, codeBlock, index) => {
+    vercelResponse?.replace(regex, (match, codeBlock, index) => {
       // Add the text segment before the code block
       if (index > lastIndex) {
         segments.push({
           type: "text",
-          content: apiResponse.slice(lastIndex, index),
+          content: vercelResponse.slice(lastIndex, index),
         });
       }
       // Add the code block
@@ -513,14 +382,14 @@ const Version = ({
     });
 
     // Add any remaining text after the last code block
-    if (apiResponse && lastIndex < apiResponse.length) {
-      segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
+    if (vercelResponse && lastIndex < vercelResponse.length) {
+      segments.push({ type: "text", content: vercelResponse.slice(lastIndex) });
     }
 
     return segments;
   };
 
-  const segments = parseApiResponse(vercelResponse);
+  const segments = parsevercelResponse(vercelResponse);
 
   // Settings Modal Window
   // State to manage settings visibility
