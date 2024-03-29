@@ -25,7 +25,7 @@ export async function ModalAIStream(payload) {
           });
           messages.push({
             role: "assistant",
-            content: item.output,
+            content: item.output ? item.output : "",
           });
         });
         // Add the current message

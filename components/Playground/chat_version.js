@@ -110,30 +110,20 @@ const Chat_version = ({
   };
 
   const reconstructConversation = (traces) => {
+    setError("");
     const modelName = traces[0]?.attributes?.model || "";
-    // console.log("++++++++Name: ", modelName);
-    const getModel = models;
-    let chatHistory = [];
-
-    // Iterate over each trace
-    // traces.forEach((trace) => {
     let traceChatHistory = [];
 
-    // Process each trace individually
-
-    // const promptOutputPairs = traces;
     const model = models.find((model) => model.name === modelName);
 
-    // Find the root prompt-output pair where parent_id is null
     const rootPair = traces.find((pair) => pair.parent_id === null);
     if (!rootPair) {
-      return; // Move to the next trace if root pair is not found
+      return;
     }
     traceChatHistory.push(rootPair);
 
     let currentParentId = rootPair.context.span_id;
     while (traceChatHistory.length < traces.length) {
-      // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
       const nextPair = traces.find(
         (pair) => pair.parent_id === currentParentId
       );
@@ -141,27 +131,41 @@ const Chat_version = ({
         traceChatHistory.push(nextPair);
         currentParentId = nextPair.context.span_id;
       } else {
-        break; // Exit loop if no more pairs are found
+        break;
       }
     }
-
-    // Concatenate the trace chat history to the main chat history
-    chatHistory = chatHistory.concat(traceChatHistory);
-
-    // After processing all traces, map chat history to newMessages
-    const newMessages = chatHistory.map((pair) => ({
+    const newMessages = traceChatHistory.map((pair) => ({
       input: pair.attributes.prompt || "",
       output: pair.attributes.output || "",
     }));
 
-    // if (model) {
-    //   // console.log("Model found:", model);
-    //   setSelected(model);
-    //   // Do whatever you need with the found model
-    // } else {
-    //   // console.log("Model not found");
-    // }
-    setMessages(newMessages); // Assuming setMessages is defined elsewhere
+    const savedChatDetails = traceChatHistory.map((pair, index) => {
+      // Parse model_params string into JSON object
+      const modelParams = pair.attributes.model_params
+        .split(",")
+        .reduce((acc, param) => {
+          const [key, value] = param.split(":");
+          acc[key.trim()] = parseFloat(value.trim());
+          return acc;
+        }, {});
+
+      return {
+        isValid: true,
+        chatVersionId: chatVersionId,
+        model: model.model_id,
+        input: pair.attributes.prompt,
+        output: pair.attributes.output,
+        systemPrompt: pair.attributes.system_prompt,
+        settings: modelParams,
+      };
+    });
+
+    // setAllChatsDetails((prevDetails) => [...prevDetails, ...savedChatDetails]);
+
+    if (model) {
+      setSelected(model);
+    }
+    setMessages(newMessages);
   };
   const providerConfig = {
     openai: {
@@ -238,6 +242,7 @@ const Chat_version = ({
   };
 
   const fetchApiResponse = async () => {
+    setError("");
     const providerInfo = providerConfig[selected.provider];
 
     if (!providerInfo) {
@@ -312,7 +317,9 @@ const Chat_version = ({
               if (index === lastIndex) {
                 return {
                   ...message,
-                  output: completeString.replace(/\{"tokens":\d+\}/g, ""),
+                  output: completeString.length
+                    ? completeString.replace(/\{"tokens":\d+\}/g, "")
+                    : "",
                 };
               } else {
                 return message;
@@ -419,10 +426,10 @@ const Chat_version = ({
   }, []);
 
   useEffect(() => {
-    if (chatPromptData) {
+    if (chatPromptData && models.length > 0) {
       reconstructConversation(chatPromptData);
     }
-  }, [chatPromptData]);
+  }, [chatPromptData, models]);
 
   useEffect(() => {
     if (showSettings) {
@@ -617,7 +624,7 @@ const Chat_version = ({
             )}
 
             <div
-              className={`bg-[#F7F7F7] h-[calc(100vh-249px)] overflow-y-auto ${
+              className={`bg-[#F7F7F7] h-[calc(100vh-250px)] overflow-y-auto ${
                 error ? "pt-[44px]" : ""
               }`}
             >

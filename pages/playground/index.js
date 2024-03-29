@@ -360,7 +360,6 @@ const index = () => {
         start_time: new Date().toISOString(),
         prompt_response_pairs: combinedAPIBody,
       };
-
       // Make API call with the combined form data
       const response = await fetch("/api/manageChatPlayground", {
         method: "POST",
@@ -608,6 +607,7 @@ const index = () => {
   };
 
   const getTraces = async (playgroundId) => {
+    setCurrentChatID(playgroundId);
     try {
       const response = await fetch(
         `/api/manageTraces?playground_id=${playgroundId}`,
@@ -617,18 +617,13 @@ const index = () => {
       );
       if (response.ok) {
         const responseData = await response.json();
+        setAllChatsDetails([]);
         if (responseData.traces && responseData.traces.length > 0) {
           setChatVersions([]);
-          // If responseData.traces is not empty, add elements to chatVersion
-          // reconstructConversation(responseData.traces);
           const newChatVersions = [];
           responseData.traces.forEach((data, i) => {
-            // const newId =
-            //   chatVersion.length > 0
-            //     ? chatVersion[chatVersion.length - 1].id + 1
-            //     : 1;
             newChatVersions.push({
-              id: i,
+              id: i + 1,
               component: <Chat_version chatPromptData={data} />,
             });
           });
@@ -638,7 +633,11 @@ const index = () => {
             ...newChatVersions,
           ]);
         } else {
-          setChatVersions([{ component: <Chat_version /> }]);
+          const newId =
+            chatVersion.length > 0
+              ? chatVersion[chatVersion.length - 1].id + 1
+              : 1;
+          setChatVersions([{ id: newId, component: <Chat_version /> }]);
         }
       } else {
         console.error("API request failed:", response.statusText);
@@ -737,10 +736,7 @@ const index = () => {
                         >
                           <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
                           <div
-                            onClick={() => {
-                              getTraces(playground.playground_id);
-                              setCurrentChatID(playground.playground_id);
-                            }}
+                            onClick={() => getTraces(playground.playground_id)}
                             className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
                               currentChatID === playground.playground_id
                                 ? "underline"
@@ -1094,7 +1090,7 @@ const index = () => {
                     <div
                       className={`grid w-full
                       ${chatVersion.length > 1 && "lg:grid-cols-2"}
-                      ${chatVersion.length > 2 && "xl:grid-cols-2"}
+                      ${chatVersion.length > 2 && "xl:grid-cols-3"}
                       ${chatVersion.length > 3 && "2xl:!grid-cols-3"}
                       ${chatVersion.length > 4 && "3xl:!grid-cols-5"}
                   `}
