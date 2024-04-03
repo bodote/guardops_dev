@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+'use client'
+import  {cloneElement, useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import {
   DeleteBlackIcon,
@@ -54,6 +55,7 @@ const index = () => {
   const [currentChatID, setCurrentChatID] = useState("");
   const [currentPlayground, setCurrentPlayground] = useState({});
   const [allPromtsDetails, setAllPromtsDetails] = useState([]);
+  const [allChatsDetails, setAllChatsDetails] = useState([]);
   const [ActiveTool, setActiveTool] = useState(false);
   const [proname, setProname] = useState({
     name: "Select a project to store",
@@ -311,6 +313,69 @@ const index = () => {
     }
   }, [allPromtsDetails]);
 
+  const saveTraceChatPlayground = async () => {
+    if (proname.project_id === undefined || currentChatID.length === 0) {
+      toast.error("Please select the project and playground first!!!");
+      return;
+    }
+    const formatModelParams = (settings) => {
+      const paramsArray = Object.entries(settings).map(
+        ([key, value]) => `${key}:${value}`
+      );
+      return paramsArray.join(", ");
+    };
+    const uniqueChatVersionIds = [
+      ...new Set(allChatsDetails.map((item) => item.chatVersionId)),
+    ];
+
+    try {
+      let combinedAPIBody = [];
+      await Promise.all(
+        uniqueChatVersionIds.map(async (chatVersionId) => {
+          const chatDetails = allChatsDetails.filter(
+            (item) => item.chatVersionId === chatVersionId
+          );
+
+          const lastModel = chatDetails[chatDetails.length - 1].model;
+          const APIBody = chatDetails
+            .filter(
+              (item) =>
+                item.isValid && (item.input !== "" || item.output !== "")
+            )
+            .map((item) => ({
+              [lastModel]: {
+                system_prompt: item.systemPrompt,
+                input: item.input,
+                output: item.output.replace(/\{"tokens":\d+\}/g, ""),
+                model_params: formatModelParams(item.settings),
+              },
+            }));
+
+          combinedAPIBody.push(APIBody);
+        })
+      );
+      const formData = {
+        project_id: proname.project_id,
+        playground_id: currentChatID,
+        access_token: localStorage.getItem("customAIKey"),
+        start_time: new Date().toISOString(),
+        prompt_response_pairs: combinedAPIBody,
+      };
+      // Make API call with the combined form data
+      const response = await fetch("/api/manageChatPlayground", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      const responseData = await response.json();
+      if (response.ok) {
+        toast.success("The traces are successfully stored!!!");
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
   const saveTracePlayground = async () => {
     const formatModelParams = (settings) => {
       const paramsArray = Object.entries(settings).map(
@@ -454,6 +519,7 @@ const index = () => {
       },
     ]);
   };
+
   // Function to remove a version
   const removeVersion = (id, index) => {
     if (versions.length === 1) {
@@ -540,6 +606,48 @@ const index = () => {
     }
     return buttons;
   };
+
+  const getTraces = async (playgroundId) => {
+    setCurrentChatID(playgroundId);
+    try {
+      const response = await fetch(
+        `/api/manageTraces?playground_id=${playgroundId}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.ok) {
+        const responseData = await response.json();
+        setAllChatsDetails([]);
+        if (responseData.traces && responseData.traces.length > 0) {
+          setChatVersions([]);
+          const newChatVersions = [];
+          responseData.traces.forEach((data, i) => {
+            newChatVersions.push({
+              id: i + 1,
+              component: <Chat_version chatPromptData={data} />,
+            });
+          });
+          // Set chatVersion with the new elements
+          setChatVersions((prevChatVersions) => [
+            ...prevChatVersions,
+            ...newChatVersions,
+          ]);
+        } else {
+          const newId =
+            chatVersion.length > 0
+              ? chatVersion[chatVersion.length - 1].id + 1
+              : 1;
+          setChatVersions([{ id: newId, component: <Chat_version /> }]);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
   return (
     <>
       {loader ? (
@@ -629,9 +737,7 @@ const index = () => {
                         >
                           <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
                           <div
-                            onClick={() =>
-                              setCurrentChatID(playground.playground_id)
-                            }
+                            onClick={() => getTraces(playground.playground_id)}
                             className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
                               currentChatID === playground.playground_id
                                 ? "underline"
@@ -878,7 +984,7 @@ const index = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="w-full sm:mt-0 mt-3">
+                  <div className="w-full sm:mt-0 mt-3 overflow-auto">
                     <div className="border-b-[#CCCCCC] border-b-[1px] flex justify-between items-center w-full p-[7px_7px_6px_13px] gap-3 flex-wrap sm:border-r-0 sm:border-t-0 border-t-[1px] border-t-[#CCCCCC]">
                       <p className="text-[12px] text-black">Chat Prompt </p>
                       <div className="flex md:justify-between justify-end items-center gap-[16px] flex-wrap">
@@ -986,17 +1092,18 @@ const index = () => {
                       className={`grid w-full
                       ${chatVersion.length > 1 && "lg:grid-cols-2"}
                       ${chatVersion.length > 2 && "xl:grid-cols-3"}
-                      ${chatVersion.length > 3 && "2xl:!grid-cols-4"}
+                      ${chatVersion.length > 3 && "2xl:!grid-cols-3"}
                       ${chatVersion.length > 4 && "3xl:!grid-cols-5"}
                   `}
                     >
                       {chatVersion.map((version) =>
-                        React.cloneElement(version.component, {
+                        cloneElement(version.component, {
                           key: version.id,
                           addChatVersion,
                           removeChatVersion: () =>
                             removeChatVersion(version.id),
                           versions: chatVersion.length,
+                          chatVersionId: version.id,
                           syncAll,
                           setsyncAll,
                           syncAllMsg,
@@ -1007,10 +1114,12 @@ const index = () => {
                           setAllChatSystemPromot,
                           chatSyncAll,
                           setChatSyncAll,
+                          setAllChatsDetails,
                           proname,
                           currentChatID,
                           selectedModel,
                           setSelectedModel,
+                          saveTraceChatPlayground,
                         })
                       )}
                     </div>
@@ -1085,7 +1194,7 @@ const index = () => {
                       </div>
                     )}
                     {versions.map((version, index) =>
-                      React.cloneElement(version.component, {
+                      cloneElement(version.component, {
                         addVersion,
                         removeVersion: () => removeVersion(version.id, index),
                         message: version.message, // pass the message here

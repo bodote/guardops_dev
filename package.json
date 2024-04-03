@@ -13,11 +13,14 @@
     "npm": ">=9.4.0"
   },
   "dependencies": {
+    "@anthropic-ai/sdk":"*",
     "@auth0/nextjs-auth0": "^3.5.0",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
+    "@google/generative-ai":"*",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
+    "@mistralai/mistralai":"*",
     "@mui/material": "^5.15.6",
     "@textea/json-viewer": "^3.3.1",
     "@upstash/redis": "^1.28.4",
@@ -25,6 +28,7 @@
     "apexcharts": "^3.44.2",
     "autoprefixer": "^10.0.1",
     "axios": "^1.6.2",
+    "cohere-ai":"*",
     "cookie": "^0.6.0",
     "eventsource-parser": "^1.1.1",
     "flowbite": "^2.2.0",

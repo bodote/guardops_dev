@@ -27,6 +27,7 @@ function classNames(...classes) {
 
 const Chat_version = ({
   versions,
+  chatVersionId,
   removeChatVersion,
   addChatVersion,
   syncAll,
@@ -37,18 +38,18 @@ const Chat_version = ({
   setSyncAllMsg,
   allChatSystemPromot,
   setAllChatSystemPromot,
+  setAllChatsDetails,
   proname,
   currentChatID,
   selectedModel,
   setSelectedModel,
+  saveTraceChatPlayground,
+  chatPromptData,
 }) => {
   const [userMessage, setUserMessage] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
   const [messages, setMessages] = useState([
-    {
-      input: "",
-      output: "",
-    },
+   
   ]);
   const [open, setOpen] = useState(false);
   const modalRef = useRef();
@@ -60,16 +61,23 @@ const Chat_version = ({
           name: "Select an option",
         }
   );
+  const [vercelResponse, setVercelResponse] = useState("");
   const [enabled, setEnabled] = useState(false);
-
+  const [tokens, setTokens] = useState();
   const [showSettings, setShowSettings] = useState(false);
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [models, setModels] = useState([]);
   const [fireworksAIKey, setFireworksAIKey] = useState("");
   const [openaiKey, setOpenaiKey] = useState("");
-  const [togetheraiKey, setTogetheraiKey] = useState("");
+  const [togetherKey, setTogetherKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState("");
   const [customEndpoint, setCustomEndpoint] = useState("");
+    // vercel keys
+  const [anthropicKey, setAnthropicKey] = useState(""); 
+  const [cohereKey, setCohereKey] = useState(""); 
+  const [googleKey, setGoogleKey] = useState(""); 
+  const [mistralKey, setMistralKey] = useState(""); 
+  const [perplexityKey, setPerplexityKey] = useState(""); 
   const [error, setError] = useState("");
   const [editingIndex, setEditingIndex] = useState(-1);
   const [editedMessage, setEditedMessage] = useState("");
@@ -105,82 +113,63 @@ const Chat_version = ({
     }
   };
 
-  const getTraces = async () => {
-    try {
-      const response = await fetch(
-        `/api/manageTraces?playground_id=${currentChatID}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData) {
-          setTracesData(responseData.traces);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
-
   const reconstructConversation = (traces) => {
-    let chatHistory = [];
-    traces.forEach((trace) => {
-      const promptOutputPairs = trace;
+    setError("");
+    const modelName = traces[0]?.attributes?.model || "";
+    let traceChatHistory = [];
 
-      // Find the root prompt-output pair where parent_id is null
-      const rootPair = promptOutputPairs.find(
-        (pair) => pair.parent_id === null
+    const model = models.find((model) => model.name === modelName);
+
+    const rootPair = traces.find((pair) => pair.parent_id === null);
+    if (!rootPair) {
+      return;
+    }
+    traceChatHistory.push(rootPair);
+
+    let currentParentId = rootPair.context.span_id;
+    while (traceChatHistory.length < traces.length) {
+      const nextPair = traces.find(
+        (pair) => pair.parent_id === currentParentId
       );
-      if (!rootPair) {
-        return; // Move to the next trace if root pair is not found
+      if (nextPair) {
+        traceChatHistory.push(nextPair);
+        currentParentId = nextPair.context.span_id;
+      } else {
+        break;
       }
-      chatHistory.push(rootPair);
-
-      let currentParentId = rootPair.context.span_id;
-      while (chatHistory.length < promptOutputPairs.length) {
-        // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
-        const nextPair = promptOutputPairs.find(
-          (pair) => pair.parent_id === currentParentId
-        );
-        if (nextPair) {
-          chatHistory.push(nextPair);
-          currentParentId = nextPair.context.span_id;
-        } else {
-          break; // Exit loop if no more pairs are found
-        }
-      }
-    });
-
-    const newMessages = chatHistory.map((pair) => ({
+    }
+    const newMessages = traceChatHistory.map((pair) => ({
       input: pair.attributes.prompt || "",
       output: pair.attributes.output || "",
     }));
 
-    setMessages(newMessages);
-  };
+    const savedChatDetails = traceChatHistory.map((pair, index) => {
+      // Parse model_params string into JSON object
+      const modelParams = pair.attributes.model_params
+        .split(",")
+        .reduce((acc, param) => {
+          const [key, value] = param.split(":");
+          acc[key.trim()] = parseFloat(value.trim());
+          return acc;
+        }, {});
 
-  const providerConfig = {
-    openai: {
-      endpoint: "https://api.openai.com/v1/chat/completions",
-      getKey: () => openaiKey,
-    },
-    fireworks: {
-      endpoint: "https://api.fireworks.ai/inference/v1/chat/completions",
-      getKey: () => fireworksAIKey,
-    },
-    custom: {
-      endpoint: () => customEndpoint,
-      getKey: () => customAIKey,
-    },
-    togethercompute: {
-      endpoint: "https://api.together.xyz/v1/chat/completions",
-      getKey: () => togetheraiKey,
-    },
-    // Add more providers here as needed
+      return {
+        isValid: true,
+        chatVersionId: chatVersionId,
+        model: model.model_id,
+        input: pair.attributes.prompt,
+        output: pair.attributes.output,
+        systemPrompt: pair.attributes.system_prompt,
+        settings: modelParams,
+      };
+    });
+
+    // setAllChatsDetails((prevDetails) => [...prevDetails, ...savedChatDetails]);
+
+    if (model) {
+      setSelected(model);
+    }
+    setMessages(newMessages);
   };
 
   const handleEditMessage = (index) => {
@@ -201,7 +190,7 @@ const Chat_version = ({
     setMessages(messagesBeforeEdit);
 
     // Fetch API response
-    await fetchApiResponse();
+    await fetchVercelResponse();
   };
 
   const handleCancelEdit = () => {
@@ -233,18 +222,194 @@ const Chat_version = ({
       setApiCallInProgress(true);
       setMessages([...messages, { input: userMessage }]);
       setUserMessage("");
-      fetchApiResponse();
+      fetchVercelResponse();
     }
   };
 
+// Vercel integration
+const fetchVercelResponse = async () => {
+  var res = null;
+  const provider =selected.provider;
+  if (!provider) {
+    setError(`Provider ${selected.provider} is not supported.`);
+    return;
+  }
+  try{
+    var currentMessage = editedMessage ? editedMessage : userMessage;
+    var allMessages = []
+    messages.forEach((item, index) => {
+      allMessages.push({
+        role: "user",
+        content: item.input,
+      });
+      allMessages.push({
+        role: "assistant",
+        content: item.output ? item.output : "",
+      });
+    }); 
+    allMessages.push({
+      role: "user",
+      content: currentMessage,
+    });
+    console.log(allMessages)
+    var formData = {
+      max_tokens: settings.maxTokens,
+      model: selected.id1,
+      messages: allMessages,
+      systemPrompt: open ? systemPrompt : "",
+      type: "chat",
+    };
+      switch(selected.provider){
+        case "openai":
+          formData.api_key = openaiKey
+          res = await fetch("/api/openai", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "fireworks":
+          formData.api_key = fireworksAIKey
+          res = await fetch("/api/fireworks", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "custom":
+          formData.api_key = customAIKey
+          res = await fetch("/api/custom", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;           
+        case "together":
+          formData.api_key = togetherKey
+          res = await fetch("/api/together", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;          
+        case "anthropic":
+          formData.api_key = anthropicKey
+          res = await fetch("/api/anthropic", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "cohere":
+          formData.api_key = cohereKey
+          res = await fetch("/api/cohere", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "google":
+          formData.api_key = googleKey
+          res = await fetch("/api/google", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "mistral":
+          formData.api_key = mistralKey
+          res = await fetch("/api/mistral", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "perplexity":
+            formData.api_key = perplexityKey
+            res = await fetch("/api/perplexity", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;
+        }
+      const data = res.body;
+      
+      const reader = data.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let completeString = "";
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunkValue = decoder.decode(value);
+        setError("");
+        completeString += chunkValue;
+        setMessages((prevMessages) => {
+          const lastIndex = prevMessages.length - 1;
+          return prevMessages.map((message, index) => {
+            if (index === lastIndex) {
+              return {
+                ...message,
+                output: completeString.length
+                  ? completeString.replace(/\{"tokens":\d+\}/g, "")
+                  : "",
+              };
+            } else {
+              return message;
+            }
+          });
+        });
+      }
+      setApiCallInProgress(false);
+
+      setAllChatsDetails((prevDetails) => [
+        ...prevDetails,
+        {
+          isValid: true,
+          chatVersionId: chatVersionId,
+          model: selected.model_id,
+          input: editedMessage ? editedMessage : userMessage,
+          output: completeString.replace(/\{"tokens":\d+\}/g, ""),
+          systemPrompt: systemPrompt,
+          settings: settings,
+        },
+      ]);
+    }
+      
+    catch (error) {
+      console.error("API request failed:", error.message);
+      setError("Error: " + error.message);
+    }
+};
+
   const fetchApiResponse = async () => {
+    setError("");
     const providerInfo = providerConfig[selected.provider];
 
     if (!providerInfo) {
       setError("Please select the valid model");
       return;
     }
-
     const apiEndpoint =
       selected.provider === "custom"
         ? providerInfo.endpoint()
@@ -282,6 +447,13 @@ const Chat_version = ({
         selected.provider === "openai" && setError(errorMessage.error.message);
         selected.provider === "fireworks" && setError(errorMessage.error);
         selected.provider === "togethercompute" && setError(errorMessage.error);
+        setAllChatsDetails((prevDetails) => [
+          ...prevDetails,
+          {
+            isValid: false,
+            chatVersionId: chatVersionId,
+          },
+        ]);
         throw new Error(res.statusText);
       } else {
         const data = res.body;
@@ -306,7 +478,9 @@ const Chat_version = ({
               if (index === lastIndex) {
                 return {
                   ...message,
-                  output: completeString.replace(/\{"tokens":\d+\}/g, ""),
+                  output: completeString.length
+                    ? completeString.replace(/\{"tokens":\d+\}/g, "")
+                    : "",
                 };
               } else {
                 return message;
@@ -315,6 +489,18 @@ const Chat_version = ({
           });
         }
         setApiCallInProgress(false);
+        setAllChatsDetails((prevDetails) => [
+          ...prevDetails,
+          {
+            isValid: true,
+            chatVersionId: chatVersionId,
+            model: selected.model_id,
+            input: editedMessage ? editedMessage : userMessage,
+            output: completeString.replace(/\{"tokens":\d+\}/g, ""),
+            systemPrompt: systemPrompt,
+            settings: settings,
+          },
+        ]);
       }
     } catch (error) {
       console.error("API request failed:", error.message);
@@ -341,7 +527,7 @@ const Chat_version = ({
     );
   };
 
-  const parseApiResponse = (apiResponse) => {
+  const parseVercelResponse = (apiResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
     let lastIndex = 0;
@@ -369,46 +555,7 @@ const Chat_version = ({
     if (apiCallInProgress) {
       return;
     }
-    if (proname.project_id === undefined || currentChatID.length === 0) {
-      toast.error("Please select the project and playground first!!!");
-      return;
-    }
-    const modelId = selected.model_id;
-    const formatModelParams = (settings) => {
-      const paramsArray = Object.entries(settings).map(
-        ([key, value]) => `${key}:${value}`
-      );
-      return paramsArray.join(", ");
-    };
-    const APIBody = messages
-      .filter((item) => item.input !== "" || item.output !== "")
-      .map((item) => ({
-        [modelId]: {
-          system_prompt: systemPrompt,
-          input: item.input,
-          output: item.output.replace(/\{"tokens":\d+\}/g, ""),
-          model_params: formatModelParams(settings),
-        },
-      }));
-    const formData = {
-      project_id: proname.project_id,
-      playground_id: currentChatID,
-      access_token: localStorage.getItem("customAIKey"),
-      start_time: new Date().toISOString(),
-      prompt_response_pairs: APIBody,
-    };
-    try {
-      const response = await fetch("/api/manageChatPlayground", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        const responseData = await response.json();
-        toast.success("The traces are successfully stored!!!");
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
+    saveTraceChatPlayground();
   };
 
   const handleSelect = (model) => {
@@ -425,6 +572,7 @@ const Chat_version = ({
     return trimmedModelName.match(regex);
   });
 
+  // Load API key from Local Storage
   useEffect(() => {
     getModels();
     const key = localStorage.getItem("fireworksAIKey") || "";
@@ -435,25 +583,25 @@ const Chat_version = ({
     setCustomAIKey(key2);
     const key3 = localStorage.getItem("customEndpoint") || "";
     setCustomEndpoint(key3);
-    const key4 = localStorage.getItem("togetherAIKey") || "";
-    setTogetheraiKey(key4);
+    const key4 = localStorage.getItem("togetherKey") || "";
+    setTogetherKey(key4);
+    const key5 = localStorage.getItem("anthropicKey") || "";
+    setAnthropicKey(key5);
+    const key6 = localStorage.getItem("cohereKey") || "";
+    setCohereKey(key6);
+    const key7 = localStorage.getItem("googleKey") || "";
+    setGoogleKey(key7);
+    const key8 = localStorage.getItem("mistralKey") || "";
+    setMistralKey(key8);
+    const key9 = localStorage.getItem("perplexityKey") || "";
+    setPerplexityKey(key9);
   }, []);
 
   useEffect(() => {
-    if (currentChatID) {
-      getTraces();
+    if (chatPromptData && models.length > 0) {
+      reconstructConversation(chatPromptData);
     }
-  }, [currentChatID]);
-
-  useEffect(() => {
-    if (tracesData) {
-      const modelName = tracesData[0]?.[0]?.attributes?.model || "";
-      if (modelName) {
-        setSelected(models.find((model) => model.name === modelName));
-      }
-      reconstructConversation(tracesData);
-    }
-  }, [tracesData]);
+  }, [chatPromptData, models]);
 
   useEffect(() => {
     if (showSettings) {
@@ -501,7 +649,7 @@ const Chat_version = ({
     <div className="flex sm:flex-row flex-col items-start">
       <div className="w-full">
         <div className="border-r-[#CCCCCC] border-r-[1px]">
-          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
+          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative 2xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
             <div className="flex items-center gap-2">
               <Listbox value={selected} onChange={handleSelect}>
                 {({ open }) => (
@@ -509,7 +657,7 @@ const Chat_version = ({
                     <div className="relative">
                       <Listbox.Button
                         className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
-                          versions > 2 ? "sm:!w-[140px]" : ""
+                          versions > 2 ? "sm:!w-[130px]" : ""
                         }`}
                       >
                         <span className="flex items-center">
@@ -591,16 +739,13 @@ const Chat_version = ({
             </div>
             <div
               className={`flex gap-[17px] sm:mt-0 mt-[20px] ${
-                versions > 2 ? "!gap-[10px]" : ""
+                versions > 2 ? "2xl:!gap-[10px] xl:!gap-[6px] !gap-[10px]" : ""
               }`}
             >
               <button
                 onClick={() =>
                   setMessages([
-                    {
-                      input: "",
-                      output: "",
-                    },
+                  
                   ])
                 }
               >
@@ -648,7 +793,7 @@ const Chat_version = ({
             )}
 
             <div
-              className={`bg-[#F7F7F7] h-[calc(100vh-249px)] overflow-y-auto ${
+              className={`bg-[#F7F7F7] h-[calc(100vh-250px)] overflow-y-auto ${
                 error ? "pt-[44px]" : ""
               }`}
             >
@@ -768,7 +913,7 @@ const Chat_version = ({
                       >
                         <FireIcon className="min-w-[16px]" />
                         <div className="w-[calc(100%-35px)]">
-                          {parseApiResponse(message.output).map(
+                          {parseVercelResponse(message.output).map(
                             (segment, index) =>
                               segment.type === "code" ? (
                                 <CodeBox key={index} code={segment.content} />

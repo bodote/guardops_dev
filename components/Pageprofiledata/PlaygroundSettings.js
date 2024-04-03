@@ -14,8 +14,13 @@ const PlaygroundSettings = () => {
   const [createModelStatus, setCreateModelStatus] = useState("new");
   const [openAIKey, setOpenAIKey] = useState("");
   const [huggingfaceKey, setHuggingfaceKey] = useState("");
-  const [togetherAIKey, setTogetherAIKey] = useState("");
+  const [anthropicKey, setAnthropicKey] = useState("");
   const [fireworksAIKey, setFireworksAIKey] = useState("");
+  const [googleKey, setGoogleKey] = useState("");
+  const [cohereKey, setCohereKey] = useState("");
+  const [mistralKey, setMistralKey] = useState("");
+  const [togetherKey, setTogetherKey] = useState("");
+  const [perplexityKey, setPerplexityKey] = useState("");
   const [customAIKey, setCustomAIKey] = useState("");
   const [customEndpoint, setCustomEndpoint] = useState("");
 
@@ -70,10 +75,16 @@ const PlaygroundSettings = () => {
     getModels();
     setOpenAIKey(localStorage.getItem("openAIKey") || "");
     setHuggingfaceKey(localStorage.getItem("huggingfaceKey") || "");
-    setTogetherAIKey(localStorage.getItem("togetherAIKey") || "");
+    setAnthropicKey(localStorage.getItem("anthropicKey") || "");
     setFireworksAIKey(localStorage.getItem("fireworksAIKey") || "");
     setCustomAIKey(localStorage.getItem("customAIKey") || "");
     setCustomEndpoint(localStorage.getItem("customEndpoint") || "");
+    setGoogleKey(localStorage.getItem("googleKey")|| "");
+    setCohereKey(localStorage.getItem("cohereKey")|| "");
+    setMistralKey(localStorage.getItem("mistralKey")|| "");
+    setTogetherKey(localStorage.getItem("togetherKey")|| "");
+    setPerplexityKey(localStorage.getItem("perplexityKey")|| "");
+
   }, []);
 
   // Save API key to Local Storage
@@ -106,7 +117,7 @@ const PlaygroundSettings = () => {
               apiKey={openAIKey}
               setApiKey={setOpenAIKey}
               saveApiKey={() => saveApiKey("openAIKey", openAIKey)}
-              label="OPENAI"
+              label="OpenAI"
             />
             <APIKeyInput
               apiKey={huggingfaceKey}
@@ -115,16 +126,46 @@ const PlaygroundSettings = () => {
               label="Huggingface"
             />
             <APIKeyInput
-              apiKey={togetherAIKey}
-              setApiKey={setTogetherAIKey}
-              saveApiKey={() => saveApiKey("togetherAIKey", togetherAIKey)}
-              label="Together.ai"
+              apiKey={anthropicKey}
+              setApiKey={setAnthropicKey}
+              saveApiKey={() => saveApiKey("anthropicKey", anthropicKey)}
+              label="Anthropic"
             />
             <APIKeyInput
               apiKey={fireworksAIKey}
               setApiKey={setFireworksAIKey}
               saveApiKey={() => saveApiKey("fireworksAIKey", fireworksAIKey)}
               label="Fireworks.ai"
+            />
+            <APIKeyInput
+              apiKey={googleKey}
+              setApiKey={setGoogleKey}
+              saveApiKey={() => saveApiKey("googleKey", googleKey)}
+              label="Google"
+            />
+            <APIKeyInput
+              apiKey={cohereKey}
+              setApiKey={setCohereKey}
+              saveApiKey={() => saveApiKey("cohereKey", cohereKey)}
+              label="Cohere"
+            />
+            <APIKeyInput
+              apiKey={mistralKey}
+              setApiKey={setMistralKey}
+              saveApiKey={() => saveApiKey("mistralKey", mistralKey)}
+              label="Mistral"
+            />
+            <APIKeyInput
+              apiKey={togetherKey}
+              setApiKey={setTogetherKey}
+              saveApiKey={() => saveApiKey("togetherKey", togetherKey)}
+              label="Together.ai"
+            />
+            <APIKeyInput
+              apiKey={perplexityKey}
+              setApiKey={setPerplexityKey}
+              saveApiKey={() => saveApiKey("perplexityKey", perplexityKey)}
+              label="Perplexity.ai"
             />
             <CustomAPIEndpoint
               apiKey={customAIKey}
