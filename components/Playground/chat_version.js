@@ -49,10 +49,7 @@ const Chat_version = ({
   const [userMessage, setUserMessage] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
   const [messages, setMessages] = useState([
-    {
-      input: "",
-      output: "",
-    },
+   
   ]);
   const [open, setOpen] = useState(false);
   const modalRef = useRef();
@@ -64,16 +61,23 @@ const Chat_version = ({
           name: "Select an option",
         }
   );
+  const [vercelResponse, setVercelResponse] = useState("");
   const [enabled, setEnabled] = useState(false);
-
+  const [tokens, setTokens] = useState();
   const [showSettings, setShowSettings] = useState(false);
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [models, setModels] = useState([]);
   const [fireworksAIKey, setFireworksAIKey] = useState("");
   const [openaiKey, setOpenaiKey] = useState("");
-  const [togetheraiKey, setTogetheraiKey] = useState("");
+  const [togetherKey, setTogetherKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState("");
   const [customEndpoint, setCustomEndpoint] = useState("");
+    // vercel keys
+  const [anthropicKey, setAnthropicKey] = useState(""); 
+  const [cohereKey, setCohereKey] = useState(""); 
+  const [googleKey, setGoogleKey] = useState(""); 
+  const [mistralKey, setMistralKey] = useState(""); 
+  const [perplexityKey, setPerplexityKey] = useState(""); 
   const [error, setError] = useState("");
   const [editingIndex, setEditingIndex] = useState(-1);
   const [editedMessage, setEditedMessage] = useState("");
@@ -167,25 +171,6 @@ const Chat_version = ({
     }
     setMessages(newMessages);
   };
-  const providerConfig = {
-    openai: {
-      endpoint: "https://api.openai.com/v1/chat/completions",
-      getKey: () => openaiKey,
-    },
-    fireworks: {
-      endpoint: "https://api.fireworks.ai/inference/v1/chat/completions",
-      getKey: () => fireworksAIKey,
-    },
-    custom: {
-      endpoint: () => customEndpoint,
-      getKey: () => customAIKey,
-    },
-    togethercompute: {
-      endpoint: "https://api.together.xyz/v1/chat/completions",
-      getKey: () => togetheraiKey,
-    },
-    // Add more providers here as needed
-  };
 
   const handleEditMessage = (index) => {
     setEditingIndex(index);
@@ -205,7 +190,7 @@ const Chat_version = ({
     setMessages(messagesBeforeEdit);
 
     // Fetch API response
-    await fetchApiResponse();
+    await fetchVercelResponse();
   };
 
   const handleCancelEdit = () => {
@@ -237,9 +222,185 @@ const Chat_version = ({
       setApiCallInProgress(true);
       setMessages([...messages, { input: userMessage }]);
       setUserMessage("");
-      fetchApiResponse();
+      fetchVercelResponse();
     }
   };
+
+// Vercel integration
+const fetchVercelResponse = async () => {
+  var res = null;
+  const provider =selected.provider;
+  if (!provider) {
+    setError(`Provider ${selected.provider} is not supported.`);
+    return;
+  }
+  try{
+    var currentMessage = editedMessage ? editedMessage : userMessage;
+    var allMessages = []
+    messages.forEach((item, index) => {
+      allMessages.push({
+        role: "user",
+        content: item.input,
+      });
+      allMessages.push({
+        role: "assistant",
+        content: item.output ? item.output : "",
+      });
+    }); 
+    allMessages.push({
+      role: "user",
+      content: currentMessage,
+    });
+    console.log(allMessages)
+    var formData = {
+      max_tokens: settings.maxTokens,
+      model: selected.id1,
+      messages: allMessages,
+      systemPrompt: open ? systemPrompt : "",
+      type: "chat",
+    };
+      switch(selected.provider){
+        case "openai":
+          formData.api_key = openaiKey
+          res = await fetch("/api/openai", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "fireworks":
+          formData.api_key = fireworksAIKey
+          res = await fetch("/api/fireworks", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "custom":
+          formData.api_key = customAIKey
+          res = await fetch("/api/custom", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;           
+        case "together":
+          formData.api_key = togetherKey
+          res = await fetch("/api/together", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;          
+        case "anthropic":
+          formData.api_key = anthropicKey
+          res = await fetch("/api/anthropic", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "cohere":
+          formData.api_key = cohereKey
+          res = await fetch("/api/cohere", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "google":
+          formData.api_key = googleKey
+          res = await fetch("/api/google", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "mistral":
+          formData.api_key = mistralKey
+          res = await fetch("/api/mistral", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          })
+          break;
+        case "perplexity":
+            formData.api_key = perplexityKey
+            res = await fetch("/api/perplexity", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;
+        }
+      const data = res.body;
+      
+      const reader = data.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let completeString = "";
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunkValue = decoder.decode(value);
+        setError("");
+        completeString += chunkValue;
+        setMessages((prevMessages) => {
+          const lastIndex = prevMessages.length - 1;
+          return prevMessages.map((message, index) => {
+            if (index === lastIndex) {
+              return {
+                ...message,
+                output: completeString.length
+                  ? completeString.replace(/\{"tokens":\d+\}/g, "")
+                  : "",
+              };
+            } else {
+              return message;
+            }
+          });
+        });
+      }
+      setApiCallInProgress(false);
+
+      setAllChatsDetails((prevDetails) => [
+        ...prevDetails,
+        {
+          isValid: true,
+          chatVersionId: chatVersionId,
+          model: selected.model_id,
+          input: editedMessage ? editedMessage : userMessage,
+          output: completeString.replace(/\{"tokens":\d+\}/g, ""),
+          systemPrompt: systemPrompt,
+          settings: settings,
+        },
+      ]);
+    }
+      
+    catch (error) {
+      console.error("API request failed:", error.message);
+      setError("Error: " + error.message);
+    }
+};
 
   const fetchApiResponse = async () => {
     setError("");
@@ -366,7 +527,7 @@ const Chat_version = ({
     );
   };
 
-  const parseApiResponse = (apiResponse) => {
+  const parseVercelResponse = (apiResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
     let lastIndex = 0;
@@ -411,6 +572,7 @@ const Chat_version = ({
     return trimmedModelName.match(regex);
   });
 
+  // Load API key from Local Storage
   useEffect(() => {
     getModels();
     const key = localStorage.getItem("fireworksAIKey") || "";
@@ -421,8 +583,18 @@ const Chat_version = ({
     setCustomAIKey(key2);
     const key3 = localStorage.getItem("customEndpoint") || "";
     setCustomEndpoint(key3);
-    const key4 = localStorage.getItem("togetherAIKey") || "";
-    setTogetheraiKey(key4);
+    const key4 = localStorage.getItem("togetherKey") || "";
+    setTogetherKey(key4);
+    const key5 = localStorage.getItem("anthropicKey") || "";
+    setAnthropicKey(key5);
+    const key6 = localStorage.getItem("cohereKey") || "";
+    setCohereKey(key6);
+    const key7 = localStorage.getItem("googleKey") || "";
+    setGoogleKey(key7);
+    const key8 = localStorage.getItem("mistralKey") || "";
+    setMistralKey(key8);
+    const key9 = localStorage.getItem("perplexityKey") || "";
+    setPerplexityKey(key9);
   }, []);
 
   useEffect(() => {
@@ -573,10 +745,7 @@ const Chat_version = ({
               <button
                 onClick={() =>
                   setMessages([
-                    {
-                      input: "",
-                      output: "",
-                    },
+                  
                   ])
                 }
               >
@@ -744,7 +913,7 @@ const Chat_version = ({
                       >
                         <FireIcon className="min-w-[16px]" />
                         <div className="w-[calc(100%-35px)]">
-                          {parseApiResponse(message.output).map(
+                          {parseVercelResponse(message.output).map(
                             (segment, index) =>
                               segment.type === "code" ? (
                                 <CodeBox key={index} code={segment.content} />

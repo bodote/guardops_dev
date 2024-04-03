@@ -119,31 +119,13 @@ const Version = ({
   }, []);
 
 
-  const providerConfig = {
-    openai: {
-      getKey: () => openaiKey,
-    },
-    fireworks: {
-      endpoint: "https://api.fireworks.ai/inference/v1/chat/completions",
-      getKey: () => fireworksAIKey,
-    },
-    custom: {
-      endpoint: () => customEndpoint,
-      getKey: () => customAIKey,
-    },
-    togethercompute: {
-      endpoint: "https://api.together.xyz/v1/chat/completions",
-      getKey: () => togetherKey,
-    },
-    // Add more providers here as needed
-  };
 
   // Function to append vercelResponse to message
   const handleCopyClick = () => {
     appendToMessage(vercelResponse);
   };
 // Vercel integration
-  const fetchVerselResponse = async () => {
+  const fetchVercelResponse = async () => {
     var res = null;
     setTokens();
     setVercelResponse("");
@@ -309,7 +291,7 @@ const Version = ({
 
 
     if (message && isValidModelSelected && runPressed) {
-      fetchVerselResponse()
+      fetchVercelResponse()
       .then(() => {
         resetRunPressed(); // Reset runPressed after the API call
         setApiCallInProgress(false);
@@ -387,7 +369,7 @@ const Version = ({
     );
   };
 
-  const parsevercelResponse = (vercelResponse) => {
+  const parseVercelResponse = (vercelResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
     let lastIndex = 0;
@@ -413,7 +395,7 @@ const Version = ({
     return segments;
   };
 
-  const segments = parsevercelResponse(vercelResponse);
+  const segments = parseVercelResponse(vercelResponse);
 
   // Settings Modal Window
   // State to manage settings visibility
