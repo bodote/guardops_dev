@@ -253,7 +253,7 @@ const fetchVercelResponse = async () => {
     });
     console.log(allMessages)
     var formData = {
-      max_tokens: settings.maxTokens,
+      max_tokens: Number(settings.maxTokens),
       model: selected.id1,
       messages: allMessages,
       systemPrompt: open ? systemPrompt : "",

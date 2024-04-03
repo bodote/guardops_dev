@@ -15,7 +15,6 @@ export  async function POST(req) {
   const anthropic = new Anthropic({
     apiKey: api_key || '',
   });
-
   if (type === "chat") {
     // Extract the `prompt` from the body of the request
 

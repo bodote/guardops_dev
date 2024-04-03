@@ -138,7 +138,7 @@ const Version = ({
     }
     try{
       var formData = {
-        max_tokens: settings.maxTokens,
+        max_tokens: Number(settings.maxTokens),
         model: selected.id1,
         prompt: message,
         systemPrompt: open ? systemPrompt : "",
