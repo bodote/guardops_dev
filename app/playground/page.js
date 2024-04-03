@@ -361,7 +361,6 @@ const index = () => {
         start_time: new Date().toISOString(),
         prompt_response_pairs: combinedAPIBody,
       };
-
       // Make API call with the combined form data
       const response = await fetch("/api/manageChatPlayground", {
         method: "POST",
@@ -520,6 +519,7 @@ const index = () => {
       },
     ]);
   };
+
   // Function to remove a version
   const removeVersion = (id, index) => {
     if (versions.length === 1) {
@@ -607,76 +607,47 @@ const index = () => {
     return buttons;
   };
 
-  // const getTraces = async (playgroundId) => {
-  //   try {
-  //     const response = await fetch(
-  //       `/api/manageTraces?playground_id=${playgroundId}`,
-  //       {
-  //         method: "GET",
-  //       }
-  //     );
-  //     if (response.ok) {
-  //       const responseData = await response.json();
-  //       if (responseData) {
-  //         console.log(responseData.traces);
-  //         reconstructConversation(responseData.traces);
-  //       }
-  //     } else {
-  //       console.error("API request failed:", response.statusText);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error during API request:", error);
-  //   }
-  // };
+  const getTraces = async (playgroundId) => {
+    setCurrentChatID(playgroundId);
+    try {
+      const response = await fetch(
+        `/api/manageTraces?playground_id=${playgroundId}`,
+        {
+          method: "GET",
+        }
+      );
+      if (response.ok) {
+        const responseData = await response.json();
+        setAllChatsDetails([]);
+        if (responseData.traces && responseData.traces.length > 0) {
+          setChatVersions([]);
+          const newChatVersions = [];
+          responseData.traces.forEach((data, i) => {
+            newChatVersions.push({
+              id: i + 1,
+              component: <Chat_version chatPromptData={data} />,
+            });
+          });
+          // Set chatVersion with the new elements
+          setChatVersions((prevChatVersions) => [
+            ...prevChatVersions,
+            ...newChatVersions,
+          ]);
+        } else {
+          const newId =
+            chatVersion.length > 0
+              ? chatVersion[chatVersion.length - 1].id + 1
+              : 1;
+          setChatVersions([{ id: newId, component: <Chat_version /> }]);
+        }
+      } else {
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
 
-  // const reconstructConversation = (traces) => {
-  //   console.log("Traces: ", traces);
-  //   let chatHistory = [];
-
-  //   // Iterate over each trace
-  //   traces.forEach((trace) => {
-  //     let traceChatHistory = [];
-
-  //     // Process each trace individually
-
-  //     const promptOutputPairs = trace;
-
-  //     // Find the root prompt-output pair where parent_id is null
-  //     const rootPair = promptOutputPairs.find(
-  //       (pair) => pair.parent_id === null
-  //     );
-  //     if (!rootPair) {
-  //       return; // Move to the next trace if root pair is not found
-  //     }
-  //     traceChatHistory.push(rootPair);
-
-  //     let currentParentId = rootPair.context.span_id;
-  //     while (traceChatHistory.length < promptOutputPairs.length) {
-  //       // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
-  //       const nextPair = promptOutputPairs.find(
-  //         (pair) => pair.parent_id === currentParentId
-  //       );
-  //       if (nextPair) {
-  //         traceChatHistory.push(nextPair);
-  //         currentParentId = nextPair.context.span_id;
-  //       } else {
-  //         break; // Exit loop if no more pairs are found
-  //       }
-  //     }
-
-  //     // Concatenate the trace chat history to the main chat history
-  //     console.log("TRChat: ", traceChatHistory);
-  //     chatHistory = chatHistory.concat(traceChatHistory);
-  //   });
-
-  //   // After processing all traces, map chat history to newMessages
-  //   const newMessages = chatHistory.map((pair) => ({
-  //     input: pair.attributes.prompt || "",
-  //     output: pair.attributes.output || "",
-  //   }));
-  //   console.log("New: ", newMessages);
-  //   // setMessages(newMessages); // Assuming setMessages is defined elsewhere
-  // };
   return (
     <>
       {loader ? (
@@ -766,10 +737,7 @@ const index = () => {
                         >
                           <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
                           <div
-                            onClick={() => {
-                              // getTraces(playground.playground_id);
-                              setCurrentChatID(playground.playground_id);
-                            }}
+                            onClick={() => getTraces(playground.playground_id)}
                             className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
                               currentChatID === playground.playground_id
                                 ? "underline"
@@ -1016,7 +984,7 @@ const index = () => {
                     )}
                   </div>
                 ) : (
-                  <div className="w-full sm:mt-0 mt-3">
+                  <div className="w-full sm:mt-0 mt-3 overflow-auto">
                     <div className="border-b-[#CCCCCC] border-b-[1px] flex justify-between items-center w-full p-[7px_7px_6px_13px] gap-3 flex-wrap sm:border-r-0 sm:border-t-0 border-t-[1px] border-t-[#CCCCCC]">
                       <p className="text-[12px] text-black">Chat Prompt </p>
                       <div className="flex md:justify-between justify-end items-center gap-[16px] flex-wrap">
@@ -1124,7 +1092,7 @@ const index = () => {
                       className={`grid w-full
                       ${chatVersion.length > 1 && "lg:grid-cols-2"}
                       ${chatVersion.length > 2 && "xl:grid-cols-3"}
-                      ${chatVersion.length > 3 && "2xl:!grid-cols-4"}
+                      ${chatVersion.length > 3 && "2xl:!grid-cols-3"}
                       ${chatVersion.length > 4 && "3xl:!grid-cols-5"}
                   `}
                     >

@@ -44,6 +44,7 @@ const Chat_version = ({
   selectedModel,
   setSelectedModel,
   saveTraceChatPlayground,
+  chatPromptData,
 }) => {
   const [userMessage, setUserMessage] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
@@ -108,73 +109,64 @@ const Chat_version = ({
     }
   };
 
-  const getTraces = async () => {
-    try {
-      const response = await fetch(
-        `/api/manageTraces?playground_id=${currentChatID}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData) {
-          setTracesData(responseData.traces);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
-
   const reconstructConversation = (traces) => {
-    let chatHistory = [];
+    setError("");
+    const modelName = traces[0]?.attributes?.model || "";
+    let traceChatHistory = [];
 
-    // Iterate over each trace
-    traces.forEach((trace) => {
-      let traceChatHistory = [];
+    const model = models.find((model) => model.name === modelName);
 
-      // Process each trace individually
+    const rootPair = traces.find((pair) => pair.parent_id === null);
+    if (!rootPair) {
+      return;
+    }
+    traceChatHistory.push(rootPair);
 
-      const promptOutputPairs = trace;
-
-      // Find the root prompt-output pair where parent_id is null
-      const rootPair = promptOutputPairs.find(
-        (pair) => pair.parent_id === null
+    let currentParentId = rootPair.context.span_id;
+    while (traceChatHistory.length < traces.length) {
+      const nextPair = traces.find(
+        (pair) => pair.parent_id === currentParentId
       );
-      if (!rootPair) {
-        return; // Move to the next trace if root pair is not found
+      if (nextPair) {
+        traceChatHistory.push(nextPair);
+        currentParentId = nextPair.context.span_id;
+      } else {
+        break;
       }
-      traceChatHistory.push(rootPair);
-
-      let currentParentId = rootPair.context.span_id;
-      while (traceChatHistory.length < promptOutputPairs.length) {
-        // Find the next prompt-output pair where parent_id matches the span_id of the previously added pair
-        const nextPair = promptOutputPairs.find(
-          (pair) => pair.parent_id === currentParentId
-        );
-        if (nextPair) {
-          traceChatHistory.push(nextPair);
-          currentParentId = nextPair.context.span_id;
-        } else {
-          break; // Exit loop if no more pairs are found
-        }
-      }
-
-      // Concatenate the trace chat history to the main chat history
-      chatHistory = chatHistory.concat(traceChatHistory);
-    });
-
-    // After processing all traces, map chat history to newMessages
-    const newMessages = chatHistory.map((pair) => ({
+    }
+    const newMessages = traceChatHistory.map((pair) => ({
       input: pair.attributes.prompt || "",
       output: pair.attributes.output || "",
     }));
-    setMessages(newMessages); // Assuming setMessages is defined elsewhere
-  };
 
+    const savedChatDetails = traceChatHistory.map((pair, index) => {
+      // Parse model_params string into JSON object
+      const modelParams = pair.attributes.model_params
+        .split(",")
+        .reduce((acc, param) => {
+          const [key, value] = param.split(":");
+          acc[key.trim()] = parseFloat(value.trim());
+          return acc;
+        }, {});
+
+      return {
+        isValid: true,
+        chatVersionId: chatVersionId,
+        model: model.model_id,
+        input: pair.attributes.prompt,
+        output: pair.attributes.output,
+        systemPrompt: pair.attributes.system_prompt,
+        settings: modelParams,
+      };
+    });
+
+    // setAllChatsDetails((prevDetails) => [...prevDetails, ...savedChatDetails]);
+
+    if (model) {
+      setSelected(model);
+    }
+    setMessages(newMessages);
+  };
   const providerConfig = {
     openai: {
       endpoint: "https://api.openai.com/v1/chat/completions",
@@ -250,6 +242,7 @@ const Chat_version = ({
   };
 
   const fetchApiResponse = async () => {
+    setError("");
     const providerInfo = providerConfig[selected.provider];
 
     if (!providerInfo) {
@@ -324,7 +317,9 @@ const Chat_version = ({
               if (index === lastIndex) {
                 return {
                   ...message,
-                  output: completeString.replace(/\{"tokens":\d+\}/g, ""),
+                  output: completeString.length
+                    ? completeString.replace(/\{"tokens":\d+\}/g, "")
+                    : "",
                 };
               } else {
                 return message;
@@ -431,20 +426,10 @@ const Chat_version = ({
   }, []);
 
   useEffect(() => {
-    if (currentChatID) {
-      getTraces();
+    if (chatPromptData && models.length > 0) {
+      reconstructConversation(chatPromptData);
     }
-  }, [currentChatID]);
-
-  useEffect(() => {
-    if (tracesData) {
-      const modelName = tracesData[0]?.[0]?.attributes?.model || "";
-      if (modelName) {
-        setSelected(models.find((model) => model.name === modelName));
-      }
-      reconstructConversation(tracesData);
-    }
-  }, [tracesData]);
+  }, [chatPromptData, models]);
 
   useEffect(() => {
     if (showSettings) {
@@ -492,7 +477,7 @@ const Chat_version = ({
     <div className="flex sm:flex-row flex-col items-start">
       <div className="w-full">
         <div className="border-r-[#CCCCCC] border-r-[1px]">
-          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
+          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative 2xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
             <div className="flex items-center gap-2">
               <Listbox value={selected} onChange={handleSelect}>
                 {({ open }) => (
@@ -500,7 +485,7 @@ const Chat_version = ({
                     <div className="relative">
                       <Listbox.Button
                         className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
-                          versions > 2 ? "sm:!w-[140px]" : ""
+                          versions > 2 ? "sm:!w-[130px]" : ""
                         }`}
                       >
                         <span className="flex items-center">
@@ -582,7 +567,7 @@ const Chat_version = ({
             </div>
             <div
               className={`flex gap-[17px] sm:mt-0 mt-[20px] ${
-                versions > 2 ? "!gap-[10px]" : ""
+                versions > 2 ? "2xl:!gap-[10px] xl:!gap-[6px] !gap-[10px]" : ""
               }`}
             >
               <button
@@ -639,7 +624,7 @@ const Chat_version = ({
             )}
 
             <div
-              className={`bg-[#F7F7F7] h-[calc(100vh-249px)] overflow-y-auto ${
+              className={`bg-[#F7F7F7] h-[calc(100vh-250px)] overflow-y-auto ${
                 error ? "pt-[44px]" : ""
               }`}
             >
