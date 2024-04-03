@@ -58,14 +58,22 @@ const Version = ({
           name: "Select an option",
         }
   );
-  const [apiResponse, setApiResponse] = useState("");
+  const [vercelResponse, setVercelResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tokens, setTokens] = useState();
   const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
-  const [togetheraiKey, setTogetheraiKey] = useState(""); // State for the API key
+  const [togetherKey, setTogetherKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState(""); // State for the API key
+  // vercel keys
+  const [anthropicKey, setAnthropicKey] = useState(""); 
+  const [cohereKey, setCohereKey] = useState(""); 
+  const [googleKey, setGoogleKey] = useState(""); 
+  const [mistralKey, setMistralKey] = useState(""); 
+  const [perplexityKey, setPerplexityKey] = useState(""); 
+
+  //
   const [customEndpoint, setCustomEndpoint] = useState(""); // State for the API endpoint
   const modalRef = useRef();
   const [analysisData, setAnalysisData] = useState([]);
@@ -96,13 +104,23 @@ const Version = ({
     setCustomAIKey(key2);
     const key3 = localStorage.getItem("customEndpoint") || "";
     setCustomEndpoint(key3);
-    const key4 = localStorage.getItem("togetherAIKey") || "";
-    setTogetheraiKey(key4);
+    const key4 = localStorage.getItem("togetherKey") || "";
+    setTogetherKey(key4);
+    const key5 = localStorage.getItem("anthropicKey") || "";
+    setAnthropicKey(key5);
+    const key6 = localStorage.getItem("cohereKey") || "";
+    setCohereKey(key6);
+    const key7 = localStorage.getItem("googleKey") || "";
+    setGoogleKey(key7);
+    const key8 = localStorage.getItem("mistralKey") || "";
+    setMistralKey(key8);
+    const key9 = localStorage.getItem("perplexityKey") || "";
+    setPerplexityKey(key9);
   }, []);
+
 
   const providerConfig = {
     openai: {
-      endpoint: "https://api.openai.com/v1/chat/completions",
       getKey: () => openaiKey,
     },
     fireworks: {
@@ -115,83 +133,129 @@ const Version = ({
     },
     togethercompute: {
       endpoint: "https://api.together.xyz/v1/chat/completions",
-      getKey: () => togetheraiKey,
+      getKey: () => togetherKey,
     },
     // Add more providers here as needed
   };
 
-  // Function to append apiResponse to message
+  // Function to append vercelResponse to message
   const handleCopyClick = () => {
-    appendToMessage(apiResponse);
+    appendToMessage(vercelResponse);
   };
-
-  const fetchApiResponse = async () => {
+// Vercel integration
+  const fetchVerselResponse = async () => {
+    var res = null;
     setTokens();
-    setApiResponse("");
+    setVercelResponse("");
     setIsLoading(true);
-    const providerInfo = providerConfig[selected.provider];
-    if (!providerInfo) {
+    const provider =selected.provider;
+    if (!provider) {
       setError(`Provider ${selected.provider} is not supported.`);
       setIsLoading(false);
       return;
     }
-
-    const apiEndpoint =
-      selected.provider === "custom"
-        ? providerInfo.endpoint()
-        : providerInfo.endpoint;
-    const authKey =
-      selected.provider === "custom"
-        ? `${providerInfo.getKey()}`
-        : `Bearer ${providerInfo.getKey()}`;
-
-    const formData = {
-      settings: settings,
-      modal: selected,
-      apiEndpoint: apiEndpoint,
-      authKey: authKey,
-      message: message,
-      systemPrompt: open ? systemPrompt : "",
-      type: "prompt",
-    };
-
-    try {
-      const res = await fetch("/api/open-ai-completion", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        setIsLoading(false);
-        // setApiResponse("No content available");
-        const errorText = await res.text();
-        let errorMessage = JSON.parse(errorText);
-        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
-        selected.provider === "openai" &&
-          setApiResponse(errorMessage.error.message);
-        selected.provider === "fireworks" && setApiResponse(errorMessage.error);
-        selected.provider === "togethercompute" &&
-          setApiResponse(errorMessage.error);
-        setAllPromtsDetails((prevDetails) => [
-          ...prevDetails,
-          {
-            isValid: false,
-            versionId: versionId,
-            model: selected.id,
-            input: message,
-            output: "",
-          },
-        ]);
-        throw new Error(res.statusText);
-      } else {
+    try{
+      var formData = {
+        max_tokens: settings.maxTokens,
+        model: selected.id1,
+        prompt: message,
+        systemPrompt: open ? systemPrompt : "",
+        type: "prompt",
+      };
+        switch(selected.provider){
+          case "openai":
+            formData.api_key = openaiKey
+            res = await fetch("/api/openai", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;
+          case "fireworks":
+            formData.api_key = fireworksAIKey
+            res = await fetch("/api/fireworks", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;
+          case "custom":
+            formData.api_key = customAIKey
+            res = await fetch("/api/custom", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;           
+          case "together":
+            formData.api_key = togetherKey
+            res = await fetch("/api/together", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;          
+          case "anthropic":
+            formData.api_key = anthropicKey
+            res = await fetch("/api/anthropic", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;
+          case "cohere":
+            formData.api_key = cohereKey
+            res = await fetch("/api/cohere", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;
+          case "google":
+            formData.api_key = googleKey
+            res = await fetch("/api/google", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;
+          case "mistral":
+            formData.api_key = mistralKey
+            res = await fetch("/api/mistral", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            })
+            break;
+          case "perplexity":
+              formData.api_key = perplexityKey
+              res = await fetch("/api/perplexity", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+              })
+              break;
+          }
         const data = res.body;
-        if (!data) {
-          setApiResponse("No content available");
-          return;
-        }
+        
         setIsLoading(false);
         const reader = data.getReader();
         const decoder = new TextDecoder();
@@ -211,10 +275,13 @@ const Version = ({
             tokenChunk += chunkValue.substring(0, match.index);
           } else {
             tokenChunk += chunkValue;
+            
           }
-          setApiResponse((prev) => prev + tokenChunk);
           completeString += chunkValue;
+          setVercelResponse((prev) => prev + tokenChunk);
+          
         }
+        
         setIsLoading(false);
         setAllPromtsDetails((prevDetails) => [
           ...prevDetails,
@@ -229,38 +296,37 @@ const Version = ({
           },
         ]);
       }
-    } catch (error) {
-      console.error("API request failed:", error.message);
-      setError("Error: " + error.message);
-      setIsLoading(false);
-    }
+        
+      catch (error) {
+        console.error("API request failed:", error.message);
+        setError("Error: " + error.message);
+        setIsLoading(false);
+      }
   };
 
   useEffect(() => {
     const isValidModelSelected = selected?.id1 && selected?.id1 !== "None";
-    const providerInfo = providerConfig[selected?.provider];
-    const apiKey = providerInfo ? providerInfo.getKey() : null;
 
-    if (message && isValidModelSelected && apiKey && runPressed) {
-      fetchApiResponse()
-        .then(() => {
-          resetRunPressed(); // Reset runPressed after the API call
-          setApiCallInProgress(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching API response:", error);
-          setError("Error: " + error.message); // Set error state
-          setApiCallInProgress(false);
-        });
+
+    if (message && isValidModelSelected && runPressed) {
+      fetchVerselResponse()
+      .then(() => {
+        resetRunPressed(); // Reset runPressed after the API call
+        setApiCallInProgress(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching API response:", error);
+        setError("Error: " + error.message); // Set error state
+        setApiCallInProgress(false);
+      });
     } else if (runPressed) {
       let missingItems = [];
       if (!message) missingItems.push("message");
       if (!isValidModelSelected) missingItems.push("valid model selection");
-      if (!apiKey) missingItems.push("API key");
 
-      setApiResponse(
+      setVercelResponse(
         `Please provide the following: ${missingItems.join(", ")}.`
-      ); // Set error message in apiResponse
+      ); // Set error message in vercelResponse
       setApiCallInProgress(false);
       resetRunPressed();
     }
@@ -270,7 +336,7 @@ const Version = ({
   const handleAnalysis = async () => {
     const formData = {
       input: message,
-      response: apiResponse,
+      response: vercelResponse,
     };
     try {
       const response = await fetch("/api/manageModelChecks", {
@@ -294,7 +360,7 @@ const Version = ({
 
   useEffect(() => {
     if (clear) {
-      setApiResponse("");
+      setVercelResponse("");
       setClear(false);
     }
   }, [clear]);
@@ -321,17 +387,17 @@ const Version = ({
     );
   };
 
-  const parseApiResponse = (apiResponse) => {
+  const parsevercelResponse = (vercelResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
     let lastIndex = 0;
 
-    apiResponse?.replace(regex, (match, codeBlock, index) => {
+    vercelResponse?.replace(regex, (match, codeBlock, index) => {
       // Add the text segment before the code block
       if (index > lastIndex) {
         segments.push({
           type: "text",
-          content: apiResponse.slice(lastIndex, index),
+          content: vercelResponse.slice(lastIndex, index),
         });
       }
       // Add the code block
@@ -340,14 +406,14 @@ const Version = ({
     });
 
     // Add any remaining text after the last code block
-    if (apiResponse && lastIndex < apiResponse.length) {
-      segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
+    if (vercelResponse && lastIndex < vercelResponse.length) {
+      segments.push({ type: "text", content: vercelResponse.slice(lastIndex) });
     }
 
     return segments;
   };
 
-  const segments = parseApiResponse(apiResponse);
+  const segments = parsevercelResponse(vercelResponse);
 
   // Settings Modal Window
   // State to manage settings visibility
@@ -637,9 +703,9 @@ const Version = ({
                 open && "2xl:h-[calc(100vh-822px)] h-[calc(100vh-778px)]"
               } ${versions > 4 && "sm:max-h-auto"}`}
             >
-              {isLoading ? (
+               {isLoading ? (
                 <p>Loading...</p>
-              ) : apiResponse ? (
+              ) : vercelResponse ? (
                 segments.map((segment, index) =>
                   segment.type === "code" ? (
                     <CodeBox key={index} code={segment.content} />
@@ -679,6 +745,7 @@ const Version = ({
               ) : error ? (
                 <p>Error: {error}</p>
               ) : null}
+              
             </div>
           </div>
           <div className="flex gap-[10px] justify-center mt-[17px]">
