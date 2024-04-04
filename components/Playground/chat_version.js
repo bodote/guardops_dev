@@ -39,8 +39,6 @@ const Chat_version = ({
   allChatSystemPromot,
   setAllChatSystemPromot,
   setAllChatsDetails,
-  proname,
-  currentChatID,
   selectedModel,
   setSelectedModel,
   saveTraceChatPlayground,
@@ -397,110 +395,6 @@ const fetchVercelResponse = async () => {
     }
 };
 
-  const fetchApiResponse = async () => {
-    setError("");
-    const providerInfo = providerConfig[selected.provider];
-
-    if (!providerInfo) {
-      setError("Please select the valid model");
-      return;
-    }
-    const apiEndpoint =
-      selected.provider === "custom"
-        ? providerInfo.endpoint()
-        : providerInfo.endpoint;
-    const authKey =
-      selected.provider === "custom"
-        ? `${providerInfo.getKey()}`
-        : `Bearer ${providerInfo.getKey()}`;
-    const formData = {
-      settings: settings,
-      modal: selected,
-      apiEndpoint: apiEndpoint,
-      authKey: authKey,
-      message: editedMessage ? editedMessage : userMessage,
-      systemPrompt: open ? systemPrompt : "",
-      type: "chat",
-      data: messages,
-    };
-
-    try {
-      const res = await fetch("/api/open-ai-completion", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        setApiCallInProgress(false);
-        setError("No content available");
-        const errorText = await res.text();
-        let errorMessage = JSON.parse(errorText);
-        selected.provider === "fireworks" && setError(errorMessage.error);
-        selected.provider === "openai" && setError(errorMessage.error.message);
-        selected.provider === "fireworks" && setError(errorMessage.error);
-        selected.provider === "togethercompute" && setError(errorMessage.error);
-        setAllChatsDetails((prevDetails) => [
-          ...prevDetails,
-          {
-            isValid: false,
-            chatVersionId: chatVersionId,
-          },
-        ]);
-        throw new Error(res.statusText);
-      } else {
-        const data = res.body;
-        if (!data) {
-          setError("No content available");
-          return;
-        }
-        const reader = data.getReader();
-        const decoder = new TextDecoder();
-        let done = false;
-        let completeString = "";
-
-        while (!done) {
-          const { value, done: doneReading } = await reader.read();
-          done = doneReading;
-          const chunkValue = decoder.decode(value);
-          setError("");
-          completeString += chunkValue;
-          setMessages((prevMessages) => {
-            const lastIndex = prevMessages.length - 1;
-            return prevMessages.map((message, index) => {
-              if (index === lastIndex) {
-                return {
-                  ...message,
-                  output: completeString.length
-                    ? completeString.replace(/\{"tokens":\d+\}/g, "")
-                    : "",
-                };
-              } else {
-                return message;
-              }
-            });
-          });
-        }
-        setApiCallInProgress(false);
-        setAllChatsDetails((prevDetails) => [
-          ...prevDetails,
-          {
-            isValid: true,
-            chatVersionId: chatVersionId,
-            model: selected.model_id,
-            input: editedMessage ? editedMessage : userMessage,
-            output: completeString.replace(/\{"tokens":\d+\}/g, ""),
-            systemPrompt: systemPrompt,
-            settings: settings,
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error("API request failed:", error.message);
-    }
-  };
 
   const copyToClipboard = (text) => {
     navigator.clipboard

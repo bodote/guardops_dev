@@ -22,7 +22,6 @@ const PlaygroundSettings = () => {
   const [togetherKey, setTogetherKey] = useState("");
   const [perplexityKey, setPerplexityKey] = useState("");
   const [customAIKey, setCustomAIKey] = useState("");
-  const [customEndpoint, setCustomEndpoint] = useState("");
 
   const getModels = async () => {
     const response = await fetch(`/api/manageModels`, {
@@ -78,7 +77,6 @@ const PlaygroundSettings = () => {
     setAnthropicKey(localStorage.getItem("anthropicKey") || "");
     setFireworksAIKey(localStorage.getItem("fireworksAIKey") || "");
     setCustomAIKey(localStorage.getItem("customAIKey") || "");
-    setCustomEndpoint(localStorage.getItem("customEndpoint") || "");
     setGoogleKey(localStorage.getItem("googleKey")|| "");
     setCohereKey(localStorage.getItem("cohereKey")|| "");
     setMistralKey(localStorage.getItem("mistralKey")|| "");
@@ -92,13 +90,6 @@ const PlaygroundSettings = () => {
     localStorage.setItem(keyName, keyValue);
   };
 
-  const saveApiKeyWithEndpoint = (values) => {
-    if (typeof values === "object") {
-      for (const key in values) {
-        localStorage.setItem(key, values[key]);
-      }
-    }
-  };
 
   return (
     <>
@@ -170,14 +161,7 @@ const PlaygroundSettings = () => {
             <CustomAPIEndpoint
               apiKey={customAIKey}
               setApiKey={setCustomAIKey}
-              apiEndpint={customEndpoint}
-              setApiEndpoint={setCustomEndpoint}
-              saveApiKeyWithEndpoint={() =>
-                saveApiKeyWithEndpoint({
-                  customAIKey: customAIKey,
-                  customEndpoint: customEndpoint,
-                })
-              }
+              saveApiKey={() => saveApiKey("customAIKey", customAIKey)}
               label="Custom Provider"
             />
           </div>

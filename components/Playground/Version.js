@@ -74,7 +74,6 @@ const Version = ({
   const [perplexityKey, setPerplexityKey] = useState(""); 
 
   //
-  const [customEndpoint, setCustomEndpoint] = useState(""); // State for the API endpoint
   const modalRef = useRef();
   const [analysisData, setAnalysisData] = useState([]);
   const [tooltipData, setTooltipData] = useState({});
@@ -102,8 +101,6 @@ const Version = ({
     setOpenaiKey(key1);
     const key2 = localStorage.getItem("customAIKey") || "";
     setCustomAIKey(key2);
-    const key3 = localStorage.getItem("customEndpoint") || "";
-    setCustomEndpoint(key3);
     const key4 = localStorage.getItem("togetherKey") || "";
     setTogetherKey(key4);
     const key5 = localStorage.getItem("anthropicKey") || "";
