@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import APIKeyInput from "./APIKeyInput"; // Adjust the path as necessary
-import CustomAPIEndpoint from "./CustomAPIEndpoint";
 import { FiPlus } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
 import AddModal from "../modal/AddModal";
@@ -22,6 +21,7 @@ const PlaygroundSettings = () => {
   const [togetherKey, setTogetherKey] = useState("");
   const [perplexityKey, setPerplexityKey] = useState("");
   const [customAIKey, setCustomAIKey] = useState("");
+  const [tracingKey, setTracingKey] = useState("");
 
   const getModels = async () => {
     const response = await fetch(`/api/manageModels`, {
@@ -82,6 +82,7 @@ const PlaygroundSettings = () => {
     setMistralKey(localStorage.getItem("mistralKey")|| "");
     setTogetherKey(localStorage.getItem("togetherKey")|| "");
     setPerplexityKey(localStorage.getItem("perplexityKey")|| "");
+    setTracingKey(localStorage.getItem("tracingKey") || "");
 
   }, []);
 
@@ -95,10 +96,9 @@ const PlaygroundSettings = () => {
     <>
       <div className="mb-[30px]">
         <p className="text-[16px] text-black my-[60px] max-w-[950px]">
-          Enter the API keys of each Model Provider, which you want to use in
-          the the playground of coai monitoring solution. The API keys are not
-          stored server side, rather are stored on client side. The api will be
-          directly provided to the model provider not to coai. Only the Input
+          Enter the API keys of each Model Provider that you want to use in the Playground. 
+          The API keys are stored in your Browser's local storage. The key will be
+          directly forwarded to the model provider and is never stored on coai servers. Only the Input
           and Response is stored on coai servers for tracing and versioning.{" "}
         </p>
         {/* ... */}
@@ -158,11 +158,17 @@ const PlaygroundSettings = () => {
               saveApiKey={() => saveApiKey("perplexityKey", perplexityKey)}
               label="Perplexity.ai"
             />
-            <CustomAPIEndpoint
+            <APIKeyInput
               apiKey={customAIKey}
               setApiKey={setCustomAIKey}
               saveApiKey={() => saveApiKey("customAIKey", customAIKey)}
               label="Custom Provider"
+            />
+             <APIKeyInput
+              apiKey={tracingKey}
+              setApiKey={setTracingKey}
+              saveApiKey={() => saveApiKey("tracingKey", tracingKey)}
+              label="Playground Tracing"
             />
           </div>
           <div>
