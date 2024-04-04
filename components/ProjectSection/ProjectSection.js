@@ -82,7 +82,18 @@ const ProjectSection = () => {
         setLoader(false);
         const responseData = await response.json();
         if (responseData.projects) {
-          setProjectList(responseData.projects);
+          const sortedProjects = responseData.projects.slice().sort((a, b) => {
+            const nameA = a.name.toUpperCase(); // ignore upper and lowercase
+            const nameB = b.name.toUpperCase(); // ignore upper and lowercase
+            if (nameA < nameB) {
+                return -1;
+            }
+            if (nameA > nameB) {
+                return 1;
+            }
+            return 0; // names must be equal
+        });
+        setProjectList(sortedProjects);
         }
       } else {
         setLoader(false);
