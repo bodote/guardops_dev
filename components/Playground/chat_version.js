@@ -82,7 +82,7 @@ const Chat_version = ({
     maxTokens: 500,
     temperature: 0.6,
     topP: 0.2,
-    topK: 0.3,
+    topK: 50,
     frequencyPenalty: 0.3,
     presencePenalty: 0.3,
   });
