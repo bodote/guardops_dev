@@ -53,7 +53,6 @@ const Chat_version = ({
   ]);
   const [open, setOpen] = useState(false);
   const modalRef = useRef();
-  const [sync, setSync] = useState(false);
   const [selected, setSelected] = useState(
     selectedModel
       ? selectedModel
@@ -61,9 +60,7 @@ const Chat_version = ({
           name: "Select an option",
         }
   );
-  const [vercelResponse, setVercelResponse] = useState("");
-  const [enabled, setEnabled] = useState(false);
-  const [tokens, setTokens] = useState();
+
   const [showSettings, setShowSettings] = useState(false);
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [models, setModels] = useState([]);
@@ -71,7 +68,6 @@ const Chat_version = ({
   const [openaiKey, setOpenaiKey] = useState("");
   const [togetherKey, setTogetherKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState("");
-  const [customEndpoint, setCustomEndpoint] = useState("");
     // vercel keys
   const [anthropicKey, setAnthropicKey] = useState(""); 
   const [cohereKey, setCohereKey] = useState(""); 
@@ -82,7 +78,6 @@ const Chat_version = ({
   const [editingIndex, setEditingIndex] = useState(-1);
   const [editedMessage, setEditedMessage] = useState("");
   const [tooltipData, setTooltipData] = useState({});
-  const [tracesData, setTracesData] = useState([]);
   const [searchModel, setSearchModel] = useState("");
   // State for settings values
   const [settings, setSettings] = useState({
@@ -581,8 +576,7 @@ const fetchVercelResponse = async () => {
     setOpenaiKey(key1);
     const key2 = localStorage.getItem("customAIKey") || "";
     setCustomAIKey(key2);
-    const key3 = localStorage.getItem("customEndpoint") || "";
-    setCustomEndpoint(key3);
+    
     const key4 = localStorage.getItem("togetherKey") || "";
     setTogetherKey(key4);
     const key5 = localStorage.getItem("anthropicKey") || "";

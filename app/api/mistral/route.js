@@ -6,7 +6,7 @@ const mistral = new MistralClient(process.env.MISTRAL_API_KEY || '');
  
 export async function POST(req) {
   const body = await req.json()
-
+  var response;
   try {
     const { api_key, model, type, max_tokens, messages, prompt } = body;
 
@@ -14,7 +14,7 @@ export async function POST(req) {
   // Extract the `messages` from the body of the request
   if (type ==="chat"){
  
-  const response = mistral.chatStream({
+  response = mistral.chatStream({
     model: model,
     maxTokens: max_tokens,
     messages,
@@ -23,7 +23,7 @@ export async function POST(req) {
    // Extract the `prompt` from the body of the request
  
    // Ask Mistral for a streaming completion given the prompt
-   const response = mistral.chatStream({
+   response = mistral.chatStream({
      model: model,
      maxTokens: max_tokens,
      messages: [{ role: 'user', content: prompt }],

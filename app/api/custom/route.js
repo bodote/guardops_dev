@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 // IMPORTANT! Set the runtime to edge
 export const runtime = 'edge';
 
-export async function POST(req, res) {
+export async function POST(req) {
   const body = await req.json()
   var response;
   try {

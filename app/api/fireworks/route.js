@@ -1,17 +1,20 @@
 import OpenAI from 'openai';
 import { OpenAIStream, StreamingTextResponse } from 'ai';
+import { NextResponse } from 'next/server';
 
 
 // IMPORTANT! Set the runtime to edge
 export const runtime = 'edge';
-export default async function handler(req) {
+export async function POST(req) {
   const body = await req.json()
+  var response;
 
   try {
+    console.log(body)
     const { api_key, model, type, max_tokens, messages, prompt } = body;
   // Create an OpenAI API client (that's edge friendly!)
   // but configure it to point to fireworks.ai
-  const fireworks = new OpenAI({
+  var fireworks = new OpenAI({
     apiKey: api_key || '',
     baseURL: 'https://api.fireworks.ai/inference/v1',
   });
@@ -20,11 +23,11 @@ export default async function handler(req) {
 
     // Ask Fireworks for a streaming chat completion using Llama 2 70b model
     // @see https://app.fireworks.ai/models/fireworks/llama-v2-70b-chat
-    const response = await fireworks.chat.completions.create({
+    response = await fireworks.chat.completions.create({
       model: model,
       stream: true,
       max_tokens: max_tokens,
-      messages,
+      messages:messages,
     });
     // Convert the response into a friendly text-stream.
   } else if (type === "prompt") {
@@ -32,11 +35,11 @@ export default async function handler(req) {
 
     // Ask Fireworks for a streaming chat completion using Llama 2 70b model
     // @see https://app.fireworks.ai/models/fireworks/llama-v2-70b-chat
-    const response = await fireworks.completions.create({
+    response = await fireworks.chat.completions.create({
       model: model,
       stream: true,
       max_tokens: max_tokens,
-      prompt,
+      messages:[{ role: 'user', content: prompt }],
     });
 
   }
