@@ -11,7 +11,7 @@ export async function POST(req) {
   var response;
   var sysPrompt;
   try {
-    var { api_key, model, type, max_tokens, messages, prompt,systemPrompt } = body;
+    var { api_key, model, type, max_tokens, messages, prompt,settings ,systemPrompt } = body;
     // Create an OpenAI API client (that's edge friendly!)
     var openai = new OpenAI({
       apiKey: api_key,

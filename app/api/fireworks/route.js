@@ -10,7 +10,7 @@ export async function POST(req) {
   var response;
   var sysPrompt;
   try {
-    var { api_key, model, type, max_tokens, messages, prompt,systemPrompt } = body;
+    var { api_key, model, type, max_tokens, messages, prompt,settings ,systemPrompt } = body;
   // Create an OpenAI API client (that's edge friendly!)
   // but configure it to point to fireworks.ai
   var fireworks = new OpenAI({

@@ -20,7 +20,7 @@ export default async function handler(req) {
   const body = await req.json()
 
   try {
-    const { api_key, model, type, max_tokens, messages, prompt } = body;
+    const { api_key, model, type, max_tokens, messages, settings ,prompt } = body;
   if (!api_key) {
     throw new Error('Missing COHERE_API_KEY environment variable');
   }

@@ -21,7 +21,7 @@ export async function POST(req) {
   const body = await req.json()
 
   try {
-    const { api_key, model, type, max_tokens, messages, prompt } = body;
+    var { api_key, model, type, max_tokens, messages, settings ,prompt } = body;
 
   const genAI = new GoogleGenerativeAI(api_key || '');
   if (type === "chat") {

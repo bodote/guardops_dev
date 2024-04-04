@@ -10,7 +10,7 @@ export  async function POST(req) {
   const body = await req.json()
   var response;
   try {
-    const { api_key, model, type,  messages, prompt,settings , systemPrompt} = body;
+    var { api_key, model, type,  messages, prompt,settings , systemPrompt} = body;
   // Create an Anthropic API client (that's edge friendly)
   const anthropic = new Anthropic({
     apiKey: api_key || '',

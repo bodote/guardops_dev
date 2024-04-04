@@ -8,7 +8,7 @@ export async function POST(req) {
   const body = await req.json()
   var response;
   try {
-    const { api_key, model, type, max_tokens, messages, prompt } = body;
+    var { api_key, model, type, max_tokens, messages, settings ,prompt } = body;
 
   const mistral = new MistralClient(api_key || '');
   // Extract the `messages` from the body of the request
