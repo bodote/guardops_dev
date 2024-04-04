@@ -9,14 +9,24 @@ export const runtime = 'edge';
 export async function POST(req, res) {
   const body = await req.json()
   var response;
+  var sysPrompt;
   try {
-    const { api_key, model, type, max_tokens, messages, prompt } = body;
+    const { api_key, model, type, max_tokens, messages, prompt,systemPrompt } = body;
     // Create an OpenAI API client (that's edge friendly!)
     var openai = new OpenAI({
       apiKey: api_key,
       baseURL: "https://api.perplexity.ai/"
       
     });
+    if (systemPrompt.length > 1) {
+      // If systemPrompt contains more than 1 character, add it to the first index of the message array
+      sysPrompt = { "role": "system", "content": systemPrompt }
+      console.log(sysPrompt)
+      if (messages){
+        messages.unshift(sysPrompt);
+      }
+      
+    }
     if (type === "chat") {
       // Ask OpenAI for a streaming chat completion given the prompt
       response = await openai.chat.completions.create({
@@ -32,7 +42,7 @@ export async function POST(req, res) {
         model: model,
         max_tokens: max_tokens,
         stream: true,
-        messages: [{role: "user", content:prompt}],
+        messages:[sysPrompt,{"role": "user", "content":prompt}],
       });
     }
     

@@ -8,16 +8,24 @@ export const runtime = 'edge';
 export async function POST(req) {
   const body = await req.json()
   var response;
-
+  var sysPrompt;
   try {
-    console.log(body)
-    const { api_key, model, type, max_tokens, messages, prompt } = body;
+    const { api_key, model, type, max_tokens, messages, prompt,systemPrompt } = body;
   // Create an OpenAI API client (that's edge friendly!)
   // but configure it to point to fireworks.ai
   var fireworks = new OpenAI({
     apiKey: api_key || '',
     baseURL: 'https://api.fireworks.ai/inference/v1',
   });
+  if (systemPrompt.length > 1) {
+    // If systemPrompt contains more than 1 character, add it to the first index of the message array
+    sysPrompt = { "role": "system", "content": systemPrompt }
+    console.log(sysPrompt)
+    if (messages){
+      messages.unshift(sysPrompt);
+    }
+    
+  }
   if (type === "chat") {
     // Extract the `messages` from the body of the request
 
@@ -39,7 +47,7 @@ export async function POST(req) {
       model: model,
       stream: true,
       max_tokens: max_tokens,
-      messages:[{ role: 'user', content: prompt }],
+      messages:[sysPrompt,{"role": "user", "content":prompt}],
     });
 
   }
