@@ -24,7 +24,6 @@ export async function POST(req) {
     if (systemPrompt.length > 1) {
       // If systemPrompt contains more than 1 character, add it to the first index of the message array
       sysPrompt = { "role": "system", "content": systemPrompt }
-      console.log(sysPrompt)
       if (messages) {
         messages.unshift(sysPrompt);
       }
@@ -38,8 +37,9 @@ export async function POST(req) {
         messages: messages,
         max_tokens: Number(settings.maxTokens),
         temperature: Number(settings.temperature),
-        top_k: Number(settings.topK),
         top_p: Number(settings.topP),
+        frequency_penalty:Number(settings.frequencyPenalty),
+        presence_penalty: Number(settings.precencePenalty)
       });
     } else if (type === "prompt") {
       // Extract the `prompt` from the body of the request
@@ -48,8 +48,9 @@ export async function POST(req) {
         model: model,
         max_tokens: Number(settings.maxTokens),
         temperature: Number(settings.temperature),
-        top_k: Number(settings.topK),
         top_p: Number(settings.topP),
+        frequency_penalty:Number(settings.frequencyPenalty),
+        presence_penalty: Number(settings.precencePenalty),
         stream: true,
         messages: messages,
       });
