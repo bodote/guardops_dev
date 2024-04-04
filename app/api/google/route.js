@@ -19,29 +19,28 @@ const buildGoogleGenAIPrompt = (messages) => ({
 
 export async function POST(req) {
   const body = await req.json()
-
+  var response;
   try {
     var { api_key, model, type, max_tokens, messages, settings ,prompt } = body;
-
   const genAI = new GoogleGenerativeAI(api_key || '');
   if (type === "chat") {
     // Extract the `prompt` from the body of the request
 
-    const geminiStream = await genAI
+     response = await genAI
       .getGenerativeModel({ model: model })
       .generateContentStream(buildGoogleGenAIPrompt(messages));
   } else if (type === "prompt") {
     // Extract the `prompt` from the body of the request
 
     // Ask Google Generative AI for a streaming completion given the prompt
-    const response = await genAI
+     response = await genAI
       .getGenerativeModel({ model: model })
       .generateContentStream({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
       });
   }
   // Convert the response into a friendly text-stream
-  const stream = GoogleGenerativeAIStream(geminiStream);
+  const stream = GoogleGenerativeAIStream(response);
 
   // Respond with the stream
   return new StreamingTextResponse(stream);

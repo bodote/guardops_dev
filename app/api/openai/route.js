@@ -11,23 +11,23 @@ export async function POST(req) {
   var response;
   var sysPrompt;
   try {
-    var { api_key, model, type, max_tokens, messages, prompt,settings ,systemPrompt } = body;
+    var { api_key, model, type, max_tokens, messages, prompt, settings, systemPrompt } = body;
     // Create an OpenAI API client (that's edge friendly!)
     var openai = new OpenAI({
       apiKey: api_key,
-      
+
     });
-    if(prompt){
-      messages =  [{"role": "user", "content":prompt}]
+    if (prompt) {
+      messages = [{ "role": "user", "content": prompt }]
     }
     if (systemPrompt.length > 1) {
       // If systemPrompt contains more than 1 character, add it to the first index of the message array
       sysPrompt = { "role": "system", "content": systemPrompt }
       console.log(sysPrompt)
-      if (messages){
+      if (messages) {
         messages.unshift(sysPrompt);
       }
-      
+
     }
     if (type === "chat") {
       // Ask OpenAI for a streaming chat completion given the prompt
@@ -35,19 +35,25 @@ export async function POST(req) {
         model: model,
         stream: true,
         messages: messages,
-        max_tokens: max_tokens
+        max_tokens: Number(settings.maxTokens),
+        temperature: Number(settings.temperature),
+        top_k: Number(settings.topK),
+        top_p: Number(settings.topP),
       });
     } else if (type === "prompt") {
       // Extract the `prompt` from the body of the request
       // Ask OpenAI for a streaming completion given the prompt
       response = await openai.chat.completions.create({
         model: model,
-        max_tokens: max_tokens,
+        max_tokens: Number(settings.maxTokens),
+        temperature: Number(settings.temperature),
+        top_k: Number(settings.topK),
+        top_p: Number(settings.topP),
         stream: true,
         messages: messages,
       });
     }
-    
+
     // Convert the response into a friendly text-stream
     const stream = OpenAIStream(response);
     // Respond with the stream
