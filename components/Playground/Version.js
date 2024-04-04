@@ -136,6 +136,12 @@ const Version = ({
     try{
       var formData = {
         max_tokens: Number(settings.maxTokens),
+        temperature: Number(settings.temperature),
+        top_p: Number(settings.topP),
+        top_k: Number(settings.topK),
+        frequency_penalty: Number(settings.frequencyPenalty),
+        presence_penalty: Number(settings.presencePenalty),
+        settings: settings,
         model: selected.id1,
         prompt: message,
         systemPrompt: open ? systemPrompt : "",

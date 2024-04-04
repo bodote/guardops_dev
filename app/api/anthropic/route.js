@@ -10,7 +10,7 @@ export  async function POST(req) {
   const body = await req.json()
   var response;
   try {
-    const { api_key, model, type, max_tokens, messages, prompt } = body;
+    const { api_key, model, type,  messages, prompt,settings } = body;
   // Create an Anthropic API client (that's edge friendly)
   const anthropic = new Anthropic({
     apiKey: api_key || '',
@@ -23,7 +23,10 @@ export  async function POST(req) {
       messages,
       model: model,
       stream: true,
-      max_tokens: max_tokens,
+      max_tokens: Number(settings.maxTokens),
+      temperature: Number(settings.temperature),
+      top_k: Number(settings.topK),
+      top_p: Number(settings.topP),
     });
   } else if (type === "prompt") {
     // Extract the `prompt` from the body of the request
@@ -32,7 +35,10 @@ export  async function POST(req) {
       messages: [{"role":"user","content":prompt}],
       model: "claude-3-opus-20240229",
       stream: true,
-      max_tokens: max_tokens,
+      max_tokens: Number(settings.maxTokens),
+      temperature: Number(settings.temperature),
+      top_k: Number(settings.topK),
+      top_p: Number(settings.topP),
     });
   }
   // Convert the response into a friendly text-stream

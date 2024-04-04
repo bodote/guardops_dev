@@ -251,6 +251,7 @@ const fetchVercelResponse = async () => {
       messages: allMessages,
       systemPrompt: open ? systemPrompt : "",
       type: "chat",
+      settings: settings,
     };
       switch(selected.provider){
         case "openai":

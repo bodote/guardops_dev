@@ -78,15 +78,15 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             </div>
             <input
               type="range"
-              min="0"
-              max="1"
-              step="0.01"
+              min="1"
+              max="50"
+              step="1"
               className="slider-main"
               value={settings.topK ? settings.topK : 0}
               id="top-k"
               onChange={(e) => onSettingsChange("topK", e.target.value)}
               style={{
-                background: calculateSliderBackground(settings.topK, 1),
+                background: calculateSliderBackground(settings.topK, 50),
               }}
             />
           </div>
