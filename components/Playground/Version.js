@@ -55,7 +55,7 @@ const Version = ({
     selectedModel
       ? selectedModel
       : {
-          name: "Select an option",
+          name: "Select a Model",
         }
   );
   const [vercelResponse, setVercelResponse] = useState("");

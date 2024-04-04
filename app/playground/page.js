@@ -58,7 +58,7 @@ const index = () => {
   const [allChatsDetails, setAllChatsDetails] = useState([]);
   const [ActiveTool, setActiveTool] = useState(false);
   const [proname, setProname] = useState({
-    name: "Select a project to store",
+    name: "Select a Project",
   });
   const [selectedModel, setSelectedModel] = useState(null); // State to store the selected model
   const [searchProject, setSearchProject] = useState("");

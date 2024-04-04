@@ -55,7 +55,7 @@ const Chat_version = ({
     selectedModel
       ? selectedModel
       : {
-          name: "Select an option",
+          name: "Select a Model",
         }
   );
 
