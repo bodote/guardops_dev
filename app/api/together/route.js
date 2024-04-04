@@ -11,13 +11,16 @@ export async function POST(req, res) {
   var response;
   var sysPrompt;
   try {
-    const { api_key, model, type, max_tokens, messages, prompt,systemPrompt } = body;
+    var { api_key, model, type, max_tokens, messages, prompt,systemPrompt } = body;
     // Create an OpenAI API client (that's edge friendly!)
     var openai = new OpenAI({
       apiKey: api_key,
       baseURL: "https://api.together.xyz/v1"
       
     });
+    if(prompt){
+      messages =  [{"role": "user", "content":prompt}]
+    }
     if (systemPrompt.length > 1) {
       // If systemPrompt contains more than 1 character, add it to the first index of the message array
       sysPrompt = { "role": "system", "content": systemPrompt }
@@ -42,7 +45,7 @@ export async function POST(req, res) {
         model: model,
         max_tokens: max_tokens,
         stream: true,
-        messages: [sysPrompt,{"role": "user", "content":prompt}],
+        messages: messages,
       });
     }
     

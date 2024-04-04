@@ -10,13 +10,16 @@ export async function POST(req) {
   var response;
   var sysPrompt;
   try {
-    const { api_key, model, type, max_tokens, messages, prompt,systemPrompt } = body;
+    var { api_key, model, type, max_tokens, messages, prompt,systemPrompt } = body;
   // Create an OpenAI API client (that's edge friendly!)
   // but configure it to point to fireworks.ai
   var fireworks = new OpenAI({
     apiKey: api_key || '',
     baseURL: 'https://api.fireworks.ai/inference/v1',
   });
+  if(prompt){
+    messages =  [{"role": "user", "content":prompt}]
+  }
   if (systemPrompt.length > 1) {
     // If systemPrompt contains more than 1 character, add it to the first index of the message array
     sysPrompt = { "role": "system", "content": systemPrompt }
@@ -47,7 +50,7 @@ export async function POST(req) {
       model: model,
       stream: true,
       max_tokens: max_tokens,
-      messages:[sysPrompt,{"role": "user", "content":prompt}],
+      messages:messages,
     });
 
   }
