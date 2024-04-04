@@ -431,15 +431,26 @@ const Version = ({
     handleSelectModel(model.model_id, index);
   };
 
-  const filteredModels = models.filter((model) => {
+  const filteredModels = models
+  .filter((model) => {
     const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
     const regex = new RegExp(trimmedSearchModel, "gi");
     const trimmedModelName = model.name
       .replace(/[^\w\s]/g, "")
       .replace(/\s+/g, "");
     return trimmedModelName.match(regex);
+  })
+  .sort((a, b) => {
+    const nameA = a.name.toUpperCase(); // ignore upper and lowercase
+    const nameB = b.name.toUpperCase(); // ignore upper and lowercase
+    if (nameA < nameB) {
+      return -1;
+    }
+    if (nameA > nameB) {
+      return 1;
+    }
+    return 0; // names must be equal
   });
-
   const getModelLabel = () => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const index = allVersions.findIndex((version) => version.id === versionId);
@@ -535,7 +546,7 @@ const Version = ({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                       >
-                        <Listbox.Options className="absolute z-10 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[230px] overflow-auto">
+                        <Listbox.Options className="absolute z-10 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl: w-[180px] max-w-[400px] max-h-[700px] h-[230px] overflow-auto resize">
                           <div className="bg-white sticky top-0 z-[9] p-1">
                             <input
                               type="text"
