@@ -218,8 +218,8 @@ const DatasetSection = () => {
                     </div>
                   </div>
                   <div className="flex gap-[14px] pt-[8px] pb-[6px]">
-                    <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
-                      Traces: {ele.stats.trace_count}
+                  <p className={`font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal ${ele.shared ? 'text-[#0D859A]' : 'text-[#D4DB33]'} `}>
+                      Traces: {ele.shared ? `${ele.stats.trace_count} - Shared Project` : ele.stats.trace_count}
                     </p>
                     {/* <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
                       -Latenz: 0,25
