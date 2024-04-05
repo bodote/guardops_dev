@@ -2,7 +2,7 @@ import React, { useState, Fragment } from "react";
 import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { IoChevronDownOutline } from "react-icons/io5";
 
-const DeleteProjectModal = ({
+const DeleteSharedProjectModal = ({
   open,
   setOpen,
   selectedProjectForDelete,
@@ -56,8 +56,8 @@ const DeleteProjectModal = ({
                           Delete selected Project{" "}
                         </h3>
                         <p className="text-left text-[14px] font-medium font-Inter text-[#68727D] ">
-                          Do you want to delete the trace in this project or move them to a
-                          different project?
+                          This is a shared project. 
+                          You can delete it but all the traces can only be manipulated by the project owner.
                         </p>
                         <input
                           type="text"
@@ -76,12 +76,6 @@ const DeleteProjectModal = ({
                             className=" bg-[#E33B32] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
                           >
                             Delete
-                          </button>
-                          <button
-                            onClick={() => setMoveToTraceModelOpen(true)}
-                            className=" bg-[#D4DB33] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
-                          >
-                            Move Traces
                           </button>
                           <button
                             onClick={() => setOpen(false)}
@@ -235,4 +229,4 @@ const DeleteProjectModal = ({
   );
 };
 
-export default DeleteProjectModal;
+export default DeleteSharedProjectModal;

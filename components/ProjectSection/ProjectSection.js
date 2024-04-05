@@ -11,6 +11,7 @@ import AddProjectModal from "@/components/modal/AddProjectModal";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import DeleteProjectModal from "../modal/DeleteProjectModal";
+import DeleteSharedProjectModal from "../modal/DeleteSharedProjectModal";
 import DeveloperInfo from "../modal/DeveloperInfo";
 import GenerateShareModal from "../modal/GenerateShareModal";
 import ImportShareCode from "../modal/ImportShareCode";
@@ -32,7 +33,22 @@ const ProjectSection = () => {
   const [active, setActive] = useState(false);
   const [shareModal, setShareModal] = useState(false);
   const [importShare, setImportShare] = useState(false);
+  const [showSharedModal, setShowSharedModal] = useState(false); // State to manage whether to show shared project modal
+  // Define state to store open state for each project
+  const [openModals, setOpenModals] = useState({});
 
+  // Function to toggle modal for a specific project
+  const toggleModal = (projectId) => {
+    setOpenModals(prevState => ({
+      ...prevState,
+      [projectId]: !prevState[projectId]
+    }));
+  };
+  useEffect(() => {
+    // Check if any shared project exists in projectList
+    const sharedExists = projectList.some(ele => ele.shared);
+    setShowSharedModal(sharedExists); // Update state based on whether shared project exists
+  }, [projectList]); // Re-run effect when projectList changes
   const router = useRouter();
   const modalRef = useRef();
 
@@ -86,14 +102,14 @@ const ProjectSection = () => {
             const nameA = a.name.toUpperCase(); // ignore upper and lowercase
             const nameB = b.name.toUpperCase(); // ignore upper and lowercase
             if (nameA < nameB) {
-                return -1;
+              return -1;
             }
             if (nameA > nameB) {
-                return 1;
+              return 1;
             }
             return 0; // names must be equal
-        });
-        setProjectList(sortedProjects);
+          });
+          setProjectList(sortedProjects);
         }
       } else {
         setLoader(false);
@@ -140,7 +156,7 @@ const ProjectSection = () => {
           Projects
         </h1>
         <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full items-center">
-        <div
+          <div
             onClick={() => {
               setCreateProjectStatus("new");
               setIsModalOpen(true);
@@ -211,29 +227,44 @@ const ProjectSection = () => {
                       <button id="project_edit" onClick={() => handleProjectEdit(ele)}>
                         <EditBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
-                      <button id="project_delete"
+                      <button
+                        id="project_delete"
                         onClick={() => {
                           setSelectedProjectForDelete(ele);
-                          setOpen(true);
+                          toggleModal(ele.project_id); // Toggle modal for the clicked project
                         }}
                       >
                         <DeleteBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
                       </button>
-                      {open && (
-                        <DeleteProjectModal
-                          open={open}
-                          setOpen={setOpen}
-                          selectedProjectForDelete={selectedProjectForDelete}
-                          selected={selected}
-                          handleProjectDelete={handleProjectDelete}
-                          setSelected={setSelected}
-                        />
+                      {openModals[ele.project_id] && (
+                        ele.shared ? (
+                          <DeleteSharedProjectModal
+                            key={ele.project_id}
+                            open={openModals[ele.project_id]}
+                            setOpen={() => toggleModal(ele.project_id)}
+                            selectedProjectForDelete={selectedProjectForDelete}
+                            selected={selected}
+                            handleProjectDelete={handleProjectDelete}
+                            setSelected={setSelected}
+                          />
+                        ) : (
+                          <DeleteProjectModal
+                            key={ele.project_id}
+                            open={openModals[ele.project_id]}
+                            setOpen={() => toggleModal(ele.project_id)}
+                            selectedProjectForDelete={selectedProjectForDelete}
+                            selected={selected}
+                            handleProjectDelete={handleProjectDelete}
+                            setSelected={setSelected}
+                          />
+                        )
                       )}
+
                     </div>
                   </div>
                   <div className="flex gap-[14px] pt-[8px] pb-[6px] flex-wrap">
-                    <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
-                      Traces: {ele.stats.trace_count}
+                    <p className={`font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal ${ele.shared ? 'text-[#0D859A]' : 'text-[#D4DB33]'} `}>
+                      Traces: {ele.shared ? `${ele.stats.trace_count} - Shared Project` : ele.stats.trace_count}
                     </p>
                     {/* <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
                       -Latenz: 0,25
@@ -256,7 +287,7 @@ const ProjectSection = () => {
             </div>
           )}
 
-          
+
           {isModalOpen && (
             <div
               ref={modalRef}
