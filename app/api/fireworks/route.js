@@ -10,7 +10,7 @@ export async function POST(req) {
   var response;
   var sysPrompt;
   try {
-    var { api_key, model, type, max_tokens, messages, prompt, settings, systemPrompt } = body;
+    var { api_key, model, type,  messages, prompt, settings, systemPrompt } = body;
     // Create an OpenAI API client (that's edge friendly!)
     // but configure it to point to fireworks.ai
     var fireworks = new OpenAI({
@@ -40,7 +40,7 @@ export async function POST(req) {
         temperature: Number(settings.temperature),
         top_p: Number(settings.topP),
         frequency_penalty:Number(settings.frequencyPenalty),
-        presence_penalty: Number(settings.precencePenalty),
+        presence_penalty: Number(settings.presencePenalty),
         messages: messages,
       });
       // Convert the response into a friendly text-stream.
@@ -56,7 +56,7 @@ export async function POST(req) {
         temperature: Number(settings.temperature),
         top_p: Number(settings.topP),
         frequency_penalty:Number(settings.frequencyPenalty),
-        presence_penalty: Number(settings.precencePenalty),
+        presence_penalty: Number(settings.presencePenalty),
         messages: messages,
       });
 

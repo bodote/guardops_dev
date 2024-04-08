@@ -11,7 +11,7 @@ export async function POST(req) {
   var response;
   var sysPrompt;
   try {
-    var { api_key, model, type, max_tokens, messages, prompt, settings, systemPrompt } = body;
+    var { api_key, model, type,  messages, prompt, settings, systemPrompt } = body;
     // Create an OpenAI API client (that's edge friendly!)
     var openai = new OpenAI({
       apiKey: api_key,
@@ -38,7 +38,7 @@ export async function POST(req) {
         temperature: Number(settings.temperature),
         top_p: Number(settings.topP),
         frequency_penalty:Number(settings.frequencyPenalty),
-        presence_penalty: Number(settings.precencePenalty)
+        presence_penalty: Number(settings.presencePenalty)
       });
     } else if (type === "prompt") {
       // Extract the `prompt` from the body of the request
@@ -49,7 +49,7 @@ export async function POST(req) {
         temperature: Number(settings.temperature),
         top_p: Number(settings.topP),
         frequency_penalty:Number(settings.frequencyPenalty),
-        presence_penalty: Number(settings.precencePenalty),
+        presence_penalty: Number(settings.presencePenalty),
         stream: true,
         messages: messages,
       });
