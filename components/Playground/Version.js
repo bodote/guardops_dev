@@ -741,16 +741,7 @@ const Version = ({
               ) : error ? (
                 <p>Error: {error}</p>
               ) : null}
-              
-            </div>
-          </div>
-          <div className="flex gap-[10px] justify-center mt-[17px]">
-            <CopyIcon onClick={handleCopyClick} />
-            <DownArrowIcon />
-            <UpArrowIcon />
-            <PenIcon />
-          </div>
-          {analysisModelOpen && (
+              {analysisModelOpen && (
             <div className="w-full bg-[#D4DB3333] p-[15px] rounded-[18px] overflow-auto">
               <table className="grid grid-cols-2 min-w-[640px]">
                 {analysisData?.map((data, key) => {
@@ -791,6 +782,16 @@ const Version = ({
               </table>
             </div>
           )}
+            </div>
+          </div>
+          
+          <div className="flex gap-[10px] justify-center mt-[17px]">
+            <CopyIcon onClick={handleCopyClick} />
+            <DownArrowIcon />
+            <UpArrowIcon />
+            <PenIcon />
+          </div>
+         
         </div>
         {tokens && (
           <div>
