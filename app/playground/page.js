@@ -60,6 +60,7 @@ const index = () => {
   const [proname, setProname] = useState({
     name: "Select a Project",
   });
+  
   const [selectedModel, setSelectedModel] = useState(null); // State to store the selected model
   const [searchProject, setSearchProject] = useState("");
   const [apiCallInProgress, setApiCallInProgress] = useState(false);
@@ -78,7 +79,15 @@ const index = () => {
       return updatedModels;
     });
   };
-
+  const filteredProjects = projectList.filter((project) =>
+  project.name.toLowerCase().includes(searchProject.toLowerCase())
+);
+  useEffect(() => {
+    if (filteredProjects && filteredProjects.length > 0) {
+      setProname(filteredProjects[0]);
+    }
+  }, [filteredProjects]); // Run this effect whenever filteredProjects changes
+  
   useEffect(() => {
     const parsedData = JSON.parse(data);
     if (parsedData && parsedData.message) {
@@ -463,24 +472,7 @@ const index = () => {
   const appendToMessage = (text) => {
     setMessage((prevMessage) => `${prevMessage} ${text}`);
   };
-  const filteredProjects = projectList.filter((project) => {
-    const trimmedSearchProject = searchProject.replace(/[^\w\s]/g, "").trim();
-    const regex = new RegExp(trimmedSearchProject, "gi");
-    const trimmedProjectName = project.name
-      .replace(/[^\w\s]/g, "")
-      .replace(/\s+/g, "");
-    return trimmedProjectName.match(regex);
-  }) .sort((a, b) => {
-    const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-    const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-    if (nameA < nameB) {
-      return -1;
-    }
-    if (nameA > nameB) {
-      return 1;
-    }
-    return 0; // names must be equal
-  });;
+ 
   // State to manage versions
   const [versions, setVersions] = useState([
     { id: 1, component: <Version key={1} /> },
