@@ -406,7 +406,7 @@ const Version = ({
 
   // State for settings values
   const [settings, setSettings] = useState({
-    maxTokens: 500,
+    maxTokens: 2500,
     temperature: 0.6,
     topP: 0.2,
     topK: 50,
