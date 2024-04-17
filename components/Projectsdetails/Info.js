@@ -116,8 +116,15 @@ const Info = ({ traceProject }) => {
             <div className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  overflow-auto   border-t border-t-[#CCCCCC]">
               {traceProject?.model
                 ? traceProject?.model
-                : traceProject?.llm_completions_0_content || "null"}
+                :  "null"}
+<div>
+{traceProject?.model_params
+              ? traceProject?.model_params
+              :  "null"}
+              </div>
             </div>
+
+           
           )}
         </div>
       </div>
