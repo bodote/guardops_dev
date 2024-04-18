@@ -19,6 +19,8 @@ import ModelSettings from "./modelSettings";
 import { Switch } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { AiOutlineStop } from "react-icons/ai";
+import { encodingForModel } from "js-tiktoken";
+
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -61,7 +63,10 @@ const Version = ({
   const [vercelResponse, setVercelResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [tokens, setTokens] = useState();
+  const [totalTokens, setTotalTokens] = useState();
+  const [inputTokens, setInputTokens] = useState();
+  const [outputTokens, setOutputTokens] = useState();
+
   const [fireworksAIKey, setFireworksAIKey] = useState(""); // State for the API key
   const [openaiKey, setOpenaiKey] = useState(""); // State for the API key
   const [togetherKey, setTogetherKey] = useState(""); // State for the API key
@@ -124,7 +129,9 @@ const Version = ({
 // Vercel integration
   const fetchVercelResponse = async () => {
     var res = null;
-    setTokens();
+    setInputTokens();
+    setTotalTokens();
+    setOutputTokens();
     setVercelResponse("");
     setIsLoading(true);
     const provider =selected.provider;
@@ -134,6 +141,10 @@ const Version = ({
       return;
     }
     try{
+      const enc = encodingForModel("gpt-3.5-turbo");
+      const promptTokens = enc.encode(message).length;
+      setInputTokens(promptTokens);
+     
       var formData = {
         max_tokens: Number(settings.maxTokens),
         temperature: Number(settings.temperature),
@@ -246,6 +257,7 @@ const Version = ({
         const decoder = new TextDecoder();
         let done = false;
         let completeString = "";
+        let generationTokens = 0;
 
         while (!done) {
           const { value, done: doneReading } = await reader.read();
@@ -254,17 +266,21 @@ const Version = ({
           const tokenRegex = /{"tokens":(\d+)}/g;
           const match = tokenRegex.exec(chunkValue);
           let tokenChunk = "";
-          if (match) {
-            const tokensValue = parseInt(match[1]);
-            setTokens(tokensValue);
-            tokenChunk += chunkValue.substring(0, match.index);
-          } else {
-            tokenChunk += chunkValue;
-            
-          }
+        
+          tokenChunk += chunkValue;
+         
           completeString += chunkValue;
+          generationTokens += enc.encode(chunkValue).length;
           setVercelResponse((prev) => prev + tokenChunk);
           
+        }
+
+        if (done){
+          
+          setOutputTokens(generationTokens);
+          let total = inputTokens + outputTokens;
+          
+          setTotalTokens(total);
         }
         
         setIsLoading(false);
@@ -346,6 +362,9 @@ const Version = ({
   useEffect(() => {
     if (clear) {
       setVercelResponse("");
+      setOutputTokens();
+      setInputTokens();
+      setTotalTokens();
       setClear(false);
     }
   }, [clear]);
@@ -641,7 +660,7 @@ const Version = ({
           </div>
           <div
             className={`overflow-auto ${
-              tokens
+              totalTokens
                 ? "h-[calc(100vh-555px)]"
                 : "sm:h-[calc(100vh-527px)] h-[calc(100vh-607px)]"
             }`}
@@ -792,13 +811,30 @@ const Version = ({
             </div>
           )}
         </div>
-        {tokens && (
-          <div>
-            <p className="text-[12px] text-black text-center font-normal mt-[10px]">
-              Output Tokens: {tokens}
-            </p>
-          </div>
-        )}
+        <div className="flex justify-center">
+  {inputTokens && (
+    <div className="mx-4">
+      <p className="text-[12px] text-black text-center font-bold">
+        Input Tokens: {inputTokens}
+      </p>
+    </div>
+  )}
+  {outputTokens && (
+    <div className="mx-4">
+      <p className="text-[12px] text-black text-center font-bold">
+        Output Tokens: {outputTokens}
+      </p>
+    </div>
+  )}
+  {totalTokens && (
+    <div className="mx-4">
+      <p className="text-[12px] text-black text-center font-bold">
+        Total Tokens: {totalTokens}
+      </p>
+    </div>
+  )}
+</div>
+
       </div>
       {tooltipData && (
         <Tooltip

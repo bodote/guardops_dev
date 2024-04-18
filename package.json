@@ -13,14 +13,14 @@
     "npm": ">=9.4.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk":"*",
+    "@anthropic-ai/sdk": "*",
     "@auth0/nextjs-auth0": "^3.5.0",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
-    "@google/generative-ai":"*",
+    "@google/generative-ai": "*",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
-    "@mistralai/mistralai":"*",
+    "@mistralai/mistralai": "*",
     "@mui/material": "^5.15.6",
     "@textea/json-viewer": "^3.3.1",
     "@upstash/redis": "^1.28.4",
@@ -28,13 +28,16 @@
     "apexcharts": "^3.44.2",
     "autoprefixer": "^10.0.1",
     "axios": "^1.6.2",
-    "cohere-ai":"*",
+    "better-react-mathjax": "^2.0.3",
+    "cohere-ai": "*",
     "cookie": "^0.6.0",
     "eventsource-parser": "^1.1.1",
     "flowbite": "^2.2.0",
     "http-proxy-middleware": "^2.0.6",
     "install": "^0.13.0",
     "js-cookie": "^3.0.5",
+    "js-tiktoken": "^1.0.11",
+    "katex": "^0.16.10",
     "lodash": "^4.17.21",
     "next": "14.0.3",
     "npm": "^10.2.5",
@@ -45,6 +48,7 @@
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18",
     "react-icons": "^4.12.0",
+    "react-katex": "^3.0.1",
     "react-markdown": "^9.0.1",
     "react-multi-select-component": "^4.3.4",
     "react-select": "^5.8.0",
@@ -52,9 +56,8 @@
     "react-tooltip": "^5.25.0",
     "reactflow": "^11.10.3",
     "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
     "tailwindcss": "^3.4.1",
     "uuid": "^9.0.1"
   }
 }
-
-
