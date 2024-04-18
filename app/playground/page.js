@@ -359,7 +359,7 @@ const index = () => {
         project_id: proname.project_id,
         playground_id: currentChatID,
         access_token: localStorage.getItem("customAIKey"),
-        start_time: new Date().toISOString(),
+        start_time: runStart,
         prompt_response_pairs: combinedAPIBody,
       };
       // Make API call with the combined form data
