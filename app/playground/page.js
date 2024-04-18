@@ -70,6 +70,7 @@ const index = () => {
   const [selectedModels, setSelectedModels] = useState([]);
   const params = useSearchParams();
   const data = params.get("data");
+  const [runStart, setRunStart] = useState();
 
   const handleSelectModel = (modelId, index) => {
     setSelectedModels((prevState) => {
@@ -394,12 +395,12 @@ const index = () => {
           model_params: formatModelParams(item.settings),
         },
       }));
-
+      
     const formData = {
       project_id: proname.project_id,
       playground_id: currentPlaygroundID,
       access_token: localStorage.getItem("customAIKey"),
-      start_time: new Date().toISOString(),
+      start_time: runStart,
       prompt_response_pairs: APIBody,
     };
     try {
@@ -441,6 +442,7 @@ const index = () => {
   // Function to transform text and pass to Version component
   const runPlayground = () => {
     setAnalysisModelOpen(false);
+    setRunStart(new Date().toISOString())
     if (apiCallInProgress) {
       return;
     }
