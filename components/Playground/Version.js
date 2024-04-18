@@ -278,9 +278,7 @@ const Version = ({
         if (done){
           
           setOutputTokens(generationTokens);
-          let total = inputTokens + outputTokens;
-          
-          setTotalTokens(total);
+          setTotalTokens(inputTokens + outputTokens);
         }
         
         setIsLoading(false);
