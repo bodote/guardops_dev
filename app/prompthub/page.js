@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { HubDownloadIcon, RightIcon, ThreeDotsIcon } from "@/public/Assets/Icons/Allsvg";
 import Logout from "@/components/Logout/Logout";
 import Sidebar from "@/components/Sidebar/Sidebar";
-
+import { useCookies } from 'next-client-cookies';
+//TODO: different tables and backgrounds for shared, available, subscribed, unshared templates
 const PromptHub = () => {
   const [unsharedTemplates, setUnsharedTemplates] = useState([]);
   const [sharedTemplates, setSharedTemplates] = useState([]);
@@ -11,7 +12,8 @@ const PromptHub = () => {
   const [availableTemplates, setAvailableTemplates] = useState([]);
 
   let rank = 1;
-
+  const cookieStore = useCookies()
+  const user_id = cookieStore.get("user_id").value;
   const getTemplates = async () => {
     const response = await fetch(`/api/prompthub`, {
       method: "GET",
@@ -21,17 +23,18 @@ const PromptHub = () => {
      
     });
 
-   
-    const data = await response.json();
+    const res = await response.json();
+    const data = res.data
+    console.log(data)
     if (data.unshared_templates) {
       setUnsharedTemplates(data.unshared_templates);
     }
-    if (data.sharedTemplates) {
-      setSharedTemplates(data.sharedTemplates);
-    }if (data.subscribedTemplates) {
-      setSubscribedTemplates(data.subscribedTemplates);
-    }if (data.availableTemplates) {
-      setAvailableTemplates(data.availableTemplates);
+    if (data.shared_templates) {
+      setSharedTemplates(data.shared_templates);
+    }if (data.subscribed_templates) {
+      setSubscribedTemplates(data.subscribed_templates);
+    }if (data.available_templates) {
+      setAvailableTemplates(data.available_templates);
     }
   };
 
@@ -83,56 +86,49 @@ const PromptHub = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {unsharedTemplates.map((template) => (
+                  {sharedTemplates.map((template) => (
                     <tr
                       key={template.template_id}
                       className={`border-b-[#EAECF0] border-b-[1px] ${
-                        model.user_id !== "0" && "bg-[#D4DB33]"
+                        template.user_id != user_id && "bg-[#D4DB33]"
                       }`}
                     >
                       <td className="text-[#101828] text-[14px] font-Inter p-[13px_24px] text-left">
-                        {model.user_id === "0" ? rank++ : "-"}
+                        {template.user_id == user_id ? rank++ : "-"}
                       </td>
                       <td className="p-[15px_24px]">
                         <div>
                           <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
                             {template.name}
                           </p>
-                          <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
-                            {model.id1}
-                          </p>
+                         
                         </div>
                       </td>
                       <td className="p-[15px_24px]">
                         <div>
                           <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                            {model.provider}
+                            {template.description}
                           </p>
-                          <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
-                            {model.model_description}
-                          </p>
+                          
                         </div>
                       </td>
                       <td className="p-[15px_24px]">
                         <div>
                           <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                            {model.context} Tokens
+                            {template.user_id}
                           </p>
-                          <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
-                            {model.input_price.split(" / ")[0]}/
-                            {model.output_price.split(" / ")[0]} € per Token
-                          </p>
+                         
                         </div>
                       </td>
                       <td className="p-[15px_24px]">
                         <span
                           className={`text-[#027A48] font-medium text-[12px] font-Inter p-[2px_8px] block w-fit rounded-2xl ${
-                            model.user_id !== "0"
+                            template.user_id != user_id
                               ? "bg-[#B5D72F]"
                               : "bg-[#ECFDF3]"
-                          } ${model.elo === null && "w-[40px] h-[22px]"}`}
+                          } ${template.elo === null && "w-[40px] h-[22px]"}`}
                         >
-                          {model.elo}
+                          {template.elo}
                         </span>
                       </td>
                       <td className="p-[15px_24px]">
