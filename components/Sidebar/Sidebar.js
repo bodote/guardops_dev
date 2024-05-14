@@ -3,6 +3,7 @@ import {
   ChartIcon,
   DatasetIcon,
   HomeIcon,
+  HubIcon,
   LeftIcon,
   MonitoringIcon,
   ProjectIcon,
@@ -148,6 +149,15 @@ const Sidebar = () => {
                   <StarIcon className="w-[24px]" />
                   <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
                     Leaderboard
+                  </p>
+                </a>
+                <a
+                  href="/prompthub"
+                  className="flex gap-[10px] items-center mt-[30px]"
+                >
+                  <HubIcon className="w-[24px]" />
+                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                    Prompt Hub
                   </p>
                 </a>
               </div>

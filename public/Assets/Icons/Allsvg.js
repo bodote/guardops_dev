@@ -1561,3 +1561,16 @@ export const StarIcon = ({ className }) => {
     </svg>
   );
 };
+
+
+export const HubIcon=({className}) => {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1 10.9504V18.0469C1 18.8446 1.87294 19.2881 2.46223 18.7898L5.00695 16.6379C5.32612 16.368 5.72268 16.221 6.13141 16.221H14.5C16.9853 16.221 19 14.0914 19 11.4644V5.75656C19 3.12958 16.9853 1 14.5 1H5.5C3.01472 1 1 3.12958 1 5.75656V7.29285" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+    <ellipse cx="5.54492" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C"/>
+    <ellipse cx="10.0449" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C"/>
+    <ellipse cx="14.5449" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C"/>
+    </svg>
+
+  );
+};
