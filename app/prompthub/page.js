@@ -1,7 +1,6 @@
 "use client"
-
 import React, { useEffect, useState } from "react";
-import { RightIcon, ThreeDotsIcon } from "@/public/Assets/Icons/Allsvg";
+import { HubDownloadIcon, RightIcon, ThreeDotsIcon } from "@/public/Assets/Icons/Allsvg";
 import Logout from "@/components/Logout/Logout";
 import Sidebar from "@/components/Sidebar/Sidebar";
 
@@ -49,19 +48,19 @@ const Leaderboard = () => {
                 <thead className="bg-[#F9FAFB] dark:bg-gray-700">
                   <tr>
                     <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap w-0">
-                      Rank
+                      <HubDownloadIcon/>
                     </th>
                     <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
-                      Model Name
+                      Name
                     </th>
                     <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
-                      Provider
+                      Description
                     </th>
                     <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
-                      Context length
+                      Link
                     </th>
                     <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
-                      Score
+                      
                     </th>
                     <th className=" p-[13px_24px]"></th>
                   </tr>

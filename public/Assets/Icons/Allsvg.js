@@ -1574,3 +1574,28 @@ export const HubIcon=({className}) => {
 
   );
 };
+
+export const HubDownloadIcon=({className}) => {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M18 18.2003C20.2459 17.9773 22 16.0824 22 13.7778C22 11.1049 19.5452 9.00249 16.9198 9.37847C16.9155 9.37908 16.9113 9.3769 16.9093 9.37305C15.9052 7.37277 13.8351 6 11.4444 6C8.25974 6 5.64402 8.43609 5.35907 11.5465C5.3586 11.5516 5.35421 11.5556 5.34902 11.5556C3.52707 11.554 2 13.0606 2 14.8889C2 16.7298 3.49238 18.2222 5.33333 18.2222H6" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M9.5 18.5L11.6464 20.6464C11.8417 20.8417 12.1583 20.8417 12.3535 20.6464L14.5 18.5" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M12 20L12 14" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
+
+  );
+};
+
+export const HubRefreshIcon=({className}) => {
+  return (
+    <svg   className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19.3083 8.7459C18.7082 7.39808 17.7471 6.24245 16.5312 5.40679C15.3153 4.57112 13.892 4.08798 12.4187 4.01076C10.9453 3.93354 9.47929 4.26527 8.1827 4.96926C7.50908 5.33501 6.89482 5.79383 6.35662 6.32947" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M3.2318 5.51544L3.96122 8.67497C4.08545 9.2131 4.6224 9.54864 5.16053 9.4244L8.32007 8.69499" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M4.69166 15.2539C5.29175 16.6017 6.25287 17.7574 7.46877 18.593C8.68467 19.4287 10.108 19.9118 11.5813 19.989C13.0547 20.0663 14.5207 19.7345 15.8173 19.0305C16.4318 18.6969 16.997 18.2858 17.5 17.8095" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M20.7682 18.4846L20.0388 15.325C19.9145 14.7869 19.3776 14.4514 18.8395 14.5756L15.6799 15.305" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    
+
+  );
+};
+
