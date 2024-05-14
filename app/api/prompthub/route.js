@@ -1,42 +1,40 @@
 import { getToken } from "@/utils/getToken";
+import { cookies } from 'next/headers'
 
-export async function GET() {
-     let Url = null;
-
+export async function GET(req,res) {
+    let Url = null;
     const baseUrl = process.env.BackendBaseUrl;
-    const user = req.cookies.user_id;
+    const cookieStore = cookies()
+    const user = cookieStore.get("user_id").value;
+  
    try{
     const token = await getToken();
 
     if (!token) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-//TODO: Replace with actual API
-    Url = `${baseUrl}api/get_prompthub_templates`;
-    queryParams = new URLSearchParams({
+    Url = `${baseUrl}api/get_hub_templates`;
+    const queryParams = new URLSearchParams({
       user_id: user,
     });
-    urlWithParams = `${Url}?${queryParams}`;
+    const urlWithParams = `${Url}?${queryParams}`;
 
-    try {
+  
       const response = await fetch(urlWithParams, {
         method: "GET",
         headers: new Headers({
           authorization: `Bearer ${token}`,
         }),
       });
+      
 
       const data = await response.json();
-      res.status(response.status).json(data);
-    } catch (error) {
-      console.error("Error during API request:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-
+      return Response.json({data})
    }  catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-   
-    return Response.json({ data })
+ 
+
+    
   }

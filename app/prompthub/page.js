@@ -4,22 +4,39 @@ import { HubDownloadIcon, RightIcon, ThreeDotsIcon } from "@/public/Assets/Icons
 import Logout from "@/components/Logout/Logout";
 import Sidebar from "@/components/Sidebar/Sidebar";
 
-const Leaderboard = () => {
-  const [models, setModels] = useState([]);
+const PromptHub = () => {
+  const [unsharedTemplates, setUnsharedTemplates] = useState([]);
+  const [sharedTemplates, setSharedTemplates] = useState([]);
+  const [subscribedTemplates, setSubscribedTemplates] = useState([]);
+  const [availableTemplates, setAvailableTemplates] = useState([]);
+
   let rank = 1;
 
-  const getModels = async () => {
-    const response = await fetch(`/api/manageModels`, {
+  const getTemplates = async () => {
+    const response = await fetch(`/api/prompthub`, {
       method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      }
+     
     });
+
+   
     const data = await response.json();
-    if (data.models) {
-      setModels(data.models.sort((a, b) => (b.elo || 0) - (a.elo || 0)));
+    if (data.unshared_templates) {
+      setUnsharedTemplates(data.unshared_templates);
+    }
+    if (data.sharedTemplates) {
+      setSharedTemplates(data.sharedTemplates);
+    }if (data.subscribedTemplates) {
+      setSubscribedTemplates(data.subscribedTemplates);
+    }if (data.availableTemplates) {
+      setAvailableTemplates(data.availableTemplates);
     }
   };
 
   useEffect(() => {
-    getModels();
+    getTemplates();
   }, []);
 
   return (
@@ -66,9 +83,9 @@ const Leaderboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {models.map((model) => (
+                  {unsharedTemplates.map((template) => (
                     <tr
-                      key={model.model_id}
+                      key={template.template_id}
                       className={`border-b-[#EAECF0] border-b-[1px] ${
                         model.user_id !== "0" && "bg-[#D4DB33]"
                       }`}
@@ -79,7 +96,7 @@ const Leaderboard = () => {
                       <td className="p-[15px_24px]">
                         <div>
                           <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                            {model.name}
+                            {template.name}
                           </p>
                           <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
                             {model.id1}
@@ -125,96 +142,7 @@ const Leaderboard = () => {
                       </td>
                     </tr>
                   ))}
-                  {/* <tr className="border-b-[#EAECF0] border-b-[1px]">
-                    <td className="text-[#101828] text-[14px] font-Inter p-[13px_24px] text-left">
-                      2
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <div>
-                        <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                          GPT-3.5
-                        </p>
-                        <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
-                          gpt-3.5-turbo
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <div>
-                        <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                          OpenAI
-                        </p>
-                        <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
-                          Model is capable of all kinds of tasks
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <div>
-                        <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                          32000 Tokens
-                        </p>
-                        <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
-                          0.001/0.005 € per Token
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <span className="bg-[#ECFDF3] text-[#027A48] font-medium text-[12px] font-Inter p-[2px_8px] block w-fit rounded-2xl">
-                        1249
-                      </span>
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <div className="flex justify-end cursor-pointer">
-                        <ThreeDotsIcon className="text-[20px]" />
-                      </div>
-                    </td>
-                  </tr>
-                  <tr className="border-b-[#EAECF0] border-b-[1px] bg-[#D4DB33]">
-                    <td className="text-[#101828] text-[14px] font-Inter p-[13px_24px] text-left">
-                      -
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <div>
-                        <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                          Phoenix
-                        </p>
-                        <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
-                          phoenix-72b
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <div>
-                        <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                          Custom
-                        </p>
-                        <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
-                          Custom self hosted model
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <div>
-                        <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                          32000 Tokens
-                        </p>
-                        <p className="text-[#475467] text-[14px] font-Inter whitespace-nowrap">
-                          0.001/0.005 € per Token
-                        </p>
-                      </div>
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <span className="bg-[#B5D72F] text-[#027A48] font-medium text-[12px] font-Inter p-[2px_8px] block w-fit rounded-2xl">
-                        1244
-                      </span>
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <div className="flex justify-end cursor-pointer">
-                        <ThreeDotsIcon className="text-[20px]" />
-                      </div>
-                    </td>
-                  </tr> */}
+                  {}
                 </tbody>
               </table>
             </div>
@@ -225,4 +153,4 @@ const Leaderboard = () => {
   );
 };
 
-export default Leaderboard;
+export default PromptHub;
