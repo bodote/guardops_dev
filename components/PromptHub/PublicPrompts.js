@@ -1,8 +1,7 @@
 "use client"
 import React, { useEffect, useState } from "react";
 import { HubDownloadIcon, HubSubscribeIcon } from "@/public/Assets/Icons/Allsvg";
-import { useCookies } from 'next-client-cookies';
-
+import { getCookie } from "cookies-next"
 
 
 
@@ -21,8 +20,7 @@ const MyPrompts = () => {
   };
  
   let rank = 1;
-  const cookieStore = useCookies()
-  const user_id = cookieStore.get("user_id").value;
+  const user_id = getCookie("user_id");
   const getTemplates = async () => {
     const response = await fetch(`/api/prompthub`, {
       method: "GET",

@@ -1,8 +1,7 @@
 "use client"
 import React, { useEffect, useState } from "react";
 import { HubDownloadIcon,   HubDeleteIcon, HubShareIcon, HubUnshareIcon, HubRefreshIcon } from "@/public/Assets/Icons/Allsvg";
-import { useCookies } from 'next-client-cookies';
-
+import { getCookie } from "cookies-next"
 
 
 //TODO: different tables and backgrounds for shared, available, subscribed, unshared templates
@@ -22,8 +21,7 @@ const MyPrompts = () => {
   };
   
   let rank = 1;
-  const cookieStore = useCookies();
-  const user_id = cookieStore.get("user_id").value;
+  const user_id = getCookie("user_id");
 
   
   const getTemplates = async () => {

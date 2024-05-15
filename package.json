@@ -31,6 +31,7 @@
     "better-react-mathjax": "^2.0.3",
     "cohere-ai": "*",
     "cookie": "^0.6.0",
+    "cookies-next": "^4.1.1",
     "eventsource-parser": "^1.1.1",
     "flowbite": "^2.2.0",
     "http-proxy-middleware": "^2.0.6",
