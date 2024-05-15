@@ -9,10 +9,18 @@ import Profile from "@/components/Pageprofiledata/Profile";
 
 //TODO: different tables and backgrounds for shared, available, subscribed, unshared templates
 const MyPrompts = () => {
-  const [unsharedTemplates, setUnsharedTemplates] = useState([]);
-  const [sharedTemplates, setSharedTemplates] = useState([]);
-  const [subscribedTemplates, setSubscribedTemplates] = useState([]);
+ 
   const [availableTemplates, setAvailableTemplates] = useState([]);
+  const [expandedTemplateId, setExpandedTemplateId] = useState(null);
+
+  const toggleExpand = (templateId) => {
+    if (expandedTemplateId === templateId) {
+      setExpandedTemplateId(null);
+    } else {
+      setExpandedTemplateId(templateId);
+    }
+  };
+ 
   let rank = 1;
   const cookieStore = useCookies()
   const user_id = cookieStore.get("user_id").value;
@@ -33,7 +41,9 @@ const MyPrompts = () => {
     }
    
   };
-  const subscribeToTemplate = async (template_id) => {
+  const subscribeToTemplate = async (e, template_id) => {
+    e.stopPropagation(); // Stop event propagation to prevent row expansion
+
     const params = {template_id:template_id};
     const response = await fetch(`/api/prompthub/share/subscribe`, {
       method: "PATCH",
@@ -45,7 +55,6 @@ const MyPrompts = () => {
     });
 
     const res = await response.json();
-    console.log(res);
     getTemplates();
   };
 
@@ -72,19 +81,17 @@ const MyPrompts = () => {
                     <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
                       Link
                     </th>
-                    <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
-                      
-                    </th>
+                    
                     <th className=" p-[13px_24px]"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               
 
-                 {availableTemplates.map((template) => (
+                 {availableTemplates.map((template) => ( <React.Fragment  key={template.template_id}>
                   <tr
-                    key={template.template_id}
-                    className={`border-b-[#EAECF0] border-b-[1px] `}
+                   
+                    className={`border-b-[#EAECF0] border-b-[1px] hover:bg-[#d6d6d6]  hover:cursor-pointer`} onClick={() => toggleExpand(template.template_id)}
                   >
                     <td className="text-[#101828] text-[14px] font-Inter p-[13px_24px] text-left">
                       {template.user_id == user_id ? rank++ : "-"}
@@ -108,29 +115,34 @@ const MyPrompts = () => {
                     <td className="p-[15px_24px]">
                       <div>
                         <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                          {template.user_id}
+                          {template.link}
                         </p>
                        
                       </div>
                     </td>
+                    
                     <td className="p-[15px_24px]">
-                      <span
-                        className={`text-[#027A48] font-medium text-[12px] font-Inter p-[2px_8px] block w-fit rounded-2xl `}
-                      >
-                        {template.elo}
-                      </span>
-                    </td>
-                    <td className="p-[15px_24px]">
-                      <div className="flex justify-end cursor-pointer">
+                      <div className="flex justify-end ">
                       <button 
-                        onClick={() => {
-                          subscribeToTemplate(template.template_id);
+                        onClick={(e) => {
+                          subscribeToTemplate(e,template.template_id);
                          
-                        }}>
-                        <HubSubscribeIcon className="text-[20px]" /></button>
+                        }} className="bg-[#a6f7c7] hover:bg-[#31d674] transition-colors  rounded-full  cursor-pointer ">
+                        <HubSubscribeIcon className="text-[20px] " /></button>
                       </div>
                     </td>
                   </tr>
+                    {expandedTemplateId === template.template_id && (
+                      <tr>
+                        <td colSpan="6" className="border-t border-b-gray-700  border-b-4">
+                          <div className="p-[15px_24px]">
+                          
+                            <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">{template.template}</p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                 ))}
                 </tbody>
               </table>

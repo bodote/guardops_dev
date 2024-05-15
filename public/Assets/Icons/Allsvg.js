@@ -1603,7 +1603,6 @@ export const HubRefreshIcon=({className}) => {
 export const HubDeleteIcon=({className}) => {
 return(
 <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="40" height="28" rx="14" fill="#fdecec"/>
 <path d="M13.0506 10.7342C12.2057 9.60763 13.0095 8 14.4177 8H25.5823C26.9905 8 27.7943 9.60763 26.9494 10.7342V10.7342C26.3331 11.5558 26 12.5552 26 13.5823V20C26 22.2091 24.2091 24 22 24H18C15.7909 24 14 22.2091 14 20V13.5823C14 12.5552 13.6669 11.5558 13.0506 10.7342V10.7342Z" stroke="#2B3F6C" strokeWidth="1.5"/>
 <path d="M22 19L22 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" stroke-linejoin="round"/>
 <path d="M18 19L18 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" stroke-linejoin="round"/>
@@ -1616,7 +1615,6 @@ return(
 export const HubShareIcon=({className}) => {
   return(
 <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="40" height="28" rx="14" fill="#ECFDF3"/>
 <path d="M26 20.2003C28.2459 19.9773 30 18.0824 30 15.7778C30 13.1049 27.5452 11.0025 24.9198 11.3785C24.9155 11.3791 24.9113 11.3769 24.9093 11.373C23.9052 9.37277 21.8351 8 19.4444 8C16.2597 8 13.644 10.4361 13.3591 13.5465C13.3586 13.5516 13.3542 13.5556 13.349 13.5556C11.5271 13.554 10 15.0606 10 16.8889C10 18.7298 11.4924 20.2222 13.3333 20.2222H14" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
 <path d="M17.5 18.5L19.6464 16.3536C19.8417 16.1583 20.1583 16.1583 20.3535 16.3536L22.5 18.5" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
 <path d="M20 17L20 23" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
@@ -1630,7 +1628,6 @@ export const HubShareIcon=({className}) => {
 export const HubUnshareIcon=({className}) => {
   return(
   <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="40" height="28" rx="14" fill="#fdecec"/>
 <circle cx="20" cy="14" r="10" stroke="#2B3F6C" strokeWidth="1.5"/>
 <path d="M27.0712 6.92871L12.929 21.0708" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
 </svg>
@@ -1640,12 +1637,12 @@ export const HubUnshareIcon=({className}) => {
 export const HubSubscribeIcon=({className}) => {
   return(
 
-<svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="40" height="28" rx="14" fill="#ECFDF3"/>
-<path d="M17 10L15 10C12.7909 10 11 11.7909 11 14L11 19C11 21.2091 12.7909 23 15 23L27 23C29.2091 23 31 21.2091 31 19L31 14C31 11.7909 29.2091 10 27 10L25 10" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-<path d="M18 15L20.2929 17.2929C20.6834 17.6834 21.3166 17.6834 21.7071 17.2929L24 15" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-<path d="M21 17L21 5" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+<svg className={className}width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 8L7 8C4.79086 8 3 9.79086 3 12L3 17C3 19.2091 4.79086 21 7 21L19 21C21.2091 21 23 19.2091 23 17L23 12C23 9.79086 21.2091 8 19 8L17 8" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M10 13L12.2929 15.2929C12.6834 15.6834 13.3166 15.6834 13.7071 15.2929L16 13" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M13 15L13 3" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
 </svg>
+
 
 );
 };

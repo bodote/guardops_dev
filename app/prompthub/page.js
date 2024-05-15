@@ -46,7 +46,7 @@ COAI Prompt Hub          </h1>    <div className="sm:px-[22px] px-[16px] ">
               <button
                 onClick={() => setTab("PublicPrompts")}
                 className={`${
-                  tab === "Profile"
+                  tab === "PublicPrompts"
                     ? "font-bold border-[#0D859A] sm:text-[14px] text-[12px] text-[#0D859A]"
                     : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
                 } pb-3  border-b-2`}
@@ -56,7 +56,7 @@ COAI Prompt Hub          </h1>    <div className="sm:px-[22px] px-[16px] ">
               <button
                 onClick={() => setTab("MyPrompts")}
                 className={`${
-                  tab === "Apimanagement"
+                  tab === "MyPrompts"
                     ? "font-bold border-[#0D859A] sm:text-[14px] text-[12px] text-[#0D859A]"
                     : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
                 } pb-3  border-b-2`}

@@ -13,10 +13,21 @@ const MyPrompts = () => {
   const [unsharedTemplates, setUnsharedTemplates] = useState([]);
   const [sharedTemplates, setSharedTemplates] = useState([]);
   const [subscribedTemplates, setSubscribedTemplates] = useState([]);
-  const [templateToUnshare, setTemplateToUnshare] = useState([])
+  const [expandedTemplateId, setExpandedTemplateId] = useState(null);
+
+  const toggleExpand = (templateId) => {
+    if (expandedTemplateId === templateId) {
+      setExpandedTemplateId(null);
+    } else {
+      setExpandedTemplateId(templateId);
+    }
+  };
+  
   let rank = 1;
   const cookieStore = useCookies();
   const user_id = cookieStore.get("user_id").value;
+
+  
   const getTemplates = async () => {
     const response = await fetch(`/api/prompthub`, {
       method: "GET",
@@ -38,7 +49,9 @@ const MyPrompts = () => {
     }
   };
 
-  const unshareTemplate = async (template_id) => {
+  const unshareTemplate = async (e, template_id) => {
+    e.stopPropagation(); // Stop event propagation to prevent row expansion
+
     const params = {template_id:template_id};
     const response = await fetch(`/api/prompthub`, {
       method: "PATCH",
@@ -55,7 +68,9 @@ const MyPrompts = () => {
 
   };
 
-  const shareTemplate = async (template_id) => {
+  const shareTemplate = async (e, template_id) => {
+    e.stopPropagation(); // Stop event propagation to prevent row expansion
+
     const params = {template_id:template_id,share:true};
     const response = await fetch(`/api/prompthub/share`, {
       method: "PATCH",
@@ -69,6 +84,27 @@ const MyPrompts = () => {
     const res = await response.json();
     console.log(res);
     getTemplates();
+  };
+
+
+  
+  const deleteTemplate = async (e,template_id) => {
+    e.stopPropagation(); // Stop event propagation to prevent row expansion
+
+    const params = {template_id:template_id};
+    const response = await fetch(`/api/prompthub`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+     
+    });
+
+    const res = await response.json();
+    console.log(res);
+    getTemplates();
+
   };
 
   useEffect(() => {
@@ -94,20 +130,16 @@ const MyPrompts = () => {
                     <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
                       Link
                     </th>
-                    <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
-                      
-                    </th>
+                  
                     <th className=" p-[13px_24px]"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               
-                  {sharedTemplates.map((template) => (
+                  {sharedTemplates.map((template) => (<React.Fragment  key={template.template_id}>
                     <tr
-                      key={template.template_id}
-                      className={`border-b-[#EAECF0] border-b-[1px] ${
-                        template.user_id != user_id && "bg-[#D4DB33]"
-                      }`}
+                      
+                      className={`border-b-[#EAECF0] border-b-[1px] hover:bg-[#d6d6d6]  hover:cursor-pointer`} onClick={() => toggleExpand(template.template_id)}
                     >
                       <td className="text-[#101828] text-[14px] font-Inter p-[13px_24px] text-left">
                         {template.user_id == user_id ? rank++ : "-"}
@@ -136,40 +168,39 @@ const MyPrompts = () => {
                          
                         </div>
                       </td>
-                      <td className="p-[15px_24px]">
-                        <span
-                          className={`text-[#027A48] font-medium text-[12px] font-Inter p-[2px_8px] block w-fit rounded-2xl ${
-                            template.user_id != user_id
-                              ? "bg-[#B5D72F]"
-                              : "bg-[#ECFDF3]"
-                          } ${template.elo === null && "w-[40px] h-[22px]"}`}
-                        >
-                          {template.elo}
-                        </span>
-                      </td>
+                      
                       <td className="p-[15px_24px]">
                         <div className="flex justify-end cursor-pointer">
                             <button 
-                        onClick={() => {
-                          unshareTemplate(template.template_id);
-                        }}>
+                        onClick={(e) => {
+                          unshareTemplate(e,template.template_id);
+                        }} className="bg-[#f7a6a6] hover:bg-[#d63131] transition-colors  rounded-full  cursor-pointer ">
                           <HubUnshareIcon className="text-[20px]" />
                           </button>
                         </div>
                       </td>
                     </tr>
+                      {expandedTemplateId === template.template_id && (
+                        <tr>
+                        <td colSpan="6" className="border-t border-b-gray-700  border-b-4">
+                          <div className="p-[15px_24px]">
+                          
+                            <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">{template.template}</p>
+                          </div>
+                        </td>
+                      </tr>
+                      )}
+                      </React.Fragment>
                   ))}
                    <tr>
     <td colSpan="6" className="border-t border-gray-200 dark:border-gray-700"></td>
   </tr>
                 
 
-                   {unsharedTemplates.map((template) => (
+                   {unsharedTemplates.map((template) => (<React.Fragment  key={template.template_id}>
                     <tr
-                      key={template.template_id}
-                      className={`border-b-[#EAECF0] border-b-[1px] ${
-                        template.user_id != user_id && "bg-[#D4DB33]"
-                      }`}
+                      
+                      className={`border-b-[#EAECF0] border-b-[1px] hover:bg-[#d6d6d6]  hover:cursor-pointer`} onClick={() => toggleExpand(template.template_id)}
                     >
                       <td className="text-[#101828] text-[14px] font-Inter p-[13px_24px] text-left">
                         {template.user_id == user_id ? rank++ : "-"}
@@ -193,45 +224,44 @@ const MyPrompts = () => {
                       <td className="p-[15px_24px]">
                         <div>
                           <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                            {template.user_id}
+                            {template.link}
                           </p>
                          
                         </div>
                       </td>
-                      <td className="p-[15px_24px]">
-                        <span
-                          className={`text-[#027A48] font-medium text-[12px] font-Inter p-[2px_8px] block w-fit rounded-2xl ${
-                            template.user_id != user_id
-                              ? "bg-[#B5D72F]"
-                              : "bg-[#ECFDF3]"
-                          } ${template.elo === null && "w-[40px] h-[22px]"}`}
-                        >
-                          {template.elo}
-                        </span>
-                      </td>
+                     
                       <td className="p-[15px_24px]">
                         <div className="flex justify-end cursor-pointer">
                         <button 
-                        onClick={() => {
-                          shareTemplate(template.template_id);
+                        onClick={(e) => {
+                          shareTemplate(e, template.template_id);
                          
-                        }}>
+                        }} className="bg-[#a6f7c7] hover:bg-[#31d674] transition-colors  rounded-full  cursor-pointer ">
                           <HubShareIcon className="text-[20px]" />
                           </button>
                         </div>
                       </td>
                     </tr>
+                     {expandedTemplateId === template.template_id && (
+                      <tr>
+                      <td colSpan="6" className="border-t border-b-gray-700  border-b-4">
+                        <div className="p-[15px_24px]">
+                        
+                          <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">{template.template}</p>
+                        </div>
+                      </td>
+                    </tr>
+                    )}
+                    </React.Fragment>
                   ))}
                     <tr>
-    <td colSpan="6" className="border-t border-gray-200 dark:border-gray-700"></td>
+    <td colSpan="6" className="border-t border-b-gray-700 dark:border-gray-700"></td>
   </tr>
 
-                 {subscribedTemplates.map((template) => (
-                  <tr
-                    key={template.template_id}
-                    className={`border-b-[#EAECF0] border-b-[1px] ${
-                      template.user_id != user_id && "bg-[#D4DB33]"
-                    }`}
+                 {subscribedTemplates.map((template) => (<React.Fragment  key={template.template_id}>
+                  <tr 
+                   
+                    className={`border-b-[#EAECF0] border-b-[1px] hover:bg-[#d6d6d6]  hover:cursor-pointer`}  onClick={() => toggleExpand(template.template_id)}
                   >
                     <td className="text-[#101828] text-[14px] font-Inter p-[13px_24px] text-left">
                       {template.user_id == user_id ? rank++ : "-"}
@@ -255,31 +285,37 @@ const MyPrompts = () => {
                     <td className="p-[15px_24px]">
                       <div>
                         <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
-                          {template.user_id}
+                          {template.link}
                         </p>
                        
                       </div>
                     </td>
-                    <td className="p-[15px_24px]">
-                      <span
-                        className={`text-[#027A48] font-medium text-[12px] font-Inter p-[2px_8px] block w-fit rounded-2xl ${
-                          template.user_id != user_id
-                            ? "bg-[#B5D72F]"
-                            : "bg-[#ECFDF3]"
-                        } ${template.elo === null && "w-[40px] h-[22px]"}`}
-                      >
-                        {template.elo}
-                      </span>
-                    </td>
+                  
                     <td className="p-[15px_24px]">
                       <div className="flex justify-end cursor-pointer">
-                      {template.update_available ? (
-          <HubDeleteIcon className="text-[20px]" />
-        ) : (
+                      {template.update_available ? (//TODO: UpdateTemplateFromHub
           <HubRefreshIcon className="text-[20px]" />
-        )}                      </div>
+        ) : (
+          <button 
+          onClick={(e) => {
+            deleteTemplate(e, template.template_id);
+           
+          }} className="bg-[#f7a6a6] hover:bg-[#d63131] transition-colors  rounded-full  cursor-pointer ">
+          <HubDeleteIcon className="text-[20px]" />
+          </button>)}                      </div>
                     </td>
                   </tr>
+                     {expandedTemplateId === template.template_id && (
+                       <tr >
+                       <td colSpan="6" className="border-t border-b-gray-700  border-b-4">
+                         <div className="p-[15px_24px]">
+                         
+                           <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">{template.template}</p>
+                         </div>
+                       </td>
+                     </tr>
+                    )}
+                    </React.Fragment>
                 ))}
                 </tbody>
               </table>
