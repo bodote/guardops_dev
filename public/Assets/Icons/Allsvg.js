@@ -1566,7 +1566,7 @@ export const StarIcon = ({ className }) => {
 export const HubIcon=({className}) => {
   return (
     <svg className={className} width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M1 10.9504V18.0469C1 18.8446 1.87294 19.2881 2.46223 18.7898L5.00695 16.6379C5.32612 16.368 5.72268 16.221 6.13141 16.221H14.5C16.9853 16.221 19 14.0914 19 11.4644V5.75656C19 3.12958 16.9853 1 14.5 1H5.5C3.01472 1 1 3.12958 1 5.75656V7.29285" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M1 10.9504V18.0469C1 18.8446 1.87294 19.2881 2.46223 18.7898L5.00695 16.6379C5.32612 16.368 5.72268 16.221 6.13141 16.221H14.5C16.9853 16.221 19 14.0914 19 11.4644V5.75656C19 3.12958 16.9853 1 14.5 1H5.5C3.01472 1 1 3.12958 1 5.75656V7.29285" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
     <ellipse cx="5.54492" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C"/>
     <ellipse cx="10.0449" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C"/>
     <ellipse cx="14.5449" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C"/>
@@ -1578,9 +1578,9 @@ export const HubIcon=({className}) => {
 export const HubDownloadIcon=({className}) => {
   return (
     <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M18 18.2003C20.2459 17.9773 22 16.0824 22 13.7778C22 11.1049 19.5452 9.00249 16.9198 9.37847C16.9155 9.37908 16.9113 9.3769 16.9093 9.37305C15.9052 7.37277 13.8351 6 11.4444 6C8.25974 6 5.64402 8.43609 5.35907 11.5465C5.3586 11.5516 5.35421 11.5556 5.34902 11.5556C3.52707 11.554 2 13.0606 2 14.8889C2 16.7298 3.49238 18.2222 5.33333 18.2222H6" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-<path d="M9.5 18.5L11.6464 20.6464C11.8417 20.8417 12.1583 20.8417 12.3535 20.6464L14.5 18.5" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-<path d="M12 20L12 14" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M18 18.2003C20.2459 17.9773 22 16.0824 22 13.7778C22 11.1049 19.5452 9.00249 16.9198 9.37847C16.9155 9.37908 16.9113 9.3769 16.9093 9.37305C15.9052 7.37277 13.8351 6 11.4444 6C8.25974 6 5.64402 8.43609 5.35907 11.5465C5.3586 11.5516 5.35421 11.5556 5.34902 11.5556C3.52707 11.554 2 13.0606 2 14.8889C2 16.7298 3.49238 18.2222 5.33333 18.2222H6" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+<path d="M9.5 18.5L11.6464 20.6464C11.8417 20.8417 12.1583 20.8417 12.3535 20.6464L14.5 18.5" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+<path d="M12 20L12 14" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
 </svg>
 
   );
@@ -1588,14 +1588,51 @@ export const HubDownloadIcon=({className}) => {
 
 export const HubRefreshIcon=({className}) => {
   return (
-    <svg   className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19.3083 8.7459C18.7082 7.39808 17.7471 6.24245 16.5312 5.40679C15.3153 4.57112 13.892 4.08798 12.4187 4.01076C10.9453 3.93354 9.47929 4.26527 8.1827 4.96926C7.50908 5.33501 6.89482 5.79383 6.35662 6.32947" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M3.2318 5.51544L3.96122 8.67497C4.08545 9.2131 4.6224 9.54864 5.16053 9.4244L8.32007 8.69499" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M4.69166 15.2539C5.29175 16.6017 6.25287 17.7574 7.46877 18.593C8.68467 19.4287 10.108 19.9118 11.5813 19.989C13.0547 20.0663 14.5207 19.7345 15.8173 19.0305C16.4318 18.6969 16.997 18.2858 17.5 17.8095" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M20.7682 18.4846L20.0388 15.325C19.9145 14.7869 19.3776 14.4514 18.8395 14.5756L15.6799 15.305" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-    
+    <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="40" height="28" rx="14" fill="#ECFDF3"/>
+<path d="M27.3083 10.7459C26.7082 9.39808 25.7471 8.24245 24.5312 7.40679C23.3153 6.57112 21.892 6.08798 20.4186 6.01076C18.9453 5.93354 17.4793 6.26527 16.1827 6.96926C15.5091 7.33501 14.8948 7.79383 14.3566 8.32947" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+<path d="M11.2318 7.51544L11.9612 10.675C12.0854 11.2131 12.6224 11.5486 13.1605 11.4244L16.3201 10.695" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+<path d="M12.6916 17.2539C13.2917 18.6017 14.2529 19.7574 15.4688 20.593C16.6847 21.4287 18.108 21.9118 19.5813 21.989C21.0547 22.0663 22.5207 21.7345 23.8173 21.0305C24.4318 20.6969 24.9969 20.2858 25.5 19.8095" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+<path d="M28.7682 20.4846L28.0388 17.325C27.9145 16.7869 27.3776 16.4514 26.8395 16.5756L23.6799 17.305" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+</svg>
+
 
   );
 };
 
+export const HubDeleteIcon=({className}) => {
+return(
+<svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="40" height="28" rx="14" fill="#fdecec"/>
+<path d="M13.0506 10.7342C12.2057 9.60763 13.0095 8 14.4177 8H25.5823C26.9905 8 27.7943 9.60763 26.9494 10.7342V10.7342C26.3331 11.5558 26 12.5552 26 13.5823V20C26 22.2091 24.2091 24 22 24H18C15.7909 24 14 22.2091 14 20V13.5823C14 12.5552 13.6669 11.5558 13.0506 10.7342V10.7342Z" stroke="#2B3F6C" strokeWidth="1.5"/>
+<path d="M22 19L22 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" stroke-linejoin="round"/>
+<path d="M18 19L18 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" stroke-linejoin="round"/>
+<path d="M24 8L23.4558 6.36754C23.1836 5.55086 22.4193 5 21.5585 5H18.4415C17.5807 5 16.8164 5.55086 16.5442 6.36754L16 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+</svg>
+
+);
+};
+
+export const HubShareIcon=({className}) => {
+  return(
+<svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="40" height="28" rx="14" fill="#ECFDF3"/>
+<path d="M26 20.2003C28.2459 19.9773 30 18.0824 30 15.7778C30 13.1049 27.5452 11.0025 24.9198 11.3785C24.9155 11.3791 24.9113 11.3769 24.9093 11.373C23.9052 9.37277 21.8351 8 19.4444 8C16.2597 8 13.644 10.4361 13.3591 13.5465C13.3586 13.5516 13.3542 13.5556 13.349 13.5556C11.5271 13.554 10 15.0606 10 16.8889C10 18.7298 11.4924 20.2222 13.3333 20.2222H14" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+<path d="M17.5 18.5L19.6464 16.3536C19.8417 16.1583 20.1583 16.1583 20.3535 16.3536L22.5 18.5" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+<path d="M20 17L20 23" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+</svg>
+
+  
+  );
+  };
+
+  
+export const HubUnshareIcon=({className}) => {
+  return(
+  <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="40" height="28" rx="14" fill="#fdecec"/>
+<circle cx="20" cy="14" r="10" stroke="#2B3F6C" strokeWidth="1.5"/>
+<path d="M27.0712 6.92871L12.929 21.0708" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+</svg>
+ );
+};

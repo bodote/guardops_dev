@@ -4,44 +4,7 @@ import { cookies } from 'next/headers'
 
 
 
-export async function GET(req,res) {
-  
-   try{
-    const cookieStore = cookies();
-    const user = cookieStore.get("user_id").value;
-    let Url = null;
-    const baseUrl = process.env.BackendBaseUrl;
-    const token = await getToken();
-
-    if (!token) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    Url = `${baseUrl}api/get_hub_templates`;
-    const queryParams = new URLSearchParams({
-      user_id: user,
-    });
-    const urlWithParams = `${Url}?${queryParams}`;
-
-  
-      const response = await fetch(urlWithParams, {
-        method: "GET",
-        headers: new Headers({
-          authorization: `Bearer ${token}`,
-        }),
-      });
-      
-
-      const data = await response.json();
-      return Response.json({data})
-   }  catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
- 
-
-    
-  }
-  export async function PATCH(req, res) {
+export async function PATCH(req, res) {
     try {
       const bodyData = await req.json();
       const cookieStore = cookies();
@@ -53,10 +16,11 @@ export async function GET(req,res) {
       if (!token) {
         return res.status(401).json({ error: "Unauthorized" });
       }
-      Url = `${baseUrl}api/unshare_template`;
+      Url = `${baseUrl}api/update_template`;
       const queryParams = new URLSearchParams({
         user_id: user,
-        template_id: bodyData.template_id
+        template_id: bodyData.template_id,
+        share: bodyData.share
       });
       const urlWithParams = `${Url}?${queryParams}`;
   

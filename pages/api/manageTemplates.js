@@ -45,7 +45,7 @@ export default async function handler(req, res) {
           template_name: bodyData.template_name,
           template_description: bodyData.template_description,
           template_link: bodyData.template_link,
-          template: bodyData.template,
+          template: bodyData.template
         });
         urlWithParams = `${Url}?${queryParams}`;
         try {
@@ -73,6 +73,8 @@ export default async function handler(req, res) {
           template_description: bodyData.template_description,
           template_link: bodyData.template_link,
           template: bodyData.template,
+          share: bodyData.share,
+          update_public: bodyData.update_public
         });
         urlWithParams = `${Url}?${queryParams}`;
         try {

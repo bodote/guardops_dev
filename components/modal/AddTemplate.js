@@ -43,6 +43,7 @@ const AddTemplate = ({
       template_link: templateFormData.template_link,
       template: templateFormData.template,
       template_id: value ? value.template_id : "",
+     
     };
 
     try {
@@ -79,6 +80,7 @@ const AddTemplate = ({
             template_description: "",
             template_link: "",
             template: "",
+           
           });
           setOpen(false);
           updateTemplatesList();
