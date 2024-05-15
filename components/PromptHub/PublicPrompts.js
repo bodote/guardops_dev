@@ -1,10 +1,9 @@
 "use client"
 import React, { useEffect, useState } from "react";
 import { HubDownloadIcon, HubSubscribeIcon } from "@/public/Assets/Icons/Allsvg";
-import Logout from "@/components/Logout/Logout";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import { useCookies } from 'next-client-cookies';
-import Profile from "@/components/Pageprofiledata/Profile";
+
+
 
 
 //TODO: different tables and backgrounds for shared, available, subscribed, unshared templates

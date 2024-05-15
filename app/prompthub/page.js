@@ -2,15 +2,13 @@
 import React, { useEffect, useState } from "react";
 import Logout from "@/components/Logout/Logout";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import { useCookies } from 'next-client-cookies';
 import MyPrompts from "@/components/PromptHub/MyPrompts";
 import PublicPrompts from "@/components/PromptHub/PublicPrompts";
 import {
   DivisionIcon,
   DownIcon,
-  LockIcon,
   RightIcon,
-  SearchIcon, HubDownloadIcon, ThreeDotsIcon
+  SearchIcon
 } from "@/public/Assets/Icons/Allsvg";
 import { RiFilter2Fill } from "react-icons/ri";
 
