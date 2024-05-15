@@ -16,7 +16,7 @@ import { RiFilter2Fill } from "react-icons/ri";
 
 
 //TODO: different tables and backgrounds for shared, available, subscribed, unshared templates
-const PromptHub = () => {
+const index = () => {
 
   const [tab, setTab] = useState("PublicPrompts");
   const [searchPrompt, setSearchPrompt] = useState([])
@@ -113,4 +113,4 @@ COAI Prompt Hub          </h1>    <div className="sm:px-[22px] px-[16px] ">
   );
 };
 
-export default PromptHub;
+export default index;
