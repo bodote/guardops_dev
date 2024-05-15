@@ -45,7 +45,7 @@ const Monitoring = () => {
     },
     yaxis: {
       title: {
-        text: "Summarization Total Accuracy", // Your y-axis title
+        text: "Summarization Total Accuracy",
         style: {
           fontSize: "12px",
           fontWeight: 600,
@@ -80,7 +80,7 @@ const Monitoring = () => {
     },
     yaxis: {
       title: {
-        text: "Latency (seconds)", // Your y-axis title
+        text: "Latency (seconds)",
         style: {
           fontSize: "12px",
           fontWeight: 600,
@@ -130,25 +130,28 @@ const Monitoring = () => {
           return acc;
         }, {});
 
-        const evalData = Object.entries(timeframeData).map(
-          ([date, values]) => ({
+        const sortedEvalData = Object.entries(timeframeData)
+          .sort(([a], [b]) => new Date(a) - new Date(b))
+          .map(([date, values]) => ({
             x: date,
             y: [values.min, values.max],
-          })
-        );
+          }));
+          
         const newEvalSeries = [
           {
             type: "rangeArea",
             name: `${datasetName}`,
-            data: evalData,
+            data: sortedEvalData,
           },
           {
             type: "line",
             name: `${datasetName} Median`,
-            data: Object.entries(timeframeData).map(([date, values]) => ({
-              x: date,
-              y: parseFloat((values.total / values.count).toFixed(3)),
-            })),
+            data: Object.entries(timeframeData)
+              .sort(([a], [b]) => new Date(a) - new Date(b))
+              .map(([date, values]) => ({
+                x: date,
+                y: parseFloat((values.total / values.count).toFixed(3)),
+              })),
           },
         ];
 
@@ -185,27 +188,28 @@ const Monitoring = () => {
         return acc;
       }, {});
 
-      const traceData = Object.entries(timeframeData).map(([date, values]) => ({
-        x: date,
-        y: [values.min, values.max],
-      }));
+      const sortedTraceData = Object.entries(timeframeData)
+        .sort(([a], [b]) => new Date(a) - new Date(b))
+        .map(([date, values]) => ({
+          x: date,
+          y: [values.min, values.max],
+        }));
 
       const newTraceSeries = [
         {
           type: "rangeArea",
           name: "Range",
-          data: traceData,
+          data: sortedTraceData,
         },
         {
           type: "line",
           name: "Median",
-          data: Object.entries(timeframeData).map(([date, values]) => ({
-            x: date,
-            y:
-              values.count > 0
-                ? parseFloat((values.total / values.count).toFixed(3))
-                : 0,
-          })),
+          data: Object.entries(timeframeData)
+            .sort(([a], [b]) => new Date(a) - new Date(b))
+            .map(([date, values]) => ({
+              x: date,
+              y: values.count > 0 ? parseFloat((values.total / values.count).toFixed(3)) : 0,
+            })),
         },
       ];
       setTraceSeries(newTraceSeries);
@@ -347,7 +351,6 @@ const Monitoring = () => {
             },
           };
 
-          // Set the updated traceOptions state
           setTraceOptions(newTraceOptions);
         }
       } else {
@@ -357,24 +360,26 @@ const Monitoring = () => {
       console.error("Error during API request:", error);
     }
   };
-  const filteredProjects = projectList.filter((project) => {
-    const trimmedSearchProject = searchProject.replace(/[^\w\s]/g, "").trim();
-    const regex = new RegExp(trimmedSearchProject, "gi");
-    const trimmedProjectName = project.name
-      .replace(/[^\w\s]/g, "")
-      .replace(/\s+/g, "");
-    return trimmedProjectName.match(regex);
-  }).sort((a, b) => {
-    const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-    const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-    if (nameA < nameB) {
-      return -1;
-    }
-    if (nameA > nameB) {
-      return 1;
-    }
-    return 0; // names must be equal
-  });
+  const filteredProjects = projectList
+    .filter((project) => {
+      const trimmedSearchProject = searchProject.replace(/[^\w\s]/g, "").trim();
+      const regex = new RegExp(trimmedSearchProject, "gi");
+      const trimmedProjectName = project.name
+        .replace(/[^\w\s]/g, "")
+        .replace(/\s+/g, "");
+      return trimmedProjectName.match(regex);
+    })
+    .sort((a, b) => {
+      const nameA = a.name.toUpperCase();
+      const nameB = b.name.toUpperCase();
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+      return 0;
+    });
 
   const handleSelect = (value) => {
     setSelected(value);
@@ -408,7 +413,7 @@ const Monitoring = () => {
       ) : role.includes("Monitoring") || role.includes("Full_Access") ? (
         <div className="flex">
           <Sidebar />
-          <div className="w-full h-screen overflow-y-auto  sm:ml-[96px] ml-[72px]">
+          <div className="w-full h-screen overflow-y-auto sm:ml-[96px] ml-[72px]">
             <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
               <div className="flex items-center gap-[5px]">
                 <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
