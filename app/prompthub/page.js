@@ -15,7 +15,6 @@ import {
 import { RiFilter2Fill } from "react-icons/ri";
 
 
-//TODO: different tables and backgrounds for shared, available, subscribed, unshared templates
 const index = () => {
 
   const [tab, setTab] = useState("PublicPrompts");
