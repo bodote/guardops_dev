@@ -1636,3 +1636,17 @@ export const HubUnshareIcon=({className}) => {
 </svg>
  );
 };
+
+export const HubSubscribeIcon=({className}) => {
+  return(
+
+<svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="40" height="28" rx="14" fill="#ECFDF3"/>
+<path d="M17 10L15 10C12.7909 10 11 11.7909 11 14L11 19C11 21.2091 12.7909 23 15 23L27 23C29.2091 23 31 21.2091 31 19L31 14C31 11.7909 29.2091 10 27 10L25 10" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M18 15L20.2929 17.2929C20.6834 17.6834 21.3166 17.6834 21.7071 17.2929L24 15" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M21 17L21 5" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
+
+);
+};
+

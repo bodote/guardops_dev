@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from "react";
-import { HubDownloadIcon, RightIcon, ThreeDotsIcon } from "@/public/Assets/Icons/Allsvg";
+import { HubDownloadIcon, HubSubscribeIcon } from "@/public/Assets/Icons/Allsvg";
 import Logout from "@/components/Logout/Logout";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { useCookies } from 'next-client-cookies';
@@ -13,7 +13,6 @@ const MyPrompts = () => {
   const [sharedTemplates, setSharedTemplates] = useState([]);
   const [subscribedTemplates, setSubscribedTemplates] = useState([]);
   const [availableTemplates, setAvailableTemplates] = useState([]);
-
   let rank = 1;
   const cookieStore = useCookies()
   const user_id = cookieStore.get("user_id").value;
@@ -27,11 +26,27 @@ const MyPrompts = () => {
     });
 
     const res = await response.json();
-    const data = res.data
+    const data = res.data;
    
     if (data.available_templates) {
       setAvailableTemplates(data.available_templates);
     }
+   
+  };
+  const subscribeToTemplate = async (template_id) => {
+    const params = {template_id:template_id};
+    const response = await fetch(`/api/prompthub/share/subscribe`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+     
+    });
+
+    const res = await response.json();
+    console.log(res);
+    getTemplates();
   };
 
   useEffect(() => {
@@ -69,9 +84,7 @@ const MyPrompts = () => {
                  {availableTemplates.map((template) => (
                   <tr
                     key={template.template_id}
-                    className={`border-b-[#EAECF0] border-b-[1px] ${
-                      template.user_id != user_id && "bg-[#D4DB33]"
-                    }`}
+                    className={`border-b-[#EAECF0] border-b-[1px] `}
                   >
                     <td className="text-[#101828] text-[14px] font-Inter p-[13px_24px] text-left">
                       {template.user_id == user_id ? rank++ : "-"}
@@ -102,18 +115,19 @@ const MyPrompts = () => {
                     </td>
                     <td className="p-[15px_24px]">
                       <span
-                        className={`text-[#027A48] font-medium text-[12px] font-Inter p-[2px_8px] block w-fit rounded-2xl ${
-                          template.user_id != user_id
-                            ? "bg-[#B5D72F]"
-                            : "bg-[#ECFDF3]"
-                        } ${template.elo === null && "w-[40px] h-[22px]"}`}
+                        className={`text-[#027A48] font-medium text-[12px] font-Inter p-[2px_8px] block w-fit rounded-2xl `}
                       >
                         {template.elo}
                       </span>
                     </td>
                     <td className="p-[15px_24px]">
                       <div className="flex justify-end cursor-pointer">
-                        <ThreeDotsIcon className="text-[20px]" />
+                      <button 
+                        onClick={() => {
+                          subscribeToTemplate(template.template_id);
+                         
+                        }}>
+                        <HubSubscribeIcon className="text-[20px]" /></button>
                       </div>
                     </td>
                   </tr>

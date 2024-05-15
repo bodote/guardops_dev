@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from "react";
-import { HubDownloadIcon, RightIcon, ThreeDotsIcon, HubDeleteIcon, HubShareIcon, HubUnshareIcon, HubRefreshIcon } from "@/public/Assets/Icons/Allsvg";
+import { HubDownloadIcon,   HubDeleteIcon, HubShareIcon, HubUnshareIcon, HubRefreshIcon } from "@/public/Assets/Icons/Allsvg";
 import Logout from "@/components/Logout/Logout";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { useCookies } from 'next-client-cookies';
@@ -9,6 +9,7 @@ import Profile from "@/components/Pageprofiledata/Profile";
 
 //TODO: different tables and backgrounds for shared, available, subscribed, unshared templates
 const MyPrompts = () => {
+    
   const [unsharedTemplates, setUnsharedTemplates] = useState([]);
   const [sharedTemplates, setSharedTemplates] = useState([]);
   const [subscribedTemplates, setSubscribedTemplates] = useState([]);
@@ -26,7 +27,7 @@ const MyPrompts = () => {
     });
 
     const res = await response.json();
-    const data = res.data
+    const data = res.data;
     if (data.unshared_templates) {
       setUnsharedTemplates(data.unshared_templates);
     }
@@ -49,7 +50,9 @@ const MyPrompts = () => {
     });
 
     const res = await response.json();
-    console.log(res)
+    console.log(res);
+    getTemplates();
+
   };
 
   const shareTemplate = async (template_id) => {
@@ -64,7 +67,8 @@ const MyPrompts = () => {
     });
 
     const res = await response.json();
-    console.log(res)
+    console.log(res);
+    getTemplates();
   };
 
   useEffect(() => {
@@ -148,7 +152,6 @@ const MyPrompts = () => {
                             <button 
                         onClick={() => {
                           unshareTemplate(template.template_id);
-                          getTemplates();
                         }}>
                           <HubUnshareIcon className="text-[20px]" />
                           </button>
@@ -211,7 +214,7 @@ const MyPrompts = () => {
                         <button 
                         onClick={() => {
                           shareTemplate(template.template_id);
-                          getTemplates();
+                         
                         }}>
                           <HubShareIcon className="text-[20px]" />
                           </button>
