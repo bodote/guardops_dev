@@ -824,13 +824,13 @@ const Version = ({
       </p>
     </div>
   )}
-  {totalTokens && (
+  {/* {totalTokens && (
     <div className="mx-4">
       <p className="text-[12px] text-black text-center font-bold">
         Total Tokens: {totalTokens}
       </p>
     </div>
-  )}
+  )} */}
 </div>
 
       </div>
