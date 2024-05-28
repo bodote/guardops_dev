@@ -10,6 +10,7 @@ import SignalsConcepts from "./SignalsConcepts";
 import { Tooltip } from "react-tooltip";
 import SelectDatasetModal from "../modal/SelectDatasetModal";
 import { useRouter, useSearchParams } from "next/navigation";
+import TraceElement from "./TraceElement";
 
 const TraceDetails = ({
   traceProject,
@@ -31,39 +32,7 @@ const TraceDetails = ({
     project_name: params.get("name"),
     message: encodeURIComponent(selectedProject?.attributes.prompt),
   };
-  const handleLatency = (startTime, endTime) => {
-    const TempStartTime = new Date(startTime);
-    const TempendTime = new Date(endTime);
-    const latency = (TempendTime - TempStartTime) / 1000;
-    return latency;
-  };
 
-  const handleSpanStartTime = (startTime) => {
-    const startDate = new Date(startTime);
-    const formattedDate = startDate.toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-
-    // Format time
-    const formattedTime = startDate.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-    const FormatedTime = `${formattedDate} ${formattedTime}`;
-    return FormatedTime;
-  };
-
-  const handleTreeRowClick = (e, val, parent = false) => {
-    setType("playground");
-    if (parent) {
-      setOpen(!open);
-    }
-    e.preventDefault();
-    setSelectedProject(val);
-  };
 
   const handleChatRowClick = (e, val) => {
     setType("chat");
@@ -109,6 +78,38 @@ const TraceDetails = ({
     });
   }, [traceProject]);
 
+  const buildNestedStructure = (elements) => {
+    const elementMap = new Map();
+  
+    // Initialize the map
+    elements.forEach((ele) => {
+      elementMap.set(ele.context.span_id, { ...ele, children: [] });
+    });
+  
+    // Populate the children
+    elements.forEach((ele) => {
+      if (ele.parent_id) {
+        const parent = elementMap.get(ele.parent_id);
+        if (parent) {
+          parent.children.push(elementMap.get(ele.context.span_id));
+        }
+      }
+    });
+  
+    // Filter out the root elements
+    return elements.filter((ele) => !ele.parent_id).map((ele) => elementMap.get(ele.context.span_id));
+  };
+  
+  const nestedTraceProject = buildNestedStructure(traceProject);
+  
+  
+  
+  
+
+  
+
+
+
   return (
     <>
       <div className="trace-scroll">
@@ -126,192 +127,11 @@ const TraceDetails = ({
               Trace Details
             </h1>
             <div className="relative trace-detail cursor-pointer">
-              <div className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[22px] after:top-[-27px] after:absolute after:w-[1px]">
-                {traceProject.map((outerEle, innerEleIndx) => {
-                  return (
-                    outerEle.kind == "SpanKind.PLAYGROUND_CHAT" && (
-                      <div
-                        onClick={(e) => handleChatRowClick(e, outerEle)}
-                        key={innerEleIndx}
-                        className="flex mb-[18px] ml-[20px] items-center relative bg-[#fff] z-[9] max-w-[466px] after:content-[''] after:w-[1px] after:h-[20px] after:bg-[#CCCCCC] after:absolute after:top-[23px] after:left-[21px] trace-det"
-                      >
-                        {/* <LinesmallIcon className="absolute top-[12px] left-[-13px]" /> */}
-                        {/* <LineverticalbigIcon className="absolute left-[-13px]" /> */}
-                        <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb]  ">
-                          <div className="p-[7px_10px_7px_16px]">
-                            <DocumentIcon />
-                          </div>
-                          <div className="md:p-[4px_0px_4px_6px] p-[8px] border-x">
-                            <h1
-                              data-tooltip-id="my-tooltip"
-                              data-tooltip-content={outerEle.kind}
-                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                            >
-                              {outerEle.kind}
-                            </h1>
-                          </div>
-                          <div className="md:p-[4px_0px_4px_6px] pl-[2px] border-r">
-                            <h1
-                              data-tooltip-id="my-tooltip"
-                              data-tooltip-content={outerEle.name}
-                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                            >
-                              {outerEle.name}
-                            </h1>
-                          </div>
-                          <div className="md:p-[4px_0px_4px_6px] p-[8px] border-r">
-                            <h1
-                              data-tooltip-id="my-tooltip"
-                              data-tooltip-content={handleSpanStartTime(
-                                outerEle.start_time
-                              )}
-                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                            >
-                              {handleSpanStartTime(outerEle.start_time)}
-                            </h1>
-                          </div>
-                          <div className="md:p-[4px_0px_4px_6px] p-[8px]">
-                            <h1
-                              data-tooltip-id="my-tooltip"
-                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                            >
-                              {handleLatency(
-                                outerEle.start_time,
-                                outerEle.end_time
-                              )}{" "}
-                              s
-                            </h1>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  );
-                })}
-                {traceProject.map((outerEle, innerEleIndx) => {
-                  return (
-                    outerEle.parent_id == null &&
-                    outerEle.kind !== "SpanKind.PLAYGROUND_CHAT" && (
-                      <div
-                        onClick={(e) => handleTreeRowClick(e, outerEle, true)}
-                        key={innerEleIndx}
-                        className="flex mb-[18px] ml-[20px] items-center relative bg-[#fff] z-[9] max-w-[466px]"
-                      >
-                        {/* <LinesmallIcon className="absolute top-[12px] left-[-13px]" /> */}
-                        {/* <LineverticalbigIcon className="absolute left-[-13px]" /> */}
-                        <div className="border border-[#CCCCCC] rounded-2xl w-fit h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb]  ">
-                          <div className="p-[7px_10px_7px_16px]">
-                            <DocumentIcon />
-                          </div>
-                          <div className="md:p-[4px_0px_4px_6px] p-[8px] border-x">
-                            <h1
-                              data-tooltip-id="my-tooltip"
-                              data-tooltip-content={outerEle.kind}
-                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                            >
-                              {outerEle.kind}
-                            </h1>
-                          </div>
-                          <div className="md:p-[4px_0px_4px_6px] pl-[2px] border-r">
-                            <h1
-                              data-tooltip-id="my-tooltip"
-                              data-tooltip-content={outerEle.name}
-                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                            >
-                              {outerEle.name}
-                            </h1>
-                          </div>
-                          <div className="md:p-[4px_0px_4px_6px] p-[8px] border-r">
-                            <h1
-                              data-tooltip-id="my-tooltip"
-                              data-tooltip-content={handleSpanStartTime(
-                                outerEle.start_time
-                              )}
-                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                            >
-                              {handleSpanStartTime(outerEle.start_time)}
-                            </h1>
-                          </div>
-                          <div className="md:p-[4px_0px_4px_6px] p-[8px]">
-                            <h1
-                              data-tooltip-id="my-tooltip"
-                              className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                            >
-                              {handleLatency(
-                                outerEle.start_time,
-                                outerEle.end_time
-                              )}{" "}
-                              s
-                            </h1>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  );
-                })}
-                {traceProject.map((innerEle, innerEleIndx) => {
-                  return (
-                    innerEle.parent_id !== null &&
-                    innerEle.kind !== "SpanKind.PLAYGROUND_CHAT" && (
-                      <div key={innerEleIndx}>
-                        {open && (
-                          <div
-                            key={innerEleIndx}
-                            onClick={(e) => handleTreeRowClick(e, innerEle)}
-                          >
-                            <div className="flex mb-[18px] ml-[58px] items-center relative after:content-[''] after:bg-[#d1d1d1] after:h-[44px] after:left-[-14px] after:top-[-32px] after:absolute after:w-[1px]">
-                              {/* <LinesmallIcon className="absolute top-[-18px] left-[-13px]" /> */}
-                              <LineverticalbigIcon className="absolute left-[-13px]" />
-                              <div className="border border-[#CCCCCC] rounded-2xl h-[24px] flex items-center hover:bg-[#fffbeb]">
-                                <div className="p-[7px_10px_7px_16px]">
-                                  <DocumentIcon />
-                                </div>
-                                <div className="md:p-[4px_0px_4px_6px] p-[8px] border-x">
-                                  <h1
-                                    data-tooltip-id="my-tooltip"
-                                    data-tooltip-content={innerEle.kind}
-                                    className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px] "
-                                  >
-                                    {innerEle.kind}
-                                  </h1>
-                                </div>
-                                <div className="md:p-[4px_0px_4px_6px] p-[8px] border-r">
-                                  <h1
-                                    data-tooltip-id="my-tooltip"
-                                    data-tooltip-content={innerEle.name}
-                                    className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                                  >
-                                    {innerEle.name}
-                                  </h1>
-                                </div>
-                                <div className="md:p-[4px_0px_4px_6px] p-[8px] border-r">
-                                  <h1
-                                    data-tooltip-id="my-tooltip"
-                                    data-tooltip-content={handleSpanStartTime(
-                                      innerEle.start_time
-                                    )}
-                                    className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[90px]"
-                                  >
-                                    {handleSpanStartTime(innerEle.start_time)}
-                                  </h1>
-                                </div>
-                                <div className="md:p-[4px_0px_4px_6px] p-[8px]">
-                                  <h1 className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[60px]">
-                                    {handleLatency(
-                                      innerEle.start_time,
-                                      innerEle.end_time
-                                    )}{" "}
-                                    s
-                                  </h1>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  );
-                })}
-              </div>
+            <div className="relative after:content-[''] after:bg-[#d1d1d1] after:min-h-[calc(100%+58px)] after:left-[10px] after:top-[-27px] after:absolute after:w-[1px]">
+      {nestedTraceProject.map((element) => (
+        <TraceElement key={element.context.span_id} element={element} handleClick={handleChatRowClick} />
+      ))}
+    </div>
             </div>
           </div>
         </div>
