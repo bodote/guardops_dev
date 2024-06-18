@@ -25,6 +25,7 @@
     "@upstash/redis": "^1.28.4",
     "ai": "^2.2.31",
     "apexcharts": "^3.44.2",
+    "autoprefixer": "^10.4.19",
     "better-react-mathjax": "^2.0.3",
     "cohere-ai": "*",
     "cookie": "^0.6.0",
