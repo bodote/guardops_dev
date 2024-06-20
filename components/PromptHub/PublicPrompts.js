@@ -5,8 +5,7 @@ import { getCookie } from "cookies-next"
 
 
 
-//TODO: different tables and backgrounds for shared, available, subscribed, unshared templates
-const MyPrompts = () => {
+const MyPrompts = ({searchPrompt}) => {
  
   const [availableTemplates, setAvailableTemplates] = useState([]);
   const [expandedTemplateId, setExpandedTemplateId] = useState(null);
@@ -59,6 +58,18 @@ const MyPrompts = () => {
     getTemplates();
   }, []);
 
+  const filterTemplates = (templates) => {
+    return templates.filter((template) =>
+      template.name.toLowerCase().includes(searchPrompt.toLowerCase()) ||
+      template.description.toLowerCase().includes(searchPrompt.toLowerCase()) ||
+      template.template.toLowerCase().includes(searchPrompt.toLowerCase()) ||
+      template.link.toLowerCase().includes(searchPrompt.toLowerCase()) 
+    );
+  };
+
+
+  const filteredAvailableTemplates = filterTemplates(availableTemplates);
+
   return (
       
           <div className="xl:pl-[47px] lg:pl-[20px] xl:pr-[93px] lg:pr-[40px] xl:mt-[79px] md:mt-[50px] sm:mt-[30px] mt-[20px]">
@@ -85,7 +96,7 @@ const MyPrompts = () => {
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               
 
-                 {availableTemplates.map((template) => ( <React.Fragment  key={template.template_id}>
+                 {filteredAvailableTemplates.map((template) => ( <React.Fragment  key={template.template_id}>
                   <tr
                    
                     className={`border-b-[#EAECF0] border-b-[1px] hover:bg-[#d6d6d6]  hover:cursor-pointer`} onClick={() => toggleExpand(template.template_id)}
