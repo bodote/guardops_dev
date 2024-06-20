@@ -33,12 +33,13 @@ const TraceDetails = ({
     message: encodeURIComponent(selectedProject?.attributes.prompt),
   };
 
-
   const handleChatRowClick = (e, val) => {
-    setType("chat");
     e.preventDefault();
+    setType("chat");
     setSelectedProject(val);
+    console.log("setting selected to", val);
   };
+  
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -214,9 +215,10 @@ const TraceDetails = ({
           </div>
         </div>
         <div className="w-full overflow-x-auto border-l border-l-[#CCCCCC] h-[calc(100vh-128px)]">
-          {tab === "Info" && (
-            <Info traceProject={selectedProject?.attributes} />
-          )}
+        {tab === "Info" && (
+  <Info traceProject={selectedProject?.attributes} />
+)}
+
           {tab === "Response" && (
             <Response
               traceProject={currentRootTrace?.attributes}

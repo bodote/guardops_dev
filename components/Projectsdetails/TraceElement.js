@@ -33,20 +33,12 @@ const TraceElement = ({ element, handleClick }) => {
     return FormatedTime;
   };
 
-  const handleTreeRowClick = (e, val, parent = false) => {
-    setType("playground");
-    if (parent) {
-      setOpen(!open);
-    }
-    e.preventDefault();
-    setSelectedProject(val);
-  };
 
   return (
     <div className="relative mb-[10px]">
       <div
         className={`flex items-center relative bg-[#fff] z-[9] max-w-[466px] ${element.parent_id ? 'ml-[20px]' : ''}`}
-        onClick={toggleExpand}
+        onClick={(e) => handleClick(e, element)}
       >
         <div className="border border-[#CCCCCC] rounded-2xl w-full h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] cursor-pointer">
           <div className="p-[5px_8px_5px_12px]">
