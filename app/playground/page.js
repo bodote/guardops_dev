@@ -315,8 +315,8 @@ const index = () => {
   }, [allPromtsDetails]);
 
   const saveTraceChatPlayground = async () => {
-    if (proname.project_id === undefined || currentChatID.length === 0) {
-      toast.error("Please select the project and playground first!!!");
+    if (proname.project_id === undefined ) {
+      toast.error("Please select the project first!!!");
       return;
     }
     const formatModelParams = (settings) => {
