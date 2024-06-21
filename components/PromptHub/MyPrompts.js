@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { HubDownloadIcon, HubDeleteIcon, HubShareIcon, HubUnshareIcon, HubRefreshIcon } from "@/public/Assets/Icons/Allsvg";
 import { getCookie } from "cookies-next"
 
-const MyPrompts = ({searchPrompt }) => {
+const MyPrompts = ({ searchPrompt }) => {
   const [unsharedTemplates, setUnsharedTemplates] = useState([]);
   const [sharedTemplates, setSharedTemplates] = useState([]);
   const [subscribedTemplates, setSubscribedTemplates] = useState([]);
@@ -16,7 +16,7 @@ const MyPrompts = ({searchPrompt }) => {
       setExpandedTemplateId(templateId);
     }
   };
-  
+
   let rank = 1;
   const user_id = getCookie("user_id");
 
@@ -35,7 +35,7 @@ const MyPrompts = ({searchPrompt }) => {
     }
     if (data.shared_templates) {
       setSharedTemplates(data.shared_templates);
-      
+
     }
     if (data.subscribed_templates) {
       setSubscribedTemplates(data.subscribed_templates);
@@ -134,21 +134,21 @@ const MyPrompts = ({searchPrompt }) => {
   const filteredSubscribedTemplates = filterTemplates(subscribedTemplates);
 
   return (
-    <div className="xl:pl-[47px] lg:pl-[20px] xl:pr-[93px] lg:pr-[40px] xl:mt-[79px] md:mt-[50px] sm:mt-[30px] mt-[20px]">
-      <div className="border rounded-lg dark:border-[#EAECF0] shadow-[0px_1px_3px_rgba(16,24,40,0.1),_0px_1px_2px_rgba(16,24,40,0.06)] w-full overflow-x-auto overflow-y-hidden">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <div className="xl:pl-[47px] lg:pl-[20px] xl:pr-[93px] lg:pr-[40px] xl:mt-[79px] md:mt-[50px] sm:mt-[30px] mt-[20px] [overflow-wrap:anywhere]">
+      <div className="border rounded-lg dark:border-[#EAECF0] shadow-[0px_1px_3px_rgba(16,24,40,0.1),_0px_1px_2px_rgba(16,24,40,0.06)] overflow-y-hidden w-full [overflow-wrap:anywhere]">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 [overflow-wrap:anywhere]">
           <thead className="bg-[#F9FAFB] dark:bg-gray-700">
             <tr>
-              <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap w-0">
+              <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-prewrap w-0">
                 <HubDownloadIcon />
               </th>
-              <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
+              <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-prewrap">
                 Name
               </th>
-              <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
+              <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-prewrap">
                 Description
               </th>
-              <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-nowrap">
+              <th className="text-[#475467] text-[12px] font-Inter p-[13px_24px] text-left whitespace-prewrap">
                 Link
               </th>
               <th className="p-[13px_24px]"></th>
@@ -166,21 +166,21 @@ const MyPrompts = ({searchPrompt }) => {
                   </td>
                   <td className="p-[15px_24px]">
                     <div>
-                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-prewrap">
                         {template.name}
                       </p>
                     </div>
                   </td>
                   <td className="p-[15px_24px]">
                     <div>
-                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-prewrap">
                         {template.description}
                       </p>
                     </div>
                   </td>
                   <td className="p-[15px_24px]">
                     <div>
-                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-prewrap">
                         {template.user_id}
                       </p>
                     </div>
@@ -201,8 +201,8 @@ const MyPrompts = ({searchPrompt }) => {
                 {expandedTemplateId === template.template_id && (
                   <tr>
                     <td colSpan="6" className="border-t border-b-gray-700 border-b-4">
-                      <div className="p-[15px_24px]">
-                        <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <div className="p-[15px_24px] whitespace-pre-wrap">
+                        <p className="text-[#101828] text-[14px] font-Inter font-medium">
                           {template.template}
                         </p>
                       </div>
@@ -225,21 +225,21 @@ const MyPrompts = ({searchPrompt }) => {
                   </td>
                   <td className="p-[15px_24px]">
                     <div>
-                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-prewrap">
                         {template.name}
                       </p>
                     </div>
                   </td>
                   <td className="p-[15px_24px]">
                     <div>
-                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-prewrap">
                         {template.description}
                       </p>
                     </div>
                   </td>
                   <td className="p-[15px_24px]">
                     <div>
-                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-prewrap">
                         {template.link}
                       </p>
                     </div>
@@ -258,10 +258,10 @@ const MyPrompts = ({searchPrompt }) => {
                   </td>
                 </tr>
                 {expandedTemplateId === template.template_id && (
-                  <tr>
-                    <td colSpan="6" className="border-t border-b-gray-700 border-b-4">
-                      <div className="p-[15px_24px]">
-                        <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                  <tr className="[overflow-wrap:anywhere]">
+                    <td colSpan="6" className="border-t border-b-gray-700 border-b-4 [overflow-wrap:anywhere]">
+                      <div className="p-[15px_24px] whitespace-pre-wrap [overflow-wrap:anywhere]">
+                        <p className="text-[#101828] text-[14px] font-Inter font-medium [overflow-wrap:anywhere]">
                           {template.template}
                         </p>
                       </div>
@@ -284,21 +284,21 @@ const MyPrompts = ({searchPrompt }) => {
                   </td>
                   <td className="p-[15px_24px]">
                     <div>
-                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-prewrap">
                         {template.name}
                       </p>
                     </div>
                   </td>
                   <td className="p-[15px_24px]">
                     <div>
-                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-prewrap">
                         {template.description}
                       </p>
                     </div>
                   </td>
                   <td className="p-[15px_24px]">
                     <div>
-                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                      <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-prewrap">
                         {template.link}
                       </p>
                     </div>
@@ -324,10 +324,10 @@ const MyPrompts = ({searchPrompt }) => {
                   </td>
                 </tr>
                 {expandedTemplateId === template.template_id && (
-                  <tr>
-                    <td colSpan="6" className="border-t border-b-gray-700 border-b-4">
-                      <div className="p-[15px_24px]">
-                        <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">
+                  <tr className="[overflow-wrap:anywhere]">
+                    <td colSpan="6" className="border-t border-b-gray-700 border-b-4 [overflow-wrap:anywhere]">
+                      <div className="p-[15px_24px] whitespace-pre-wrap [overflow-wrap:anywhere]">
+                        <p className="text-[#101828] text-[14px] font-Inter font-medium">
                           {template.template}
                         </p>
                       </div>

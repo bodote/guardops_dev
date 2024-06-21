@@ -140,16 +140,17 @@ const MyPrompts = ({searchPrompt}) => {
                       </div>
                     </td>
                   </tr>
-                    {expandedTemplateId === template.template_id && (
-                      <tr>
-                        <td colSpan="6" className="border-t border-b-gray-700  border-b-4">
-                          <div className="p-[15px_24px]">
-                          
-                            <p className="text-[#101828] text-[14px] font-Inter font-medium whitespace-nowrap">{template.template}</p>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
+                  {expandedTemplateId === template.template_id && (
+                  <tr className="[overflow-wrap:anywhere]">
+                    <td colSpan="6" className="border-t border-b-gray-700 border-b-4 [overflow-wrap:anywhere]">
+                      <div className="p-[15px_24px] whitespace-pre-wrap [overflow-wrap:anywhere]">
+                        <p className="text-[#101828] text-[14px] font-Inter font-medium">
+                          {template.template}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
                     </React.Fragment>
                 ))}
                 </tbody>
