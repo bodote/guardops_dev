@@ -855,12 +855,7 @@ const index = () => {
                             </div>
                           </div>
                           <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start lg:mt-0 mt-[10px]">
-                            <label
-                              htmlFor="project"
-                              className="block font-Archivo text-[12px] text-[#000000] font-normal"
-                            >
-                              Input Tokens: 245
-                            </label>
+                           
                             <Listbox value={proname} onChange={setProname}>
                               {({ open }) => (
                                 <>
