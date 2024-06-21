@@ -182,12 +182,14 @@ const Sidebar = () => {
                 Account
               </p>
             </a>
+            <a href="https://docs.co-ai.de/" className="flex gap-[10px] items-center">
             <div className="flex gap-[10px] items-center mt-[30px]">
               <SaleIcon className="w-[24px]" />
               <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                Settings
+                Docs
               </p>
             </div>
+            </a>
           </div>
         </div>
       </div>
