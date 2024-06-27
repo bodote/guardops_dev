@@ -158,83 +158,91 @@ const Projectstabledata = ({
             </tr>
           </thead>
           <tbody>
-            {filteredProjects.map((data) =>
-              data.map((val, innerEle) => {
-                return (
-                  val.parent_id == null && (
-                    <tr
-                      key={innerEle}
-                      className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
-                    >
-                      <td className="py-[14px] px-[10px]  text-center">
-                        <input
-                          type="checkbox"
-                          onChange={(e) => handleSelectTraces(e, val)}
-                          className="w-4 h-4 border border-[#334851] border-opacity-[0.3] rounded focus:ring-0 focus:outline-none focus:!border-[#334851]"
-                        />
-                      </td>
-                      <td className=" text-[#bbbbbb]">
-                        <IoChevronForwardCircleOutline />
-                      </td>
+          {filteredProjects.map((data) => {
+  // Check if any of the vals in the data array are flagged
+  const isAnyFlagged = data.some(
+    (val) =>
+      (val.attributes?.prompt_moderation?.flagged ?? false) ||
+      (val.attributes?.output_moderation?.flagged ?? false)
+  );
 
-                      <td className="py-[14px] px-[10px] text-[14px] text-[#171C26] font-medium font-Inter text-center">
-                        {innerEle}
-                      </td>
-                      <td
-                        onClick={() => openModal(data)}
-                        className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center"
-                      >
-                        <p className="hover:underline cursor-pointer">
-                          {val.kind}
-                        </p>
-                      </td>
-                      <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center min-w-[300px]">
-                        <p className="line-clamp">{val.attributes?.prompt}</p>
-                      </td>
-                      <td className=" py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                        <p className="line-clamp">
-                          {val.attributes?.output.replace(
-                            /\{"tokens":\d+\}/g,
-                            ""
-                          )}
-                        </p>
-                      </td>
-                      <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
-                        {handleSpanStartTime(val.start_time)}
-                        <br />
-                      </td>
-                      <td className="py-[14px] px-[10px] text-[14px] font-normal font-Inter text-[#464F60] text-center">
-                        <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
-                          {handleLatency(val.start_time, val.end_time)}s
-                        </p>
-                      </td>
-                      <td className="py-[14px] px-[10px] text-[12px] font-medium font-Inter text-[#464F60] text-center">
-                        <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
-                          {val.attributes?.total_tokens}
-                        </p>
-                      </td>
-                      <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-[#0D859A] text-center">
-                        {val?.status.status_code}
-                      </td>
-                      <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter ">
-                        <div className="flex gap-[5px] items-center relative">
-                          {/* {option &&
+  const textColorClass = isAnyFlagged ? "text-red-700" : "text-[#0D859A]";
 
-                      <div className="absolute top-[18px] right-[10px] bg-[#d8d8d9] border-[1px] border-[#868fa0] rounded-[5px] p-[3px]">
-                        <div className="flex items-center"><RiAddBoxLine className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Add</span></div>
-                        <div className="flex items-center"><MdDeleteOutline className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Delete</span></div>
-                        </div>
-                      } */}
-                          <div onClick={() => setOption(!option)}>
-                            <ThreeDotsIcon />
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                );
-              })
+  return data.map((val, innerEle) => (
+    val.parent_id == null && (
+      <tr
+        key={innerEle}
+        className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
+      >
+        <td className="py-[14px] px-[10px] text-center">
+          <input
+            type="checkbox"
+            onChange={(e) => handleSelectTraces(e, val)}
+            className="w-4 h-4 border border-[#334851] border-opacity-[0.3] rounded focus:ring-0 focus:outline-none focus:!border-[#334851]"
+          />
+        </td>
+        <td className="text-[#bbbbbb]">
+          <IoChevronForwardCircleOutline />
+        </td>
+        <td className="py-[14px] px-[10px] text-[14px] text-[#171C26] font-medium font-Inter text-center">
+          {innerEle}
+        </td>
+        <td
+          onClick={() => openModal(data)}
+          className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center ${textColorClass}`}
+        >
+          <p className="hover:underline cursor-pointer">
+            {val.kind}
+          </p>
+        </td>
+        <td className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px] ${textColorClass}`}>
+          <p className="line-clamp">{val.attributes?.prompt}</p>
+        </td>
+        <td className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center ${textColorClass}`}>
+          <p className="line-clamp">
+            {val.attributes?.output.replace(
+              /\{"tokens":\d+\}/g,
+              ""
             )}
+          </p>
+        </td>
+        <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
+          {handleSpanStartTime(val.start_time)}
+          <br />
+        </td>
+        <td className="py-[14px] px-[10px] text-[14px] font-normal font-Inter text-[#464F60] text-center">
+          <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
+            {handleLatency(val.start_time, val.end_time)}s
+          </p>
+        </td>
+        <td className="py-[14px] px-[10px] text-[12px] font-medium font-Inter text-[#464F60] text-center">
+          <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
+            {val.attributes?.total_tokens}
+          </p>
+        </td>
+        <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center">
+          {val?.status.status_code}
+        </td>
+        <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter">
+          <div className="flex gap-[5px] items-center relative">
+            {/* {option &&
+
+            <div className="absolute top-[18px] right-[10px] bg-[#d8d8d9] border-[1px] border-[#868fa0] rounded-[5px] p-[3px]">
+              <div className="flex items-center"><RiAddBoxLine className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Add</span></div>
+              <div className="flex items-center"><MdDeleteOutline className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Delete</span></div>
+              </div>
+            } */}
+            <div onClick={() => setOption(!option)}>
+              <ThreeDotsIcon />
+            </div>
+          </div>
+        </td>
+      </tr>
+    )
+  ));
+})}
+
+
             {isModalOpen && (
               <div
                 // ref={modalRef}
