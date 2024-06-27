@@ -38,7 +38,7 @@ const SignalsConcepts = ({ traceProject, selected, type }) => {
               className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  border-t border-t-[#CCCCCC]"
             >
            
- <JsonViewer value={selected?.prompt_moderation}></JsonViewer>      
+ <JsonViewer className="text-[14px]" value={selected?.prompt_moderation}></JsonViewer>      
 
            
             </div>
@@ -67,7 +67,7 @@ const SignalsConcepts = ({ traceProject, selected, type }) => {
               className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  border-t border-t-[#CCCCCC]"
             >
              
-             <JsonViewer value={selected?.output_moderation}></JsonViewer>      
+             <JsonViewer className="text-[14px]" value={selected?.output_moderation}></JsonViewer>      
 
 
             </div>
