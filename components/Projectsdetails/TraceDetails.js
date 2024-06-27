@@ -32,12 +32,10 @@ const TraceDetails = ({
     project_name: params.get("name"),
     message: encodeURIComponent(selectedProject?.attributes.prompt),
   };
-
   const handleChatRowClick = (e, val) => {
     e.preventDefault();
     setType("chat");
     setSelectedProject(val);
-    console.log("setting selected to", val);
   };
   
 
@@ -226,7 +224,9 @@ const TraceDetails = ({
               type={type}
             />
           )}
-          {tab === "SignalsConcepts" && <SignalsConcepts />}
+          {tab === "SignalsConcepts" && <SignalsConcepts   traceProject={currentRootTrace?.attributes}
+              selected={selectedProject?.attributes}
+              type={type}/>}
         </div>
       </div>
       <Tooltip id="my-tooltip" />

@@ -33,6 +33,12 @@ const TraceElement = ({ element, handleClick }) => {
     return FormatedTime;
   };
 
+  const isFlagged = () => {
+    const { prompt_moderation, output_moderation } = element.attributes || {};
+    return (prompt_moderation && prompt_moderation.flagged) || (output_moderation && output_moderation.flagged);
+  };
+
+  const textColorClass = isFlagged() ? 'text-red-700' : 'text-black';
 
   return (
     <div className="relative mb-[10px]">
@@ -45,22 +51,22 @@ const TraceElement = ({ element, handleClick }) => {
             <DocumentIcon />
           </div>
           <div className="md:p-[6px_0px_6px_10px] p-[12px] border-x">
-            <h1  data-tooltip-content={element.kind} className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[80px]">
+            <h1 data-tooltip-content={element.kind} className={`text-[10px] font-Archivo font-normal truncate w-[80px] ${textColorClass}`}>
               {element.kind}
             </h1>
           </div>
           <div className="md:p-[6px_0px_6px_10px] pl-[4px] border-r">
-            <h1  data-tooltip-content={element.name} className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[80px]">
+            <h1 data-tooltip-content={element.name} className={`text-[10px] font-Archivo font-normal truncate w-[80px] ${textColorClass}`}>
               {element.name}
             </h1>
           </div>
           <div className="md:p-[6px_0px_6px_10px] p-[12px] border-r">
-            <h1  data-tooltip-content={handleSpanStartTime(element.start_time)} className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[80px]">
+            <h1 data-tooltip-content={handleSpanStartTime(element.start_time)} className={`text-[10px] font-Archivo font-normal truncate w-[80px] ${textColorClass}`}>
               {handleSpanStartTime(element.start_time)}
             </h1>
           </div>
-          <div className="md:p-6px_0px_6px_10px] p-[12px]">
-            <h1 className="text-[10px] font-Archivo font-normal text-[#000000] truncate w-[60px]">
+          <div className="md:p-[6px_0px_6px_10px] p-[12px]">
+            <h1 className={`text-[10px] font-Archivo font-normal truncate w-[60px] ${textColorClass}`}>
               {handleLatency(element.start_time, element.end_time)} s
             </h1>
           </div>

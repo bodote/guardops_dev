@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 
 const Response = ({ traceProject, selected, type }) => {
-  const [responce, setResponce] = useState(true);
+  const [response, setResponse] = useState(true);
   const [apiResponse, setApiResponse] = useState("");
   useEffect(() => {
     if (traceProject?.response) {
@@ -22,19 +22,19 @@ const Response = ({ traceProject, selected, type }) => {
       <div className="lg:m-[38px_45px_10px_49px] m-[20px_16px_20px_16px]">
         <div className="relative  w-full cursor-default rounded-[5px] border border-[#CCCCCC] ">
           <div
-            onClick={() => setResponce(!responce)}
+            onClick={() => setResponse(!response)}
             className="flex gap-[13px] items-center p-[13px_23px_15px_23px] cursor-pointer"
           >
             <ArrowDownIcon
               className={`fill-[#334851] ${
-                responce ? "rotate-[180deg]" : "rotate-[0]"
+                response ? "rotate-[180deg]" : "rotate-[0]"
               }`}
             />
             <h1 className="text-[18px] font-Archivo font-normal text-[#000000]">
               API Response
             </h1>
           </div>
-          {responce && (
+          {response && (
             <div
               style={{ whiteSpace: "pre-wrap" }}
               className=" w-full p-[18px_28px_85px_19px] text-[18px] font-Archivo font-normal text-[#000000]  border-t border-t-[#CCCCCC]"

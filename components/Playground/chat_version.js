@@ -43,6 +43,7 @@ const Chat_version = ({
   setSelectedModel,
   saveTraceChatPlayground,
   chatPromptData,
+  setRunStart
 }) => {
   const [userMessage, setUserMessage] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
@@ -212,6 +213,7 @@ const Chat_version = ({
       return;
     }
     if (userMessage.length) {
+      setRunStart(new Date().toISOString());
       setApiCallInProgress(true);
       setMessages([...messages, { input: userMessage }]);
       setUserMessage("");
@@ -244,7 +246,6 @@ const fetchVercelResponse = async () => {
       role: "user",
       content: currentMessage,
     });
-    console.log(allMessages)
     var formData = {
       max_tokens: Number(settings.maxTokens),
       model: selected.id1,

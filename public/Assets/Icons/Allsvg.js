@@ -520,11 +520,11 @@ export const UserIcon = ({ className }) => {
 export const SaleIcon = ({ className }) => {
   return (
     <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M4 10V6C4 3.79086 5.79086 2 8 2H12H14.0633C14.6568 2 15.2197 2.26365 15.5997 2.71963L19.5364 7.44373C19.836 7.80316 20 8.25623 20 8.7241V12V18C20 20.2091 18.2091 22 16 22H8C5.79086 22 4 20.2091 4 18V15" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M15 2.5V6C15 6.55345 15.2248 7.05439 15.5881 7.4165C15.9498 7.77708 16.4489 8 17 8" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M8 12H12" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M16 12H15" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M8 17H12" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M4 10V6C4 3.79086 5.79086 2 8 2H12H14.0633C14.6568 2 15.2197 2.26365 15.5997 2.71963L19.5364 7.44373C19.836 7.80316 20 8.25623 20 8.7241V12V18C20 20.2091 18.2091 22 16 22H8C5.79086 22 4 20.2091 4 18V15" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M15 2.5V6C15 6.55345 15.2248 7.05439 15.5881 7.4165C15.9498 7.77708 16.4489 8 17 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M8 12H12" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M16 12H15" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M8 17H12" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
     
   );
@@ -1610,9 +1610,9 @@ export const HubSubscribeIcon=({className}) => {
   return(
 
 <svg className={className}width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M9 8L7 8C4.79086 8 3 9.79086 3 12L3 17C3 19.2091 4.79086 21 7 21L19 21C21.2091 21 23 19.2091 23 17L23 12C23 9.79086 21.2091 8 19 8L17 8" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-<path d="M10 13L12.2929 15.2929C12.6834 15.6834 13.3166 15.6834 13.7071 15.2929L16 13" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-<path d="M13 15L13 3" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
+<path d="M9 8L7 8C4.79086 8 3 9.79086 3 12L3 17C3 19.2091 4.79086 21 7 21L19 21C21.2091 21 23 19.2091 23 17L23 12C23 9.79086 21.2091 8 19 8L17 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+<path d="M10 13L12.2929 15.2929C12.6834 15.6834 13.3166 15.6834 13.7071 15.2929L16 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+<path d="M13 15L13 3" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
 </svg>
 
 

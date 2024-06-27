@@ -52,7 +52,7 @@ const index = () => {
   const [allChatSystemPromot, setAllChatSystemPromot] = useState("");
   const [chatSyncAll, setChatSyncAll] = useState(false);
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
-  const [currentChatID, setCurrentChatID] = useState("");
+  const [currentChatID, setCurrentChatID] = useState();
   const [currentPlayground, setCurrentPlayground] = useState({});
   const [allPromtsDetails, setAllPromtsDetails] = useState([]);
   const [allChatsDetails, setAllChatsDetails] = useState([]);
@@ -357,7 +357,7 @@ const index = () => {
       );
       const formData = {
         project_id: proname.project_id,
-        playground_id: currentChatID,
+        ...(currentChatID !== undefined && { playground_id: currentChatID }),
         access_token: localStorage.getItem("customAIKey"),
         start_time: runStart,
         prompt_response_pairs: combinedAPIBody,
@@ -1127,6 +1127,7 @@ const index = () => {
                           selectedModel,
                           setSelectedModel,
                           saveTraceChatPlayground,
+                          setRunStart
                         })
                       )}
                     </div>
