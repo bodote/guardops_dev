@@ -224,9 +224,9 @@ const TraceDetails = ({
               type={type}
             />
           )}
-          {tab === "SignalsConcepts" && <SignalsConcepts   traceProject={currentRootTrace?.attributes}
+          {tab === "SignalsConcepts" && <SignalsConcepts  
               selected={selectedProject?.attributes}
-              type={type}/>}
+             />}
         </div>
       </div>
       <Tooltip id="my-tooltip" />

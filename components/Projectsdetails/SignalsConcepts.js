@@ -4,17 +4,11 @@ import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import { JsonViewer } from "@textea/json-viewer"; 
 
-const SignalsConcepts = ({ traceProject, selected, type }) => {
+const SignalsConcepts = ({ selected }) => {
   const [showInput, setShowInput] = useState(true);
   const [showOutput, setShowOutput] = useState(true);
 
-  const DisplayComponent = ({ data }) => {
-    return (
-      <React.Fragment>
-        <ReactJson src={data} />
-      </React.Fragment>
-    );
-  };
+
   return (
     <>
       <div className="lg:m-[38px_45px_10px_49px] m-[20px_16px_20px_16px]">
