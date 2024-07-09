@@ -39,7 +39,6 @@ const MyPrompts = ({ searchPrompt }) => {
     }
     if (data.subscribed_templates) {
       setSubscribedTemplates(data.subscribed_templates);
-      console.log("Subscribed ones:", data.subscribed_templates);
     }
   };
 

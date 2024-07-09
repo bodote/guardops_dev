@@ -4,6 +4,7 @@ import Logout from "@/components/Logout/Logout";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import MyPrompts from "@/components/PromptHub/MyPrompts";
 import PublicPrompts from "@/components/PromptHub/PublicPrompts";
+import TopicGPT from "@/components/PromptHub/TopicGPT";
 import {
   DivisionIcon,
   DownIcon,
@@ -48,6 +49,7 @@ const Index = () => {
               >
                 Discover Prompts
               </button>
+              <div ></div>
               <button
                 onClick={() => setTab("MyPrompts")}
                 className={`${
@@ -57,6 +59,16 @@ const Index = () => {
                 } pb-3  border-b-2`}
               >
                 My Prompts
+              </button>
+              <button
+                onClick={() => setTab("TopicGPT")}
+                className={`${
+                  tab === "TopicGPT"
+                    ? "font-bold border-[#0D859A] sm:text-[14px] text-[12px] text-[#0D859A]"
+                    : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
+                } pb-3  border-b-2`}
+              >
+                Analyze Prompts
               </button>
             </div>
             <div className="flex sm:w-[370px] w-auto">
@@ -94,6 +106,7 @@ const Index = () => {
             <div className="w-full overflow-x-auto">
               {tab === "MyPrompts" && <MyPrompts searchPrompt={searchPrompt} />}
               {tab === "PublicPrompts" && <PublicPrompts searchPrompt={searchPrompt}/>}
+              {tab === "TopicGPT" && <TopicGPT searchPrompt={searchPrompt}/>}
             </div>
           </div>
         </div>
