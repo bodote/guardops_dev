@@ -1,5 +1,5 @@
 import { createOpenAI, openai } from '@ai-sdk/openai';
-import { streamText } from 'ai';
+import { convertToCoreMessages, streamText } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { google } from '@ai-sdk/google';
@@ -85,7 +85,7 @@ export async function POST(req) {
       system: systemPrompt, 
       maxTokens: Number(settings.maxTokens), 
       temperature: Number(settings.temperature),
-      messages: messages
+      messages: convertToCoreMessages(messages)
     })
     
 

@@ -139,7 +139,23 @@ const Chat_version = ({
     keepLastMessageOnError: true,
     body: formData
   });
-  // Handle settings change
+  const [files, setFiles] = useState([]);
+  const fileInputRef = useRef(null);
+  const [editMessageId, setEditMessageId] = useState(null);
+  const [editedMessageContent, setEditedMessageContent] = useState('');
+  const textareaRef = useRef(null);
+
+  const handleFileChange = (event) => {
+    if (event.target.files) {
+      setFiles([...files, ...Array.from(event.target.files)]);
+      fileInputRef.current.value = ""; 
+    }
+  };
+
+  const handleDeleteFile = (indexToDelete) => {
+    setFiles(files.filter((_, index) => index !== indexToDelete));
+  };
+
   const handleSettingsChange = (settingName, value) => {
     setSettings({ ...settings, [settingName]: value });
   };
@@ -277,7 +293,38 @@ const Chat_version = ({
     setSelected(model);
     setSelectedModel(model);
   };
-
+  const handleEditMessage = (id, currentContent) => {
+    setEditMessageId(id);
+    setEditedMessageContent(currentContent);
+  };
+  
+ 
+  const saveEditedMessage = (id) => {
+    setMessages((prevMessages) => {
+      const editIndex = prevMessages.findIndex((message) => message.id === id);
+      if (editIndex === -1) return prevMessages; // Message not found, return current state
+  
+      const updatedMessages = prevMessages
+        .slice(0, editIndex + 1) 
+        .map((message, index) =>
+          index === editIndex
+            ? { ...message, content: editedMessageContent } // Update the edited message
+            : message
+        );
+  
+      return updatedMessages;
+    });
+  
+    // Reset editing state and reload
+    setEditMessageId(null);
+    setEditedMessageContent('');
+    reload(); // Call reload to update the component if necessary
+  };
+  
+  const cancelEditing = () => {
+    setEditMessageId(null);
+    setEditedMessageContent('');
+  };
   const filteredModels = models
   .filter((model) => {
     const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
@@ -340,11 +387,38 @@ const Chat_version = ({
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [showSettings]);
-
+  
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        cancelEditing();
+      }
+    };
+  
+    if (editMessageId !== null) {
+      window.addEventListener('keydown', handleKeyDown);
+      // Focus the textarea when editing starts
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }
+  
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editMessageId]);
   useEffect(() => {
     const handleKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-        handleSubmit();
+        handleSubmit(event, {
+          experimental_attachments: files,
+        });
+
+        setFiles(undefined);
+
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -521,7 +595,7 @@ const Chat_version = ({
             )}
 
             <div
-              className={`bg-[#F7F7F7] h-[calc(100vh-250px)] overflow-y-auto ${
+              className={`bg-[#F7F7F7] h-[calc(100vh-287px)] overflow-y-auto ${
                 error ? "pt-[44px]" : ""
               }`}
             >
@@ -574,79 +648,125 @@ const Chat_version = ({
               )}
               <div
                 className={open ? "h-[calc(100vh-520px)] overflow-auto" : ""}
-              >  {messages.map((message) => (
-        <div key={message.id}>
-          {message.role === 'user' ? (
-            <div className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex justify-between gap-[20px]">
-              <div className="flex sm:gap-[19px] gap-[8px]">
-                <User2Icon className="min-w-[16px]" />
-                <p className="md:text-[16px] text-[14px]">
-                  {message.content}
-                </p>
-              </div>
-              <button
-                className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
-                onClick={() => handleEditMessage(message.id)}
-              >
-                <RiEdit2Line />
-              </button>
-            </div>
-          ) : (
-            <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
-              <FireIcon className="min-w-[16px]" />
-              <div className="w-[calc(100%-35px)]">
-                {parseVercelResponse(message.content).map((segment, index) =>
-                  segment.type === 'code' ? (
-                    <CodeBox key={index} code={segment.content} />
+              >   {messages.map((message) => (
+                <div key={message.id}>
+                  {message.role === 'user' ? (
+                    <div className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex flex-col gap-[20px]">
+                    <div className="flex justify-between">
+  <div className="flex sm:gap-[19px] gap-[8px] flex-col w-full">
+    <div className="flex items-start">
+      <User2Icon className="min-w-[16px]" />
+      {editMessageId === message.id ? (
+        <textarea
+          ref={textareaRef}
+          value={editedMessageContent}
+          onChange={(e) => setEditedMessageContent(e.target.value)}
+          className=" ml-5 border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
+        />
+      ) : (
+        <p className="ml-5 md:text-[16px] text-[14px]">
+          {message.content}
+        </p>
+      )}
+    </div>
+    {editMessageId === message.id && (
+      <div className="flex gap-2 mt-2 ml-10">
+        <button
+          className="p-1 border-1 rounded-full bg-gray-400 hover:bg-gray-700"
+          onClick={() => cancelEditing()}
+        >
+          <AiOutlineStop className="text-[16px]" />
+        </button>
+        <button
+          className="p-1 border-1 rounded-full text-[12px] bg-[#D4DB33] hover:bg-[#0D859A]"
+          onClick={() => saveEditedMessage(message.id)}
+        >
+          Save & Resend
+        </button>
+      </div>
+    )}
+  </div>
+  {editMessageId !== message.id && (
+    <button
+      className="text-[20px] text-[#2B3F6C] group-hover:block"
+      onClick={() => handleEditMessage(message.id, message.content)}
+    >
+      <RiEdit2Line />
+    </button>
+  )}
+</div>
+
+                      <div>
+                        {message.experimental_attachments
+                          ?.filter(attachment =>
+                            attachment.contentType.startsWith('image/'),
+                          )
+                          .map((attachment, index) => (
+                            <img
+                              key={`${message.id}-${index}`}
+                              src={attachment.url}
+                              alt={attachment.name}
+                              width={500}
+                            />
+                          ))}
+                      </div>
+                    </div>
                   ) : (
-                    <ReactMarkdown
-                      components={{
-                        ul: ({ node, ...props }) => (
-                          <ul
-                            style={{
-                              display: 'block',
-                              listStyleType: 'disc',
-                              paddingInlineStart: '40px',
-                            }}
-                            {...props}
-                          />
-                        ),
-                        ol: ({ node, ...props }) => (
-                          <ol
-                            style={{
-                              display: 'block',
-                              listStyleType: 'decimal',
-                              paddingInlineStart: '40px',
-                            }}
-                            {...props}
-                          />
-                        ),
-                        h1: ({ node, ...props }) => (
-                          <h1
-                            className="font-bold text-6xl"
-                            {...props}
-                          />
-                        ),
-                        p: ({ node, ...props }) => (
-                          <p
-                            style={{
-                              whiteSpace: 'pre-wrap',
-                            }}
-                            {...props}
-                          />
-                        ),
-                      }}
-                      remarkPlugins={[gfm]}
-                      key={index}
-                      children={segment.content}
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
+                    <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
+                      <FireIcon className="min-w-[16px]" />
+                      <div className="w-[calc(100%-35px)]">
+                        {parseVercelResponse(message.content).map((segment, index) =>
+                          segment.type === 'code' ? (
+                            <CodeBox key={index} code={segment.content} />
+                          ) : (
+                            <ReactMarkdown
+                              components={{
+                                ul: ({ node, ...props }) => (
+                                  <ul
+                                    style={{
+                                      display: 'block',
+                                      listStyleType: 'disc',
+                                      paddingInlineStart: '40px',
+                                    }}
+                                    {...props}
+                                  />
+                                ),
+                                ol: ({ node, ...props }) => (
+                                  <ol
+                                    style={{
+                                      display: 'block',
+                                      listStyleType: 'decimal',
+                                      paddingInlineStart: '40px',
+                                    }}
+                                    {...props}
+                                  />
+                                ),
+                                h1: ({ node, ...props }) => (
+                                  <h1
+                                    className="font-bold text-6xl"
+                                    {...props}
+                                  />
+                                ),
+                                p: ({ node, ...props }) => (
+                                  <p
+                                    style={{
+                                      whiteSpace: 'pre-wrap',
+                                    }}
+                                    {...props}
+                                  />
+                                ),
+                              }}
+                              remarkPlugins={[gfm]}
+                              key={index}
+                              children={segment.content}
+                            />
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
               </div>
             </div>
             <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
@@ -656,8 +776,52 @@ const Chat_version = ({
                   value={input}
                   onChange={handleMessageInputChange}
                   className="border-0 resize-none bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full rounded-md"
-                ></textarea>
+                >
+                </textarea>
+      <div className="pl-2 pb-2 flex items-center gap-[5px]">
+        <label htmlFor="fileInput" className="bg-gray-600 hover:bg-gray-800 text-white rounded-full cursor-pointer">
+          <svg
+            className="cursor-pointer hover:text-gray-700 border rounded-full p-1 h-8"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="white"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1"
+              d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+            />
+          </svg>
+          <input
+            hidden
+            type="file"
+            onChange={handleFileChange}
+            multiple
+            ref={fileInputRef}
+            id="fileInput"
+          />
+        </label>
+       <div className="flex flex-wrap gap-2 pl-2 pt-2">
+  {files?.map((file, index) => (
+    <div key={index} className="flex items-center justify-between p-1 bg-gray-100 border-2 border-gray-400 rounded mb-1">
+      <span className="text-gray-800">{file.name}</span>
+      <span
+        className="ml-4 cursor-pointer text-red-600"
+        onClick={() => handleDeleteFile(index)}
+      >
+        ×
+      </span>
+    </div>
+  ))}
+</div>
+
+      </div>
+     
+                  
                 <div className="flex justify-end gap-[10px] pr-[13px] pb-2">
+                  
                   <div className="flex items-center gap-[5px]">
                     <Switch
                       checked={syncAllMsg}
@@ -680,9 +844,17 @@ const Chat_version = ({
                     </label>
                   </div>
                   <button
-                      onClick={() => {
-                          handleSubmit();
-                        }}
+                      onClick={event => {
+                        handleSubmit(event, {
+                          experimental_attachments: files,
+                        });
+              
+                        setFiles(undefined);
+              
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = '';
+                        }
+                      }}
                       className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
                       isLoading
                         ? "bg-[#CCCCCC]"
