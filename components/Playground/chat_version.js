@@ -20,6 +20,7 @@ import { Listbox, Transition, Switch } from "@headlessui/react";
 import { AiOutlineStop } from "react-icons/ai";
 import ModelSettings from "./modelSettings";
 import { toast } from "react-toastify";
+import { useChat } from 'ai/react';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -31,25 +32,21 @@ const Chat_version = ({
   removeChatVersion,
   addChatVersion,
   syncAll,
+  setAllChatPrompt,
   setsyncAll,
   setAllSystemPrompt,
   allSystemPrompt,
   syncAllMsg,
   setSyncAllMsg,
-  allChatSystemPromot,
-  setAllChatSystemPromot,
-  setAllChatsDetails,
+  allChatPrompt,
   selectedModel,
   setSelectedModel,
   saveTraceChatPlayground,
   chatPromptData,
-  setRunStart
 }) => {
-  const [userMessage, setUserMessage] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
-  const [messages, setMessages] = useState([
-   
-  ]);
+
+ 
   const [open, setOpen] = useState(false);
   const modalRef = useRef();
   const [selected, setSelected] = useState(
@@ -61,7 +58,6 @@ const Chat_version = ({
   );
 
   const [showSettings, setShowSettings] = useState(false);
-  const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [models, setModels] = useState([]);
   const [fireworksAIKey, setFireworksAIKey] = useState("");
   const [openaiKey, setOpenaiKey] = useState("");
@@ -74,8 +70,6 @@ const Chat_version = ({
   const [mistralKey, setMistralKey] = useState(""); 
   const [perplexityKey, setPerplexityKey] = useState(""); 
   const [error, setError] = useState("");
-  const [editingIndex, setEditingIndex] = useState(-1);
-  const [editedMessage, setEditedMessage] = useState("");
   const [tooltipData, setTooltipData] = useState({});
   const [searchModel, setSearchModel] = useState("");
   // State for settings values
@@ -87,7 +81,64 @@ const Chat_version = ({
     frequencyPenalty: 0.3,
     presencePenalty: 0.3,
   });
+  const [formData, setFormData] = useState( {
+    max_tokens: Number(settings.maxTokens),
+    model: selected.id1,
+    systemPrompt: open ? systemPrompt : "",
+    type: "chat",
+    settings: settings,
+    provider: selected.provider,
+    api_keys: {
+      openaiKey:openaiKey,
+      fireworksKey: fireworksAIKey,
+      customKey: customAIKey,
+      anthropicKey:anthropicKey,
+      cohereKey:cohereKey,
+      googleKey:googleKey,
+      mistralKey:mistralKey,
+      perplexityKey:perplexityKey,
+  
+    }
+  });
+  
 
+  useEffect(() => {
+    setFormData({
+      max_tokens: Number(settings.maxTokens),
+      model: selected.id1,
+      systemPrompt: open ? systemPrompt : "",
+      type: "chat",
+      settings: settings,
+      provider: selected.provider,
+      api_keys: {
+        openaiKey: openaiKey,
+        fireworksKey: fireworksAIKey,
+        customKey: customAIKey,
+        anthropicKey: anthropicKey,
+        cohereKey: cohereKey,
+        googleKey: googleKey,
+        mistralKey: mistralKey,
+        perplexityKey: perplexityKey,
+      },
+    });
+  }, [
+    settings,
+    open,
+    systemPrompt,
+    selected,
+    openaiKey,
+    fireworksAIKey,
+    customAIKey,
+    anthropicKey,
+    cohereKey,
+    googleKey,
+    mistralKey,
+    perplexityKey,
+  ]);
+  const { messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages } = useChat({
+    keepLastMessageOnError: true,
+    body: formData
+  });
   // Handle settings change
   const handleSettingsChange = (settingName, value) => {
     setSettings({ ...settings, [settingName]: value });
@@ -163,239 +214,12 @@ const Chat_version = ({
     if (model) {
       setSelected(model);
     }
-    setMessages(newMessages);
+     setMessages(newMessages);
   };
 
-  const handleEditMessage = (index) => {
-    setEditingIndex(index);
-    setEditedMessage(messages[index].input);
-  };
 
-  const handleSaveEdit = async () => {
-    // Update the message with the edited content
-    const updatedMessages = [...messages];
-    updatedMessages[editingIndex].input = editedMessage;
-    setMessages(updatedMessages);
-    setEditingIndex(-1); // Reset editing index
-    setEditedMessage("");
 
-    // Clear messages after the edited input
-    const messagesBeforeEdit = updatedMessages.slice(0, editingIndex + 1);
-    setMessages(messagesBeforeEdit);
-
-    // Fetch API response
-    await fetchVercelResponse();
-  };
-
-  const handleCancelEdit = () => {
-    setEditingIndex(-1); // Reset editing index
-    setEditedMessage(""); // Reset edited message
-  };
-
-  const simulateCtrlEnter = () => {
-    const event = new Event("keydown");
-    event.ctrlKey = true;
-    event.key = "Enter";
-    window.dispatchEvent(event);
-  };
-
-  const handleMessageSubmit = () => {
-    if (syncAllMsg) {
-      simulateCtrlEnter();
-    } else {
-      handleSendMessage();
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (!selected || selected.name === "Select an option") {
-      setError("Please select a model first.");
-      return;
-    }
-    if (userMessage.length) {
-      setRunStart(new Date().toISOString());
-      setApiCallInProgress(true);
-      setMessages([...messages, { input: userMessage }]);
-      setUserMessage("");
-      fetchVercelResponse();
-    }
-  };
-
-// Vercel integration
-const fetchVercelResponse = async () => {
-  var res = null;
-  const provider =selected.provider;
-  if (!provider) {
-    setError(`Provider ${selected.provider} is not supported.`);
-    return;
-  }
-  try{
-    var currentMessage = editedMessage ? editedMessage : userMessage;
-    var allMessages = []
-    messages.forEach((item, index) => {
-      allMessages.push({
-        role: "user",
-        content: item.input,
-      });
-      allMessages.push({
-        role: "assistant",
-        content: item.output ? item.output : "",
-      });
-    }); 
-    allMessages.push({
-      role: "user",
-      content: currentMessage,
-    });
-    var formData = {
-      max_tokens: Number(settings.maxTokens),
-      model: selected.id1,
-      messages: allMessages,
-      systemPrompt: open ? systemPrompt : "",
-      type: "chat",
-      settings: settings,
-    };
-      switch(selected.provider){
-        case "openai":
-          formData.api_key = openaiKey
-          res = await fetch("/api/openai", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          })
-          break;
-        case "fireworks":
-          formData.api_key = fireworksAIKey
-          res = await fetch("/api/fireworks", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          })
-          break;
-        case "custom":
-          formData.api_key = customAIKey
-          res = await fetch("/api/custom", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          })
-          break;           
-        case "together":
-          formData.api_key = togetherKey
-          res = await fetch("/api/together", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          })
-          break;          
-        case "anthropic":
-          formData.api_key = anthropicKey
-          res = await fetch("/api/anthropic", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          })
-          break;
-        case "cohere":
-          formData.api_key = cohereKey
-          res = await fetch("/api/cohere", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          })
-          break;
-        case "google":
-          formData.api_key = googleKey
-          res = await fetch("/api/google", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          })
-          break;
-        case "mistral":
-          formData.api_key = mistralKey
-          res = await fetch("/api/mistral", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-          })
-          break;
-        case "perplexity":
-            formData.api_key = perplexityKey
-            res = await fetch("/api/perplexity", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            })
-            break;
-        }
-      const data = res.body;
-      
-      const reader = data.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let completeString = "";
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        const chunkValue = decoder.decode(value);
-        setError("");
-        completeString += chunkValue;
-        setMessages((prevMessages) => {
-          const lastIndex = prevMessages.length - 1;
-          return prevMessages.map((message, index) => {
-            if (index === lastIndex) {
-              return {
-                ...message,
-                output: completeString.length
-                  ? completeString.replace(/\{"tokens":\d+\}/g, "")
-                  : "",
-              };
-            } else {
-              return message;
-            }
-          });
-        });
-      }
-      setApiCallInProgress(false);
-
-      setAllChatsDetails((prevDetails) => [
-        ...prevDetails,
-        {
-          isValid: true,
-          chatVersionId: chatVersionId,
-          model: selected.model_id,
-          input: editedMessage ? editedMessage : userMessage,
-          output: completeString.replace(/\{"tokens":\d+\}/g, ""),
-          systemPrompt: systemPrompt,
-          settings: settings,
-        },
-      ]);
-    }
-      
-    catch (error) {
-      console.error("API request failed:", error.message);
-      setError("Error: " + error.message);
-    }
-};
+  
 
 
   const copyToClipboard = (text) => {
@@ -443,7 +267,7 @@ const fetchVercelResponse = async () => {
   };
 
   const saveTracePlayground = async () => {
-    if (apiCallInProgress) {
+    if (isLoading) {
       return;
     }
     saveTraceChatPlayground();
@@ -520,26 +344,27 @@ const fetchVercelResponse = async () => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-        handleSendMessage();
+        handleSubmit();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [userMessage, selected]);
+  }, [input, selected]);
 
   const handleMessageInputChange = (event) => {
-    setUserMessage(event.target.value);
+    setInput(event.target.value);
     if (syncAllMsg) {
-      setAllChatSystemPromot(event.target.value);
+      setAllChatPrompt(event.target.value);
     }
   };
   useEffect(() => {
-    setUserMessage(allChatSystemPromot);
-  }, [allChatSystemPromot]);
-
-  const handleInputChange = (event) => {
+    setInput(allChatPrompt);
+  }, [allChatPrompt]);
+ 
+ 
+  const handleSystemInputChange = (event) => {
     setSystemPrompt(event.target.value);
     if (syncAll) {
       setAllSystemPrompt(event.target.value);
@@ -710,7 +535,7 @@ const fetchVercelResponse = async () => {
                     name="system"
                     id="system"
                     value={systemPrompt}
-                    onChange={handleInputChange}
+                    onChange={handleSystemInputChange}
                     className="border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
                   ></textarea>
                   <div className="flex justify-between items-center gap-[10px] flex-wrap">
@@ -723,7 +548,6 @@ const fetchVercelResponse = async () => {
                           "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                         )}
                       >
-                        <span className="sr-only">Use setting</span>
                         <span
                           aria-hidden="true"
                           className={classNames(
@@ -750,132 +574,86 @@ const fetchVercelResponse = async () => {
               )}
               <div
                 className={open ? "h-[calc(100vh-520px)] overflow-auto" : ""}
+              >  {messages.map((message) => (
+        <div key={message.id}>
+          {message.role === 'user' ? (
+            <div className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex justify-between gap-[20px]">
+              <div className="flex sm:gap-[19px] gap-[8px]">
+                <User2Icon className="min-w-[16px]" />
+                <p className="md:text-[16px] text-[14px]">
+                  {message.content}
+                </p>
+              </div>
+              <button
+                className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
+                onClick={() => handleEditMessage(message.id)}
               >
-                {messages.map((message, index) => (
-                  <Fragment key={index}>
-                    {message.input && (
-                      <>
-                        <div
-                          className={`bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] group ${
-                            editingIndex === index
-                              ? ""
-                              : "flex justify-between gap-[20px]"
-                          }`}
-                        >
-                          <div className="flex sm:gap-[19px] gap-[8px]">
-                            <User2Icon className="min-w-[16px]" />
-                            {editingIndex === index ? (
-                              <>
-                                <div className="flex-col w-full">
-                                  <div>
-                                    <textarea
-                                      className="bg-transparent border-none w-full  focus:ring-0 focus:outline-none pt-0 pl-0 h-[100px]"
-                                      value={editedMessage}
-                                      onChange={(e) =>
-                                        setEditedMessage(e.target.value)
-                                      }
-                                    />
-                                  </div>
-                                  <div className="flex gap-[13px] justify-center item-center">
-                                    <button
-                                      onClick={handleSaveEdit}
-                                      className="text-[12px] text-[#000]  bg-[#D4DB33] block px-[13px] h-fit py-[3px] rounded-[6px] font-medium"
-                                    >
-                                      Save & Send
-                                    </button>
-                                    <button
-                                      onClick={handleCancelEdit}
-                                      className="text-[12px] text-[#000] bg-[#D4DB33]  block px-[29px] h-fit py-[3px] rounded-[6px] font-medium"
-                                    >
-                                      Cancel
-                                    </button>
-                                  </div>
-                                </div>
-                              </>
-                            ) : (
-                              <p className="md:text-[16px] text-[14px]">
-                                {message.input}{" "}
-                              </p>
-                            )}
-                          </div>
-                          {editingIndex !== index && (
-                            <button
-                              className="text-[20px] text-[#2B3F6C] hidden group-hover:block"
-                              onClick={() => handleEditMessage(index)}
-                            >
-                              <RiEdit2Line />
-                            </button>
-                          )}
-                        </div>
-                      </>
-                    )}
-                    {message.output && (
-                      <div
-                        // style={{ whiteSpace: "pre-wrap" }}
-                        className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]"
-                      >
-                        <FireIcon className="min-w-[16px]" />
-                        <div className="w-[calc(100%-35px)]">
-                          {parseVercelResponse(message.output).map(
-                            (segment, index) =>
-                              segment.type === "code" ? (
-                                <CodeBox key={index} code={segment.content} />
-                              ) : (
-                                <ReactMarkdown
-                                  components={{
-                                    ul: ({ node, ...props }) => (
-                                      <ul
-                                        style={{
-                                          display: "block",
-                                          listStyleType: "disc",
-                                          paddingInlineStart: "40px",
-                                        }}
-                                        {...props}
-                                      />
-                                    ),
-                                    ol: ({ node, ...props }) => (
-                                      <ol
-                                        style={{
-                                          display: "block",
-                                          listStyleType: "decimal",
-                                          paddingInlineStart: "40px",
-                                        }}
-                                        {...props}
-                                      />
-                                    ),
-                                    h1: ({ node, ...props }) => (
-                                      <h1
-                                        className="font-bold text-6xl"
-                                        {...props}
-                                      />
-                                    ),
-                                    p: ({ node, ...props }) => (
-                                      <p
-                                        style={{
-                                          whiteSpace: "pre-wrap",
-                                        }}
-                                        {...props}
-                                      />
-                                    ),
-                                  }}
-                                  remarkPlugins={[gfm]}
-                                  key={index}
-                                  children={segment.content}
-                                />
-                              )
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </Fragment>
-                ))}
+                <RiEdit2Line />
+              </button>
+            </div>
+          ) : (
+            <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
+              <FireIcon className="min-w-[16px]" />
+              <div className="w-[calc(100%-35px)]">
+                {parseVercelResponse(message.content).map((segment, index) =>
+                  segment.type === 'code' ? (
+                    <CodeBox key={index} code={segment.content} />
+                  ) : (
+                    <ReactMarkdown
+                      components={{
+                        ul: ({ node, ...props }) => (
+                          <ul
+                            style={{
+                              display: 'block',
+                              listStyleType: 'disc',
+                              paddingInlineStart: '40px',
+                            }}
+                            {...props}
+                          />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol
+                            style={{
+                              display: 'block',
+                              listStyleType: 'decimal',
+                              paddingInlineStart: '40px',
+                            }}
+                            {...props}
+                          />
+                        ),
+                        h1: ({ node, ...props }) => (
+                          <h1
+                            className="font-bold text-6xl"
+                            {...props}
+                          />
+                        ),
+                        p: ({ node, ...props }) => (
+                          <p
+                            style={{
+                              whiteSpace: 'pre-wrap',
+                            }}
+                            {...props}
+                          />
+                        ),
+                      }}
+                      remarkPlugins={[gfm]}
+                      key={index}
+                      children={segment.content}
+                    />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
               </div>
             </div>
             <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
               <div className="bg-[#ECECEC] rounded-md">
                 <textarea
                   placeholder="Send a message"
-                  value={userMessage}
+                  value={input}
                   onChange={handleMessageInputChange}
                   className="border-0 resize-none bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full rounded-md"
                 ></textarea>
@@ -889,7 +667,6 @@ const fetchVercelResponse = async () => {
                         "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                       )}
                     >
-                      <span className="sr-only">Use setting</span>
                       <span
                         aria-hidden="true"
                         className={classNames(
@@ -903,15 +680,41 @@ const fetchVercelResponse = async () => {
                     </label>
                   </div>
                   <button
-                    onClick={handleMessageSubmit}
-                    className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
-                      apiCallInProgress
+                      onClick={() => {
+                          handleSubmit();
+                        }}
+                      className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
+                      isLoading
                         ? "bg-[#CCCCCC]"
                         : "bg-[#D4DB33] hover:bg-[#0D859A]"
                     }`}
-                    disabled={apiCallInProgress}
+                    disabled={isLoading}
+                    value={input}
+                    onChange={handleInputChange}
                   >
                     Send
+                  </button>
+                  <button
+                    onClick={stop}
+                    className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
+                      !isLoading
+                        ? "bg-[#CCCCCC]"
+                        : "bg-[#D4DB33] hover:bg-[#0D859A]"
+                    }`}
+                    disabled={!isLoading}
+                  >
+                    Stop
+                  </button>
+                  <button
+                    onClick={reload}
+                    className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
+                      isLoading
+                        ? "bg-[#CCCCCC]"
+                        : "bg-[#D4DB33] hover:bg-[#0D859A]"
+                    }`}
+                    disabled={isLoading}
+                  >
+                    Reload
                   </button>
                 </div>
               </div>

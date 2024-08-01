@@ -45,11 +45,11 @@ const index = () => {
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [clear, setClear] = useState(false);
-  const [page, setPage] = useState("prompt");
+  const [page, setPage] = useState("chat");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [actionType, setActionType] = useState("");
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
-  const [allChatSystemPromot, setAllChatSystemPromot] = useState("");
+  const [allChatPrompt, setAllChatPrompt] = useState("");
   const [chatSyncAll, setChatSyncAll] = useState(false);
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
   const [currentChatID, setCurrentChatID] = useState();
@@ -1117,8 +1117,8 @@ const index = () => {
                           setSyncAllMsg,
                           setAllSystemPrompt,
                           allSystemPrompt,
-                          allChatSystemPromot,
-                          setAllChatSystemPromot,
+                          allChatPrompt,
+                          setAllChatPrompt,
                           chatSyncAll,
                           setChatSyncAll,
                           setAllChatsDetails,
