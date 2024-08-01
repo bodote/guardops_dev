@@ -69,7 +69,7 @@ const Chat_version = ({
   const [googleKey, setGoogleKey] = useState(""); 
   const [mistralKey, setMistralKey] = useState(""); 
   const [perplexityKey, setPerplexityKey] = useState(""); 
-  const [error, setError] = useState("");
+  const [errorOwn, setError] = useState("");
   const [tooltipData, setTooltipData] = useState({});
   const [searchModel, setSearchModel] = useState("");
   // State for settings values
@@ -135,7 +135,7 @@ const Chat_version = ({
     mistralKey,
     perplexityKey,
   ]);
-  const { messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages } = useChat({
+  const { messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages, error } = useChat({
     keepLastMessageOnError: true,
     body: formData
   });
@@ -146,14 +146,15 @@ const Chat_version = ({
   const textareaRef = useRef(null);
 
   const handleFileChange = (event) => {
+   
     if (event.target.files) {
-      setFiles([...files, ...Array.from(event.target.files)]);
-      fileInputRef.current.value = ""; 
+      setFiles(event.target.files);
     }
   };
-
+ 
+  
   const handleDeleteFile = (indexToDelete) => {
-    setFiles(files.filter((_, index) => index !== indexToDelete));
+    setFiles(Array.from(files).filter((_, index) => index !== indexToDelete));
   };
 
   const handleSettingsChange = (settingName, value) => {
@@ -587,16 +588,16 @@ const Chat_version = ({
           </div>
 
           <div className="relative">
-            {error && (
+            {errorOwn && (
               <p className="bg-[#ffe1e1bb] text-[red] p-[10px] flex gap-2 items-center absolute top-0 w-full">
                 <MdErrorOutline className="text-[20px]" />
-                {error}
+                {errorOwn}
               </p>
             )}
 
             <div
               className={`bg-[#F7F7F7] h-[calc(100vh-287px)] overflow-y-auto ${
-                error ? "pt-[44px]" : ""
+                errorOwn ? "pt-[44px]" : ""
               }`}
             >
               {open && (
@@ -699,7 +700,7 @@ const Chat_version = ({
                       <div>
                         {message.experimental_attachments
                           ?.filter(attachment =>
-                            attachment.contentType.startsWith('image/'),
+                            attachment.contentType?.startsWith('image/'),
                           )
                           .map((attachment, index) => (
                             <img
@@ -715,6 +716,7 @@ const Chat_version = ({
                     <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
                       <FireIcon className="min-w-[16px]" />
                       <div className="w-[calc(100%-35px)]">
+                        
                         {parseVercelResponse(message.content).map((segment, index) =>
                           segment.type === 'code' ? (
                             <CodeBox key={index} code={segment.content} />
@@ -763,6 +765,7 @@ const Chat_version = ({
                           )
                         )}
                       </div>
+                      
                     </div>
                   )}
                 </div>
@@ -804,17 +807,20 @@ const Chat_version = ({
           />
         </label>
        <div className="flex flex-wrap gap-2 pl-2 pt-2">
-  {files?.map((file, index) => (
-    <div key={index} className="flex items-center justify-between p-1 bg-gray-100 border-2 border-gray-400 rounded mb-1">
-      <span className="text-gray-800">{file.name}</span>
-      <span
-        className="ml-4 cursor-pointer text-red-600"
-        onClick={() => handleDeleteFile(index)}
-      >
-        ×
-      </span>
-    </div>
-  ))}
+       {files && Array.from(files).map((file, index) => (
+  <div key={index} className="flex items-center justify-between p-1 bg-gray-100 border-2 border-gray-400 rounded mb-1">
+    <span className="text-gray-800">{file.name}</span>
+    <span
+      className="ml-4 cursor-pointer text-red-600"
+      onClick={() => handleDeleteFile(index)}
+    >
+      ×
+    </span>
+  </div>
+))}
+
+
+  
 </div>
 
       </div>

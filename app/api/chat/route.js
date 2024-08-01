@@ -8,6 +8,7 @@ import { mistral } from '@ai-sdk/mistral';
 import { createMistral } from '@ai-sdk/mistral';
 import { cohere } from '@ai-sdk/cohere';
 import { createCohere } from '@ai-sdk/cohere';
+import { NextResponse } from 'next/server';
 
 
 export const runtime = 'edge';
