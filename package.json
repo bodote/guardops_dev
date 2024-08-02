@@ -26,11 +26,18 @@
     "@headlessui/react": "^1.7.17",
     "@mistralai/mistralai": "*",
     "@mui/material": "^5.15.6",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.52.1",
+    "@opentelemetry/resources": "^1.25.1",
+    "@opentelemetry/sdk-node": "^0.52.1",
+    "@opentelemetry/sdk-trace-node": "^1.25.1",
+    "@opentelemetry/semantic-conventions": "^1.25.1",
     "@textea/json-viewer": "^3.3.1",
     "@upstash/redis": "^1.28.4",
+    "@vercel/otel": "^1.9.1",
     "ai": "^3.2.43",
     "apexcharts": "^3.44.2",
     "autoprefixer": "^10.4.19",
+    "axios": "^1.7.3",
     "better-react-mathjax": "^2.0.3",
     "cohere-ai": "*",
     "cookie": "^0.6.0",
@@ -62,5 +69,8 @@
   },
   "devDependencies": {
     "pnpm": "^9.1.1"
-  }
+  },
+  "browser": {
+    "crypto": false
+}
 }

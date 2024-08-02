@@ -86,7 +86,10 @@ export async function POST(req) {
       system: systemPrompt, 
       maxTokens: Number(settings.maxTokens), 
       temperature: Number(settings.temperature),
-      messages: convertToCoreMessages(messages)
+      messages: convertToCoreMessages(messages),
+      experimental_telemetry: {isEnabled: true,
+        functionId: "playground_chat"
+      }
     })
     
 
