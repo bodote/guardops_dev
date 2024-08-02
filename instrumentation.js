@@ -12,5 +12,5 @@ const config = {
 };
 export function register() {
   console.log("registering telemetry")
-  registerOTel({ config:{ serviceName: 'next-app',spanProcessor: new JSONProcessor(new ConsoleSpanExporter(), config)} })
+  registerOTel({  serviceName: 'next-app',spanProcessor: new JSONProcessor(new ConsoleSpanExporter(), config)} )
 }

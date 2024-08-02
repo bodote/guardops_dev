@@ -10,16 +10,19 @@ import {
   User2Icon,
   FireIcon,
 } from "@/public/Assets/Icons/Allsvg";
+import 'highlight.js/styles/atom-one-dark.css';
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
 import { Tooltip } from "react-tooltip";
+
 import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import { Listbox, Transition, Switch } from "@headlessui/react";
 import { AiOutlineStop } from "react-icons/ai";
 import ModelSettings from "./modelSettings";
 import { toast } from "react-toastify";
+const hljs = require('highlight.js/lib/common');
 import { useChat } from 'ai/react';
 
 function classNames(...classes) {
@@ -44,6 +47,10 @@ const Chat_version = ({
   saveTraceChatPlayground,
   chatPromptData,
 }) => {
+
+  hljs.highlightAll();
+  
+
   const [systemPrompt, setSystemPrompt] = useState("");
 
  
@@ -144,7 +151,7 @@ const Chat_version = ({
   const [editMessageId, setEditMessageId] = useState(null);
   const [editedMessageContent, setEditedMessageContent] = useState('');
   const textareaRef = useRef(null);
-
+  const [copiedIndex, setCopiedIndex] = useState(null);
   const handleFileChange = (event) => {
    
     if (event.target.files) {
@@ -234,31 +241,6 @@ const Chat_version = ({
      setMessages(newMessages);
   };
 
-
-
-  
-
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {})
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-      });
-  };
-
-  const CodeBox = ({ code }) => {
-    return (
-      <div className="code-box-container my-2 max-w-[700px]">
-        <pre className="code-box">{code}</pre>
-        <button className="copy-button" onClick={() => copyToClipboard(code)}>
-          Copy
-        </button>
-      </div>
-    );
-  };
-
   const parseVercelResponse = (apiResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
@@ -298,8 +280,21 @@ const Chat_version = ({
     setEditMessageId(id);
     setEditedMessageContent(currentContent);
   };
-  
- 
+  const copyToClipboard = (text, index) => {
+    //ignore the first line because it is only the language name
+    const lines = text.split('\n');
+    const textToCopy = lines.slice(1).join('\n');
+    navigator.clipboard
+      .writeText(textToCopy)
+      .then(() => {
+        setCopiedIndex(index);
+        // Optionally, reset the button text after a delay
+        setTimeout(() => setCopiedIndex(null), 2000);
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+      });
+  };
   const saveEditedMessage = (id) => {
     setMessages((prevMessages) => {
       const editIndex = prevMessages.findIndex((message) => message.id === id);
@@ -718,8 +713,21 @@ const Chat_version = ({
                       <div className="w-[calc(100%-35px)]">
                         
                         {parseVercelResponse(message.content).map((segment, index) =>
-                          segment.type === 'code' ? (
-                            <CodeBox key={index} code={segment.content} />
+                          segment.type === 'code' ?  (
+                            (() => {
+                                          
+                              return (  
+                               
+                                <pre class="text-sm  overflow-hidden border-t rounded-lg">
+                                  
+                                <button className="w-full text-right pr-5 pb-0.5  pt-1.5 bg-gray-700 text-neutral-200 " onClick={() => copyToClipboard(segment.content, index)}>
+                                {copiedIndex === index ? 'Copied' : 'Copy'}
+                              </button>
+                                  <code>{segment.content}</code>
+                                </pre>
+                               
+                              );
+                            })()
                           ) : (
                             <ReactMarkdown
                               components={{
@@ -778,7 +786,7 @@ const Chat_version = ({
                   placeholder="Send a message"
                   value={input}
                   onChange={handleMessageInputChange}
-                  className="border-0 resize-none bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full rounded-md"
+                  className="border-0 resize-y bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full rounded-md"
                 >
                 </textarea>
       <div className="pl-2 pb-2 flex items-center gap-[5px]">
@@ -803,12 +811,12 @@ const Chat_version = ({
             onChange={handleFileChange}
             multiple
             ref={fileInputRef}
+            accept="image/*"
             id="fileInput"
           />
         </label>
-       <div className="flex flex-wrap gap-2 pl-2 pt-2">
        {files && Array.from(files).map((file, index) => (
-  <div key={index} className="flex items-center justify-between p-1 bg-gray-100 border-2 border-gray-400 rounded mb-1">
+  <div key={index} className="mt-2 flex items-center justify-between p-1 bg-gray-100 border-2 border-gray-400 rounded mb-1">
     <span className="text-gray-800">{file.name}</span>
     <span
       className="ml-4 cursor-pointer text-red-600"
@@ -821,7 +829,6 @@ const Chat_version = ({
 
 
   
-</div>
 
       </div>
      
