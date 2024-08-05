@@ -215,37 +215,22 @@ const Chat_version = ({
         break;
       }
     }
-    const newMessages = traceChatHistory.map((pair) => ({
-      input: pair.attributes.prompt || "",
-      output: pair.attributes.output || "",
-    }));
-
-    const savedChatDetails = traceChatHistory.map((pair, index) => {
-      // Parse model_params string into JSON object
-      const modelParams = pair.attributes.model_params
-        .split(",")
-        .reduce((acc, param) => {
-          const [key, value] = param.split(":");
-          acc[key.trim()] = parseFloat(value.trim());
-          return acc;
-        }, {});
-
-      return {
-        isValid: true,
-        chatVersionId: chatVersionId,
-        model: model.model_id,
-        input: pair.attributes.prompt,
-        output: pair.attributes.output,
-        systemPrompt: pair.attributes.system_prompt,
-        settings: modelParams,
-      };
-    });
-
-    // setAllChatsDetails((prevDetails) => [...prevDetails, ...savedChatDetails]);
+    const newMessages = traceChatHistory.flatMap((pair) => [
+      {
+        role: "user",
+        content: pair.attributes.prompt || "",
+      },
+      {
+        role: "assistant",
+        content: pair.attributes.output || "",
+      },
+    ]);
+    
 
     if (model) {
       setSelected(model);
     }
+    
      setMessages(newMessages);
   };
 
@@ -420,7 +405,6 @@ const Chat_version = ({
         });
 
         setFiles(undefined);
-
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
