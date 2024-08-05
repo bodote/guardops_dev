@@ -17,7 +17,7 @@ export async function POST(req) {
   const body = await req.json()
   try {
 
-    var { model,  messages, prompt, settings, systemPrompt, provider, api_keys } = body;
+    var { model,  messages, prompt, settings, systemPrompt, provider, api_keys, multimodal } = body;
     
     var target_model;
     switch (provider) {
@@ -80,13 +80,18 @@ export async function POST(req) {
         target_model = custom(model);
         break;
     }
+    //only convert images to message if model is multimodal
+    var messagesToSend = messages;
+    if (multimodal){
+      messagesToSend = convertToCoreMessages(messages);
+    }
     const response = await streamText({
       model: target_model, 
       prompt: prompt, 
       system: systemPrompt, 
       maxTokens: Number(settings.maxTokens), 
       temperature: Number(settings.temperature),
-      messages: convertToCoreMessages(messages),
+      messages: messagesToSend,
       experimental_telemetry: {isEnabled: true,
         functionId: "playground_chat"
       }

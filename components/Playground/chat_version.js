@@ -95,6 +95,7 @@ const Chat_version = ({
     type: "chat",
     settings: settings,
     provider: selected.provider,
+    multimodal: selected.multimodal | false,
     api_keys: {
       openaiKey:openaiKey,
       fireworksKey: fireworksAIKey,
@@ -117,6 +118,7 @@ const Chat_version = ({
       type: "chat",
       settings: settings,
       provider: selected.provider,
+      multimodal: selected.multimodal | false,
       api_keys: {
         openaiKey: openaiKey,
         fireworksKey: fireworksAIKey,
@@ -712,7 +714,7 @@ const Chat_version = ({
                                           
                               return (  
                                
-                                <pre class="text-sm  overflow-hidden border-t rounded-lg mt-5 mb-5">
+                                <pre className="text-sm  overflow-hidden border-t rounded-lg mt-5 mb-5">
                                   
                                 <button className="w-full text-right pr-5 pb-0.5  pt-1.5 bg-gray-700 text-neutral-200 "     onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
                                 {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}

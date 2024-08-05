@@ -93,15 +93,25 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
     name: value ? value.name : "",
     id1: value ? value.id1 : "",
     model_description: value ? value.model_description : "",
+    multimodal: value ? value.multimodal : false
+
   });
 
   const handleOnChange = (e) => {
-    const { name, value } = e.target;
-    setModelData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+      setModelData((prevState) => ({
+        ...prevState,
+        [name]: checked
+      }));
+    } else {
+      setModelData((prevState) => ({
+        ...prevState,
+        [name]: value
+      }));
+    }
   };
+  
 
   const handleAddModel = async () => {
     const modelFormData = {
@@ -132,6 +142,8 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
       output_price: modelFormData.output_price,
       model_description: modelFormData.model_description,
       model_id: value ? value.model_id : "",
+      multimodal: modelFormData.multimodal
+
     };
 
     try {
@@ -152,6 +164,8 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
             input_price: value ? value.input_price : "",
             output_price: value ? value.output_price : "",
             model_description: value ? value.model_description : "",
+            multimodal: value ? value.multimodal : false
+
           });
           setOpen(false);
           updateModelList();
@@ -179,6 +193,8 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
             input_price: value ? value.input_price : "",
             output_price: value ? value.output_price : "",
             model_description: value ? value.model_description : "",
+            multimodal: value ? value.multimodal : false
+
           });
           setOpen(false);
           updateModelList();
@@ -239,6 +255,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                         placeholder="Name for your model"
                         value={modelData.name}
                         onChange={handleOnChange}
+                        
                       />
                     </div>
                     <div>
@@ -258,6 +275,23 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                         onChange={handleOnChange}
                       />
                     </div>
+                    <div>
+                      <input
+                        type="checkbox"
+                        name="multimodal"
+                        id="multimodal"
+                        className="ml-1 mr-2 mb-1 rounded font-medium text-[15px] font-Inter focus:ring-0 focus:outline-none"
+                        checked={modelData.multimodal} // Use 'checked' attribute here
+                        onChange={handleOnChange}
+                      />
+                      <label
+                        htmlFor="multimodal"
+                        className="text-[#252525] font-medium text-[14px] font-Inter"
+                      >
+                        Multimodal (allows image input)
+                      </label>
+                    </div>
+
                     <div>
                       <Listbox value={selected} onChange={setSelected}>
                         {({ open }) => (

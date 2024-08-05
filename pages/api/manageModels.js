@@ -52,6 +52,7 @@ export default async function handler(req, res) {
           input_price: bodyData.input_price,
           output_price: bodyData.output_price,
           model_description: bodyData.model_description,
+          multimodal: bodyData.multimodal
         });
         urlWithParams = `${Url}?${queryParams}`;
         try {
@@ -82,6 +83,8 @@ export default async function handler(req, res) {
           input_price: bodyData.input_price,
           output_price: bodyData.output_price,
           model_description: bodyData.model_description,
+          multimodal: bodyData.multimodal
+
         });
         urlWithParams = `${Url}?${queryParams}`;
         try {
