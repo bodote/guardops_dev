@@ -142,7 +142,7 @@ const Chat_version = ({
     mistralKey,
     perplexityKey,
   ]);
-  const { messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages, error } = useChat({
+  const { messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages,   } = useChat({
     keepLastMessageOnError: true,
     body: formData
   });
@@ -152,6 +152,14 @@ const Chat_version = ({
   const [editedMessageContent, setEditedMessageContent] = useState('');
   const textareaRef = useRef(null);
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const chatDivRef= useRef(null);
+  useEffect(() => {
+    if (chatDivRef.current) {
+      chatDivRef.current.scrollTop = chatDivRef.current.scrollHeight;
+    }
+  }, [messages]);
+  
+  
   const handleFileChange = (event) => {
    
     if (event.target.files) {
@@ -280,14 +288,14 @@ const Chat_version = ({
     setEditMessageId(id);
     setEditedMessageContent(currentContent);
   };
-  const copyToClipboard = (text, index) => {
-    //ignore the first line because it is only the language name
+  const copyToClipboard = (text, uniqueId) => {
+    // Ignore the first line because it is only the language name
     const lines = text.split('\n');
     const textToCopy = lines.slice(1).join('\n');
     navigator.clipboard
       .writeText(textToCopy)
       .then(() => {
-        setCopiedIndex(index);
+        setCopiedIndex(uniqueId);
         // Optionally, reset the button text after a delay
         setTimeout(() => setCopiedIndex(null), 2000);
       })
@@ -406,6 +414,7 @@ const Chat_version = ({
   useEffect(() => {
     const handleKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        if(!isLoading){
         handleSubmit(event, {
           experimental_attachments: files,
         });
@@ -415,7 +424,7 @@ const Chat_version = ({
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
-      }
+      }}
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
@@ -591,6 +600,7 @@ const Chat_version = ({
             )}
 
             <div
+            ref={chatDivRef}
               className={`bg-[#F7F7F7] h-[calc(100vh-287px)] overflow-y-auto ${
                 errorOwn ? "pt-[44px]" : ""
               }`}
@@ -720,9 +730,9 @@ const Chat_version = ({
                                
                                 <pre class="text-sm  overflow-hidden border-t rounded-lg mt-5 mb-5">
                                   
-                                <button className="w-full text-right pr-5 pb-0.5  pt-1.5 bg-gray-700 text-neutral-200 " onClick={() => copyToClipboard(segment.content, index)}>
-                                {copiedIndex === index ? 'Copied' : 'Copy'}
-                              </button>
+                                <button className="w-full text-right pr-5 pb-0.5  pt-1.5 bg-gray-700 text-neutral-200 "     onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
+                                {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
+                                </button>
                                   <code>{segment.content}</code>
                                 </pre>
                                
@@ -858,6 +868,7 @@ const Chat_version = ({
                   </div>
                   <button
                       onClick={event => {
+                        if (!isLoading){
                         handleSubmit(event, {
                           experimental_attachments: files,
                         });
@@ -867,7 +878,7 @@ const Chat_version = ({
                         if (fileInputRef.current) {
                           fileInputRef.current.value = '';
                         }
-                      }}
+                      }}}
                       className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
                       isLoading
                         ? "bg-[#CCCCCC]"
