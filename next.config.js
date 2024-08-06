@@ -2,9 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental:{
-    instrumentationHook : true
+    instrumentationHook: true
   }
-  
 }
+
 
 module.exports = nextConfig

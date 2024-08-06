@@ -13,29 +13,34 @@ const STORAGE_API_URL = "https://lm3.hs-ansbach.de/tracing/api/store_trace/";
 
 const PROMPT_DEFINITIONS = [
     /llm_prompts_\d+_content/,
-    /gen_ai_prompt_\d+_content/
+    /gen_ai_prompt_\d+_content/,
+    /ai.prompt/
 ];
 
 const RESPONSE_DEFINITIONS = [
     /llm_completions_\d+_content/,
-    /gen_ai_completion_\d+_content/
+    /gen_ai_completion_\d+_content/,
+    /ai.result.text/
 ];
 
 const MODEL_DEFINITIONS = [
     "llm_response_model",
-    "gen_ai_response_model"
+    "gen_ai_response_model",
+    "ai.model.id"
 ];
 
 class JSONProcessor extends BatchSpanProcessor {
-    constructor(spanExporter, config, options = {}) {
+    constructor( config = {}) {
         console.log("creating exporter");
-        super(spanExporter, options);
+        super();
         this.config = config;
         this.traces = [];
         this.traceIds = new Set();
+        
     }
-
-    onEnd(span) {
+   
+    async onEnd(span) {
+        
         console.log("ending span")
         const spanJson = JSON.parse(JSON.stringify(span));
 

@@ -32,6 +32,7 @@
     "@opentelemetry/sdk-trace-node": "^1.25.1",
     "@opentelemetry/semantic-conventions": "^1.25.1",
     "@textea/json-viewer": "^3.3.1",
+    "@traceloop/node-server-sdk": "^0.10.0",
     "@upstash/redis": "^1.28.4",
     "@vercel/otel": "^1.9.1",
     "ai": "^3.2.43",

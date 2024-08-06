@@ -9,9 +9,8 @@ import { createMistral } from '@ai-sdk/mistral';
 import { cohere } from '@ai-sdk/cohere';
 import { createCohere } from '@ai-sdk/cohere';
 import { NextResponse } from 'next/server';
+ 
 
-
-export const runtime = 'edge';
 
 export async function POST(req) {
   const body = await req.json()
@@ -23,7 +22,8 @@ export async function POST(req) {
     switch (provider) {
       case "openai":
         const openai = createOpenAI({ 
-          apiKey: api_keys.openaiKey
+          apiKey: api_keys.openaiKey,
+          compatibility: 'strict'
          })
         target_model = openai.chat(model);
         break;
@@ -54,7 +54,8 @@ export async function POST(req) {
       case "groq":
         const groq = createOpenAI({
           baseURL: 'https://api.groq.com/openai/v1',
-          apiKey: api_keys.groqKey
+          apiKey: api_keys.groqKey,
+          compatibility: 'strict'
         });
         target_model = groq(model);
         break;
@@ -62,6 +63,7 @@ export async function POST(req) {
         const perplexity = createOpenAI({
           apiKey: api_keys.perplexityKey,
           baseURL: 'https://api.perplexity.ai/',
+          compatibility: 'strict'
         });
         target_model = perplexity(model);
         break;
@@ -69,13 +71,15 @@ export async function POST(req) {
         const fireworks = createOpenAI({
           apiKey: api_keys.fireworksKey,
           baseURL: 'https://api.fireworks.ai/inference/v1',
+          compatibility: 'strict'
         });
         target_model = fireworks(model);
         break;
       case "custom":
         const custom = createOpenAI({
           apiKey: api_keys.customKey,
-          baseURL: "https://lm3.hs-ansbach.de/worker2/v1"
+          baseURL: "https://lm3.hs-ansbach.de/worker2/v1",
+          compatibility: 'strict'
         })
         target_model = custom(model);
         break;
