@@ -1,4 +1,4 @@
-const { BatchSpanProcessor, ConsoleSpanExporter } = require('@opentelemetry/sdk-trace-base');
+const { SimpleSpanProcessor, ConsoleSpanExporter } = require('@opentelemetry/sdk-trace-base');
 const { trace } = require('@opentelemetry/api');
 const axios = require('axios');
 const crypto = require('crypto');
@@ -14,22 +14,22 @@ const STORAGE_API_URL = "https://lm3.hs-ansbach.de/tracing/api/store_trace/";
 const PROMPT_DEFINITIONS = [
     /llm_prompts_\d+_content/,
     /gen_ai_prompt_\d+_content/,
-    /ai.prompt/
+    /ai_prompt/
 ];
 
 const RESPONSE_DEFINITIONS = [
     /llm_completions_\d+_content/,
     /gen_ai_completion_\d+_content/,
-    /ai.result.text/
+    /ai_result_text/
 ];
 
 const MODEL_DEFINITIONS = [
     "llm_response_model",
     "gen_ai_response_model",
-    "ai.model.id"
+    "ai_model_id"
 ];
 
-class JSONProcessor extends BatchSpanProcessor {
+class JSONProcessor extends SimpleSpanProcessor {
     constructor( config = {}) {
         console.log("creating exporter");
         super();
@@ -40,22 +40,35 @@ class JSONProcessor extends BatchSpanProcessor {
     }
    
     async onEnd(span) {
-        
-        console.log("ending span")
-        const spanJson = JSON.parse(JSON.stringify(span));
+        console.log("a span is ending");
+        const spanJson = span;
+        if(spanJson.name.includes("streamText") || spanJson.name.includes("toolCall")){
+            console.log("an ai span with this name ", spanJson.name);
+            console.log("this span", spanJson);
 
-        if (spanJson.name === "GET" || spanJson.name === "POST") {
+        }
+        
+        return;
+        if (spanJson.name !== "POST /api/chat/route") {
+            console.log("ignoring this one");
+            console.log(spanJson)
             return;
         }
+       
 
-        const exportSpanDict = replaceDotsRecursive(spanJson);
+        
+
+        const exportSpanDict = renameKeysDeep(spanJson);
+        console.log("ending span ", exportSpanDict)
         exportSpanDict.attributes.response = JSON.stringify(exportSpanDict.attributes);
         exportSpanDict.attributes.output = extractResponse(exportSpanDict);
         exportSpanDict.attributes.prompt = extractPrompt(exportSpanDict);
         exportSpanDict.attributes.model = extractModel(exportSpanDict);
 
-        this.traces.push(exportSpanDict);
-        this.clean();
+        console.log("FOUND THIS SPAN TO EXPORT", exportSpanDict);
+
+        //this.traces.push(exportSpanDict);
+        //this.clean();
     }
 
     async clean() {
@@ -102,18 +115,32 @@ class JSONProcessor extends BatchSpanProcessor {
     }
 }
 
-function replaceDotsRecursive(obj) {
-    if (typeof obj === 'object' && obj !== null) {
-        if (Array.isArray(obj)) {
-            return obj.map(replaceDotsRecursive);
-        } else {
-            return Object.fromEntries(
-                Object.entries(obj).map(([k, v]) => [k.replace(/\./g, '_'), replaceDotsRecursive(v)])
-            );
-        }
+function renameKeys(obj) {
+    const keyValues = Object.keys(obj).map(key => {
+      const newKey = key.replace(/\./g, '_');
+      return { [newKey]: obj[key] };
+    });
+    return Object.assign({}, ...keyValues);
+  }
+  
+  // To handle nested objects recursively
+  function renameKeysDeep(obj) {
+    if (typeof obj !== 'object' || obj === null) {
+      return obj;
     }
-    return obj;
-}
+  
+    if (Array.isArray(obj)) {
+      return obj.map(renameKeysDeep);
+    }
+  
+    const renamedObj = renameKeys(obj);
+    Object.keys(renamedObj).forEach(key => {
+      renamedObj[key] = renameKeysDeep(renamedObj[key]);
+    });
+  
+    return renamedObj;
+  }
+
 
 function extractResponse(span) {
     let response = "";
