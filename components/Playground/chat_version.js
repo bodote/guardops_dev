@@ -72,6 +72,8 @@ const Chat_version = ({
   setSelectedModel,
   saveTraceChatPlayground,
   chatPromptData,
+  allFiles,
+  setAllFiles
 }) => {
 
   hljs.highlightAll();
@@ -160,6 +162,9 @@ const Chat_version = ({
         const dataTransfer = new DataTransfer();
         validFiles.forEach((file) => dataTransfer.items.add(file));
         setFiles(dataTransfer.files);
+        if(syncAllMsg){
+          setAllFiles(dataTransfer.files);
+        }
       } else {
         toast.error("Only image and text files are allowed!");
       }
@@ -224,14 +229,13 @@ const Chat_version = ({
    
     if (event.target.files) {
       setFiles(event.target.files);
+      if(syncAllMsg){
+        setAllFiles(event.target.files);
+      }
+      
     }
   };
  
-  
-  const handleDeleteFile = (indexToDelete) => {
-    setFiles(Array.from(files).filter((_, index) => index !== indexToDelete));
-  };
-
   const handleSettingsChange = (settingName, value) => {
     setSettings({ ...settings, [settingName]: value });
   };
@@ -485,6 +489,11 @@ const Chat_version = ({
   useEffect(() => {
     setInput(allChatPrompt);
   }, [allChatPrompt]);
+
+
+  useEffect(() => {
+    setFiles(allFiles);
+  }, [allFiles]);
  
   const handlePaste = (event) => {
     const items = event.clipboardData?.items;
@@ -504,6 +513,9 @@ const Chat_version = ({
           const dataTransfer = new DataTransfer();
           validFiles.forEach((file) => dataTransfer.items.add(file));
           setFiles(dataTransfer.files);
+          if(syncAllMsg){
+            setAllFiles(dataTransfer.files)
+          }
         } else {
           toast.error("Only image and text files are allowed");
         }
