@@ -771,22 +771,24 @@ const Chat_version = ({
   )}
 </div>
 
-                      <div>
-                      {message.experimental_attachments?.map((attachment) =>
-                      attachment.contentType?.startsWith("image") ? (
-                        <img
-                          className="rounded-md w-40 mb-3"
-                          key={attachment.name}
-                          src={attachment.url}
-                          alt={attachment.name}
-                        />
-                      ) : attachment.contentType?.startsWith("text") ? (
-                        <div className="text-xs w-40 h-24 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700 mb-3">
-                          {getTextFromDataUrl(attachment.url)}
-                        </div>
-                      ) : null
-                    )}
+                      <div className="flex flex-wrap justify-start">
+                        {message.experimental_attachments?.map((attachment) => (
+                          <div key={attachment.name} className="mb-3 mr-3">
+                            {attachment.contentType?.startsWith("image") ? (
+                              <img
+                                className="rounded-md h-60"
+                                src={attachment.url}
+                                alt={attachment.name}
+                              />
+                            ) : attachment.contentType?.startsWith("text") ? (
+                              <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
+                                {getTextFromDataUrl(attachment.url)}
+                              </div>
+                            ) : null}
+                          </div>
+                        ))}
                       </div>
+                      
                     </div>
                   ) : (
                     <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
@@ -865,21 +867,22 @@ const Chat_version = ({
               <div className="bg-[#ECECEC] rounded-md "  onDragOver={handleDragOver}
                            onDragLeave={handleDragLeave}
                            onDrop={handleDrop}>
-                            <AnimatePresence>
-        {isDragging && (
-          <motion.div
-            className="fixed pointer-events-none dark:bg-zinc-900/90 h-dvh w-dvw z-10 flex flex-row justify-center items-center flex flex-col gap-1 bg-zinc-100/90"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div>Drag and drop files here</div>
-            <div className="text-sm dark:text-zinc-400 text-zinc-500">
-              {"(images and text)"}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                         <AnimatePresence>
+                           {isDragging && (
+                             <motion.div
+                               className="absolute pointer-events-none dark:bg-zinc-900/90  z-10 flex flex-row justify-center items-center flex flex-col gap-1 bg-zinc-100/90 top-0 left-0 right-0 bottom-0"
+                               initial={{ opacity: 0 }}
+                               animate={{ opacity: 1 }}
+                               exit={{ opacity: 0 }}
+                             >
+                               <div>Drag and drop files here</div>
+                               <div className="text-sm dark:text-zinc-400 text-zinc-500">
+                                 {"(images and text)"}
+                               </div>
+                             </motion.div>
+                           )}
+                         </AnimatePresence>
+                         
                 <textarea
                   placeholder="Send a message"
                   value={input}
