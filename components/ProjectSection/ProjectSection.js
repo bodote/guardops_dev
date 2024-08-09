@@ -71,6 +71,9 @@ const ProjectSection = () => {
         const response = await fetch("/api/manageProjects", {
           method: "DELETE",
           body: JSON.stringify(formData),
+          opentelemetry: {
+            ignore: true
+          }
         });
         const responseData = await response.json();
         if (response.ok) {
@@ -92,6 +95,9 @@ const ProjectSection = () => {
     try {
       const response = await fetch(`/api/manageProjects`, {
         method: "GET",
+        opentelemetry: {
+          ignore: true
+        }
       });
 
       if (response.ok) {

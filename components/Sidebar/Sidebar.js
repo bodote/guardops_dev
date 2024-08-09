@@ -11,6 +11,7 @@ import {
   StarIcon,
   TraceIcon,
   UserIcon,
+  KnowledgeIcon
 } from "@/public/Assets/Icons/Allsvg";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Cookies from "js-cookie";
@@ -142,6 +143,8 @@ const Sidebar = () => {
                     </p>
                   </a>
                 )}
+                {(role?.includes("Playground") ||
+                  role?.includes("Full_Access")) && (
                 <a
                   href="/leaderboard"
                   className="flex gap-[10px] items-center mt-[30px]"
@@ -151,6 +154,9 @@ const Sidebar = () => {
                     Leaderboard
                   </p>
                 </a>
+                  )}
+                   {(role?.includes("Playground") ||
+                  role?.includes("Full_Access")) && (
                 <a
                   href="/prompthub"
                   className="flex gap-[10px] items-center mt-[30px]"
@@ -160,6 +166,22 @@ const Sidebar = () => {
                     Prompt Hub
                   </p>
                 </a>
+
+              )}
+
+{(role?.includes("Playground") ||
+                  role?.includes("Full_Access")) && (
+                <a
+                  href="/knowledge"
+                  className="flex gap-[10px] items-center mt-[30px]"
+                >
+                  <KnowledgeIcon className="w-[24px]" />
+                  <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                    Knowledge
+                  </p>
+                </a>
+
+              )}
               </div>
             </div>
           </div>

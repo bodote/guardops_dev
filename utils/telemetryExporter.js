@@ -41,6 +41,7 @@ class JSONProcessor extends SimpleSpanProcessor {
    
     async onEnd(span) {
         console.log("a span is ending");
+       // console.log(span)
         const spanJson = span;
         if(spanJson.name.includes("streamText") || spanJson.name.includes("toolCall")){
             console.log("an ai span with this name ", spanJson.name);

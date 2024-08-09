@@ -87,6 +87,10 @@ const AddProjectModal = ({
         const response = await fetch("/api/manageProjects", {
           method: "POST",
           body: JSON.stringify(formData),
+          opentelemetry: {
+            ignore: true
+          }
+          
         });
         const responseData = await response.json();
         if (response.ok) {
@@ -107,6 +111,9 @@ const AddProjectModal = ({
         const response = await fetch("/api/manageProjects", {
           method: "PATCH",
           body: JSON.stringify(formData),
+          opentelemetry: {
+            ignore: true
+          }
         });
 
         const responseData = await response.json();

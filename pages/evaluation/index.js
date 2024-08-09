@@ -39,6 +39,9 @@ const index = () => {
     try {
       const response = await fetch(`/api/manageProjects`, {
         method: "GET",
+        opentelemetry: {
+          ignore: true
+        }
       });
 
       if (response.ok) {

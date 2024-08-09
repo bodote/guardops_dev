@@ -3,6 +3,9 @@ export const getProjectList = async (user_id) => {
     try {
       const response = await fetch(`/api/manageProjects?user_id=${user_id}`, {
         method: 'GET',
+        opentelemetry: {
+          ignore: true
+        }
       });
   
       if (response.ok) {
