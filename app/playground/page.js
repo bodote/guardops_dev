@@ -50,6 +50,7 @@ const index = () => {
   const [actionType, setActionType] = useState("");
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
   const [allChatPrompt, setAllChatPrompt] = useState("");
+  const [allFiles, setAllFiles] = useState([]);
   const [chatSyncAll, setChatSyncAll] = useState(false);
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
   const [currentChatID, setCurrentChatID] = useState();
@@ -1127,7 +1128,9 @@ const index = () => {
                           selectedModel,
                           setSelectedModel,
                           saveTraceChatPlayground,
-                          setRunStart
+                          setRunStart,
+                          allFiles,
+                          setAllFiles
                         })
                       )}
                     </div>

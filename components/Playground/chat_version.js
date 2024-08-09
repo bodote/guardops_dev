@@ -1,4 +1,4 @@
-import React, { useState, Fragment, useEffect, useRef } from "react";
+import React, { DragEvent, useState, Fragment, useEffect, useRef } from "react";
 import {
   EditIcon,
   MinusIcon,
@@ -15,6 +15,7 @@ import { MdKeyboardArrowUp } from "react-icons/md";
 import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
 import { Tooltip } from "react-tooltip";
+import { AnimatePresence, motion } from "framer-motion";
 
 import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
@@ -27,6 +28,31 @@ import { useChat } from 'ai/react';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
+}
+
+const getTextFromDataUrl = (dataUrl) => {
+  const base64 = dataUrl.split(",")[1];
+  return window.atob(base64);
+};
+
+function TextFilePreview({ file }) {
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result;
+      setContent(typeof text === "string" ? text.slice(0, 100) : "");
+    };
+    reader.readAsText(file);
+  }, [file]);
+
+  return (
+    <div>
+      {content}
+      {content.length >= 100 && "..."}
+    </div>
+  );
 }
 
 const Chat_version = ({
@@ -46,12 +72,15 @@ const Chat_version = ({
   setSelectedModel,
   saveTraceChatPlayground,
   chatPromptData,
+  allFiles,
+  setAllFiles
 }) => {
 
   hljs.highlightAll();
   
 
   const [systemPrompt, setSystemPrompt] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
 
  
   const [open, setOpen] = useState(false);
@@ -109,7 +138,41 @@ const Chat_version = ({
     }
   });
   
+  const handleDragOver = (event) => {
+    event.preventDefault();
+    setIsDragging(true);
+  };
 
+  const handleDragLeave = (event) => {
+    event.preventDefault();
+    setIsDragging(false); 
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const droppedFiles = event.dataTransfer.files;
+    const droppedFilesArray = Array.from(droppedFiles);
+    if (droppedFilesArray.length > 0) {
+      const validFiles = droppedFilesArray.filter(
+        (file) =>
+          file.type.startsWith("image/") || file.type.startsWith("text/")
+      );
+
+      if (validFiles.length === droppedFilesArray.length) {
+        const dataTransfer = new DataTransfer();
+        validFiles.forEach((file) => dataTransfer.items.add(file));
+        setFiles(dataTransfer.files);
+        if(syncAllMsg){
+          setAllFiles(dataTransfer.files);
+        }
+      } else {
+        toast.error("Only image and text files are allowed!");
+      }
+
+      setFiles(droppedFiles);
+    }
+    setIsDragging(false);
+  };
   useEffect(() => {
     setFormData({
       max_tokens: Number(settings.maxTokens),
@@ -166,14 +229,13 @@ const Chat_version = ({
    
     if (event.target.files) {
       setFiles(event.target.files);
+      if(syncAllMsg){
+        setAllFiles(event.target.files);
+      }
+      
     }
   };
  
-  
-  const handleDeleteFile = (indexToDelete) => {
-    setFiles(Array.from(files).filter((_, index) => index !== indexToDelete));
-  };
-
   const handleSettingsChange = (settingName, value) => {
     setSettings({ ...settings, [settingName]: value });
   };
@@ -427,8 +489,39 @@ const Chat_version = ({
   useEffect(() => {
     setInput(allChatPrompt);
   }, [allChatPrompt]);
+
+
+  useEffect(() => {
+    setFiles(allFiles);
+  }, [allFiles]);
  
- 
+  const handlePaste = (event) => {
+    const items = event.clipboardData?.items;
+
+    if (items) {
+      const files = Array.from(items)
+        .map((item) => item.getAsFile())
+        .filter((file) => file !== null);
+
+      if (files.length > 0) {
+        const validFiles = files.filter(
+          (file) =>
+            file.type.startsWith("image/") || file.type.startsWith("text/")
+        );
+
+        if (validFiles.length === files.length) {
+          const dataTransfer = new DataTransfer();
+          validFiles.forEach((file) => dataTransfer.items.add(file));
+          setFiles(dataTransfer.files);
+          if(syncAllMsg){
+            setAllFiles(dataTransfer.files)
+          }
+        } else {
+          toast.error("Only image and text files are allowed");
+        }
+      }
+    }
+  };
   const handleSystemInputChange = (event) => {
     setSystemPrompt(event.target.value);
     if (syncAll) {
@@ -478,13 +571,15 @@ const Chat_version = ({
                         leaveTo="opacity-0"
                       >
                         <Listbox.Options className="absolute z-10 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl: w-[180px] max-w-[400px] max-h-[700px] h-[230px] overflow-auto resize">
-                          <div className="bg-white sticky top-0 z-[9] p-1">
+                          <div className="bg-white sticky top-0 z-[9] p-1"
+                          >
                             <input
                               type="text"
                               className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
                               placeholder="Search..."
                               value={searchModel}
                               onChange={(e) => setSearchModel(e.target.value)}
+                             
                             />
                           </div>
                           {filteredModels.map((model) => (
@@ -688,20 +783,24 @@ const Chat_version = ({
   )}
 </div>
 
-                      <div>
-                        {message.experimental_attachments
-                          ?.filter(attachment =>
-                            attachment.contentType?.startsWith('image/'),
-                          )
-                          .map((attachment, index) => (
-                            <img
-                              key={`${message.id}-${index}`}
-                              src={attachment.url}
-                              alt={attachment.name}
-                              width={500}
-                            />
-                          ))}
+                      <div className="flex flex-wrap justify-start">
+                        {message.experimental_attachments?.map((attachment) => (
+                          <div key={attachment.name} className="mb-3 mr-3">
+                            {attachment.contentType?.startsWith("image") ? (
+                              <img
+                                className="rounded-md h-60"
+                                src={attachment.url}
+                                alt={attachment.name}
+                              />
+                            ) : attachment.contentType?.startsWith("text") ? (
+                              <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
+                                {getTextFromDataUrl(attachment.url)}
+                              </div>
+                            ) : null}
+                          </div>
+                        ))}
                       </div>
+                      
                     </div>
                   ) : (
                     <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
@@ -777,14 +876,33 @@ const Chat_version = ({
               </div>
             </div>
             <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
-              <div className="bg-[#ECECEC] rounded-md">
+              <div className="bg-[#ECECEC] rounded-md "  onDragOver={handleDragOver}
+                           onDragLeave={handleDragLeave}
+                           onDrop={handleDrop}>
+                         <AnimatePresence>
+                           {isDragging && (
+                             <motion.div
+                               className="absolute pointer-events-none dark:bg-zinc-900/90  z-10 flex flex-row justify-center items-center flex flex-col gap-1 bg-zinc-100/90 top-0 left-0 right-0 bottom-0"
+                               initial={{ opacity: 0 }}
+                               animate={{ opacity: 1 }}
+                               exit={{ opacity: 0 }}
+                             >
+                               <div>Drag and drop files here</div>
+                               <div className="text-sm dark:text-zinc-400 text-zinc-500">
+                                 {"(images and text)"}
+                               </div>
+                             </motion.div>
+                           )}
+                         </AnimatePresence>
+                         
                 <textarea
                   placeholder="Send a message"
                   value={input}
                   onChange={handleMessageInputChange}
+                  onPaste={handlePaste}
                   className="border-0 resize-y bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full rounded-md"
                 >
-                </textarea>
+                </textarea> 
       <div className="pl-2 pb-2 flex items-center gap-[5px]">
         <label htmlFor="fileInput" className="bg-gray-600 hover:bg-gray-800 text-white rounded-full cursor-pointer">
           <svg
@@ -807,21 +925,55 @@ const Chat_version = ({
             onChange={handleFileChange}
             multiple
             ref={fileInputRef}
-            accept="image/*"
+            accept="image/*, text/*"
             id="fileInput"
           />
         </label>
-       {files && Array.from(files).map((file, index) => (
-  <div key={index} className="mt-2 flex items-center justify-between p-1 bg-gray-100 border-2 border-gray-400 rounded mb-1">
-    <span className="text-gray-800">{file.name}</span>
-    <span
-      className="ml-4 cursor-pointer text-red-600"
-      onClick={() => handleDeleteFile(index)}
-    >
-      ×
-    </span>
-  </div>
-))}
+        <AnimatePresence>
+            {files && files.length > 0 && (
+              <div className=" flex items-center bottom-12 px-4 w-full md:w-[500px] md:px-0">
+                {Array.from(files).map((file) =>
+                  file.type.startsWith("image") ? (
+                    <div key={file.name} className="ml-2" >
+                      <motion.img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="rounded-md w-24 "
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{
+                          y: -10,
+                          scale: 1.1,
+                          opacity: 0,
+                          transition: { duration: 0.2 },
+                        }}
+                      
+                      />
+                    </div>
+                  ) : file.type.startsWith("text") ? (
+                    <div key={file.name} className="ml-2" >
+                    <motion.div
+                      key={file.name}
+                      className="text-[8px] leading-1 w-28 h-16 overflow-hidden text-zinc-500 border p-2 rounded-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{
+                        y: -10,
+                        scale: 1.1,
+                        opacity: 0,
+                        transition: { duration: 0.2 },
+                      }}
+                     // onClick={handleDeleteFile(file.name)}
+
+                    >
+                      <TextFilePreview file={file} />
+                    </motion.div>
+                    </div>
+                  ) : null
+                )}
+              </div>
+            )}
+          </AnimatePresence>
 
 
   
