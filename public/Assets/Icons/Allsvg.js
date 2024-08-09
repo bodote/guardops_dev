@@ -1621,7 +1621,7 @@ export const HubSubscribeIcon=({className}) => {
 
 export const KnowledgeIcon=({className}) => {
   return(
-    <svg lassName={className} width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className={className} width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M6.63352 1C8.49267 1 9.99982 2.47306 9.99982 4.29016L9.99973 13.2345C9.99973 15.3141 8.27482 17 6.14703 17C4.01923 17 2.29432 15.3141 2.29432 13.2345C2.29432 13.1279 2.29886 13.0225 2.30774 12.9181C1.50591 12.0762 1 10.4293 1 9.05526C1 7.18289 1.93933 5.36242 3.28678 4.64682C3.27385 4.52967 3.26722 4.41068 3.26722 4.29016C3.26722 2.47306 4.77437 1 6.63352 1Z" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M5.06557 6.88301C4.57129 6.77287 3.45122 6.05493 3.28223 4.65527" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M7.12915 10.5749C9.14812 10.3546 9.94819 8.27212 10.0002 7.42505" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
