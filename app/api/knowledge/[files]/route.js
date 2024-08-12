@@ -7,23 +7,28 @@ import { cookies } from 'next/headers'
 export async function GET(req,res) {
   
    try{
-    const bodyData = await req.json();
-
     const cookieStore = cookies();
     const user = cookieStore.get("user_id").value;
-    let Url = null;
+
+      // Extract folder_id from query parameters
+      const url = new URL(req.url, `http://${req.headers.host}`);
+      const folder_id = url.searchParams.get("folder_id");
+  
+      if (!folder_id) {
+        return res.status(400).json({ error: "folder_id is required" });
+      }
     const baseUrl = process.env.BackendBaseUrl;
     const token = await getToken();
 
     if (!token) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    Url = `${baseUrl}api/get_files_for_folder`;
+    const apiUrl = `${baseUrl}api/get_files_for_folder`;
     const queryParams = new URLSearchParams({
       user_id: user,
-      folder_id: bodyData.folder_id
+      folder_id: folder_id
     });
-    const urlWithParams = `${Url}?${queryParams}`;
+    const urlWithParams = `${apiUrl}?${queryParams}`;
 
   
       const response = await fetch(urlWithParams, {

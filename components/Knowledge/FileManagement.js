@@ -10,20 +10,23 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { HubShareIcon } from "@/public/Assets/Icons/Allsvg";
 import AddFolderModal from "../modal/AddFolderModal";
+import FileContentModal from "../modal/FileContentModal";
 
 const FileManagement = () => {
   const [folders, setFolders] = useState([]);
   const [currentFolder, setCurrentFolder] = useState(null);
+  const [currentFolderFiles, setCurrentFolderFiles] = useState([]);
   const [showMenu, setShowMenu] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  const [isModalOpen, setIsModalOpen] = useState(false); 
   const [editFolderName, setEditFolderName] = useState("");
   const [editingFolder, setEditingFolder] = useState(null);
-
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false); // State for file content modal
+  const [fileContent, setFileContent] = useState(""); // State to store file content
   const inputRef = useRef(null);
   const menuRef = useRef(null);
-  const editInputRef = useRef(null); // Ref for the editable input field
-  const folderNameRef = useRef(null); // Ref for the folder name container
+  const editInputRef = useRef(null);
+  const folderNameRef = useRef(null);
 
   const fetchFolders = async () => {
     try {
@@ -39,14 +42,36 @@ const FileManagement = () => {
       console.error("Error fetching folders:", error);
     }
   };
+
+  const fetchFiles = async (folder_id) => {
+    try {
+      const response = await fetch(`/api/knowledge/files?folder_id=${folder_id}`, {
+        method: "GET"
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch files");
+      }
+      const data = await response.json();
+      setCurrentFolderFiles(data.data.files);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    }
+  };
+
   const handleFolderCreated = (newFolder) => {
-    fetchFolders(); // Refresh the folder list
-    setCurrentFolder(newFolder.folder_id); // Set the new folder as the current folder
+    fetchFolders();
+    setCurrentFolder(newFolder.folder_id);
   };
 
   useEffect(() => {
-    fetchFolders(); // Fetch folders when component mounts
+    fetchFolders();
   }, []);
+
+  useEffect(() => {
+    if (currentFolder) {
+      fetchFiles(currentFolder);
+    }
+  }, [currentFolder]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -77,7 +102,6 @@ const FileManagement = () => {
     };
   }, []);
 
-  // Helper function to process and upload files
   const processAndUploadFiles = async (files) => {
     if (files.length === 0 || currentFolder === null) {
       alert("No files dropped or no folder selected.");
@@ -85,44 +109,51 @@ const FileManagement = () => {
     }
     const formData = new FormData();
     formData.set("folder_id", currentFolder);
-   
-  let filesToSend = []
+
+    let filesToSend = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.type === "application/pdf") {
-        filesToSend.push(file)
-        formData.append("files[]",file)
+        filesToSend.push(file);
+        formData.append("files[]", file);
       } else {
         alert("Only PDF files are allowed.");
         return;
       }
     }
-   
+
     try {
       const response = await fetch(`/api/knowledge/files`, {
         method: "POST",
-        body: formData, // Send the FormData object directly
+        body: formData,
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to upload files");
       }
-  
-      // Refresh the folder list to include the newly added files
-      fetchFolders();
+
+      // Fetch updated files for the current folder
+      const newFilesResponse = await fetch(`/api/knowledge/files?folder_id=${currentFolder}`, {
+        method: "GET"
+      });
+
+      if (!newFilesResponse.ok) {
+        throw new Error("Failed to fetch updated files");
+      }
+      
+      const newFilesData = await newFilesResponse.json();
+      setCurrentFolderFiles(newFilesData.data.files);
+
     } catch (error) {
       console.error("Error uploading files:", error);
     }
   };
-  
 
-  // Function to handle file upload from a file input
   const handleFileUpload = async (event) => {
     const files = event.target.files;
     await processAndUploadFiles(files);
   };
 
-  // Function to handle file drop event
   const handleDrop = async (event) => {
     event.preventDefault();
     setIsDragging(false);
@@ -130,8 +161,6 @@ const FileManagement = () => {
     const files = event.dataTransfer.files;
     await processAndUploadFiles(files);
   };
-
-
 
   const handleDragOver = (event) => {
     event.preventDefault();
@@ -143,17 +172,34 @@ const FileManagement = () => {
     setIsDragging(false);
   };
 
-  const deleteFile = (fileName) => {
-    const updatedFolders = folders?.map((folder) => {
-      if (folder.name === currentFolder) {
-        return {
-          ...folder,
-          files: folder.files.filter((file) => file.name !== fileName),
-        };
+  const deleteFile = async (fileId) => {
+    if (!currentFolder) {
+      console.error("No folder selected");
+      return;
+    }
+
+    const isConfirmed = window.confirm("Are you sure you want to delete this file?");
+
+    if (!isConfirmed) return;
+
+    try {
+      const response = await fetch(`/api/knowledge/files`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ folder_id: currentFolder, file_id: fileId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete file");
       }
-      return folder;
-    });
-    setFolders(updatedFolders);
+
+      // Remove the file from the state after successful deletion
+      setCurrentFolderFiles(currentFolderFiles.filter(file => file.file_id !== fileId));
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    }
   };
 
   const deleteFolder = async (folder_id) => {
@@ -177,8 +223,9 @@ const FileManagement = () => {
       setFolders(folders.filter((folder) => folder.folder_id !== folder_id));
       setShowMenu(null);
 
-      if (currentFolder && folders.find((folder) => folder.folder_id === folder_id)) {
+      if (currentFolder === folder_id) {
         setCurrentFolder(null);
+        setCurrentFolderFiles([]);
       }
     } catch (error) {
       console.error("Error deleting folder:", error);
@@ -194,7 +241,10 @@ const FileManagement = () => {
   const handleInputChange = (event) => {
     setEditFolderName(event.target.value);
   };
-
+  const openFileContentModal = (fileContent) => {
+    setFileContent(fileContent);
+    setIsFileModalOpen(true);
+  };
   const handleKeyPress = async (event, folder) => {
     if (event.key === "Enter") {
       event.preventDefault();
@@ -205,7 +255,7 @@ const FileManagement = () => {
         setFolders(updatedFolders);
 
         try {
-          const formData = { folder_id: folder.folder_id, name: editFolderName }
+          const formData = { folder_id: folder.folder_id, name: editFolderName };
           const response = await fetch(`/api/knowledge/`, {
             method: "PATCH",
             headers: {
@@ -236,10 +286,12 @@ const FileManagement = () => {
           <p className="text-gray-500">New Folder</p>
         </div>
 
-        {folders?.map((folder, index) => (
+        {folders.map((folder, index) => (
           <div
-            key={folder.name}
-            className="relative folder-card border border-gray-200 rounded-lg p-4 flex flex-col items-center cursor-pointer hover:bg-gray-300"
+            key={folder.folder_id}
+            className={`relative folder-card border border-gray-200 rounded-lg p-4 flex flex-col items-center cursor-pointer ${
+              folder.folder_id === currentFolder ? "bg-gray-400 text-white" : "hover:bg-gray-300"
+            }`}            
             onClick={() => setCurrentFolder(folder.folder_id)}
             ref={folderNameRef}
           >
@@ -324,23 +376,22 @@ const FileManagement = () => {
           </div>
 
           <div className="files grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
-            {folders
-              .find((folder) => folder.folder_id === currentFolder)
-              ?.files?.map((file, index) => (
-                <div
-                  key={index}
-                  className="relative file-card border border-gray-300 rounded-lg p-4 flex flex-col items-center hover:bg-gray-100"
+            {currentFolderFiles?.map((file) => (
+              <div
+                key={file.file_id}
+                className="relative file-card border border-gray-300 rounded-lg p-4 flex flex-col items-center hover:bg-gray-100 cursor-pointer hover:bg-gray-300"
+                onClick={() => openFileContentModal(file.file)} // Open file content modal
                 >
-                  <FaFilePdf className="text-red-500 text-4xl mb-2" />
-                  <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                    {file.name}
-                  </p>
-                  <FaTrash
-                    className="absolute top-2 right-2 text-red-500 cursor-pointer hover:text-red-900"
-                    onClick={() => deleteFile(file.name)}
-                  />
-                </div>
-              ))}
+                <FaFilePdf className="text-red-500 text-4xl mb-2" />
+                <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                  {file.name}
+                </p>
+                <FaTrash
+                  className="absolute top-2 right-2 text-red-500 cursor-pointer hover:text-red-900"
+                  onClick={() => deleteFile(file.file_id)}
+                />
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -349,9 +400,14 @@ const FileManagement = () => {
         <AddFolderModal
           isModalOpen={isModalOpen}
           setIsModalOpen={setIsModalOpen}
-          onFolderCreated={handleFolderCreated} // Pass the fetchFolders function
+          onFolderCreated={handleFolderCreated}
         />
       )}
+     <FileContentModal
+        isOpen={isFileModalOpen}
+        onClose={() => setIsFileModalOpen(false)}
+        fileContent={fileContent}
+      />
     </div>
   );
 };

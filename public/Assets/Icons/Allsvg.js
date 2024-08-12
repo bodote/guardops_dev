@@ -1576,8 +1576,8 @@ export const HubDeleteIcon=({className}) => {
 return(
 <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M13.0506 10.7342C12.2057 9.60763 13.0095 8 14.4177 8H25.5823C26.9905 8 27.7943 9.60763 26.9494 10.7342V10.7342C26.3331 11.5558 26 12.5552 26 13.5823V20C26 22.2091 24.2091 24 22 24H18C15.7909 24 14 22.2091 14 20V13.5823C14 12.5552 13.6669 11.5558 13.0506 10.7342V10.7342Z" stroke="#2B3F6C" strokeWidth="1.5"/>
-<path d="M22 19L22 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" stroke-linejoin="round"/>
-<path d="M18 19L18 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" stroke-linejoin="round"/>
+<path d="M22 19L22 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M18 19L18 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 <path d="M24 8L23.4558 6.36754C23.1836 5.55086 22.4193 5 21.5585 5H18.4415C17.5807 5 16.8164 5.55086 16.5442 6.36754L16 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
 </svg>
 
@@ -1622,14 +1622,14 @@ export const HubSubscribeIcon=({className}) => {
 export const KnowledgeIcon=({className}) => {
   return(
     <svg className={className} width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M6.63352 1C8.49267 1 9.99982 2.47306 9.99982 4.29016L9.99973 13.2345C9.99973 15.3141 8.27482 17 6.14703 17C4.01923 17 2.29432 15.3141 2.29432 13.2345C2.29432 13.1279 2.29886 13.0225 2.30774 12.9181C1.50591 12.0762 1 10.4293 1 9.05526C1 7.18289 1.93933 5.36242 3.28678 4.64682C3.27385 4.52967 3.26722 4.41068 3.26722 4.29016C3.26722 2.47306 4.77437 1 6.63352 1Z" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M5.06557 6.88301C4.57129 6.77287 3.45122 6.05493 3.28223 4.65527" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M7.12915 10.5749C9.14812 10.3546 9.94819 8.27212 10.0002 7.42505" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M3.33793 10.944C2.83505 11.332 2.43411 12.2115 2.3042 12.9161" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M13.3665 1C11.5074 1 10.0002 2.47306 10.0002 4.29016L10.0003 13.2345C10.0003 15.3141 11.7252 17 13.853 17C15.9808 17 17.7057 15.3141 17.7057 13.2345C17.7057 13.1279 17.7012 13.0225 17.6923 12.9181C18.4941 12.0762 19 10.4293 19 9.05526C19 7.18289 18.0607 5.36242 16.7133 4.64682C16.7262 4.52967 16.7328 4.41068 16.7328 4.29016C16.7328 2.47306 15.2257 1 13.3665 1Z" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M14.9343 6.88301C15.4286 6.77287 16.5486 6.05493 16.7177 4.65527" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M12.8708 10.5749C10.8519 10.3546 10.0518 8.27212 9.99976 7.42505" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M16.6621 10.944C17.1649 11.332 17.5659 12.2115 17.6958 12.9161" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6.63352 1C8.49267 1 9.99982 2.47306 9.99982 4.29016L9.99973 13.2345C9.99973 15.3141 8.27482 17 6.14703 17C4.01923 17 2.29432 15.3141 2.29432 13.2345C2.29432 13.1279 2.29886 13.0225 2.30774 12.9181C1.50591 12.0762 1 10.4293 1 9.05526C1 7.18289 1.93933 5.36242 3.28678 4.64682C3.27385 4.52967 3.26722 4.41068 3.26722 4.29016C3.26722 2.47306 4.77437 1 6.63352 1Z" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M5.06557 6.88301C4.57129 6.77287 3.45122 6.05493 3.28223 4.65527" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M7.12915 10.5749C9.14812 10.3546 9.94819 8.27212 10.0002 7.42505" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M3.33793 10.944C2.83505 11.332 2.43411 12.2115 2.3042 12.9161" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M13.3665 1C11.5074 1 10.0002 2.47306 10.0002 4.29016L10.0003 13.2345C10.0003 15.3141 11.7252 17 13.853 17C15.9808 17 17.7057 15.3141 17.7057 13.2345C17.7057 13.1279 17.7012 13.0225 17.6923 12.9181C18.4941 12.0762 19 10.4293 19 9.05526C19 7.18289 18.0607 5.36242 16.7133 4.64682C16.7262 4.52967 16.7328 4.41068 16.7328 4.29016C16.7328 2.47306 15.2257 1 13.3665 1Z" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M14.9343 6.88301C15.4286 6.77287 16.5486 6.05493 16.7177 4.65527" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M12.8708 10.5749C10.8519 10.3546 10.0518 8.27212 9.99976 7.42505" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+<path d="M16.6621 10.944C17.1649 11.332 17.5659 12.2115 17.6958 12.9161" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 </svg>
 
   )
