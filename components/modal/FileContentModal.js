@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
-const FileContentModal = ({ isOpen, onClose, fileContent }) => {
+const FileContentModal = ({ isOpen, onClose, fileContent, fileName }) => {
   const modalRef = useRef(null);
 
   useEffect(() => {
@@ -28,8 +28,8 @@ const FileContentModal = ({ isOpen, onClose, fileContent }) => {
         ref={modalRef}
         className="bg-white rounded-lg shadow-lg p-4 w-11/12 md:w-3/4 lg:w-1/2 max-h-[80vh] overflow-y-auto"
       >
-        <div className="flex justify-between items-center border-b  mb-4">
-          <h2 className="text-xl font-bold">File Content</h2>
+        <div className="flex justify-between items-center border-b pb-2 mb-4">
+          <h2 className="text-xl font-bold">{fileName}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-900">
             <FaTimes />
           </button>

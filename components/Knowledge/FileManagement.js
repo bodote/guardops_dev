@@ -6,6 +6,7 @@ import {
   FaTrash,
   FaEdit,
   FaFilePdf,
+  FaFileAlt
 } from "react-icons/fa";
 import { AnimatePresence, motion } from "framer-motion";
 import { HubShareIcon } from "@/public/Assets/Icons/Allsvg";
@@ -23,6 +24,7 @@ const FileManagement = () => {
   const [editingFolder, setEditingFolder] = useState(null);
   const [isFileModalOpen, setIsFileModalOpen] = useState(false); // State for file content modal
   const [fileContent, setFileContent] = useState(""); // State to store file content
+  const [fileName, setFileName] = useState("");
   const inputRef = useRef(null);
   const menuRef = useRef(null);
   const editInputRef = useRef(null);
@@ -111,16 +113,17 @@ const FileManagement = () => {
     formData.set("folder_id", currentFolder);
 
     let filesToSend = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.type === "application/pdf") {
-        filesToSend.push(file);
-        formData.append("files[]", file);
-      } else {
-        alert("Only PDF files are allowed.");
-        return;
-      }
-    }
+ for (let i = 0; i < files.length; i++) {
+   const file = files[i];
+   if (file.type === "application/pdf" || file.name.endsWith(".txt")) {
+     filesToSend.push(file);
+     formData.append("files[]", file);
+   } else {
+     alert("Only PDF and TXT files are allowed.");
+     return;
+   }
+ }
+ 
 
     try {
       const response = await fetch(`/api/knowledge/files`, {
@@ -241,8 +244,9 @@ const FileManagement = () => {
   const handleInputChange = (event) => {
     setEditFolderName(event.target.value);
   };
-  const openFileContentModal = (fileContent) => {
+  const openFileContentModal = (fileContent, fileName) => {
     setFileContent(fileContent);
+    setFileName(fileName);
     setIsFileModalOpen(true);
   };
   const handleKeyPress = async (event, folder) => {
@@ -328,7 +332,7 @@ const FileManagement = () => {
                   className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left hover:bg-gray-200"
                   onClick={() => deleteFolder(folder.folder_id)}
                 >
-                  <FaTrash className="inline mr-2" /> Delete
+                  <FaTrash className="inline mr-2  " /> Delete
                 </button>
               </div>
             )}
@@ -368,7 +372,7 @@ const FileManagement = () => {
             <p className="text-gray-500">Drag and Drop Files Here</p>
             <input
               type="file"
-              accept="application/pdf"
+              accept="application/pdf, text/plain"
               onChange={handleFileUpload}
               className="hidden"
               ref={inputRef}
@@ -376,22 +380,34 @@ const FileManagement = () => {
           </div>
 
           <div className="files grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
-            {currentFolderFiles?.map((file) => (
-              <div
-                key={file.file_id}
-                className="relative file-card border border-gray-300 rounded-lg p-4 flex flex-col items-center hover:bg-gray-100 cursor-pointer hover:bg-gray-300"
-                onClick={() => openFileContentModal(file.file)} // Open file content modal
-                >
-                <FaFilePdf className="text-red-500 text-4xl mb-2" />
-                <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                  {file.name}
-                </p>
-                <FaTrash
-                  className="absolute top-2 right-2 text-red-500 cursor-pointer hover:text-red-900"
-                  onClick={() => deleteFile(file.file_id)}
-                />
-              </div>
-            ))}
+       {currentFolderFiles?.map((file) => (
+         <div
+           key={file.file_id}
+           className="relative file-card border border-gray-300 rounded-lg p-4 flex flex-col items-center hover:bg-gray-100 cursor-pointer hover:bg-gray-300"
+           onClick={() => openFileContentModal(file.file, file.name)}
+         >
+           {file.name.endsWith('.pdf') ? (
+             <>
+               <FaFilePdf className="text-red-500 text-4xl mb-2" />
+               <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                 {file.name}
+               </p>
+             </>
+           ) : (
+             <>
+               <FaFileAlt className="text-blue-500 text-4xl mb-2" />
+               <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                 {file.name}
+               </p>
+             </>
+           )}
+           <FaTrash
+             className="absolute text-gray-800 top-2 right-2  cursor-pointer hover:text-gray-500 "
+             onClick={() => deleteFile(file.file_id)}
+           />
+         </div>
+       ))}
+       
           </div>
         </div>
       )}
@@ -407,6 +423,7 @@ const FileManagement = () => {
         isOpen={isFileModalOpen}
         onClose={() => setIsFileModalOpen(false)}
         fileContent={fileContent}
+        fileName={fileName}
       />
     </div>
   );
