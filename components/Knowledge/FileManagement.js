@@ -237,7 +237,7 @@ const FileManagement = () => {
 
   const renameFolder = (folder) => {
     setEditFolderName(folder.name);
-    setEditingFolder(folder.name);
+    setEditingFolder(folder.folder_id);
     setShowMenu(null);
   };
 
@@ -281,7 +281,7 @@ const FileManagement = () => {
 
   return (
     <div className="file-management p-4">
-      <div className="folders grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="folders grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 max-h-[23vh] overflow-y-auto">
         <div
           className="folder-card border border-dashed border-gray-400 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-300"
           onClick={() => setIsModalOpen(true)}
@@ -298,9 +298,10 @@ const FileManagement = () => {
             }`}            
             onClick={() => setCurrentFolder(folder.folder_id)}
             ref={folderNameRef}
+            onDoubleClick={() => renameFolder(folder)} 
           >
             <FaFolder className="text-coai-blue text-4xl mb-2" />
-            {editingFolder === folder.name ? (
+            {editingFolder === folder.folder_id ? (
               <input
                 type="text"
                 value={editFolderName}
@@ -334,6 +335,7 @@ const FileManagement = () => {
                 >
                   <FaTrash className="inline mr-2  " /> Delete
                 </button>
+                
               </div>
             )}
           </div>
