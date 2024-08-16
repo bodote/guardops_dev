@@ -8,8 +8,10 @@ import {
   SettingIcon,
   ShareIcon,
   UpArrowIcon,
+  User2Icon,
+  FireIcon
 } from "@/public/Assets/Icons/Allsvg";
-import { Fragment, useState, useEffect, useRef } from "react";
+import React, { DragEvent, useState, Fragment, useEffect, useRef } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import ReactMarkdown from "react-markdown";
@@ -20,12 +22,38 @@ import { Switch } from "@headlessui/react";
 import { toast } from "react-toastify";
 import { AiOutlineStop } from "react-icons/ai";
 import { encodingForModel } from "js-tiktoken";
+import { AnimatePresence, motion } from "framer-motion";
+const hljs = require('highlight.js/lib/common');
+import { useChat } from 'ai/react';
 
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
+const getTextFromDataUrl = (dataUrl) => {
+  const base64 = dataUrl.split(",")[1];
+  return window.atob(base64);
+};
 
+function TextFilePreview({ file }) {
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result;
+      setContent(typeof text === "string" ? text.slice(0, 100) : "");
+    };
+    reader.readAsText(file);
+  }, [file]);
+
+  return (
+    <div>
+      {content}
+      {content.length >= 100 && "..."}
+    </div>
+  );
+}
 const Version = ({
   addVersion,
   removeVersion,
@@ -33,17 +61,27 @@ const Version = ({
   versions,
   allVersions,
   versionId,
+  isLoading,
   runPressed,
-  resetRunPressed,
+  setRunPressed,
   appendToMessage,
   setApiCallInProgress,
+  input,
   apiCallInProgress,
   syncAll,
   setsyncAll,
+  messages,
+  completion,
   setAllSystemPrompt,
   allSystemPrompt,
+  files,
   analysisModelOpen,
+  setCompletion,
+  setInput,
   setAnalysisModelOpen,
+  formData,
+  setFormData,
+  handleSubmit,
   setAllPromtsDetails,
   setClear,
   clear,
@@ -60,8 +98,9 @@ const Version = ({
           name: "Select a Model",
         }
   );
-  const [vercelResponse, setVercelResponse] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+
+  hljs.highlightAll();
+  
   const [error, setError] = useState(null);
   const [totalTokens, setTotalTokens] = useState();
   const [inputTokens, setInputTokens] = useState();
@@ -85,6 +124,8 @@ const Version = ({
   const [enabled, setEnabled] = useState(false);
   const [open, setOpen] = useState(false);
   const [systemPrompt, setSystemPrompt] = useState("");
+  const [copiedIndex, setCopiedIndex] = useState(null);
+
   const [searchModel, setSearchModel] = useState("");
 
   const getModels = async () => {
@@ -97,6 +138,16 @@ const Version = ({
     }
   };
 
+    // State for settings values
+    const [settings, setSettings] = useState({
+      maxTokens: 2500,
+      temperature: 0.6,
+      topP: 0.2,
+      topK: 50,
+      frequencyPenalty: 0.3,
+      presencePenalty: 0.3,
+    });
+  
   // Load API key from Local Storage
   useEffect(() => {
     getModels();
@@ -121,221 +172,113 @@ const Version = ({
   }, []);
 
 
+  useEffect(() => {
+    setFormData({
+      max_tokens: Number(settings.maxTokens),
+      model: selected.id1,
+      systemPrompt: open ? systemPrompt : "",
+      type: "chat",
+      settings: settings,
+      provider: selected.provider,
+      multimodal: selected.multimodal | false,
+      api_keys: {
+        openaiKey: openaiKey,
+        fireworksKey: fireworksAIKey,
+        customKey: customAIKey,
+        anthropicKey: anthropicKey,
+        cohereKey: cohereKey,
+        googleKey: googleKey,
+        mistralKey: mistralKey,
+        perplexityKey: perplexityKey,
+      },
+    });
+  }, [
+    settings,
+    open,
+    systemPrompt,
+    selected,
+    openaiKey,
+    fireworksAIKey,
+    customAIKey,
+    anthropicKey,
+    cohereKey,
+    googleKey,
+    mistralKey,
+    perplexityKey,
+  ]);
 
-  // Function to append vercelResponse to message
-  const handleCopyClick = () => {
-    appendToMessage(vercelResponse);
-  };
-// Vercel integration
-  const fetchVercelResponse = async () => {
-    var res = null;
-    setInputTokens();
-    setTotalTokens();
-    setOutputTokens();
-    setVercelResponse("");
-    setIsLoading(true);
-    const provider =selected.provider;
-    if (!provider) {
-      setError(`Provider ${selected.provider} is not supported.`);
-      setIsLoading(false);
-      return;
-    }
-    try{
-      const enc = encodingForModel("gpt-3.5-turbo");
-      const promptTokens = enc.encode(message).length;
-      setInputTokens(promptTokens);
-     
-      var formData = {
-        max_tokens: Number(settings.maxTokens),
-        temperature: Number(settings.temperature),
-        top_p: Number(settings.topP),
-        top_k: Number(settings.topK),
-        frequency_penalty: Number(settings.frequencyPenalty),
-        presence_penalty: Number(settings.presencePenalty),
-        settings: settings,
-        model: selected.id1,
-        prompt: message,
-        systemPrompt: open ? systemPrompt : "",
-        type: "prompt",
-      };
-        switch(selected.provider){
-          case "openai":
-            formData.api_key = openaiKey
-            res = await fetch("/api/openai", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            })
-            break;
-          case "fireworks":
-            formData.api_key = fireworksAIKey
-            res = await fetch("/api/fireworks", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            })
-            break;
-          case "custom":
-            formData.api_key = customAIKey
-            res = await fetch("/api/custom", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            })
-            break;           
-          case "together":
-            formData.api_key = togetherKey
-            res = await fetch("/api/together", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            })
-            break;          
-          case "anthropic":
-            formData.api_key = anthropicKey
-            res = await fetch("/api/anthropic", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            })
-            break;
-          case "cohere":
-            formData.api_key = cohereKey
-            res = await fetch("/api/cohere", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            })
-            break;
-          case "google":
-            formData.api_key = googleKey
-            res = await fetch("/api/google", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            })
-            break;
-          case "mistral":
-            formData.api_key = mistralKey
-            res = await fetch("/api/mistral", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(formData),
-            })
-            break;
-          case "perplexity":
-              formData.api_key = perplexityKey
-              res = await fetch("/api/perplexity", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-              })
-              break;
-          }
-        const data = res.body;
-        
-        setIsLoading(false);
-        const reader = data.getReader();
-        const decoder = new TextDecoder();
-        let done = false;
-        let completeString = "";
-        let generationTokens = 0;
+  console.log("i have this formdata", formData);
 
-        while (!done) {
-          const { value, done: doneReading } = await reader.read();
-          done = doneReading;
-          const chunkValue = decoder.decode(value);
-          const tokenRegex = /{"tokens":(\d+)}/g;
-          const match = tokenRegex.exec(chunkValue);
-          let tokenChunk = "";
-        
-          tokenChunk += chunkValue;
-         
-          completeString += chunkValue;
-          generationTokens += enc.encode(chunkValue).length;
-          setVercelResponse((prev) => prev + tokenChunk);
-          
-        }
+  const chatDivRef= useRef(null);
 
-        if (done){
-          
-          setOutputTokens(generationTokens);
-          setTotalTokens(inputTokens + outputTokens);
-        }
-        
-        setIsLoading(false);
-        setAllPromtsDetails((prevDetails) => [
-          ...prevDetails,
-          {
-            isValid: true,
-            versionId: versionId,
-            model: selected.model_id,
-            input: message,
-            output: completeString,
-            systemPrompt: systemPrompt,
-            settings: settings,
-          },
-        ]);
-      }
-        
-      catch (error) {
-        console.error("API request failed:", error.message);
-        setError("Error: " + error.message);
-        setIsLoading(false);
-      }
-  };
 
   useEffect(() => {
-    const isValidModelSelected = selected?.id1 && selected?.id1 !== "None";
-
-
-    if (message && isValidModelSelected && runPressed) {
-      fetchVercelResponse()
-      .then(() => {
-        resetRunPressed(); // Reset runPressed after the API call
-        setApiCallInProgress(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching API response:", error);
-        setError("Error: " + error.message); // Set error state
-        setApiCallInProgress(false);
-      });
-    } else if (runPressed) {
-      let missingItems = [];
-      if (!message) missingItems.push("message");
-      if (!isValidModelSelected) missingItems.push("valid model selection");
-
-      setVercelResponse(
-        `Please provide the following: ${missingItems.join(", ")}.`
-      ); // Set error message in vercelResponse
-      setApiCallInProgress(false);
-      resetRunPressed();
+    if (chatDivRef.current) {
+      chatDivRef.current.scrollTop = chatDivRef.current.scrollHeight;
     }
-  }, [message, selected?.id1, fireworksAIKey, runPressed, resetRunPressed]);
+  }, [completion]);
+  
+  
+  const handleFileChange = (event) => {
+   
+    if (event.target.files) {
+      setFiles(event.target.files);
+      if(syncAllMsg){
+        setAllFiles(event.target.files);
+      }
+      
+    }
+  };
+  const reconstructConversation = (traces) => {
+    setError("");
+    const modelName = traces[0]?.attributes?.model || "";
+    let traceChatHistory = [];
 
-  // Format OutputResponse for Code
+    const model = models.find((model) => model.name === modelName);
+
+    const rootPair = traces.find((pair) => pair.parent_id === null);
+    if (!rootPair) {
+      return;
+    }
+    traceChatHistory.push(rootPair);
+
+    let currentParentId = rootPair.context.span_id;
+    while (traceChatHistory.length < traces.length) {
+      const nextPair = traces.find(
+        (pair) => pair.parent_id === currentParentId
+      );
+      if (nextPair) {
+        traceChatHistory.push(nextPair);
+        currentParentId = nextPair.context.span_id;
+      } else {
+        break;
+      }
+    }
+    const newMessages = traceChatHistory.flatMap((pair) => [
+      {
+        role: "user",
+        content: pair.attributes.prompt || "",
+      },
+      {
+        role: "assistant",
+        content: pair.attributes.output || "",
+      },
+    ]);
+    
+
+    if (model) {
+      setSelected(model);
+    }
+    
+     setMessages(newMessages);
+  };
+
+  // FROM HERE IDK
+
   const handleAnalysis = async () => {
     const formData = {
-      input: message,
-      response: vercelResponse,
+      input: input,
+      response: completion,
     };
     try {
       const response = await fetch("/api/manageModelChecks", {
@@ -359,47 +302,46 @@ const Version = ({
 
   useEffect(() => {
     if (clear) {
-      setVercelResponse("");
-      setOutputTokens();
-      setInputTokens();
-      setTotalTokens();
+      setCompletion("");
       setClear(false);
     }
   }, [clear]);
-
-  const copyToClipboard = (text) => {
+  const handleSystemInputChange = (event) => {
+    setSystemPrompt(event.target.value);
+    if (syncAll) {
+      setAllSystemPrompt(event.target.value);
+    }
+  };
+  useEffect(() => {
+    setSystemPrompt(allSystemPrompt);
+  }, [allSystemPrompt]);
+  const copyToClipboard = (text, uniqueId) => {
+    // Ignore the first line because it is only the language name
+    const lines = text.split('\n');
+    const textToCopy = lines.slice(1).join('\n');
     navigator.clipboard
-      .writeText(text)
+      .writeText(textToCopy)
       .then(() => {
-        console.log("Text copied to clipboard");
+        setCopiedIndex(uniqueId);
+        // Optionally, reset the button text after a delay
+        setTimeout(() => setCopiedIndex(null), 2000);
       })
       .catch((err) => {
         console.error("Failed to copy text: ", err);
       });
   };
 
-  const CodeBox = ({ code }) => {
-    return (
-      <div className="code-box-container my-2">
-        <pre className="code-box">{code}</pre>
-        <button className="copy-button" onClick={() => copyToClipboard(code)}>
-          Copy
-        </button>
-      </div>
-    );
-  };
 
-  const parseVercelResponse = (vercelResponse) => {
+  const parseVercelResponse = (apiResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
     let lastIndex = 0;
-
-    vercelResponse?.replace(regex, (match, codeBlock, index) => {
+    apiResponse?.replace(regex, (match, codeBlock, index) => {
       // Add the text segment before the code block
       if (index > lastIndex) {
         segments.push({
           type: "text",
-          content: vercelResponse.slice(lastIndex, index),
+          content: apiResponse.slice(lastIndex, index),
         });
       }
       // Add the code block
@@ -408,38 +350,27 @@ const Version = ({
     });
 
     // Add any remaining text after the last code block
-    if (vercelResponse && lastIndex < vercelResponse.length) {
-      segments.push({ type: "text", content: vercelResponse.slice(lastIndex) });
+    if (apiResponse && lastIndex < apiResponse.length) {
+      segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
     }
-
     return segments;
   };
 
-  const segments = parseVercelResponse(vercelResponse);
 
   // Settings Modal Window
   // State to manage settings visibility
   const [showSettings, setShowSettings] = useState(false);
 
-  // State for settings values
-  const [settings, setSettings] = useState({
-    maxTokens: 2500,
-    temperature: 0.6,
-    topP: 0.2,
-    topK: 50,
-    frequencyPenalty: 0.3,
-    presencePenalty: 0.3,
-  });
 
   // Handle settings change
   const handleSettingsChange = (settingName, value) => {
     setSettings({ ...settings, [settingName]: value });
   };
-  const handleOutsideClick = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
-      setShowSettings(false);
-    }
-  };
+  // const handleOutsideClick = (event) => {
+  //   if (modalRef.current && !modalRef.current.contains(event.target)) {
+  //     setShowSettings(false);
+  //   }
+  // };
 
   const handleSelect = (model) => {
     setSelected(model);
@@ -498,16 +429,38 @@ const Version = ({
     }
   }, [systemPrompt]);
 
+
   useEffect(() => {
-    if (showSettings) {
-      document.addEventListener("mousedown", handleOutsideClick);
-    } else {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, [showSettings]);
+    const isValidModelSelected = selected?.id1 && selected?.id1 !== "None";
+
+
+    if (input && isValidModelSelected && runPressed) {
+      handleSubmit( {
+        experimental_attachments: files,
+      });
+      
+    } else if (runPressed) {
+      let missingItems = [];
+      if (!input) missingItems.push("message");
+      if (!isValidModelSelected) missingItems.push("valid model selection");
+
+      setCompletion(
+        `Please provide the following: ${missingItems.join(", ")}.`
+      ); // Set error message in vercelResponse
+    setRunPressed(false)
+
+}
+  }, [input, selected?.id1, runPressed]);
+  // useEffect(() => {
+  //   if (showSettings) {
+  //     document.addEventListener("mousedown", handleOutsideClick);
+  //   } else {
+  //     document.removeEventListener("mousedown", handleOutsideClick);
+  //   }
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleOutsideClick);
+  //   };
+  // }, [showSettings]);
 
   return (
     <>
@@ -621,6 +574,19 @@ const Version = ({
                 versions > 2 ? "!gap-[10px]" : ""
               }`}
             >
+
+
+
+
+
+
+
+
+
+
+
+
+
               <button onClick={() => setOpen(!open)}>
                 <EditIcon />
               </button>
@@ -632,13 +598,13 @@ const Version = ({
               </button>
               <button
                 onClick={() =>
-                  !apiCallInProgress && setAnalysisModelOpen(!analysisModelOpen)
+                  !isLoading && setAnalysisModelOpen(!analysisModelOpen)
                 }
               >
                 <ShareIcon />
               </button>
-              <button onClick={() => setShowSettings(true)}>
-                <SettingIcon />{" "}
+              <button onClick={() => setShowSettings(!showSettings)}>
+                <SettingIcon />
               </button>
               {/* Attach the click handler */}
             </div>
@@ -673,24 +639,23 @@ const Version = ({
                   name="system"
                   id="system"
                   value={systemPrompt}
-                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  onChange={handleSystemInputChange}
                   className="border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
                 ></textarea>
                 <div className="flex justify-between items-center gap-[10px] flex-wrap">
                   <div className="flex items-center gap-[5px]">
                     <Switch
-                      checked={enabled}
-                      onChange={() => setEnabled(!enabled)}
+                      checked={syncAll}
+                      onChange={() => setsyncAll(!syncAll)}
                       className={classNames(
-                        enabled ? "bg-[#0074fb]" : "bg-gray-200",
+                        syncAll ? "bg-[#0074fb]" : "bg-gray-200",
                         "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
                       )}
                     >
-                      <span className="sr-only">Use setting</span>
                       <span
                         aria-hidden="true"
                         className={classNames(
-                          enabled ? "translate-x-[11px]" : "translate-x-0",
+                          syncAll ? "translate-x-[11px]" : "translate-x-0",
                           "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
                         )}
                       />
@@ -716,53 +681,63 @@ const Version = ({
                 open && "2xl:h-[calc(100vh-822px)] h-[calc(100vh-778px)]"
               } ${versions > 4 && "sm:max-h-auto"}`}
             >
-               {isLoading ? (
-                <p>Loading...</p>
-              ) : vercelResponse ? (
-                segments.map((segment, index) =>
-                  segment.type === "code" ? (
-                    <CodeBox key={index} code={segment.content} />
-                  ) : (
-                    <ReactMarkdown
-                      components={{
-                        ul: ({ node, ...props }) => (
-                          <ul
-                            style={{
-                              display: "block",
-                              listStyleType: "disc",
-                              paddingInlineStart: "40px",
-                            }}
-                            {...props}
+              {console.log("these messages", completion)}
+            {completion && (
+              <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
+                <div className="w-[calc(100%-35px)]">
+                  <div className="flex flex-wrap justify-start">
+                    {completion.experimental_attachments?.map((attachment) => (
+                      <div key={attachment.name} className="mb-3 mr-3">
+                        {attachment.contentType?.startsWith("image") ? (
+                          <img
+                            className="rounded-md h-60"
+                            src={attachment.url}
+                            alt={attachment.name}
                           />
-                        ),
-                        ol: ({ node, ...props }) => (
-                          <ol
-                            style={{
-                              display: "block",
-                              listStyleType: "decimal",
-                              paddingInlineStart: "40px",
-                            }}
-                            {...props}
-                          />
-                        ),
-                        h1: ({ node, ...props }) => (
-                          <h1 className="font-bold text-6xl" {...props} />
-                        ),
-                      }}
-                      remarkPlugins={[gfm]}
-                      key={index}
-                      children={segment.content}
-                    />
-                  )
-                )
-              ) : error ? (
-                <p>Error: {error}</p>
-              ) : null}
+                        ) : attachment.contentType?.startsWith("text") ? (
+                          <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
+                            {getTextFromDataUrl(attachment.url)}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+            
+                  {parseVercelResponse(completion).map((segment, index) =>
+                    segment.type === 'code' ? (
+                      <pre className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5">
+                        <button className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200" onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
+                          {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
+                        </button>
+                        <code>{segment.content}</code>
+                      </pre>
+                    ) : (
+                      <ReactMarkdown
+                        components={{
+                          ul: ({ node, ...props }) => (
+                            <ul style={{ display: 'block', listStyleType: 'disc', paddingInlineStart: '40px' }} {...props} />
+                          ),
+                          ol: ({ node, ...props }) => (
+                            <ol style={{ display: 'block', listStyleType: 'decimal', paddingInlineStart: '40px' }} {...props} />
+                          ),
+                          h1: ({ node, ...props }) => <h1 className="font-bold text-6xl" {...props} />,
+                          p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-wrap' }} {...props} />,
+                        }}
+                        remarkPlugins={[gfm]}
+                        key={index}
+                        children={segment.content}
+                      />
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+            
               
             </div>
           </div>
           <div className="flex gap-[10px] justify-center mt-[17px]">
-            <CopyIcon onClick={handleCopyClick} />
+            <CopyIcon/>
             <DownArrowIcon />
             <UpArrowIcon />
             <PenIcon />

@@ -16,7 +16,6 @@ import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
 import { Tooltip } from "react-tooltip";
 import { AnimatePresence, motion } from "framer-motion";
-
 import ReactMarkdown from "react-markdown";
 import gfm from "remark-gfm";
 import { Listbox, Transition, Switch } from "@headlessui/react";
@@ -65,6 +64,8 @@ const Chat_version = ({
   setsyncAll,
   setAllSystemPrompt,
   allSystemPrompt,
+  ragCheck,
+  selectedRag,
   syncAllMsg,
   setSyncAllMsg,
   allChatPrompt,
@@ -73,7 +74,8 @@ const Chat_version = ({
   saveTraceChatPlayground,
   chatPromptData,
   allFiles,
-  setAllFiles
+  setAllFiles,
+  
 }) => {
 
   hljs.highlightAll();
@@ -82,7 +84,6 @@ const Chat_version = ({
   const [systemPrompt, setSystemPrompt] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
- 
   const [open, setOpen] = useState(false);
   const modalRef = useRef();
   const [selected, setSelected] = useState(
@@ -123,6 +124,8 @@ const Chat_version = ({
     systemPrompt: open ? systemPrompt : "",
     type: "chat",
     settings: settings,
+    rag: ragCheck,
+    selectedRag: selectedRag,
     provider: selected.provider,
     multimodal: selected.multimodal | false,
     api_keys: {
@@ -181,6 +184,8 @@ const Chat_version = ({
       type: "chat",
       settings: settings,
       provider: selected.provider,
+      rag: ragCheck,
+      selectedRag: selectedRag,
       multimodal: selected.multimodal | false,
       api_keys: {
         openaiKey: openaiKey,
@@ -467,6 +472,7 @@ const Chat_version = ({
         handleSubmit(event, {
           experimental_attachments: files,
         });
+        console.log("ACTUAL RAG SHIT", ragCheck, " ", selectedRag);
 
         setFiles(undefined);
         if (fileInputRef.current) {
@@ -630,13 +636,22 @@ const Chat_version = ({
                 versions > 2 ? "2xl:!gap-[10px] xl:!gap-[6px] !gap-[10px]" : ""
               }`}
             >
-              <button
-                onClick={() =>
-                  setMessages([
-                  
-                  ])
+             <button
+               onClick={() => {
+
+                if(syncAllMsg){
+                    setAllChatPrompt("");
+                    setAllFiles(undefined);
+                }else{
+                 setInput("");
+                 setFiles(undefined);
+
                 }
-              >
+                 setMessages([]);
+                }
+               }
+             >
+             
                 <LoadingIcon />
               </button>
               <button onClick={saveTracePlayground}>
@@ -736,147 +751,142 @@ const Chat_version = ({
               <div
                 className={open ? "h-[calc(100vh-520px)] overflow-auto" : ""}
               >   {messages.map((message) => (
-                <div key={message.id}>
-                  {message.role === 'user' ? (
-                    <div className="bg-[#ECECEC] md:p-[19px_31px] p-[8px_10px] flex flex-col gap-[20px]">
-                    <div className="flex justify-between">
-  <div className="flex sm:gap-[19px] gap-[8px] flex-col w-full">
-    <div className="flex items-start">
-      <User2Icon className="min-w-[16px]" />
-      {editMessageId === message.id ? (
-        <textarea
-          ref={textareaRef}
-          value={editedMessageContent}
-          onChange={(e) => setEditedMessageContent(e.target.value)}
-          className=" ml-5 border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
-        />
-      ) : (
-        <p className="ml-5 md:text-[16px] text-[14px]">
-          {message.content}
-        </p>
-      )}
-    </div>
-    {editMessageId === message.id && (
-      <div className="flex gap-2 mt-2 ml-10">
-        <button
-          className="p-1 border-1 rounded-full bg-gray-400 hover:bg-gray-700"
-          onClick={() => cancelEditing()}
-        >
-          <AiOutlineStop className="text-[16px]" />
-        </button>
-        <button
-          className="p-1 border-1 rounded-full text-[12px] bg-[#D4DB33] hover:bg-[#0D859A]"
-          onClick={() => saveEditedMessage(message.id)}
-        >
-          Save & Resend
-        </button>
-      </div>
-    )}
-  </div>
-  {editMessageId !== message.id && (
-    <button
-      className="text-[20px] text-[#2B3F6C] group-hover:block"
-      onClick={() => handleEditMessage(message.id, message.content)}
-    >
-      <RiEdit2Line />
-    </button>
-  )}
-</div>
-
-                      <div className="flex flex-wrap justify-start">
-                        {message.experimental_attachments?.map((attachment) => (
-                          <div key={attachment.name} className="mb-3 mr-3">
-                            {attachment.contentType?.startsWith("image") ? (
-                              <img
-                                className="rounded-md h-60"
-                                src={attachment.url}
-                                alt={attachment.name}
-                              />
-                            ) : attachment.contentType?.startsWith("text") ? (
-                              <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
-                                {getTextFromDataUrl(attachment.url)}
-                              </div>
-                            ) : null}
-                          </div>
-                        ))}
-                      </div>
-                      
-                    </div>
-                  ) : (
-                    <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
-                      <FireIcon className="min-w-[16px]" />
-                      <div className="w-[calc(100%-35px)]">
-                        
-                        {parseVercelResponse(message.content).map((segment, index) =>
-                          segment.type === 'code' ?  (
-                            (() => {
-                                          
-                              return (  
-                               
-                                <pre className="text-sm  overflow-hidden border-t rounded-lg mt-5 mb-5">
-                                  
-                                <button className="w-full text-right pr-5 pb-0.5  pt-1.5 bg-gray-700 text-neutral-200 "     onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
-                                {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
+                <div key={message.id} className="flex justify-center">
+                  <div className="w-[75%] ">
+                    {message.role === 'user' ? (
+                      <div className="mb-2 bg-[#e1e1e1] md:p-[19px_31px] p-[8px_10px] flex flex-col gap-[20px] rounded-3xl">
+                        <div className="flex justify-between">
+                          <div className="flex sm:gap-[19px] gap-[8px] flex-col w-full">
+                            <div className="flex items-start">
+                              <User2Icon className="min-w-[16px]" />
+                              {editMessageId === message.id ? (
+                                <textarea
+                                  ref={textareaRef}
+                                  value={editedMessageContent}
+                                  onChange={(e) => setEditedMessageContent(e.target.value)}
+                                  className="ml-5 border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
+                                />
+                              ) : (
+                                <p className="ml-5 md:text-[16px] text-[14px]">
+                                  {message.content}
+                                </p>
+                              )}
+                            </div>
+                            {editMessageId === message.id && (
+                              <div className="flex gap-2 mt-2 ml-10">
+                                <button
+                                  className="p-1 border-1 rounded-full bg-gray-400 hover:bg-gray-700"
+                                  onClick={() => cancelEditing()}
+                                >
+                                  <AiOutlineStop className="text-[16px]" />
                                 </button>
-                                  <code>{segment.content}</code>
-                                </pre>
-                               
-                              );
-                            })()
-                          ) : (
-                            <ReactMarkdown
-                              components={{
-                                ul: ({ node, ...props }) => (
-                                  <ul
-                                    style={{
-                                      display: 'block',
-                                      listStyleType: 'disc',
-                                      paddingInlineStart: '40px',
-                                    }}
-                                    {...props}
-                                  />
-                                ),
-                                ol: ({ node, ...props }) => (
-                                  <ol
-                                    style={{
-                                      display: 'block',
-                                      listStyleType: 'decimal',
-                                      paddingInlineStart: '40px',
-                                    }}
-                                    {...props}
-                                  />
-                                ),
-                                h1: ({ node, ...props }) => (
-                                  <h1
-                                    className="font-bold text-6xl"
-                                    {...props}
-                                  />
-                                ),
-                                p: ({ node, ...props }) => (
-                                  <p
-                                    style={{
-                                      whiteSpace: 'pre-wrap',
-                                    }}
-                                    {...props}
-                                  />
-                                ),
-                              }}
-                              remarkPlugins={[gfm]}
-                              key={index}
-                              children={segment.content}
-                            />
-                          )
-                        )}
+                                <button
+                                  className="p-1 border-1 rounded-full text-[12px] bg-[#D4DB33] hover:bg-[#0D859A]"
+                                  onClick={() => saveEditedMessage(message.id)}
+                                >
+                                  Save & Resend
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          {editMessageId !== message.id && (
+                            <button
+                              className="text-[20px] text-[#2B3F6C] group-hover:block"
+                              onClick={() => handleEditMessage(message.id, message.content)}
+                            >
+                              <RiEdit2Line />
+                            </button>
+                          )}
+                        </div>
+              
+                        <div className="flex flex-wrap justify-start">
+                          {message.experimental_attachments?.map((attachment) => (
+                            <div key={attachment.name} className="mb-3 mr-3">
+                              {attachment.contentType?.startsWith("image") ? (
+                                <img
+                                  className="rounded-md h-60"
+                                  src={attachment.url}
+                                  alt={attachment.name}
+                                />
+                              ) : attachment.contentType?.startsWith("text") ? (
+                                <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
+                                  {getTextFromDataUrl(attachment.url)}
+                                </div>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      
-                    </div>
-                  )}
+                    ) : (
+                      <div className="mb-2  md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px] rounded-3xl">
+                        <FireIcon className="min-w-[16px]" />
+                        <div className="w-[calc(100%-35px)]">
+                          {parseVercelResponse(message.content).map((segment, index) =>
+                            segment.type === 'code' ? (
+                              (() => {
+                                return (
+                                  <pre className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5">
+                                    <button className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200" onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
+                                      {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
+                                    </button>
+                                    <code>{segment.content}</code>
+                                  </pre>
+                                );
+                              })()
+                            ) : (
+                              <ReactMarkdown
+                                components={{
+                                  ul: ({ node, ...props }) => (
+                                    <ul
+                                      style={{
+                                        display: 'block',
+                                        listStyleType: 'disc',
+                                        paddingInlineStart: '40px',
+                                      }}
+                                      {...props}
+                                    />
+                                  ),
+                                  ol: ({ node, ...props }) => (
+                                    <ol
+                                      style={{
+                                        display: 'block',
+                                        listStyleType: 'decimal',
+                                        paddingInlineStart: '40px',
+                                      }}
+                                      {...props}
+                                    />
+                                  ),
+                                  h1: ({ node, ...props }) => (
+                                    <h1
+                                      className="font-bold text-6xl"
+                                      {...props}
+                                    />
+                                  ),
+                                  p: ({ node, ...props }) => (
+                                    <p
+                                      style={{
+                                        whiteSpace: 'pre-wrap',
+                                      }}
+                                      {...props}
+                                    />
+                                  ),
+                                }}
+                                remarkPlugins={[gfm]}
+                                key={index}
+                                children={segment.content}
+                              />
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
               </div>
             </div>
             <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
-              <div className="bg-[#ECECEC] rounded-md "  onDragOver={handleDragOver}
+              <div className="bg-[#e1e1e1] rounded-md "  onDragOver={handleDragOver}
                            onDragLeave={handleDragLeave}
                            onDrop={handleDrop}>
                          <AnimatePresence>
@@ -900,7 +910,7 @@ const Chat_version = ({
                   value={input}
                   onChange={handleMessageInputChange}
                   onPaste={handlePaste}
-                  className="border-0 resize-y bg-[#ECECEC] focus:ring-0 focus:shadow-none w-full rounded-md"
+                  className="border-0 resize-y bg-[#e1e1e1] focus:ring-0 focus:shadow-none w-full rounded-md"
                 >
                 </textarea> 
       <div className="pl-2 pb-2 flex items-center gap-[5px]">

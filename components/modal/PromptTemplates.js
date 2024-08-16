@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef} from "react";
 import { RightcircleIcon } from "@/public/Assets/Icons/Allsvg";
 import { FiPlus } from "react-icons/fi";
 import Templates from "../Templates/Templates";
@@ -9,6 +9,21 @@ const PromptTemplates = ({ setIsModalOpen, onPromptOpen }) => {
   const [templates, setTemplates] = useState([]);
   const [templatesForEdit, setTemplatesForEdit] = useState();
   const [actionType, setActionType] = useState("");
+  const componentRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (componentRef.current && !componentRef.current.contains(event.target)) {
+        setOpen(false);
+        setIsModalOpen(false);
+      }
+    };
+  
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [setOpen, setIsModalOpen]);
+  
   const getTemplatesList = async () => {
     try {
       const response = await fetch(`/api/manageTemplates`, {

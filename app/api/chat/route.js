@@ -16,7 +16,7 @@ export async function POST(req) {
   const body = await req.json()
   try {
 
-    var { model,  messages, prompt, settings, systemPrompt, provider, api_keys, multimodal } = body;
+    var { model,  messages, prompt, settings, systemPrompt, provider, api_keys, multimodal, rag, selectedRag } = body;
     
     var target_model;
     switch (provider) {
@@ -89,6 +89,11 @@ export async function POST(req) {
     if (multimodal){
       messagesToSend = convertToCoreMessages(messages);
     }
+
+    if (rag){
+      console.log("i wanna rag")
+    }
+    console.log("rag is " , rag, " and wants to select ", selectedRag ,"for" , model)
     const response = await streamText({
       model: target_model, 
       prompt: prompt, 

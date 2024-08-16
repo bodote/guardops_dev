@@ -24,22 +24,26 @@ import Chat_version from "@/components/Playground/chat_version";
 import { getUserRole } from "@/helper/getRole";
 import Loader from "@/components/Loader/Loader";
 import { toast } from "react-toastify";
-
+import { useCompletion } from 'ai/react';
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
 const index = () => {
   // Add state to manage text area content
+  
   const [projectList, setProjectList] = useState([]);
   const [playgroundList, setPlaygroundList] = useState([]);
   const [chatList, setChatList] = useState([]);
-  const [message, setMessage] = useState("");
   const [piiData, setPiiData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const modalRef = useRef();
   const [PiiCheckEnable, setPiiCheckEnable] = useState(false);
   const [arenaCheck, setArenaCheck] = useState(false);
+  const [ragCheck, setRagCheck] = useState(false);
+  const [vectorStores, setVectorStores] = useState([]);
+  const [searchRag, setSearchRag] = useState('');
+  const [selectedRag, setSelectedRag] = useState('');
   const [syncAll, setsyncAll] = useState(false);
   const [syncAllMsg, setSyncAllMsg] = useState(false);
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
@@ -51,13 +55,15 @@ const index = () => {
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
   const [allChatPrompt, setAllChatPrompt] = useState("");
   const [allFiles, setAllFiles] = useState([]);
+  const fileInputRef = useRef(null);
   const [chatSyncAll, setChatSyncAll] = useState(false);
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
   const [currentChatID, setCurrentChatID] = useState();
   const [currentPlayground, setCurrentPlayground] = useState({});
   const [allPromtsDetails, setAllPromtsDetails] = useState([]);
   const [allChatsDetails, setAllChatsDetails] = useState([]);
-  const [ActiveTool, setActiveTool] = useState(false);
+  const [files, setFiles] = useState([]);
+  
   const [proname, setProname] = useState({
     name: "Select a Project",
   });
@@ -72,6 +78,10 @@ const index = () => {
   const params = useSearchParams();
   const data = params.get("data");
   const [runStart, setRunStart] = useState();
+  const [formData, setFormData] = useState( {
+    type: "prompt",  
+  });
+
 
   const handleSelectModel = (modelId, index) => {
     setSelectedModels((prevState) => {
@@ -81,10 +91,13 @@ const index = () => {
     });
   };
 
+  const filteredVectorStores = vectorStores?.filter(vectorStore =>
+    vectorStore.name.toLowerCase().includes(searchRag)
+  );
   useEffect(() => {
     const parsedData = JSON.parse(data);
-    if (parsedData && parsedData.message) {
-      setMessage(parsedData.message);
+    if (parsedData && parsedData.input) {
+      setMessage(parsedData.input);
     }
     if (parsedData && parsedData.project_name) {
       const matchingProject = projectList.find(
@@ -97,12 +110,10 @@ const index = () => {
   // Code for VersionsHistory:
   const [runsHistory, setRunsHistory] = useState([]);
 
-  const handleRunClick = (runMessage) => {
-    setMessage(runMessage);
-  };
+ 
 
   const handleAddToPrompt = (content) => {
-    setMessage(content);
+    setAllChatPrompt(content)
     setIsModalOpen(false);
   };
   const handleOutsideClick = (event) => {
@@ -110,14 +121,25 @@ const index = () => {
       setIsModalOpen(false);
     }
   };
+  const handleFileChange = (event) => {
+   
+    if (event.target.files) {
+      setFiles(event.target.files);
+      if(syncAllMsg){
+        setAllFiles(event.target.files);
+      }
+      
+    }
+  };
+
   const getParsedText = () => {
     const elements = [];
     let lastIndex = 0;
 
     {
-      message &&
+      input &&
         piiData.forEach((annotation, index) => {
-          elements.push(message.substring(lastIndex, annotation.start));
+          elements.push(input.substring(lastIndex, annotation.start));
 
           elements.push(
             <span
@@ -126,13 +148,13 @@ const index = () => {
                 styles.highlight
               }`}
             >
-              {message.substring(annotation.start, annotation.end)}
+              {input.substring(annotation.start, annotation.end)}
               <span className={styles.category}>{annotation.entity_type}</span>
             </span>
           );
           lastIndex = annotation.end;
         });
-      elements.push(message.substring(lastIndex));
+      elements.push(input.substring(lastIndex));
     }
     return elements;
   };
@@ -155,15 +177,7 @@ const index = () => {
     }, 1000),
     []
   );
-  // Function to handle text change in text area
-  const handleTextChange = (e) => {
-    setMessage(e.target.value);
-    if (e.target.value.length > 0) {
-      PiiCheckEnable && debouncedSendText(e.target.value);
-    } else {
-      setPiiData([]);
-    }
-  };
+
   useEffect(() => {
     if (isModalOpen) {
       document.addEventListener("mousedown", handleOutsideClick);
@@ -194,30 +208,59 @@ const index = () => {
     }
   };
 
-  // Add useEffect to listen for keydown events
+
   useEffect(() => {
-    const handleKeyDown = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-        if (apiCallInProgress) {
-          return;
+    setFiles(allFiles);
+  }, [allFiles]);
+  const handlePaste = (event) => {
+    const items = event.clipboardData?.items;
+
+    if (items) {
+      const files = Array.from(items)
+        .map((item) => item.getAsFile())
+        .filter((file) => file !== null);
+
+      if (files.length > 0) {
+        const validFiles = files.filter(
+          (file) =>
+            file.type.startsWith("image/") || file.type.startsWith("text/")
+        );
+
+        if (validFiles.length === files.length) {
+          const dataTransfer = new DataTransfer();
+          validFiles.forEach((file) => dataTransfer.items.add(file));
+          setFiles(dataTransfer.files);
+          if(syncAllMsg){
+            setAllFiles(dataTransfer.files)
+          }
+        } else {
+          toast.error("Only image and text files are allowed");
         }
-        runPlayground();
       }
-    };
-
-    // Add event listener
-    window.addEventListener("keydown", handleKeyDown);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [message, apiCallInProgress]); // Depend on 'message' to ensure it's captured in the closure
-
+    }
+  };
   const updatePlaygroundList = async () => {
     page === "prompt" ? await getPlaygrounds() : await getChatPlaygrounds();
   };
 
+
+  const fetchVectorStores = async () => {
+    try {
+      const response = await fetch("/api/knowledge/files/vectorstore", {
+        method: "GET",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch vector stores");
+      }
+      const data = await response.json();
+      setVectorStores(data.data.stores);
+    } catch (error) {
+      console.error("Error fetching vector stores:", error);
+    }
+  };
+  useEffect(() => {
+    fetchVectorStores();
+  }, []);
   const getPlaygrounds = async () => {
     try {
       const response = await fetch(`/api/managePlaygrounds`, {
@@ -292,24 +335,10 @@ const index = () => {
       console.error("Error during API request:", error);
     }
   };
-  // Function to clear the message text area
-  const clearMessage = () => {
-    setMessage("");
-    setPiiData([]);
-    setClear(true);
-  };
-
-  // State to track the runPlayground button has been pressed
-  const [runPressed, setRunPressed] = useState(false);
-
-  // Function to reset the runPressed flag
-  const resetRunPressed = () => {
-    setRunPressed(false);
-  };
 
   useEffect(() => {
     if (allPromtsDetails.length && allPromtsDetails.length == versions.length) {
-      if (!apiCallInProgress && proname.project_id) {
+      if (!isLoading && proname.project_id) {
         saveTracePlayground();
       }
     }
@@ -440,32 +469,8 @@ const index = () => {
       console.error("Error during API request:", error);
     }
   };
-  // Function to transform text and pass to Version component
-  const runPlayground = () => {
-    setAnalysisModelOpen(false);
-    setRunStart(new Date().toISOString())
-    if (apiCallInProgress) {
-      return;
-    }
-    if (arenaCheck) {
-      if (!proname.project_id) {
-        toast.error("Please select the project first!!!");
-        return;
-      }
-    }
 
-    setAllPromtsDetails([]);
-    // Set the API call in progress status
-    setApiCallInProgress(true);
-    // Pass the uppercaseMessage to each Version component
-    setVersions(versions.map((v) => ({ ...v, message: message })));
-    setRunPressed(true);
-  };
 
-  // Function to append text to message
-  const appendToMessage = (text) => {
-    setMessage((prevMessage) => `${prevMessage} ${text}`);
-  };
   const filteredProjects = projectList.filter((project) => {
     const trimmedSearchProject = searchProject.replace(/[^\w\s]/g, "").trim();
     const regex = new RegExp(trimmedSearchProject, "gi");
@@ -489,13 +494,13 @@ const index = () => {
     { id: 1, component: <Version key={1} /> },
   ]);
 
-  const [chatVersion, setChatVersions] = useState([
-    { id: 1, component: <Chat_version key={1} /> },
-  ]);
+  const [chatVersions, setChatVersions] = useState([{ id: 1 }]);
+
+
 
   // Function to add a new version
   const addVersion = () => {
-    const modelId = selectedModels[selectedModels.length - 1];
+    const modelId = selectedModels[selectedModels.length - 1]
     setSelectedModels((prevState) => [...prevState, modelId]);
 
     const newId =
@@ -521,42 +526,25 @@ const index = () => {
     ]);
   };
 
-  const addChatVersion = () => {
-    const newId =
-      chatVersion.length > 0 ? chatVersion[chatVersion.length - 1].id + 1 : 1;
-    setChatVersions([
-      ...chatVersion,
-      {
-        id: newId,
-        component: <Chat_version />,
-      },
+
+  const addChatVersion = useCallback(() => {
+    setChatVersions(prevVersions => [
+      ...prevVersions,
+      { id: prevVersions.length + 1 }
     ]);
-  };
+  }, []);
 
-  // Function to remove a version
-  const removeVersion = (id, index) => {
-    if (versions.length === 1) {
-      // If there's only one version, do not remove it
-      return;
+
+
+
+  const removeChatVersion = useCallback((id) => {
+    if (chatVersions.length > 1) {
+      setChatVersions(prevVersions => prevVersions.filter(version => version.id !== id));
     }
+  }, [chatVersions.length]);
 
-    setSelectedModels((prevState) => {
-      const updatedModels = [...prevState];
-      updatedModels.splice(index, 1);
-      return updatedModels;
-    });
-    setVersions(versions.filter((version) => version.id !== id));
-  };
 
-  const removeChatVersion = (id) => {
-    if (chatVersion.length === 1) {
-      // If there's only one version, do not remove it
-      return;
-    }
-    setChatVersions(chatVersion.filter((version) => version.id !== id));
-  };
-  // Calculate grid columns based on number of versions
-  const gridCols = `grid-cols-${versions.length > 1 ? versions.length : 1}`;
+
 
   const initialHeight = 391; // Initial height in pixels
   const [height, setHeight] = useState(`${initialHeight}px`);
@@ -620,52 +608,54 @@ const index = () => {
     return buttons;
   };
 
-  const getTraces = async (playgroundId) => {
-    setCurrentChatID(playgroundId);
-    try {
-      const response = await fetch(
-        `/api/manageTraces?playground_id=${playgroundId}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.ok) {
-        const responseData = await response.json();
-        setAllChatsDetails([]);
-        if (responseData.traces && responseData.traces.length > 0) {
-          setChatVersions([]);
-          const newChatVersions = [];
-          responseData.traces.forEach((data, i) => {
-            newChatVersions.push({
-              id: i + 1,
-              component: <Chat_version chatPromptData={data} />,
-            });
-          });
-          // Set chatVersion with the new elements
-          setChatVersions((prevChatVersions) => [
-            ...prevChatVersions,
-            ...newChatVersions,
-          ]);
-        } else {
-          const newId =
-            chatVersion.length > 0
-              ? chatVersion[chatVersion.length - 1].id + 1
-              : 1;
-          setChatVersions([{ id: newId, component: <Chat_version /> }]);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
+const getTraces = async (playgroundId) => {
+  setCurrentChatID(playgroundId);
+  try {
+    const response = await fetch(
+      `/api/manageTraces?playground_id=${playgroundId}`,
+      {
+        method: "GET",
       }
-    } catch (error) {
-      console.error("Error during API request:", error);
+    );
+    if (response.ok) {
+      const responseData = await response.json();
+      setAllChatsDetails([]);
+      if (responseData.traces && responseData.traces.length > 0) {
+        setChatVersions([]);
+        const newChatVersions = [];
+        responseData.traces.forEach((data, i) => {
+          newChatVersions.push({
+            id: i + 1,
+            component: <Chat_version key={i + 1} chatPromptData={data}   selectedRag={selectedRag} ragCheck={ragCheck}/>,
+          });
+        });
+        // Set chatVersion with the new elements
+        setChatVersions((prevChatVersions) => [
+          ...prevChatVersions,
+          ...newChatVersions,
+        ]);
+      } else {
+        const newId =
+          chatVersions.length > 0
+            ? chatVersions[chatVersions.length - 1].id + 1
+            : 1;
+        setChatVersions([{ id: newId, component: <Chat_version key={newId}  selectedRag={selectedRag} ragCheck={ragCheck}/> }]);
+      }
+    } else {
+      console.error("API request failed:", response.statusText);
     }
-  };
+  } catch (error) {
+    console.error("Error during API request:", error);
+  }
+};
+
 
   return (
     <>
       {loader ? (
         <Loader />
       ) : role.includes("Playground") || role.includes("Full_Access") ? (
+
         <div className="flex">
           <Sidebar />
           <div className="w-full h-screen overflow-y-auto sm:ml-[96px] ml-[72px]">
@@ -696,24 +686,13 @@ const index = () => {
                   }`}
                 >
                   <div className="sticky top-0 bg-white px-[16px] py-[12px] border-b-[#CCCCCC] border-b-[1px]">
-                    <div className="bg-[#CCCCCC] text-white rounded-[6px] text-[12px] w-fit mb-[11px]">
-                      <button
-                        onClick={() => setPage("prompt")}
-                        className={`rounded-[6px] px-[6px] py-[3px] uppercase ${
-                          page === "prompt" ? "bg-[#D4DB33]" : "bg-transparent"
-                        }`}
+                   
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[10px] font-Inter py-[6px] px-[14px] rounded-md mb-3"
                       >
-                        prompt
+                        Prompt Templates
                       </button>
-                      <button
-                        onClick={() => setPage("chat")}
-                        className={` py-[3px] pl-[9px] pr-[15px] uppercase rounded-[6px] ${
-                          page === "chat" ? "bg-[#D4DB33]" : "bg-transparent"
-                        }`}
-                      >
-                        chat
-                      </button>
-                    </div>
                     <button
                       onClick={() => {
                         setOpen(true);
@@ -721,7 +700,7 @@ const index = () => {
                       }}
                       className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[12px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
                     >
-                      <FiPlus /> New Prompt
+                      <FiPlus /> New Chat
                     </button>
                   </div>
                   {page === "prompt"
@@ -934,25 +913,57 @@ const index = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="lg:flex h-[90%]">
-                        <textarea
-                          type="text"
-                          name="message"
-                          id="message"
-                          className=" border-0 rounded  w-full  text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none min-h-[127px]"
-                          placeholder=" Start entering your prompt for the selected models. Press
-                    Button Run Playground or Shift + Return to get the results."
-                          value={message}
-                          onChange={handleTextChange}
-                        />
-                        {PiiCheckEnable && (
-                          <div className=" w-full text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-y-auto min-h-[127px]">
-                            {getParsedText()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center mt-3">
+<div className="lg:flex lg:flex-col h-[90%] overflow-hidden"
+    
+>
+ 
+
+  <textarea
+    type="text"
+    name="input"
+    id="input"
+    className="border-0 rounded w-full text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none resize-none flex-grow overflow-auto min-h-[127px]"
+    placeholder="Start entering your prompt for the selected models. Press Button Run Playground or Shift + Return to get the results."
+    value={input}
+    onChange={handleTextChange}
+    onPaste={handlePaste}
+  />
+
+  <div className="pl-2 pb-2 flex items-center gap-[5px] mt-4 overflow-auto">
+    <label htmlFor="fileInput" className="bg-gray-600 hover:bg-gray-800 text-white rounded-full cursor-pointer">
+      <svg
+        className="cursor-pointer hover:text-gray-700 border rounded-full p-1 h-8"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="white"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1"
+          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+        />
+      </svg>
+      <input
+        hidden
+        type="file"
+        onChange={handleFileChange}
+        multiple
+        ref={fileInputRef}
+        accept="image/*, text/*"
+        id="fileInput"
+      />
+    </label>
+
+  </div>
+
+  {PiiCheckEnable && (
+    <div className="w-full text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-auto flex-grow min-h-[127px]">
+      {getParsedText()}
+    </div>
+  )}
+      <div className="flex gap-[10px] flex-wrap pb-[6px] sm:justify-end justify-center mt-3">
                       <button
                         onClick={() => setIsModalOpen(true)}
                         className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
@@ -966,27 +977,39 @@ const index = () => {
                         Clear
                       </button>
                       <button
+                        onClick={stop}
+
                         className={`flex items-center gap-[2px]  text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md ${
-                          apiCallInProgress
+                          isLoading
                             ? "bg-[#D4DB33] hover:bg-[#0D859A]"
                             : " bg-[#CCCCCC] text-[#666666]"
                         }`}
-                        disabled={!apiCallInProgress}
+                        disabled={!isLoading}
                       >
                         Stop
                       </button>
                       <button
                         className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
                         onClick={runPlayground}
-                      >
+                        onChange={handleInputChange}
+                        value={input}
+
+                                >
                         Run Playground
                       </button>
                     </div>
+</div>
+
+
+
+                    </div>
+                
                     {isModalOpen && (
                       <div className="modal z-[2] sm:w-[600px] w-[76%] fixed bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto">
                         <PromptTemplates
                           setIsModalOpen={setIsModalOpen}
                           onPromptOpen={handleAddToPrompt}
+                          ref={componentRef}
                         />
                       </div>
                     )}
@@ -994,145 +1017,315 @@ const index = () => {
                 ) : (
                   <div className="w-full sm:mt-0 mt-3 overflow-auto">
                     <div className="border-b-[#CCCCCC] border-b-[1px] flex justify-between items-center w-full p-[7px_7px_6px_13px] gap-3 flex-wrap sm:border-r-0 sm:border-t-0 border-t-[1px] border-t-[#CCCCCC]">
-                      <p className="text-[12px] text-black">Chat Prompt </p>
-                      <div className="flex md:justify-between justify-end items-center gap-[16px] flex-wrap">
-                        <div className="flex items-center gap-[5px]">
-                          <Switch
-                            checked={ActiveTool}
-                            onChange={setActiveTool}
-                            className={classNames(
-                              ActiveTool ? "bg-[#0074fb]" : "bg-gray-200",
-                              "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                            )}
-                          >
-                            <span className="sr-only">Use setting</span>
-                            <span
-                              aria-hidden="true"
-                              className={classNames(
-                                ActiveTool
-                                  ? "translate-x-[11px]"
-                                  : "translate-x-0",
-                                "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                              )}
-                            />
-                          </Switch>
-                          <label className="text-[#252525] text-[12px] font-medium">
-                            Activating Tools
-                          </label>
-                        </div>
-                        <Listbox value={proname} onChange={setProname}>
-                          {({ open }) => (
-                            <>
-                              <div className="relative sm:w-[180px]">
-                                <Listbox.Button className=" relative cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[1px] ">
-                                  <span className="flex items-center">
-                                    <span className=" block truncate mr-3">
-                                      {proname?.name}
-                                    </span>
-                                  </span>
-                                  <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                                    <MdKeyboardArrowUp
-                                      className={
-                                        open
-                                          ? "h-5 w-5 text-gray-400 rotate-[0]"
-                                          : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                                      }
-                                      aria-hidden="true"
-                                    />
-                                  </span>
-                                </Listbox.Button>
-
-                                <Transition
-                                  show={open}
-                                  as={Fragment}
-                                  leave="transition ease-in duration-100"
-                                  leaveFrom="opacity-100"
-                                  leaveTo="opacity-0"
+                      <div className="flex justify-between w-full sm:flex-row flex-col gap-3">
+<p>Chat</p>
+                        <div className="lg:flex items-center gap-[20px]">
+                          <div className="flex gap-[20px] sm:mt-0 mt-2 items-center">
+                            {currentPlaygroundID && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setOpen(true);
+                                    setActionType("edit");
+                                  }}
                                 >
-                                  <Listbox.Options className="absolute overflow-x-auto z-10 mt-1 max-h-56 w-full bg-white p-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg max-w-[210px]">
-                                    <div className="bg-white sticky top-0 z-[9]">
-                                      <input
-                                        type="text"
-                                        className="w-full border-b border-gray-300 rounded-[6px] focus:outline-none px-2 py-1"
-                                        placeholder="Search..."
-                                        value={searchProject}
-                                        onChange={(e) =>
-                                          setSearchProject(e.target.value)
-                                        }
-                                      />
-                                    </div>
-                                    {filteredProjects.map((project) => (
-                                      <Listbox.Option
-                                        key={project.project_id}
-                                        className={({ active }) =>
-                                          classNames(
-                                            active
-                                              ? "bg-[#f0efef]  rounded-[6px]"
-                                              : "text-[#000]",
-                                            "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
-                                          )
-                                        }
-                                        value={project}
-                                      >
-                                        <div className="flex items-center ">
-                                          <span
-                                            className={classNames(
-                                              proname
-                                                ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                                : "font-normal",
-                                              "block truncate"
-                                            )}
-                                          >
-                                            {project.name}
-                                          </span>
+                                  <EditBlackIcon className="stroke-[#000]" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setDeleteModalOpen(true);
+                                  }}
+                                >
+                                  <DeleteBlackIcon className="stroke-[#000]" />
+                                </button>
+                              </>
+                            )}
+                            {deleteModalOpen && (
+                              <DeleteModal
+                                open={deleteModalOpen}
+                                setOpen={setDeleteModalOpen}
+                                selectedDataForDelete={currentPlayground}
+                                handleDeleteData={handleDeletePlaygroundData}
+                                name="playground"
+                              />
+                            )}
+
+                            <div className="flex items-center gap-[5px]">
+                            {isModalOpen && (
+                      <div className="modal z-[2] sm:w-[600px] w-[76%] fixed bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto">
+                        <PromptTemplates
+                          setIsModalOpen={setIsModalOpen}
+                          onPromptOpen={handleAddToPrompt}
+                          ref={componentRef}
+                        />
+                      </div>
+                    )}
+
+{ragCheck && (
+        <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start lg:mt-0 mt-[10px]">
+          <Listbox value={selectedRag} onChange={setSelectedRag}>
+            {({ open }) => (
+              <>
+                <div className="relative sm:w-[180px]">
+                  <Listbox.Button className="relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px]">
+                    <span className="flex items-center">
+                      <span className="block truncate mr-3">
+                        {selectedRag ? vectorStores.find(store => store.store_id === selectedRag)?.name : 'Select a Database'}
+                      </span>
+                    </span>
+                    <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                      <MdKeyboardArrowUp
+                        className={
+                          open
+                            ? "h-5 w-5 text-gray-400 rotate-[0]"
+                            : "h-5 w-5 text-gray-400 rotate-[180deg]"
+                        }
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </Listbox.Button>
+
+                  <Transition
+                    show={open}
+                    as={Fragment}
+                    leave="transition ease-in duration-100"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <Listbox.Options className="absolute z-10 mt-1 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[234px] overflow-auto">
+                      <div className="bg-white sticky top-0 z-[9] p-1">
+                        <input
+                          type="text"
+                          className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
+                          placeholder="Search..."
+                          value={searchRag}
+                          onChange={(e) => setSearchRag(e.target.value)}
+                        />
+                      </div>
+                      {filteredVectorStores?.map((vectorStore) => (
+                        <Listbox.Option
+                          key={vectorStore.store_id}
+                          className={({ active }) =>
+                            classNames(
+                              active
+                                ? "bg-[#f0efef] rounded-[6px]"
+                                : "text-[#000]",
+                              "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
+                            )
+                          }
+                          value={vectorStore.store_id}
+                        >
+                          <div className="flex items-center">
+                            <span
+                              className=
+                               
+                                   "text-[#656565] text-[12px] font-Inter font-medium block truncate"
+                            
+                            >
+                              {vectorStore.name}
+                            </span>
+                          </div>
+                        </Listbox.Option>
+                      ))}
+                    </Listbox.Options>
+                  </Transition>
+                </div>
+              </>
+            )}
+          </Listbox>
+        </div>
+      )}
+<Switch
+                                checked={ragCheck}
+                                onChange={setRagCheck}
+                              
+                                className={classNames(
+                                  ragCheck ? "bg-[#0074fb]" : "bg-gray-200",
+                                  "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                                )}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className={classNames(
+                                    ragCheck
+                                      ? "translate-x-[11px]"
+                                      : "translate-x-0",
+                                    "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                                  )}
+                                />
+                              </Switch>
+                              <label className="text-[#252525] text-[12px] font-medium">
+                                Memory
+                              </label>
+                              <Switch
+                                checked={arenaCheck}
+                                onChange={setArenaCheck}
+                                onClick={() => {
+                                  versions.length === 1 && addVersion();
+                                }}
+                                className={classNames(
+                                  arenaCheck ? "bg-[#0074fb]" : "bg-gray-200",
+                                  "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                                )}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className={classNames(
+                                    arenaCheck
+                                      ? "translate-x-[11px]"
+                                      : "translate-x-0",
+                                    "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                                  )}
+                                />
+                              </Switch>
+                              <label className="text-[#252525] text-[12px] font-medium">
+                                Arena
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-[5px]">
+                              <Switch
+                                checked={PiiCheckEnable}
+                                onChange={setPiiCheckEnable}
+                                className={classNames(
+                                  PiiCheckEnable
+                                    ? "bg-[#0074fb]"
+                                    : "bg-gray-200",
+                                  "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                                )}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className={classNames(
+                                    PiiCheckEnable
+                                      ? "translate-x-[11px]"
+                                      : "translate-x-0",
+                                    "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                                  )}
+                                />
+                              </Switch>
+                              <label className="text-[#252525] text-[12px] font-medium">
+                                PII Checker
+                              </label>
+                            </div>
+                          </div>
+                          <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start lg:mt-0 mt-[10px]">
+                           
+                            <Listbox value={proname} onChange={setProname}>
+                              {({ open }) => (
+                                <>
+                                  <div className="relative sm:w-[180px]">
+                                    <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
+                                      <span className="flex items-center">
+                                        <span className=" block truncate mr-3">
+                                          {proname?.name}
+                                        </span>
+                                      </span>
+                                      <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                                        <MdKeyboardArrowUp
+                                          className={
+                                            open
+                                              ? "h-5 w-5 text-gray-400 rotate-[0]"
+                                              : "h-5 w-5 text-gray-400 rotate-[180deg]"
+                                          }
+                                          aria-hidden="true"
+                                        />
+                                      </span>
+                                    </Listbox.Button>
+
+                                    <Transition
+                                      show={open}
+                                      as={Fragment}
+                                      leave="transition ease-in duration-100"
+                                      leaveFrom="opacity-100"
+                                      leaveTo="opacity-0"
+                                    >
+                                      <Listbox.Options className="absolute z-10 mt-1 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl:max-w-[210px] max-w-[180px] max-h-[234px] overflow-auto">
+                                        <div className="bg-white sticky top-0 z-[9] p-1">
+                                          <input
+                                            type="text"
+                                            className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
+                                            placeholder="Search..."
+                                            value={searchProject}
+                                            onChange={(e) =>
+                                              setSearchProject(e.target.value)
+                                            }
+                                          />
                                         </div>
-                                      </Listbox.Option>
-                                    ))}
-                                  </Listbox.Options>
-                                </Transition>
-                              </div>
-                            </>
-                          )}
-                        </Listbox>
+                                        {filteredProjects.map((project) => (
+                                          <Listbox.Option
+                                            key={project.project_id}
+                                            className={({ active }) =>
+                                              classNames(
+                                                active
+                                                  ? "bg-[#f0efef]  rounded-[6px]"
+                                                  : "text-[#000]",
+                                                "relative cursor-default select-none sm:py-2 py-1 sm:pl-[30px] pl-2 pr-2 sm:pr-9"
+                                              )
+                                            }
+                                            value={project}
+                                          >
+                                            <div className="flex items-center ">
+                                              <span
+                                                className={classNames(
+                                                  proname
+                                                    ? "text-[#656565] text-[12px] font-Inter font-medium"
+                                                    : "font-normal",
+                                                  "block truncate"
+                                                )}
+                                              >
+                                                {project.name}
+                                              </span>
+                                            </div>
+                                          </Listbox.Option>
+                                        ))}
+                                      </Listbox.Options>
+                                    </Transition>
+                                  </div>
+                                </>
+                              )}
+                            </Listbox>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div
                       className={`grid w-full
-                      ${chatVersion.length > 1 && "lg:grid-cols-2"}
-                      ${chatVersion.length > 2 && "xl:grid-cols-3"}
-                      ${chatVersion.length > 3 && "2xl:!grid-cols-3"}
-                      ${chatVersion.length > 4 && "3xl:!grid-cols-5"}
+                      ${chatVersions.length > 1 && "lg:grid-cols-2"}
+                      ${chatVersions.length > 2 && "xl:grid-cols-3"}
+                      ${chatVersions.length > 3 && "2xl:!grid-cols-3"}
+                      ${chatVersions.length > 4 && "3xl:!grid-cols-5"}
                   `}
                     >
-                      {chatVersion.map((version) =>
-                        cloneElement(version.component, {
-                          key: version.id,
-                          addChatVersion,
-                          removeChatVersion: () =>
-                            removeChatVersion(version.id),
-                          versions: chatVersion.length,
-                          chatVersionId: version.id,
-                          syncAll,
-                          setsyncAll,
-                          syncAllMsg,
-                          setSyncAllMsg,
-                          setAllSystemPrompt,
-                          allSystemPrompt,
-                          allChatPrompt,
-                          setAllChatPrompt,
-                          chatSyncAll,
-                          setChatSyncAll,
-                          setAllChatsDetails,
-                          proname,
-                          currentChatID,
-                          selectedModel,
-                          setSelectedModel,
-                          saveTraceChatPlayground,
-                          setRunStart,
-                          allFiles,
-                          setAllFiles
-                        })
-                      )}
+                       {chatVersions.map((version) => (
+                <Chat_version
+                  key={`${version.id}-${ragCheck}-${selectedRag}`}
+                  versionId={version.id}
+                  ragCheck={ragCheck}
+                  selectedRag={selectedRag}
+                  addChatVersion={addChatVersion}
+                  removeChatVersion={() => removeChatVersion(version.id)}
+                  versionsCount={chatVersions.length}
+                  syncAll={syncAll}
+                  setsyncAll={setsyncAll}
+                  syncAllMsg={syncAllMsg}
+                  setSyncAllMsg={setSyncAllMsg}
+                  setAllSystemPrompt={setAllSystemPrompt}
+                  allSystemPrompt={allSystemPrompt}
+                  allChatPrompt={allChatPrompt}
+                  setAllChatPrompt={setAllChatPrompt}
+                  chatSyncAll={chatSyncAll}
+                  setChatSyncAll={setChatSyncAll}
+                  setAllChatsDetails={setAllChatsDetails}
+                  proname={proname}
+                  currentChatID={currentChatID}
+                  selectedModel={selectedModel}
+                  setSelectedModel={setSelectedModel}
+                  saveTraceChatPlayground={saveTraceChatPlayground}
+                  setRunStart={setRunStart}
+                  allFiles={allFiles}
+                  setAllFiles={setAllFiles}
+                />
+              ))}
                     </div>
                   </div>
                 )}
@@ -1208,19 +1401,24 @@ const index = () => {
                       cloneElement(version.component, {
                         addVersion,
                         removeVersion: () => removeVersion(version.id, index),
-                        message: version.message, // pass the message here
                         versionId: version.id, // pass the version ID here
-                        runPressed: runPressed,
                         versions: versions.length,
                         allVersions: versions,
-                        resetRunPressed: resetRunPressed, // pass the resetRunPressed function here
+                        setRunPressed: setRunPressed, // pass the resetRunPressed function here
                         appendToMessage: appendToMessage, // pass the appendToMessage function here
                         key: version.id,
                         setApiCallInProgress: setApiCallInProgress,
                         apiCallInProgress: apiCallInProgress,
                         syncAll,
+                        files,
+                        formData: version.formData,
+                        isLoading: version.isLoading,
+                        setFormData,
                         setsyncAll,
+                        setCompletion,
+                        completion: version.completion,
                         setAllSystemPrompt,
+                        handleSubmit,
                         allSystemPrompt,
                         analysisModelOpen,
                         setAnalysisModelOpen,
@@ -1254,6 +1452,7 @@ const index = () => {
             />
           )}
         </div>
+
       ) : (
         <div className="flex h-screen items-center justify-center">
           <p className="text-[20px]">

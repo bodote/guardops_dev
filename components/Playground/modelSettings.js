@@ -17,13 +17,13 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             <input
               type="range"
               min="0"
-              max="4000"
+              max="4096"
               className="slider-main"
               value={settings.maxTokens ? settings.maxTokens : 0}
               id="max-tokens"
               onChange={(e) => onSettingsChange("maxTokens", e.target.value)}
               style={{
-                background: calculateSliderBackground(settings.maxTokens, 4000),
+                background: calculateSliderBackground(settings.maxTokens, 4096),
               }}
             />
           </div>
