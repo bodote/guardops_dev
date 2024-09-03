@@ -1,4 +1,4 @@
-import React, { DragEvent, useState, Fragment, useEffect, useRef } from "react";
+import React, { DragEvent, useState, Fragment, useEffect, useRef, useCallback } from "react";
 import {
   EditIcon,
   MinusIcon,
@@ -14,9 +14,11 @@ import 'highlight.js/styles/atom-one-dark.css';
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
+import styles from "@/styles/TextHighlighter.module.css";
 import { Tooltip } from "react-tooltip";
 import { AnimatePresence, motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import debounce from "lodash/debounce";
 import gfm from "remark-gfm";
 import { Listbox, Transition, Switch } from "@headlessui/react";
 import { AiOutlineStop } from "react-icons/ai";
@@ -75,6 +77,7 @@ const Chat_version = ({
   chatPromptData,
   allFiles,
   setAllFiles,
+  piiCheck,
   
 }) => {
 
@@ -109,6 +112,8 @@ const Chat_version = ({
   const [errorOwn, setError] = useState("");
   const [tooltipData, setTooltipData] = useState({});
   const [searchModel, setSearchModel] = useState("");
+  const [piiData, setPiiData] = useState([]);
+
   // State for settings values
   const [settings, setSettings] = useState({
     maxTokens: 2500,
@@ -302,6 +307,63 @@ const Chat_version = ({
     
      setMessages(newMessages);
   };
+
+
+  const getParsedText = () => {
+    const elements = [];
+    let lastIndex = 0;
+
+    {
+      input &&
+        piiData.forEach((annotation, index) => {
+          elements.push(input.substring(lastIndex, annotation.start));
+
+          elements.push(
+            <span
+              key={index}
+              className={`${styles[annotation.entity_type]} ${
+                styles.highlight
+              }`}
+            >
+              {input.substring(annotation.start, annotation.end)}
+              <span className={styles.category}>{annotation.entity_type}</span>
+            </span>
+          );
+          lastIndex = annotation.end;
+        });
+      elements.push(input.substring(lastIndex));
+    }
+    return elements;
+  };
+
+  const sendText = useCallback(async () => {
+    try {
+      const response = await fetch("/api/manageModelChecks", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+      if (response.ok) {
+        const responseData = await response.json();
+        setPiiData(responseData);
+      }
+    } catch (error) {
+      console.error("Error sending text to API:", error);
+      setPiiData([]);
+    }
+  }, [input]);
+
+  const debouncedSendText = useCallback(debounce(sendText, 1000), [sendText]);
+
+  useEffect(() => {
+    if (input) {
+      debouncedSendText();
+    }
+
+    // Cleanup to cancel the debounce on unmount or input change
+    return () => {
+      debouncedSendText.cancel();
+    };
+  }, [input, debouncedSendText]);
 
   const parseVercelResponse = (apiResponse) => {
     const segments = [];
@@ -886,69 +948,56 @@ const Chat_version = ({
               </div>
             </div>
             <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
-              <div className="bg-[#e1e1e1] rounded-md "  onDragOver={handleDragOver}
-                           onDragLeave={handleDragLeave}
-                           onDrop={handleDrop}>
-                         <AnimatePresence>
-                           {isDragging && (
-                             <motion.div
-                               className="absolute pointer-events-none dark:bg-zinc-900/90  z-10 flex flex-row justify-center items-center flex flex-col gap-1 bg-zinc-100/90 top-0 left-0 right-0 bottom-0"
-                               initial={{ opacity: 0 }}
-                               animate={{ opacity: 1 }}
-                               exit={{ opacity: 0 }}
-                             >
-                               <div>Drag and drop files here</div>
-                               <div className="text-sm dark:text-zinc-400 text-zinc-500">
-                                 {"(images and text)"}
-                               </div>
-                             </motion.div>
-                           )}
-                         </AnimatePresence>
-                         
-                <textarea
-                  placeholder="Send a message"
-                  value={input}
-                  onChange={handleMessageInputChange}
-                  onPaste={handlePaste}
-                  className="border-0 resize-y bg-[#e1e1e1] focus:ring-0 focus:shadow-none w-full rounded-md"
-                >
-                </textarea> 
-      <div className="pl-2 pb-2 flex items-center gap-[5px]">
-        <label htmlFor="fileInput" className="bg-gray-600 hover:bg-gray-800 text-white rounded-full cursor-pointer">
-          <svg
-            className="cursor-pointer hover:text-gray-700 border rounded-full p-1 h-8"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="white"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1"
-              d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+  <div className="flex">
+    {/* Left Side (Input Area) */}
+    <div className={`flex-grow ${piiCheck ? "w-1/2" : "w-full"}`}>
+      <div className="bg-[#e1e1e1] rounded-md" 
+           onDragOver={handleDragOver}
+           onDragLeave={handleDragLeave}
+           onDrop={handleDrop}>
+        <textarea
+          placeholder="Send a message"
+          value={input}
+          onChange={handleMessageInputChange}
+          onPaste={handlePaste}
+          className="border-0 resize-y bg-[#e1e1e1] focus:ring-0 focus:shadow-none w-full rounded-md"
+        />
+        <div className="pl-2 pb-2 flex items-center gap-[5px]">
+          <label htmlFor="fileInput" className="bg-gray-600 hover:bg-gray-800 text-white rounded-full cursor-pointer">
+            <svg
+              className="cursor-pointer hover:text-gray-700 border rounded-full p-1 h-8"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1"
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+              />
+            </svg>
+            <input
+              hidden
+              type="file"
+              onChange={handleFileChange}
+              multiple
+              ref={fileInputRef}
+              accept="image/*, text/*"
+              id="fileInput"
             />
-          </svg>
-          <input
-            hidden
-            type="file"
-            onChange={handleFileChange}
-            multiple
-            ref={fileInputRef}
-            accept="image/*, text/*"
-            id="fileInput"
-          />
-        </label>
-        <AnimatePresence>
+          </label>
+          <AnimatePresence>
             {files && files.length > 0 && (
-              <div className=" flex items-center bottom-12 px-4 w-full md:w-[500px] md:px-0">
+              <div className="flex items-center bottom-12 px-4 w-full md:w-[500px] md:px-0">
                 {Array.from(files).map((file) =>
                   file.type.startsWith("image") ? (
-                    <div key={file.name} className="ml-2" >
+                    <div key={file.name} className="ml-2">
                       <motion.img
                         src={URL.createObjectURL(file)}
                         alt={file.name}
-                        className="rounded-md w-24 "
+                        className="rounded-md w-24"
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{
@@ -957,112 +1006,107 @@ const Chat_version = ({
                           opacity: 0,
                           transition: { duration: 0.2 },
                         }}
-                      
                       />
                     </div>
                   ) : file.type.startsWith("text") ? (
-                    <div key={file.name} className="ml-2" >
-                    <motion.div
-                      key={file.name}
-                      className="text-[8px] leading-1 w-28 h-16 overflow-hidden text-zinc-500 border p-2 rounded-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400"
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{
-                        y: -10,
-                        scale: 1.1,
-                        opacity: 0,
-                        transition: { duration: 0.2 },
-                      }}
-                     // onClick={handleDeleteFile(file.name)}
-
-                    >
-                      <TextFilePreview file={file} />
-                    </motion.div>
+                    <div key={file.name} className="ml-2">
+                      <motion.div
+                        key={file.name}
+                        className="text-[8px] leading-1 w-28 h-16 overflow-hidden text-zinc-500 border p-2 rounded-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{
+                          y: -10,
+                          scale: 1.1,
+                          opacity: 0,
+                          transition: { duration: 0.2 },
+                        }}
+                      >
+                        <TextFilePreview file={file} />
+                      </motion.div>
                     </div>
                   ) : null
                 )}
               </div>
             )}
           </AnimatePresence>
-
-
-  
-
+        </div>
       </div>
-     
-                  
-                <div className="flex justify-end gap-[10px] pr-[13px] pb-2">
-                  
-                  <div className="flex items-center gap-[5px]">
-                    <Switch
-                      checked={syncAllMsg}
-                      onChange={() => setSyncAllMsg(!syncAllMsg)}
-                      className={classNames(
-                        syncAllMsg ? "bg-[#0074fb]" : "bg-[#898989]",
-                        "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                      )}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className={classNames(
-                          syncAllMsg ? "translate-x-[11px]" : "translate-x-0",
-                          "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                        )}
-                      />
-                    </Switch>
-                    <label className="text-[#252525] text-[12px] font-medium">
-                      Sync to all
-                    </label>
-                  </div>
-                  <button
-                      onClick={event => {
-                        if (!isLoading){
-                        handleSubmit(event, {
-                          experimental_attachments: files,
-                        });
-              
-                        setFiles(undefined);
-              
-                        if (fileInputRef.current) {
-                          fileInputRef.current.value = '';
-                        }
-                      }}}
-                      className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
-                      isLoading
-                        ? "bg-[#CCCCCC]"
-                        : "bg-[#D4DB33] hover:bg-[#0D859A]"
-                    }`}
-                    disabled={isLoading}
-                    value={input}
-                    onChange={handleInputChange}
-                  >
-                    Send
-                  </button>
-                  <button
-                    onClick={stop}
-                    className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
-                      !isLoading
-                        ? "bg-[#CCCCCC]"
-                        : "bg-[#D4DB33] hover:bg-[#0D859A]"
-                    }`}
-                    disabled={!isLoading}
-                  >
-                    Stop
-                  </button>
-                  <button
-                    onClick={reload}
-                    className={` text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
-                      isLoading
-                        ? "bg-[#CCCCCC]"
-                        : "bg-[#D4DB33] hover:bg-[#0D859A]"
-                    }`}
-                    disabled={isLoading}
-                  >
-                    Reload
-                  </button>
-                </div>
-              </div>
-            </div>
+    </div>
+
+    {/* Right Side (PII Check Area) */}
+    {piiCheck && (
+      <div className="w-1/2 text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-auto flex-grow min-h-[127px]">
+        {getParsedText()}
+      </div>
+    )}
+  </div>
+
+  <div className="flex justify-end gap-[10px] pr-[13px] pb-2">
+    <div className="flex items-center gap-[5px]">
+      <Switch
+        checked={syncAllMsg}
+        onChange={() => setSyncAllMsg(!syncAllMsg)}
+        className={classNames(
+          syncAllMsg ? "bg-[#0074fb]" : "bg-[#898989]",
+          "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+        )}
+      >
+        <span
+          aria-hidden="true"
+          className={classNames(
+            syncAllMsg ? "translate-x-[11px]" : "translate-x-0",
+            "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+          )}
+        />
+      </Switch>
+      <label className="text-[#252525] text-[12px] font-medium">
+        Sync to all
+      </label>
+    </div>
+    <button
+      onClick={event => {
+        if (!isLoading) {
+          handleSubmit(event, {
+            experimental_attachments: files,
+          });
+
+          setFiles(undefined);
+
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }
+      }}
+      className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
+        isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
+      }`}
+      disabled={isLoading}
+      value={input}
+      onChange={handleInputChange}
+    >
+      Send
+    </button>
+    <button
+      onClick={stop}
+      className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
+        !isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
+      }`}
+      disabled={!isLoading}
+    >
+      Stop
+    </button>
+    <button
+      onClick={reload}
+      className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
+        isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
+      }`}
+      disabled={isLoading}
+    >
+      Reload
+    </button>
+  </div>
+</div>
           </div>
         </div>
       </div>
