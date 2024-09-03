@@ -57,7 +57,7 @@ function TextFilePreview({ file }) {
 }
 
 const Chat_version = ({
-  versions,
+  columnCount,
   chatVersionId,
   removeChatVersion,
   addChatVersion,
@@ -78,6 +78,8 @@ const Chat_version = ({
   allFiles,
   setAllFiles,
   piiCheck,
+  arenaCheck,
+  index
   
 }) => {
 
@@ -217,7 +219,7 @@ const Chat_version = ({
     mistralKey,
     perplexityKey,
   ]);
-  const { messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages,   } = useChat({
+  const {id,  messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages,   } = useChat({
     keepLastMessageOnError: true,
     body: formData
   });
@@ -600,9 +602,17 @@ const Chat_version = ({
     setSystemPrompt(allSystemPrompt);
   }, [allSystemPrompt]);
   return (
+    
     <div className="flex sm:flex-row flex-col items-start">
+      
       <div className="w-full">
-        <div className="border-r-[#CCCCCC] border-r-[1px]">
+        <div className="border-r-[#CCCCCC] border-r-[1px]"> {arenaCheck && (
+         <div className="h-[16px] border border-b-[#D9D9D9] border-l-[#D9D9D9] border-r-[#D9D9D9] text-[10px] font-inter rounded-b-[12px] flex justify-center items-center">
+         {String.fromCharCode(65 + index)}
+       </div>
+       
+       
+        )}
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative 2xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
             <div className="flex items-center gap-2">
               <Listbox value={selected} onChange={handleSelect}>
@@ -611,7 +621,7 @@ const Chat_version = ({
                     <div className="relative">
                       <Listbox.Button
                         className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
-                          versions > 2 ? "sm:!w-[130px]" : ""
+                          columnCount > 2 ? "sm:!w-[130px]" : ""
                         }`}
                       >
                         <span className="flex items-center">
@@ -695,7 +705,7 @@ const Chat_version = ({
             </div>
             <div
               className={`flex gap-[17px] sm:mt-0 mt-[20px] ${
-                versions > 2 ? "2xl:!gap-[10px] xl:!gap-[6px] !gap-[10px]" : ""
+                columnCount > 2 ? "2xl:!gap-[10px] xl:!gap-[6px] !gap-[10px]" : ""
               }`}
             >
              <button
@@ -722,7 +732,7 @@ const Chat_version = ({
               <button onClick={() => setOpen(!open)}>
                 <EditIcon />
               </button>
-              <button>
+              <button disabled={arenaCheck && columnCount <= 2}>
                 <MinusIcon onClick={() => removeChatVersion()} />
               </button>
               <button>
@@ -955,6 +965,21 @@ const Chat_version = ({
            onDragOver={handleDragOver}
            onDragLeave={handleDragLeave}
            onDrop={handleDrop}>
+             <AnimatePresence>
+                           {isDragging && (
+                             <motion.div
+                               className="absolute pointer-events-none dark:bg-zinc-900/90  z-10 flex flex-row justify-center items-center flex flex-col gap-1 bg-zinc-100/90 top-0 left-0 right-0 bottom-0"
+                               initial={{ opacity: 0 }}
+                               animate={{ opacity: 1 }}
+                               exit={{ opacity: 0 }}
+                             >
+                               <div>Drag and drop files here</div>
+                               <div className="text-sm dark:text-zinc-400 text-zinc-500">
+                                 {"(images and text)"}
+                               </div>
+                             </motion.div>
+                           )}
+                         </AnimatePresence>
         <textarea
           placeholder="Send a message"
           value={input}
