@@ -148,51 +148,7 @@ const index = () => {
     }
   };
 
-  const getParsedText = () => {
-    const elements = [];
-    let lastIndex = 0;
 
-    {
-      allChatPrompt &&
-        piiData.forEach((annotation, index) => {
-          elements.push(allChatPrompt.substring(lastIndex, annotation.start));
-
-          elements.push(
-            <span
-              key={index}
-              className={`${styles[annotation.entity_type]} ${
-                styles.highlight
-              }`}
-            >
-              {allChatPrompt.substring(annotation.start, annotation.end)}
-              <span className={styles.category}>{annotation.entity_type}</span>
-            </span>
-          );
-          lastIndex = annotation.end;
-        });
-      elements.push(allChatPrompt.substring(lastIndex));
-    }
-    return elements;
-  };
-
-  const debouncedSendText = useCallback(
-    debounce(async (inputText) => {
-      try {
-        const response = await fetch("/api/manageModelChecks", {
-          method: "POST",
-          body: JSON.stringify(inputText),
-        });
-        if (response.ok) {
-          const responseData = await response.json();
-          setPiiData(responseData);
-        }
-      } catch (error) {
-        console.error("Error sending text to API:", error);
-        setPiiData([]);
-      }
-    }, 1000),
-    []
-  );
 
   useEffect(() => {
     if (isModalOpen) {
@@ -277,24 +233,6 @@ const index = () => {
   useEffect(() => {
     fetchVectorStores();
   }, []);
-  const getPlaygrounds = async () => {
-    try {
-      const response = await fetch(`/api/managePlaygrounds`, {
-        method: "GET",
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData.playgrounds) {
-          setPlaygroundList(responseData.playgrounds);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
 
   const getChatPlaygrounds = async () => {
     try {
@@ -325,7 +263,6 @@ const index = () => {
   useEffect(() => {
     getRole();
     getProjectList();
-    getPlaygrounds();
     getChatPlaygrounds();
   }, []);
 
@@ -418,25 +355,6 @@ const index = () => {
   };
 
 
-  const handleDeletePlaygroundData = async () => {
-    const formData = {
-      playground_id: currentPlaygroundID,
-    };
-    try {
-      const response = await fetch("/api/managePlaygrounds", {
-        method: "DELETE",
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        getPlaygrounds();
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
 
 
   const filteredProjects = projectList.filter((project) => {
@@ -519,7 +437,7 @@ const index = () => {
         toast.success("Chat created successfully !!");
        
         updatePlaygroundList();
-        setCurrentChatID();
+        setCurrentChatID(responseData);
         setCurrentPlayground();
       } else {
         toast.error(responseData.detail);
@@ -709,11 +627,10 @@ const getTraces = async (playgroundId) => {
         key={playground.playground_id}
         className="flex items-start my-[10px] gap-2 px-[16px]"
       >
-        <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
         <div
           onClick={() => getTraces(playground.playground_id)}
-          className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
-            currentChatID === playground.playground_id ? "underline" : ""
+          className={`text-[#656565] text-[12px] cursor-pointer hover:font-bold ${
+            currentChatID === playground.playground_id ? "font-bold" : ""
           }`}
         >
           {description}
@@ -755,7 +672,6 @@ const getTraces = async (playgroundId) => {
                                 open={deleteModalOpen}
                                 setOpen={setDeleteModalOpen}
                                 selectedDataForDelete={currentPlayground}
-                                handleDeleteData={handleDeletePlaygroundData}
                                 name="playground"
                               />
                             )}
