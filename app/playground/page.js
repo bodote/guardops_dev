@@ -33,7 +33,6 @@ const index = () => {
   // Add state to manage text area content
   
   const [projectList, setProjectList] = useState([]);
-  const [playgroundList, setPlaygroundList] = useState([]);
   const [chatList, setChatList] = useState([]);
   const [piiData, setPiiData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,8 +47,6 @@ const index = () => {
   const [syncAllMsg, setSyncAllMsg] = useState(false);
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
   const [open, setOpen] = useState(false);
-  const [clear, setClear] = useState(false);
-  const [page, setPage] = useState("chat");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [actionType, setActionType] = useState("");
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
@@ -69,7 +66,6 @@ const index = () => {
   });
   const [selectedModel, setSelectedModel] = useState(null); // State to store the selected model
   const [searchProject, setSearchProject] = useState("");
-  const [apiCallInProgress, setApiCallInProgress] = useState(false);
   const [role, setRole] = useState("");
   const [loader, setLoader] = useState(true);
   const [review, setReview] = useState(false);
@@ -78,19 +74,9 @@ const index = () => {
   const params = useSearchParams();
   const data = params.get("data");
   const [runStart, setRunStart] = useState();
-  const [formData, setFormData] = useState( {
-    type: "prompt",  
-  });
 
 
-  const handleSelectModel = (modelId, index) => {
-    setSelectedModels((prevState) => {
-      const updatedModels = [...prevState];
-      updatedModels[index] = modelId;
-      return updatedModels;
-    });
-  };
-
+ 
   const filteredVectorStores = vectorStores?.filter(vectorStore =>
     vectorStore.name.toLowerCase().includes(searchRag)
   );
@@ -107,10 +93,40 @@ const index = () => {
     }
   }, [projectList, data]);
 
-  // Code for VersionsHistory:
-  const [runsHistory, setRunsHistory] = useState([]);
-
+ const groupedChatList = chatList.reduce((acc, playground) => {
+   const { name, description } = playground;
  
+   // Check if playground.name is a valid date in the format YYYY-MM-DD
+   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+   if (dateRegex.test(name)) {
+     const date = new Date(name);
+     if (!isNaN(date)) {
+       const formattedDate = date.toLocaleDateString("de-DE", {
+         day: "2-digit",
+         month: "2-digit",
+         year: "numeric",
+       });
+ 
+       if (!acc[formattedDate]) {
+         acc[formattedDate] = [];
+       }
+       acc[formattedDate].push({ description, playground });
+     } else {
+       console.error(`Invalid date: ${name}`);
+     }
+   } else {
+     if (!acc["old"]) {
+       acc["old"] = [];
+     }
+     acc["old"].push({ description, playground });
+   }
+ 
+   return acc;
+ }, {});
+ 
+  const sortedDates = Object.keys(groupedChatList)
+  .filter(date => date !== "old")
+  .sort((a, b) => new Date(b.split(".").reverse().join("-")) - new Date(a.split(".").reverse().join("-")));
 
   const handleAddToPrompt = (content) => {
     setAllChatPrompt(content)
@@ -336,13 +352,7 @@ const index = () => {
     }
   };
 
-  useEffect(() => {
-    if (allPromtsDetails.length && allPromtsDetails.length == versions.length) {
-      if (!isLoading && proname.project_id) {
-        saveTracePlayground();
-      }
-    }
-  }, [allPromtsDetails]);
+
 
   const saveTraceChatPlayground = async () => {
     if (proname.project_id === undefined ) {
@@ -407,48 +417,6 @@ const index = () => {
     }
   };
 
-  const saveTracePlayground = async () => {
-    const formatModelParams = (settings) => {
-      const paramsArray = Object.entries(settings).map(
-        ([key, value]) => `${key}:${value}`
-      );
-      return paramsArray.join(", ");
-    };
-    const APIBody = allPromtsDetails
-      .filter((item) => item.isValid)
-      .map((item) => ({
-        // [item.model]: [item.input, item.output],
-        [item.model]: {
-          system_prompt: item.systemPrompt,
-          input: item.input,
-          output: item.output.replace(/\{"tokens":\d+\}/g, ""),
-          model_params: formatModelParams(item.settings),
-        },
-      }));
-      
-    const formData = {
-      project_id: proname.project_id,
-      playground_id: currentPlaygroundID,
-      access_token: localStorage.getItem("customAIKey"),
-      start_time: runStart,
-      prompt_response_pairs: APIBody,
-    };
-    try {
-      const response = await fetch("/api/managePlaygrounds", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData) {
-          setTraces(responseData.traces);
-          arenaCheck && setReview(true);
-        }
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
 
   const handleDeletePlaygroundData = async () => {
     const formData = {
@@ -489,42 +457,9 @@ const index = () => {
     }
     return 0; // names must be equal
   });;
-  // State to manage versions
-  const [versions, setVersions] = useState([
-    { id: 1, component: <Version key={1} /> },
-  ]);
 
   const [chatVersions, setChatVersions] = useState([{ id: 1 }]);
 
-
-
-  // Function to add a new version
-  const addVersion = () => {
-    const modelId = selectedModels[selectedModels.length - 1]
-    setSelectedModels((prevState) => [...prevState, modelId]);
-
-    const newId =
-      versions.length > 0 ? versions[versions.length - 1].id + 1 : 1;
-    setVersions([
-      ...versions,
-      {
-        id: newId,
-        component: (
-          <Version
-            key={newId}
-            syncAll={syncAll}
-            setsyncAll={setsyncAll}
-            allSystemPrompt={allSystemPrompt}
-            setAllSystemPrompt={setAllSystemPrompt}
-            setAnalysisModelOpen={setAnalysisModelOpen}
-            analysisModelOpen={analysisModelOpen}
-            setAllPromtsDetails={setAllPromtsDetails}
-            allPromtsDetails={setAllPromtsDetails}
-          />
-        ),
-      },
-    ]);
-  };
 
 
   const addChatVersion = useCallback(() => {
@@ -549,6 +484,53 @@ const index = () => {
   const initialHeight = 391; // Initial height in pixels
   const [height, setHeight] = useState(`${initialHeight}px`);
 
+
+  const handleCreateChat = async () => {
+    const currentDate = new Date();
+
+    // Format the current date as YYYY-MM-DD
+    const formattedDate = currentDate.toISOString().split('T')[0];
+  
+    // Format the current time as HH:MM
+    const formattedTime = currentDate.toTimeString().split(' ')[0].slice(0, 5);
+    const playgroundFormData = {
+      playground_name: formattedDate,
+      playground_description: formattedTime,
+    };
+    if (
+      playgroundFormData.playground_name == "" ||
+      playgroundFormData.playground_description == ""
+    ) {
+      toast.error("Please Enter required fields !!");
+      return false;
+    }
+    const formData = {
+      playground_name: playgroundFormData.playground_name,
+      playground_description: playgroundFormData.playground_description
+    };
+    try {
+      let url = "/api/manageChatPlayground";
+      const response = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+      const responseData = await response.json();
+      if (response.ok) {
+        toast.success("Chat created successfully !!");
+       
+        updatePlaygroundList();
+        setCurrentChatID();
+        setCurrentPlayground();
+      } else {
+        toast.error(responseData.detail);
+        console.error("API request failed:", response.statusText);
+      }
+    } catch (error) {
+      toast.error(`${error.message}`);
+      console.error("Error during API request:", error);
+    }
+  };
+
   const handleMouseDown = (e) => {
     const startY = e.clientY;
     const initialHeight = parseFloat(height);
@@ -572,6 +554,7 @@ const index = () => {
   const handleStoreArenaScore = async (i) => {
     const winningModelId = selectedModels[i];
     const losingModelIds = selectedModels.filter((id, index) => index !== i);
+    console.log("these models are selected", selectedModels)
     const formData = {
       project_id: proname.project_id,
       winner_trace_id: traces[i],
@@ -594,7 +577,7 @@ const index = () => {
 
   const renderButtons = () => {
     const buttons = [];
-    for (let i = 0; i < versions.length; i++) {
+    for (let i = 0; i < chatVersions.length; i++) {
       buttons.push(
         <button
           onClick={() => handleStoreArenaScore(i)}
@@ -690,52 +673,56 @@ const getTraces = async (playgroundId) => {
                         Prompt Templates
                       </button>
                     <button
-                      onClick={() => {
-                        setOpen(true);
-                        setActionType("new");
-                      }}
+                      onClick={handleCreateChat}
                       className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[12px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
                     >
                       <FiPlus /> New Chat
                     </button>
                   </div>
-                  {page === "prompt"
-                    ? playgroundList.map((playground) => (
-                        <div
-                          key={playground.playground_id}
-                          className="flex items-start my-[22px] gap-2 px-[16px]"
-                        >
-                          <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
-                          <div
-                            onClick={() => handleSetTraces(playground)}
-                            className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
-                              currentPlaygroundID === playground.playground_id
-                                ? "underline"
-                                : ""
-                            }`}
-                          >
-                            {playground.name}
-                          </div>
-                        </div>
-                      ))
-                    : chatList.map((playground) => (
-                        <div
-                          key={playground.playground_id}
-                          className="flex items-start my-[20px] gap-2 px-[16px]"
-                        >
-                          <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
-                          <div
-                            onClick={() => getTraces(playground.playground_id)}
-                            className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
-                              currentChatID === playground.playground_id
-                                ? "underline"
-                                : ""
-                            }`}
-                          >
-                            {playground.name}
-                          </div>
-                        </div>
-                      ))}
+                  {sortedDates.map(date => (
+  <div key={date}>
+    <h3 className="text-[14px] font-bold mt-5 ml-2">{date}</h3>
+    {groupedChatList[date].slice().reverse().map(({ description, playground }) => (
+      <div
+        key={playground.playground_id}
+        className="flex items-start my-[10px] gap-2 px-[16px]"
+      >
+        <div
+          onClick={() => getTraces(playground.playground_id)}
+          className={`text-[#656565] text-[12px]  cursor-pointer hover:font-bold ${
+            currentChatID === playground.playground_id ? "font-bold" : ""
+          }`}
+        >
+          {description}
+        </div>
+      </div>
+    ))}
+  </div>
+))}
+
+{/* Render the "old" section */}
+{groupedChatList.old && (
+  <div>
+    <h3 className="text-[14px] font-bold mt-5 ml-2">Old</h3>
+    {groupedChatList.old.slice().reverse().map(({ description, playground }) => (
+      <div
+        key={playground.playground_id}
+        className="flex items-start my-[10px] gap-2 px-[16px]"
+      >
+        <span className="min-w-[5px] min-h-[5px] bg-[#656565] rounded-full block mt-[6px]"></span>
+        <div
+          onClick={() => getTraces(playground.playground_id)}
+          className={`text-[#656565] text-[12px] font-Inter font-medium cursor-pointer hover:underline ${
+            currentChatID === playground.playground_id ? "underline" : ""
+          }`}
+        >
+          {description}
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
                 </div>
                 
                   <div className="w-full sm:mt-0 mt-3 overflow-auto">
@@ -858,6 +845,9 @@ const getTraces = async (playgroundId) => {
           </Listbox>
         </div>
       )}
+
+
+
 <Switch
                                 checked={ragCheck}
                                 onChange={setRagCheck}
@@ -882,9 +872,11 @@ const getTraces = async (playgroundId) => {
                               </label>
                               <Switch
                                 checked={arenaCheck}
-                                onChange={setArenaCheck}
-                                onClick={() => {
-                                  versions.length === 1 && addVersion();
+                                onChange={() => {
+                                  setArenaCheck(!arenaCheck);
+                                  setReview(false);
+                                }}                                onClick={() => {
+                                  chatVersions.length === 1 && addChatVersion();
                                 }}
                                 className={classNames(
                                   arenaCheck ? "bg-[#0074fb]" : "bg-gray-200",
@@ -904,6 +896,12 @@ const getTraces = async (playgroundId) => {
                               <label className="text-[#252525] text-[12px] font-medium">
                                 Arena
                               </label>
+                              {arenaCheck && (<button
+                        onClick={() => setReview(true)}
+                        className=" flex items-center  bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[10px] font-Inter py-[6px] px-[14px] rounded-md "
+                      >
+                        Score Arena
+                      </button>)}
                             </div>
                             <div className="flex items-center gap-[5px]">
                               <Switch
@@ -1024,7 +1022,7 @@ const getTraces = async (playgroundId) => {
                         <div className="bg-[#D9D9D9] rounded-[12px] flex flex-wrap items-center sm:p-[5px_29px_5px_23px] p-[5px_8px_5px_8px]">
                           <div className="flex items-center md:gap-[6px] gap-[4px] flex-wrap">
                             <p className="text-[12px] text-black mr-[7px] sm:whitespace-nowrap whitespace-normal">
-                              Which model output is best for your use-case? :
+                              Which model was better to use? :
                             </p>
                             {renderButtons()}
                             <div className="bg-[#ABABAB] h-[28px] w-[1px] sm:mx-[8px]" />
@@ -1046,7 +1044,7 @@ const getTraces = async (playgroundId) => {
                         </div>
                       </div>
                     )}
-                       {chatVersions.map((version) => (
+                       {chatVersions.map((version, index) => (
                 <Chat_version
                   key={`${version.id}-${ragCheck}-${selectedRag}`}
                   versionId={version.id}
@@ -1054,7 +1052,7 @@ const getTraces = async (playgroundId) => {
                   selectedRag={selectedRag}
                   addChatVersion={addChatVersion}
                   removeChatVersion={() => removeChatVersion(version.id)}
-                  versionsCount={chatVersions.length}
+                  columnCount={chatVersions.length}
                   syncAll={syncAll}
                   setsyncAll={setsyncAll}
                   syncAllMsg={syncAllMsg}
@@ -1075,6 +1073,8 @@ const getTraces = async (playgroundId) => {
                   allFiles={allFiles}
                   setAllFiles={setAllFiles}
                   piiCheck={PiiCheckEnable}
+                  arenaCheck={arenaCheck}
+                  index={index}
                 />
               ))}
                     </div>
@@ -1096,10 +1096,10 @@ const getTraces = async (playgroundId) => {
               actionType={actionType}
               playground={actionType === "edit" ? currentPlayground : null}
               setCurrentID={
-                page === "prompt" ? setCurrentPlaygroundID : setCurrentChatID
+                 setCurrentChatID
               }
               setCurrentPlayground={setCurrentPlayground}
-              page={page}
+              page="chat"
             />
           )}
         </div>
