@@ -47,9 +47,9 @@ export default async function handler(req, res) {
             playground_id: bodyData.playground_id,
             access_token: bodyData.access_token,
             start_time: bodyData.start_time,
+            system_prompt: bodyData.system_prompt
           });
           urlWithParams = `${Url}?${queryParams.toString()}`;
-
           try {
             const response = await fetch(urlWithParams, {
               method: "POST",
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
                 authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               }),
-              body: JSON.stringify(bodyData.prompt_response_pairs),
+              body:  JSON.stringify({messages:bodyData.messages,model_settings: bodyData.model_settings}),
             });
 
             const data = await response.json();

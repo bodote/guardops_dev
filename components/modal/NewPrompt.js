@@ -26,14 +26,23 @@ const NewPrompt = ({
   };
 
   const handleCreatePrompt = async () => {
+    const currentDate = new Date();
+
+    // Format the current date as YYYY-MM-DD
+    const formattedDate = currentDate.toISOString().split('T')[0];
+  
+    // Format the current time as HH:MM
+    const formattedTime = currentDate.toTimeString().split(' ')[0].slice(0, 5);
     const playgroundFormData = {
       ...playgroundData,
+      playground_name: formattedDate,
+      playground_description: formattedTime,
     };
     if (
       playgroundFormData.playground_name == "" ||
       playgroundFormData.playground_description == ""
     ) {
-      toast.error("Please Enter required fields !!");
+      toast.error("Please Enter required fields!");
       return false;
     }
     const formData = {
@@ -42,17 +51,14 @@ const NewPrompt = ({
       playground_id: playground ? playground.playground_id : "",
     };
     try {
-      let url;
-      page === "prompt"
-        ? (url = "/api/managePlaygrounds")
-        : (url = "/api/manageChatPlayground");
+      let url = "/api/manageChatPlayground";
       const response = await fetch(url, {
         method: actionType === "new" ? "POST" : "PATCH",
         body: JSON.stringify(formData),
       });
       const responseData = await response.json();
       if (response.ok) {
-        toast.success("Prompt created successfully !!");
+        toast.success("Prompt created successfully!");
         setPlaygroundData({
           playground_name: "",
           playground_description: "",

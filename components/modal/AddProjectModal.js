@@ -70,7 +70,7 @@ const AddProjectModal = ({
       projectFormData.project_name == "" ||
       projectFormData.project_description == ""
     ) {
-      toast.error("Please Enter required fields !!");
+      toast.error("Please Enter required fields!");
       return false;
     }
 
@@ -94,7 +94,7 @@ const AddProjectModal = ({
         });
         const responseData = await response.json();
         if (response.ok) {
-          toast.success("Project created successfully !!");
+          toast.success("Project created successfully!");
           setProjectData({
             project_name: "",
             project_description: "",
@@ -118,7 +118,7 @@ const AddProjectModal = ({
 
         const responseData = await response.json();
         if (response.ok) {
-          toast.success("Project updated successfully !!");
+          toast.success("Project updated successfully!");
           setProjectData({
             project_name: "",
             project_description: "",

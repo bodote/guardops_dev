@@ -61,7 +61,7 @@ const index = () => {
   const [allChatsDetails, setAllChatsDetails] = useState([]);
   const [files, setFiles] = useState([]);
   
-  const [proname, setProname] = useState({
+  const [selectedProject, setSelectedProject] = useState({
     name: "Select a Project",
   });
   const [selectedModel, setSelectedModel] = useState(null); // State to store the selected model
@@ -74,7 +74,6 @@ const index = () => {
   const params = useSearchParams();
   const data = params.get("data");
   const [runStart, setRunStart] = useState();
-
 
  
   const filteredVectorStores = vectorStores?.filter(vectorStore =>
@@ -89,7 +88,7 @@ const index = () => {
       const matchingProject = projectList.find(
         (project) => project.name === parsedData.project_name
       );
-      setProname(matchingProject);
+      setSelectedProject(matchingProject);
     }
   }, [projectList, data]);
 
@@ -291,72 +290,6 @@ const index = () => {
 
 
 
-  const saveTraceChatPlayground = async () => {
-    if (proname.project_id === undefined ) {
-      toast.error("Please select the project first!!!");
-      return;
-    }
-    const formatModelParams = (settings) => {
-      const paramsArray = Object.entries(settings).map(
-        ([key, value]) => `${key}:${value}`
-      );
-      return paramsArray.join(", ");
-    };
-    const uniqueChatVersionIds = [
-      ...new Set(allChatsDetails.map((item) => item.chatVersionId)),
-    ];
-
-    try {
-      let combinedAPIBody = [];
-      await Promise.all(
-        uniqueChatVersionIds.map(async (chatVersionId) => {
-          const chatDetails = allChatsDetails.filter(
-            (item) => item.chatVersionId === chatVersionId
-          );
-
-          const lastModel = chatDetails[chatDetails.length - 1].model;
-          const APIBody = chatDetails
-            .filter(
-              (item) =>
-                item.isValid && (item.input !== "" || item.output !== "")
-            )
-            .map((item) => ({
-              [lastModel]: {
-                system_prompt: item.systemPrompt,
-                input: item.input,
-                output: item.output.replace(/\{"tokens":\d+\}/g, ""),
-                model_params: formatModelParams(item.settings),
-              },
-            }));
-
-          combinedAPIBody.push(APIBody);
-        })
-      );
-      const formData = {
-        project_id: proname.project_id,
-        ...(currentChatID !== undefined && { playground_id: currentChatID }),
-        access_token: localStorage.getItem("customAIKey"),
-        start_time: runStart,
-        prompt_response_pairs: combinedAPIBody,
-      };
-      // Make API call with the combined form data
-      const response = await fetch("/api/manageChatPlayground", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-
-      const responseData = await response.json();
-      if (response.ok) {
-        toast.success("The traces are successfully stored!!!");
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
-
-
-
-
   const filteredProjects = projectList.filter((project) => {
     const trimmedSearchProject = searchProject.replace(/[^\w\s]/g, "").trim();
     const regex = new RegExp(trimmedSearchProject, "gi");
@@ -419,7 +352,7 @@ const index = () => {
       playgroundFormData.playground_name == "" ||
       playgroundFormData.playground_description == ""
     ) {
-      toast.error("Please Enter required fields !!");
+      toast.error("Please Enter required fields!");
       return false;
     }
     const formData = {
@@ -434,7 +367,7 @@ const index = () => {
       });
       const responseData = await response.json();
       if (response.ok) {
-        toast.success("Chat created successfully !!");
+        toast.success("Chat created successfully!");
        
         updatePlaygroundList();
         setCurrentChatID(responseData);
@@ -474,7 +407,7 @@ const index = () => {
     const losingModelIds = selectedModels.filter((id, index) => index !== i);
     console.log("these models are selected", selectedModels)
     const formData = {
-      project_id: proname.project_id,
+      project_id: selectedProject.project_id,
       winner_trace_id: traces[i],
       winning_model_id: winningModelId,
       losing_model_ids: losingModelIds,
@@ -510,6 +443,7 @@ const index = () => {
   };
 
 const getTraces = async (playgroundId) => {
+  
   setCurrentChatID(playgroundId);
   try {
     const response = await fetch(
@@ -521,14 +455,24 @@ const getTraces = async (playgroundId) => {
     if (response.ok) {
       const responseData = await response.json();
       setAllChatsDetails([]);
+      setSelectedProject({
+        name: "Select a Project",
+      })
       if (responseData.traces && responseData.traces.length > 0) {
         setChatVersions([]);
         const newChatVersions = [];
-        responseData.traces.forEach((data, i) => {
+        const selectedProjectOfOldChat = responseData.project;
+        console.log("this old project ", selectedProjectOfOldChat)
+        const matchingProject = projectList.find(
+          (project) => project.project_id === selectedProjectOfOldChat
+        );
+        setSelectedProject(matchingProject);
+        responseData.traces.forEach((trace, i) => {
           newChatVersions.push({
             id: i + 1,
-            component: <Chat_version key={i + 1} chatPromptData={data}   selectedRag={selectedRag} ragCheck={ragCheck}/>,
+            component: <Chat_version key={i + 1} chatHistory={trace}  />,
           });
+          
         });
         // Set chatVersion with the new elements
         setChatVersions((prevChatVersions) => [
@@ -786,6 +730,12 @@ const getTraces = async (playgroundId) => {
                               <label className="text-[#252525] text-[12px] font-medium">
                                 Memory
                               </label>
+                              {arenaCheck && (<button
+                        onClick={() => setReview(true)}
+                        className=" flex items-center  bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[10px] font-Inter py-[6px] px-[14px] rounded-md "
+                      >
+                        Score Arena
+                      </button>)}
                               <Switch
                                 checked={arenaCheck}
                                 onChange={() => {
@@ -812,12 +762,7 @@ const getTraces = async (playgroundId) => {
                               <label className="text-[#252525] text-[12px] font-medium">
                                 Arena
                               </label>
-                              {arenaCheck && (<button
-                        onClick={() => setReview(true)}
-                        className=" flex items-center  bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[10px] font-Inter py-[6px] px-[14px] rounded-md "
-                      >
-                        Score Arena
-                      </button>)}
+                             
                             </div>
                             <div className="flex items-center gap-[5px]">
                               <Switch
@@ -847,14 +792,14 @@ const getTraces = async (playgroundId) => {
                           </div>
                           <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start lg:mt-0 mt-[10px]">
                            
-                            <Listbox value={proname} onChange={setProname}>
+                            <Listbox value={selectedProject} onChange={setSelectedProject}>
                               {({ open }) => (
                                 <>
                                   <div className="relative sm:w-[180px]">
                                     <Listbox.Button className=" relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] pl-[10px] pr-[20px] py-[3px] ">
                                       <span className="flex items-center">
                                         <span className=" block truncate mr-3">
-                                          {proname?.name}
+                                          {selectedProject?.name}
                                         </span>
                                       </span>
                                       <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
@@ -904,7 +849,7 @@ const getTraces = async (playgroundId) => {
                                             <div className="flex items-center ">
                                               <span
                                                 className={classNames(
-                                                  proname
+                                                  selectedProject
                                                     ? "text-[#656565] text-[12px] font-Inter font-medium"
                                                     : "font-normal",
                                                   "block truncate"
@@ -980,17 +925,16 @@ const getTraces = async (playgroundId) => {
                   chatSyncAll={chatSyncAll}
                   setChatSyncAll={setChatSyncAll}
                   setAllChatsDetails={setAllChatsDetails}
-                  proname={proname}
+                  selectedProject={selectedProject}
                   currentChatID={currentChatID}
                   selectedModel={selectedModel}
                   setSelectedModel={setSelectedModel}
-                  saveTraceChatPlayground={saveTraceChatPlayground}
                   setRunStart={setRunStart}
                   allFiles={allFiles}
                   setAllFiles={setAllFiles}
                   piiCheck={PiiCheckEnable}
                   arenaCheck={arenaCheck}
-                  index={index}
+                  chatHistory={version?.component?.props?.chatHistory}
                 />
               ))}
                     </div>

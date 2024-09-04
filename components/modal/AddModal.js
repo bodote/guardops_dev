@@ -129,7 +129,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
       modelFormData.input_price == "" ||
       modelFormData.output_price == ""
     ) {
-      toast.error("Please Enter required fields !!");
+      toast.error("Please Enter required fields!");
       return false;
     }
 
@@ -155,7 +155,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
 
         const responseData = await response.json();
         if (response.ok) {
-          toast.success("Model created successfully !!");
+          toast.success("Model created successfully!");
           setModelData({
             name: value ? value.name : "",
             id1: value ? value.id1 : "",
@@ -184,7 +184,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
         });
         const responseData = await response.json();
         if (response.ok) {
-          toast.success("Model updated successfully !!");
+          toast.success("Model updated successfully!");
           setModelData({
             name: value ? value.name : "",
             id1: value ? value.id1 : "",

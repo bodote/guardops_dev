@@ -63,7 +63,7 @@ const SelectDatasetModal = ({
       body: JSON.stringify(formData),
     });
     if (response.ok) {
-      toast.success("Traces successfully added to dataset!!");
+      toast.success("Traces successfully added to dataset!");
       const responseData = await response.json();
       setIsDatasetModelOpen(false);
     }

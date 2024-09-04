@@ -30,7 +30,7 @@ const WorkflowTemplate = ({
       evaluationData.evaluation_name == "" ||
       evaluationData.evaluation_description == ""
     ) {
-      toast.error("Please Enter required fields !!");
+      toast.error("Please Enter required fields!");
       return false;
     }
     const formData = {
@@ -46,7 +46,7 @@ const WorkflowTemplate = ({
           body: JSON.stringify(formData),
         });
         if (response.ok) {
-          toast.success("Evaluation created successfully !!");
+          toast.success("Evaluation created successfully!");
           const responseData = await response.json();
           setEvaluationData({
             evaluation_name: "",
@@ -65,7 +65,7 @@ const WorkflowTemplate = ({
 
         const responseData = await response.json();
         if (response.ok) {
-          toast.success("Evaluation updated successfully !!");
+          toast.success("Evaluation updated successfully!");
           setEvaluationData({
             evaluation_name: "",
             evaluation_description: "",

@@ -73,16 +73,15 @@ const Chat_version = ({
   allChatPrompt,
   selectedModel,
   setSelectedModel,
-  saveTraceChatPlayground,
-  chatPromptData,
+  chatHistory,
   allFiles,
   setAllFiles,
   piiCheck,
   arenaCheck,
-  index
+  selectedProject,
+  currentChatID
   
 }) => {
-
   hljs.highlightAll();
   
 
@@ -278,6 +277,7 @@ const Chat_version = ({
       return;
     }
     traceChatHistory.push(rootPair);
+    setSystemPrompt(rootPair.attributes.system_prompt);
 
     let currentParentId = rootPair.context.span_id;
     while (traceChatHistory.length < traces.length) {
@@ -367,6 +367,64 @@ const Chat_version = ({
     };
   }, [input, debouncedSendText]);
 
+
+  const traceChat = async () => {
+
+    if (isLoading) {
+      return;
+    }
+    if (selectedProject.project_id === undefined ) {
+      toast.error("Please select the project first!");
+      return;
+    }
+    const formatModelParams = (settings) => {
+      const paramsArray = Object.entries(settings).map(
+        ([key, value]) => `${key}:${value}`
+      );
+      return paramsArray.join(", ");
+    };
+
+
+    
+
+    try {
+      const new_messages = [];
+const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
+      for (let i = 0; i < messages.length; i += 2) {
+        const inputMessage = messages[i]; // The user input
+        const outputMessage = messages[i + 1]; // The assistant's response
+      
+        new_messages.push({
+          input: inputMessage.content,
+          output: outputMessage.content,
+        });
+      }
+
+      const formData = {
+        project_id: selectedProject.project_id,
+        ...(currentChatID !== undefined && { playground_id: currentChatID }),
+        access_token: localStorage.getItem("customAIKey"),
+        start_time: start_time,
+        messages:  new_messages,
+        system_prompt: systemPrompt,
+        model_settings: {[selected.model_id]: formatModelParams(settings)}
+      };
+
+      // Make API call with the combined form data
+      const response = await fetch("/api/manageChatPlayground", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      const responseData = await response.json();
+      if (response.ok) {
+        toast.success("The traces are successfully stored!");
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
+
   const parseVercelResponse = (apiResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
@@ -391,13 +449,7 @@ const Chat_version = ({
     return segments;
   };
 
-  const saveTracePlayground = async () => {
-    if (isLoading) {
-      return;
-    }
-    saveTraceChatPlayground();
-  };
-
+  
   const handleSelect = (model) => {
     setSelected(model);
     setSelectedModel(model);
@@ -494,10 +546,11 @@ const Chat_version = ({
   }, []);
 
   useEffect(() => {
-    if (chatPromptData && models.length > 0) {
-      reconstructConversation(chatPromptData);
+    if (chatHistory && models.length > 0) {
+      console.log(chatHistory)
+      reconstructConversation(chatHistory);
     }
-  }, [chatPromptData, models]);
+  }, [chatHistory, models]);
 
   useEffect(() => {
     if (showSettings) {
@@ -536,7 +589,6 @@ const Chat_version = ({
         handleSubmit(event, {
           experimental_attachments: files,
         });
-        console.log("ACTUAL RAG SHIT", ragCheck, " ", selectedRag);
 
         setFiles(undefined);
         if (fileInputRef.current) {
@@ -606,13 +658,7 @@ const Chat_version = ({
     <div className="flex sm:flex-row flex-col items-start">
       
       <div className="w-full">
-        <div className="border-r-[#CCCCCC] border-r-[1px]"> {arenaCheck && (
-         <div className="h-[16px] border border-b-[#D9D9D9] border-l-[#D9D9D9] border-r-[#D9D9D9] text-[10px] font-inter rounded-b-[12px] flex justify-center items-center">
-         {String.fromCharCode(65 + index)}
-       </div>
-       
-       
-        )}
+        <div className="border-r-[#CCCCCC] border-r-[1px]"> 
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative 2xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
             <div className="flex items-center gap-2">
               <Listbox value={selected} onChange={handleSelect}>
@@ -726,7 +772,7 @@ const Chat_version = ({
              
                 <LoadingIcon />
               </button>
-              <button onClick={saveTracePlayground}>
+              <button onClick={traceChat}>
                 <SaveIcon />
               </button>
               <button onClick={() => setOpen(!open)}>
@@ -961,7 +1007,7 @@ const Chat_version = ({
   <div className="flex">
     {/* Left Side (Input Area) */}
     <div className={`flex-grow ${piiCheck ? "w-1/2" : "w-full"}`}>
-      <div className="bg-[#e1e1e1] rounded-md" 
+    <div className={`rounded-md bg-[#e1e1e1] ${arenaCheck ? 'border-black border' : ''}`}
            onDragOver={handleDragOver}
            onDragLeave={handleDragLeave}
            onDrop={handleDrop}>
@@ -985,7 +1031,7 @@ const Chat_version = ({
           value={input}
           onChange={handleMessageInputChange}
           onPaste={handlePaste}
-          className="border-0 resize-y bg-[#e1e1e1] focus:ring-0 focus:shadow-none w-full rounded-md"
+          className={`border-0 resize-y bg-[#e1e1e1] focus:ring-0 focus:shadow-none w-full rounded-md}`}
         />
         <div className="pl-2 pb-2 flex items-center gap-[5px]">
           <label htmlFor="fileInput" className="bg-gray-600 hover:bg-gray-800 text-white rounded-full cursor-pointer">
@@ -1060,14 +1106,15 @@ const Chat_version = ({
     </div>
 
     {/* Right Side (PII Check Area) */}
-    {piiCheck && (
-      <div className="w-1/2 text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] overflow-auto flex-grow min-h-[127px]">
-        {getParsedText()}
-      </div>
-    )}
+   {piiCheck && (
+     <div className="w-1/2 text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none ml-2 mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] max-h-[100px] overflow-y-auto flex-grow">
+       {getParsedText()}
+     </div>
+   )}
+   
   </div>
 
-  <div className="flex justify-end gap-[10px] pr-[13px] pb-2">
+  <div className="flex justify-end gap-[10px] pr-[13px] pb-2 mt-2">
     <div className="flex items-center gap-[5px]">
       <Switch
         checked={syncAllMsg}

@@ -34,7 +34,7 @@ const AddTemplate = ({
       templateFormData.template_description == "" ||
       templateFormData.template == ""
     ) {
-      toast.error("Please Enter required fields !!");
+      toast.error("Please Enter required fields!");
       return false;
     }
     const formData = {
@@ -54,7 +54,7 @@ const AddTemplate = ({
         });
         const responseData = await response.json();
         if (response.ok) {
-          toast.success("Template created successfully !!");
+          toast.success("Template created successfully!");
           setTemplateData({
             template_name: "",
             template_description: "",
@@ -74,7 +74,7 @@ const AddTemplate = ({
         });
         const responseData = await response.json();
         if (response.ok) {
-          toast.success("Template updated successfully !!");
+          toast.success("Template updated successfully!");
           setTemplateData({
             template_name: "",
             template_description: "",

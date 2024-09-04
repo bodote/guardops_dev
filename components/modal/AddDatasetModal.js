@@ -34,7 +34,7 @@ const AddDatasetModal = ({
       datasetFormData.dataset_name == "" ||
       datasetFormData.dataset_description == ""
     ) {
-      toast.error("Please Enter required fields !!");
+      toast.error("Please Enter required fields!");
       return false;
     }
 
@@ -53,7 +53,7 @@ const AddDatasetModal = ({
 
         const responseData = await response.json();
         if (response.ok) {
-          toast.success("Dataset created successfully !!");
+          toast.success("Dataset created successfully!");
           setDatasetData({
             dataset_name: "",
             dataset_description: "",
@@ -72,7 +72,7 @@ const AddDatasetModal = ({
 
         const responseData = await response.json();
         if (response.ok) {
-          toast.success("Dataset updated successfully !!");
+          toast.success("Dataset updated successfully!");
           setDatasetData({
             dataset_name: "",
             dataset_description: "",

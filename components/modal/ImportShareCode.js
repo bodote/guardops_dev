@@ -12,7 +12,7 @@ const ImportShareCode = ({ importShare, setImportShare, name }) => {
       });
       const responseData = await response.json();
       if (response.ok) {
-        toast.success("Project successfully imported !!");
+        toast.success("Project successfully imported!");
         setImportShare(false);
       }
       if (!response.ok) {

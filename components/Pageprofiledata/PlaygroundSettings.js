@@ -57,7 +57,7 @@ const PlaygroundSettings = () => {
         });
         const responseData = await response.json();
         if (response.ok) {
-          toast.success(`Project deleted successfully !!`);
+          toast.success(`Project deleted successfully!`);
           getModels();
         } else {
           toast.error(responseData.detail);
