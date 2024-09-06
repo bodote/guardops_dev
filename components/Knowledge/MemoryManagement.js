@@ -154,28 +154,6 @@ const MemoryManagement = () => {
     }
   };
 
-  const downloadVectorStore = async (store_id) => {
-    try {
-      const response = await fetch(
-        `/api/knowledge/files/vectorstore/rag?store_id=${store_id}`,
-        {
-          method: "GET",
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to download vector store");
-      }
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("Error downloading vector store:", error);
-    }
-  };
 
   return (
     <div className="memory-management p-4">
@@ -229,12 +207,7 @@ const MemoryManagement = () => {
               >
                 <FaEdit className="inline mr-2" /> Rename
               </button>
-              <button
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left hover:bg-gray-200"
-                onClick={() => downloadVectorStore(vectorstore.store_id)}
-              >
-                <FaDownload className="inline mr-2" /> Download
-              </button>
+            
               <button
                 className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left hover:bg-gray-200"
                 onClick={() => deleteVectorStore(vectorstore.store_id)}

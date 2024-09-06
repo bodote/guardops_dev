@@ -10,7 +10,6 @@ export async function GET(req,res) {
     const cookieStore = cookies();
     const user = cookieStore.get("user_id").value;
 
-      // Extract folder_id from query parameters
       const url = new URL(req.url, `http://${req.headers.host}`);
       const folder_id = url.searchParams.get("folder_id");
   

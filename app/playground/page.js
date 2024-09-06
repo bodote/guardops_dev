@@ -1,5 +1,5 @@
 'use client'
-import  {cloneElement, useState, useEffect, useRef, useCallback } from "react";
+import  { useState, useEffect, useRef, useCallback } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import {
   DeleteBlackIcon,
@@ -11,11 +11,8 @@ import { Fragment } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { FiPlus } from "react-icons/fi";
-import Version from "@/components/Playground/Version";
 import PromptTemplates from "@/components/modal/PromptTemplates";
 import { Switch } from "@headlessui/react";
-import debounce from "lodash/debounce";
-import styles from "@/styles/TextHighlighter.module.css";
 import { useSearchParams } from "next/navigation";
 import NewPrompt from "@/components/modal/NewPrompt";
 import DeleteModal from "@/components/modal/DeleteModal";
@@ -24,7 +21,7 @@ import Chat_version from "@/components/Playground/chat_version";
 import { getUserRole } from "@/helper/getRole";
 import Loader from "@/components/Loader/Loader";
 import { toast } from "react-toastify";
-import { useCompletion } from 'ai/react';
+import JSZip from "jszip";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -60,7 +57,7 @@ const index = () => {
   const [allPromtsDetails, setAllPromtsDetails] = useState([]);
   const [allChatsDetails, setAllChatsDetails] = useState([]);
   const [files, setFiles] = useState([]);
-  
+  const [chromaCollectionName, setChromaCollectionName] = useState("");
   const [selectedProject, setSelectedProject] = useState({
     name: "Select a Project",
   });
@@ -381,6 +378,19 @@ const index = () => {
       console.error("Error during API request:", error);
     }
   };
+  const handleSelectRag = async (value) => {
+    // Update the selected value
+    setSelectedRag(value);
+    // Call the download function when the value changes
+   
+  };
+
+
+  useEffect(() => {
+    if (selectedRag) {
+      getChromaCollectionName(selectedRag);
+    }
+  }, [selectedRag]);
 
   const handleMouseDown = (e) => {
     const startY = e.clientY;
@@ -484,7 +494,7 @@ const getTraces = async (playgroundId) => {
           chatVersions.length > 0
             ? chatVersions[chatVersions.length - 1].id + 1
             : 1;
-        setChatVersions([{ id: newId, component: <Chat_version key={newId}  selectedRag={selectedRag} ragCheck={ragCheck}/> }]);
+        setChatVersions([{ id: newId, component: <Chat_version key={newId}  selectedRag={selectedRag} ragCheck={ragCheck} chromaCollectionName={chromaCollectionName}/> }]);
       }
     } else {
       console.error("API request failed:", response.statusText);
@@ -494,6 +504,25 @@ const getTraces = async (playgroundId) => {
   }
 };
 
+const getChromaCollectionName = async (store_id) => {
+  try {
+
+    // Fetch the zip file from the API
+    const response = await fetch(`/api/knowledge/files/vectorstore/rag?store_id=${store_id}`, {
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to download vector store");
+    }
+
+    const data = await response.json();
+    //idk data.data is needed a lot maybe i am just stupid
+    setChromaCollectionName(data.data);
+  } catch (error) {
+    console.error("Error downloading or processing vector store:", error);
+  }
+};
 
   return (
     <>
@@ -626,14 +655,13 @@ const getTraces = async (playgroundId) => {
                         <PromptTemplates
                           setIsModalOpen={setIsModalOpen}
                           onPromptOpen={handleAddToPrompt}
-                          ref={componentRef}
                         />
                       </div>
                     )}
 
 {ragCheck && (
         <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start lg:mt-0 mt-[10px]">
-          <Listbox value={selectedRag} onChange={setSelectedRag}>
+          <Listbox value={selectedRag} onChange={handleSelectRag}>
             {({ open }) => (
               <>
                 <div className="relative sm:w-[180px]">
@@ -907,7 +935,7 @@ const getTraces = async (playgroundId) => {
                     )}
                        {chatVersions.map((version, index) => (
                 <Chat_version
-                  key={`${version.id}-${ragCheck}-${selectedRag}`}
+                  key={`${version.id}-${ragCheck}-${selectedRag}-${chromaCollectionName}`}
                   versionId={version.id}
                   ragCheck={ragCheck}
                   selectedRag={selectedRag}
@@ -935,6 +963,7 @@ const getTraces = async (playgroundId) => {
                   piiCheck={PiiCheckEnable}
                   arenaCheck={arenaCheck}
                   chatHistory={version?.component?.props?.chatHistory}
+                  chromaCollectionName={chromaCollectionName}
                 />
               ))}
                     </div>

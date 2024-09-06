@@ -9,22 +9,22 @@ import { createMistral } from '@ai-sdk/mistral';
 import { cohere } from '@ai-sdk/cohere';
 import { createCohere } from '@ai-sdk/cohere';
 import { NextResponse } from 'next/server';
-
-
+import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/hf_transformers';
+import { Chroma } from "@langchain/community/vectorstores/chroma";
 
 export async function POST(req) {
   const body = await req.json()
   try {
 
-    var { model,  messages, prompt, settings, systemPrompt, provider, api_keys, multimodal, rag, selectedRag } = body;
-    
+    var { model, messages, prompt, settings, systemPrompt, provider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = body;
+
     var target_model;
     switch (provider) {
       case "openai":
-        const openai = createOpenAI({ 
+        const openai = createOpenAI({
           apiKey: api_keys.openaiKey,
           compatibility: 'strict'
-         })
+        })
         target_model = openai.chat(model);
         break;
       case "anthropic":
@@ -86,26 +86,53 @@ export async function POST(req) {
     }
     //only convert images to message if model is multimodal
     var messagesToSend = messages;
-    if (multimodal){
+    if (multimodal) {
       messagesToSend = convertToCoreMessages(messages);
     }
 
-    if (rag){
-      console.log("i wanna rag")
+    if (rag) {
+
+     const embeddings = new HuggingFaceTransformersEmbeddings ({ model: "Xenova/all-MiniLM-L6-v2" })
+      const embed = await embeddings.embedQuery("test")
+      console.log("embedded" , embed)
+      console.log("got the connection");
+      const vectorStore = new Chroma(embeddings, {
+        collectionName: chromaCollectionName,
+        url: process.env.CHROMA_HOST,
+        clientParams: {
+          auth: {
+            provider: "token",
+            credentials: process.env.CHROMA_CLIENT_AUTH_CREDENTIALS,
+          }
+        }
+      })
+      const retriever = vectorStore.asRetriever();
+      console.log("got the retriever");
+      
+      try {
+        const dummy = await retriever.invoke("coai");
+        console.log("test", dummy);
+      } catch (error) {
+        console.error("Error in similarity search:", error);
+      }
+  
     }
-    console.log("rag is " , rag, " and wants to select ", selectedRag ,"for" , model)
+
+
+    console.log("rag is ", rag, " and wants to select this store id", selectedRag, " with this collection name", chromaCollectionName, " for", model)
     const response = await streamText({
-      model: target_model, 
-      prompt: prompt, 
-      system: systemPrompt, 
-      maxTokens: Number(settings.maxTokens), 
+      model: target_model,
+      prompt: prompt,
+      system: systemPrompt,
+      maxTokens: Number(settings.maxTokens),
       temperature: Number(settings.temperature),
       messages: messagesToSend,
-      experimental_telemetry: {isEnabled: true,
+      experimental_telemetry: {
+        isEnabled: true,
         functionId: "playground_chat"
       }
     })
-    
+
 
     return response.toDataStreamResponse();
   } catch (error) {

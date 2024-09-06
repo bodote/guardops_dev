@@ -79,7 +79,9 @@ const Chat_version = ({
   piiCheck,
   arenaCheck,
   selectedProject,
-  currentChatID
+  currentChatID,
+  chromaCollectionName
+
   
 }) => {
   hljs.highlightAll();
@@ -132,6 +134,7 @@ const Chat_version = ({
     settings: settings,
     rag: ragCheck,
     selectedRag: selectedRag,
+    chromaCollectionName: chromaCollectionName,
     provider: selected.provider,
     multimodal: selected.multimodal | false,
     api_keys: {
@@ -192,6 +195,7 @@ const Chat_version = ({
       provider: selected.provider,
       rag: ragCheck,
       selectedRag: selectedRag,
+      chromaCollectionName: chromaCollectionName,
       multimodal: selected.multimodal | false,
       api_keys: {
         openaiKey: openaiKey,
