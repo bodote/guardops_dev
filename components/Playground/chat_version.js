@@ -112,7 +112,7 @@ const Chat_version = ({
   const [googleKey, setGoogleKey] = useState(""); 
   const [mistralKey, setMistralKey] = useState(""); 
   const [perplexityKey, setPerplexityKey] = useState(""); 
-  const [errorOwn, setError] = useState("");
+  const [errorOwn, setErrorOwn] = useState("");
   const [tooltipData, setTooltipData] = useState({});
   const [searchModel, setSearchModel] = useState("");
   const [piiData, setPiiData] = useState([]);
@@ -222,9 +222,10 @@ const Chat_version = ({
     mistralKey,
     perplexityKey,
   ]);
-  const {id,  messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages,   } = useChat({
-    keepLastMessageOnError: true,
-    body: formData
+  const {id,  messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages, error  } = useChat({
+    body: formData,
+    
+    onError: error => { setErrorOwn(error.message);}
   });
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
@@ -270,7 +271,7 @@ const Chat_version = ({
   };
 
   const reconstructConversation = (traces) => {
-    setError("");
+    setErrorOwn("");
     const modelName = traces[0]?.attributes?.model || "";
     let traceChatHistory = [];
 
@@ -872,9 +873,13 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
               )}
               <div
                 className={open ? "h-[calc(100vh-520px)] overflow-auto" : ""}
-              >   {messages.map((message) => (
+              >  
+              
+               {messages.map((message) => (
                 <div key={message.id} className="flex justify-center">
+
                   <div className="w-[75%] ">
+               
                     {message.role === 'user' ? (
                       <div className="mb-2 bg-[#e1e1e1] md:p-[19px_31px] p-[8px_10px] flex flex-col gap-[20px] rounded-3xl">
                         <div className="flex justify-between">
@@ -1143,6 +1148,7 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
     <button
       onClick={event => {
         if (!isLoading) {
+          setErrorOwn(null);
           handleSubmit(event, {
             experimental_attachments: files,
           });
@@ -1173,7 +1179,7 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
       Stop
     </button>
     <button
-      onClick={reload}
+      onClick={() => { setErrorOwn(null); reload(); }}
       className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
         isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
       }`}

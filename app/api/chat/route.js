@@ -24,13 +24,15 @@ import {
 } from "@langchain/core/prompts";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { formatDocumentsAsString } from "langchain/util/document";
+import { toast } from "react-toastify";
+import { AIStream } from "ai"
 
 export async function POST(req) {
   const body = await req.json()
   try {
 
     var { model, messages, prompt, settings, systemPrompt, provider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = body;
-   
+    
     const providerConfig = {
       openai: {
         create: createOpenAI,
@@ -79,7 +81,11 @@ export async function POST(req) {
         compatibility: 'strict'
       }
     };
-    
+    let openAiModelSelected = false;
+
+    if (providerConfig[provider]?.create === createOpenAI) {
+      openAiModelSelected = true;
+    }
     const { create, apiKey, baseURL, compatibility } = providerConfig[provider] || {};
     
     if (!create || !apiKey) {
@@ -102,6 +108,12 @@ export async function POST(req) {
     }
 
     if (rag) {
+      if (!openAiModelSelected) {
+        return NextResponse.json(
+          { error: "Only OpenAI API-based models support RAG. Select a compatible model." },
+          { status: 400 } 
+        // Or another appropriate status code
+        );      }
       try {
         const lastUserMessageIndex = messages.map(msg => msg.role).lastIndexOf("user");
         const question = messages[lastUserMessageIndex].content;
