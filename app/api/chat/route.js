@@ -1,5 +1,5 @@
 import { createOpenAI, openai } from '@ai-sdk/openai';
-import { convertToCoreMessages, streamText } from 'ai';
+import { convertToCoreMessages, LangChainAdapter, streamText } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { google } from '@ai-sdk/google';
@@ -11,79 +11,90 @@ import { createCohere } from '@ai-sdk/cohere';
 import { NextResponse } from 'next/server';
 import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/hf_transformers';
 import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { ChatOpenAI } from "@langchain/openai";
+import { pull } from "langchain/hub";
+import {
+  RunnableSequence,
+  RunnablePassthrough,
+} from "@langchain/core/runnables";
+import { StringOutputParser } from "@langchain/core/output_parsers";
+import {
+  ChatPromptTemplate,
+  MessagesPlaceholder,
+} from "@langchain/core/prompts";
+import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { formatDocumentsAsString } from "langchain/util/document";
 
 export async function POST(req) {
   const body = await req.json()
   try {
 
     var { model, messages, prompt, settings, systemPrompt, provider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = body;
-
-    var target_model;
-    switch (provider) {
-      case "openai":
-        const openai = createOpenAI({
-          apiKey: api_keys.openaiKey,
-          compatibility: 'strict'
-        })
-        target_model = openai.chat(model);
-        break;
-      case "anthropic":
-        const anthropic = createAnthropic({
-          apiKey: api_keys.anthropicKey
-        });
-        target_model = anthropic(model);
-        break;
-      case "google":
-        const google = createGoogleGenerativeAI({
-          apiKey: api_keys.googleKey
-        });
-        target_model = google(model);
-        break;
-      case "mistral":
-        const mistral = createMistral({
-          apiKey: api_keys.mistralKey
-        });
-        target_model = mistral(model);
-        break;
-      case "cohere":
-        const cohere = createCohere({
-          apiKey: api_keys.mistralKey
-        });
-        target_model = cohere(model);
-        break;
-      case "groq":
-        const groq = createOpenAI({
-          baseURL: 'https://api.groq.com/openai/v1',
-          apiKey: api_keys.groqKey,
-          compatibility: 'strict'
-        });
-        target_model = groq(model);
-        break;
-      case "perplexity":
-        const perplexity = createOpenAI({
-          apiKey: api_keys.perplexityKey,
-          baseURL: 'https://api.perplexity.ai/',
-          compatibility: 'strict'
-        });
-        target_model = perplexity(model);
-        break;
-      case "fireworks":
-        const fireworks = createOpenAI({
-          apiKey: api_keys.fireworksKey,
-          baseURL: 'https://api.fireworks.ai/inference/v1',
-          compatibility: 'strict'
-        });
-        target_model = fireworks(model);
-        break;
-      case "custom":
-        const custom = createOpenAI({
-          apiKey: api_keys.customKey,
-          baseURL: "https://lm3.hs-ansbach.de/worker2/v1",
-          compatibility: 'strict'
-        })
-        target_model = custom(model);
-        break;
+   
+    const providerConfig = {
+      openai: {
+        create: createOpenAI,
+        apiKey: api_keys.openaiKey,
+        baseURL: undefined, // No baseURL needed
+        compatibility: 'strict'
+      },
+      anthropic: {
+        create: createAnthropic,
+        apiKey: api_keys.anthropicKey
+      },
+      google: {
+        create: createGoogleGenerativeAI,
+        apiKey: api_keys.googleKey
+      },
+      mistral: {
+        create: createMistral,
+        apiKey: api_keys.mistralKey
+      },
+      cohere: {
+        create: createCohere,
+        apiKey: api_keys.mistralKey
+      },
+      groq: {
+        create: createOpenAI,
+        apiKey: api_keys.groqKey,
+        baseURL: 'https://api.groq.com/openai/v1',
+        compatibility: 'strict'
+      },
+      perplexity: {
+        create: createOpenAI,
+        apiKey: api_keys.perplexityKey,
+        baseURL: 'https://api.perplexity.ai/',
+        compatibility: 'strict'
+      },
+      fireworks: {
+        create: createOpenAI,
+        apiKey: api_keys.fireworksKey,
+        baseURL: 'https://api.fireworks.ai/inference/v1',
+        compatibility: 'strict'
+      },
+      custom: {
+        create: createOpenAI,
+        apiKey: api_keys.customKey,
+        baseURL: 'https://lm3.hs-ansbach.de/worker2/v1',
+        compatibility: 'strict'
+      }
+    };
+    
+    const { create, apiKey, baseURL, compatibility } = providerConfig[provider] || {};
+    
+    if (!create || !apiKey) {
+      throw new Error(`Unsupported provider or missing API key for provider: ${provider}`);
     }
+    
+    let target_model = create({
+      apiKey,
+      ...(compatibility ? { compatibility } : {}),
+      ...(baseURL ? { baseURL } : {})
+    }).chat?.(model);
+    
+    let base_url_for_rag = baseURL || undefined;
+    let api_key_for_rag = apiKey || undefined;
+    
     //only convert images to message if model is multimodal
     var messagesToSend = messages;
     if (multimodal) {
@@ -91,11 +102,21 @@ export async function POST(req) {
     }
 
     if (rag) {
+      try {
+        const lastUserMessageIndex = messages.map(msg => msg.role).lastIndexOf("user");
+        const question = messages[lastUserMessageIndex].content;
+
+const chat_history = messages
+  .filter((_, index) => index !== lastUserMessageIndex)  // Exclude the last User message
+  .map((element) => {
+    if (element.role === "assistant") {
+      return new AIMessage(element.content);
+    } else if (element.role === "user") {
+      return new HumanMessage(element.content);
+    }
+  });
 
      const embeddings = new HuggingFaceTransformersEmbeddings ({ model: "Xenova/all-MiniLM-L6-v2" })
-      const embed = await embeddings.embedQuery("test")
-      console.log("embedded" , embed)
-      console.log("got the connection");
       const vectorStore = new Chroma(embeddings, {
         collectionName: chromaCollectionName,
         url: process.env.CHROMA_HOST,
@@ -107,19 +128,74 @@ export async function POST(req) {
         }
       })
       const retriever = vectorStore.asRetriever();
-      console.log("got the retriever");
-      
-      try {
-        const dummy = await retriever.invoke("coai");
-        console.log("test", dummy);
+      const llm = new ChatOpenAI({
+        model: model,
+        apiKey: api_key_for_rag,
+        temperature: 0,
+        ...(base_url_for_rag ? { configuration: { baseURL: base_url_for_rag } } : {})
+      });
+     
+ 
+    
+      const contextualizeQSystemPrompt = `Given a chat history and the latest user question
+which might reference context in the chat history, formulate a standalone question
+which can be understood without the chat history. Do NOT answer the question,
+just reformulate it if needed and otherwise return it as is.`;
+
+
+const contextualizeQPrompt = ChatPromptTemplate.fromMessages([
+  ["system", contextualizeQSystemPrompt],
+  new MessagesPlaceholder("chat_history"),
+  ["human", "{question}"],
+]);
+const contextualizeQChain = contextualizeQPrompt
+  .pipe(llm)
+  .pipe(new StringOutputParser());
+
+
+  const qaSystemPrompt = `You are an assistant for question-answering tasks.
+  Use the following pieces of retrieved context to answer the question.
+  If you don't know the answer, just say that you don't know.
+  Use three sentences maximum and keep the answer concise.
+  
+  {context}`;
+
+  const qaPrompt = ChatPromptTemplate.fromMessages([
+    ["system", qaSystemPrompt],
+    new MessagesPlaceholder("chat_history"),
+    ["human", "{question}"],
+  ]);
+
+  const contextualizedQuestion = (input) => {
+    if ("chat_history" in input) {
+      return contextualizeQChain;
+    }
+    return input.question;
+  };
+
+  const ragChain = RunnableSequence.from([
+    RunnablePassthrough.assign({
+      context: async (input) => {
+        if ("chat_history" in input) {
+          const chain = contextualizedQuestion(input);
+          return chain.pipe(retriever).pipe(formatDocumentsAsString);
+        }
+        return "";
+      },
+    }),
+    qaPrompt,
+    llm,
+  ]);
+
+  const ragRespone = await ragChain.stream({ question, chat_history });
+return LangChainAdapter.toDataStreamResponse(ragRespone)
       } catch (error) {
-        console.error("Error in similarity search:", error);
+        console.error("Error in rag:", error);
       }
   
     }
 
 
-    console.log("rag is ", rag, " and wants to select this store id", selectedRag, " with this collection name", chromaCollectionName, " for", model)
     const response = await streamText({
       model: target_model,
       prompt: prompt,
