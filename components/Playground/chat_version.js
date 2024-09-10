@@ -874,15 +874,14 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
               <div
                 className={open ? "h-[calc(100vh-520px)] overflow-auto" : ""}
               >  
-              
-               {messages.map((message) => (
-                <div key={message.id} className="flex justify-center">
 
-                  <div className="w-[75%] ">
-               
+               {messages.map((message, index) => (
+                <div key={message.id} className="flex justify-center">
+                  <div className="w-[75%]">
                     {message.role === 'user' ? (
-                      <div className="mb-2 bg-[#e1e1e1] md:p-[19px_31px] p-[8px_10px] flex flex-col gap-[20px] rounded-3xl">
-                        <div className="flex justify-between">
+ <div 
+ className={`mb-2 bg-[#e1e1e1] md:p-[19px_31px] flex flex-col rounded-3xl ${index === 0 ? 'mt-4' : ''}`}
+>                        <div className="flex justify-between">
                           <div className="flex sm:gap-[19px] gap-[8px] flex-col w-full">
                             <div className="flex items-start">
                               <User2Icon className="min-w-[16px]" />
