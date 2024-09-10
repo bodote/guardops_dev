@@ -222,7 +222,7 @@ const Chat_version = ({
     mistralKey,
     perplexityKey,
   ]);
-  const {id,  messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages, error  } = useChat({
+  const {id,  messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages, error, data  } = useChat({
     body: formData,
     
     onError: error => { setErrorOwn(error.message);}
@@ -885,6 +885,7 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
                           <div className="flex sm:gap-[19px] gap-[8px] flex-col w-full">
                             <div className="flex items-start">
                               <User2Icon className="min-w-[16px]" />
+                             
                               {editMessageId === message.id ? (
                                 <textarea
                                   ref={textareaRef}
@@ -895,6 +896,7 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
                               ) : (
                                 <p className="ml-5 md:text-[16px] text-[14px]">
                                   {message.content}
+                                
                                 </p>
                               )}
                             </div>
@@ -1003,6 +1005,13 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
                               />
                             )
                           )}
+                            {data && data.map((item) => (
+    <div>
+    {JSON.stringify(item)}
+    {console.log("some data ", data)}
+    </div>
+  
+))}
                         </div>
                       </div>
                     )}
