@@ -33,6 +33,7 @@
     "autoprefixer": "^10.4.19",
     "axios": "^1.7.3",
     "chromadb": "^1.8.1",
+    "chromadb-default-embed": "^2.13.2",
     "cohere-ai": "*",
     "cookies-next": "^4.1.1",
     "eventsource-parser": "^1.1.1",
