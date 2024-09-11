@@ -6,6 +6,8 @@ const nextConfig = {
   reactStrictMode: false,
   experimental: {
     serverComponentsExternalPackages: ['sharp', 'onnxruntime-node'],
+    missingSuspenseWithCSRBailout: false,
+
 },
 
 webpack: (config) => {
