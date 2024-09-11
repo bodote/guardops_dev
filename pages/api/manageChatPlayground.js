@@ -40,14 +40,13 @@ export default async function handler(req, res) {
       case "POST":
         bodyData = JSON.parse(req.body);
         if (bodyData.project_id) {
+          console.log("trying to call trace chat with this body ", JSON.stringify(bodyData))
           Url = `${baseUrl}api/trace_playground_chat`;
           queryParams = new URLSearchParams({
             user_id: user,
             project_id: bodyData.project_id,
             playground_id: bodyData.playground_id,
             access_token: bodyData.access_token,
-            start_time: bodyData.start_time,
-            system_prompt: bodyData.system_prompt
           });
           urlWithParams = `${Url}?${queryParams.toString()}`;
           try {
@@ -57,7 +56,7 @@ export default async function handler(req, res) {
                 authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               }),
-              body:  JSON.stringify({messages:bodyData.messages,model_settings: bodyData.model_settings}),
+              body:  JSON.stringify(bodyData.chat_columns),
             });
 
             const data = await response.json();

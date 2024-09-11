@@ -1,4 +1,4 @@
-import React, { DragEvent, useState, Fragment, useEffect, useRef, useCallback } from "react";
+import React, { DragEvent, useState, Fragment, useEffect, useRef, useCallback, useImperativeHandle , forwardRef} from "react";
 import {
   EditIcon,
   MinusIcon,
@@ -56,8 +56,9 @@ function TextFilePreview({ file }) {
   );
 }
 
-const Chat_version = ({
+const Chat_version = forwardRef(({
   columnCount,
+  onSave ,
   chatVersionId,
   removeChatVersion,
   addChatVersion,
@@ -83,10 +84,38 @@ const Chat_version = ({
   chromaCollectionName
 
   
-}) => {
+}, ref) => {
   hljs.highlightAll();
   
+  useImperativeHandle(ref, () => ({
+    getMessages: () => {
 
+      if(isLoading){
+        return
+      }
+      const newMessages = [];
+      const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
+
+      for (let i = 0; i < messages.length; i += 2) {
+        const inputMessage = messages[i]; // The user input
+        const outputMessage = messages[i + 1]; // The assistant's response
+
+        newMessages.push({
+          input: inputMessage.content,
+          output: outputMessage.content,
+        });
+      }
+
+      const formData = {
+        start_time: start_time,
+        messages: newMessages,
+        system_prompt: systemPrompt,
+        model_settings: { [selected.model_id]: formatModelParams(settings) }
+      };
+
+      return formData;
+    },
+  }));
   const [systemPrompt, setSystemPrompt] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
@@ -386,64 +415,19 @@ useEffect(() => {
     };
   }, [input, debouncedSendText]);
 
-
-  const traceChat = async () => {
-
-    if (isLoading) {
-      return;
-    }
-    if (selectedProject.project_id === undefined ) {
-      toast.error("Please select the project first!");
-      return;
-    }
-    const formatModelParams = (settings) => {
-      const paramsArray = Object.entries(settings).map(
-        ([key, value]) => `${key}:${value}`
-      );
-      return paramsArray.join(", ");
-    };
-
-
-    
-
-    try {
-      const new_messages = [];
-const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
-      for (let i = 0; i < messages.length; i += 2) {
-        const inputMessage = messages[i]; // The user input
-        const outputMessage = messages[i + 1]; // The assistant's response
-      
-        new_messages.push({
-          input: inputMessage.content,
-          output: outputMessage.content,
-        });
-      }
-
-      const formData = {
-        project_id: selectedProject.project_id,
-        ...(currentChatID !== undefined && { playground_id: currentChatID }),
-        access_token: localStorage.getItem("customAIKey"),
-        start_time: start_time,
-        messages:  new_messages,
-        system_prompt: systemPrompt,
-        model_settings: {[selected.model_id]: formatModelParams(settings)}
-      };
-
-      // Make API call with the combined form data
-      const response = await fetch("/api/manageChatPlayground", {
-        method: "POST",
-        body: JSON.stringify(formData),
-      });
-
-      const responseData = await response.json();
-      if (response.ok) {
-        toast.success("The traces are successfully stored!");
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
+  const formatModelParams = (settings) => {
+    const paramsArray = Object.entries(settings).map(
+      ([key, value]) => `${key}:${value}`
+    );
+    return paramsArray.join(", ");
   };
 
+  const handleSave = () => {
+    // Update messages and notify parent as well as trace the playground
+   
+    onSave();
+  };
+  
   const parseVercelResponse = (apiResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
@@ -605,6 +589,8 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
     const handleKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
         if(!isLoading){
+          setErrorOwn(null);
+
         handleSubmit(event, {
           experimental_attachments: files,
         });
@@ -791,7 +777,7 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
              
                 <LoadingIcon />
               </button>
-              <button onClick={traceChat}>
+              <button onClick={handleSave}>
                 <SaveIcon />
               </button>
               <button onClick={() => setOpen(!open)}>
@@ -1275,6 +1261,6 @@ const start_time = new Date(messages?.[0]?.createdAt ?? new Date().getTime());
       )}
     </div>
   );
-};
+});
 
 export default Chat_version;

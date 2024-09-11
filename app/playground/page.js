@@ -317,7 +317,43 @@ const index = () => {
     ]);
   }, []);
 
+  const [allMessages, setAllMessages] = useState([]);
+  const [updateTrigger, setUpdateTrigger] = useState(0); // State to trigger re-fetching
+  const componentRefs = useRef([]);
 
+  // Function to gather all messages from child components
+  const updateAllMessages = useCallback(() => {
+    const updatedMessages = componentRefs.current.map(ref => ref?.getMessages() || []);
+    setAllMessages(updatedMessages);
+    console.log('All Messages:', updatedMessages); // Log all messages when updated
+  }, [updateTrigger]);
+
+  // Update allMessages when chatVersions change
+  useEffect(() => {
+    updateAllMessages();
+  }, [chatVersions, updateTrigger, updateAllMessages]);
+
+  useEffect(() => {
+    if (updateTrigger > 0) {
+      traceChats();
+    }
+  }, [allMessages]);
+
+  const handleMessagesUpdate = (index) => {
+    // Trigger re-fetching of all messages
+    setUpdateTrigger(prev => prev + 1);
+  };
+
+// Log allMessages whenever it changes
+useEffect(() => {
+  console.log('All Messages:', allMessages);
+}, [allMessages]);
+
+  useEffect(() => {
+    // Collect messages from all Chat_version instances when chatVersions change
+    const allMessagesFromRefs = componentRefs.current.map(ref => ref?.getMessages());
+    setAllMessages(allMessagesFromRefs);
+  }, [chatVersions]);
 
 
   const removeChatVersion = useCallback((id) => {
@@ -332,6 +368,40 @@ const index = () => {
   const initialHeight = 391; // Initial height in pixels
   const [height, setHeight] = useState(`${initialHeight}px`);
 
+
+ const traceChats = async () => {
+
+    if (selectedProject.project_id === undefined ) {
+      toast.error("Please select a project first!");
+      return;
+    }
+  
+  
+
+    try {
+      
+     
+      const formData = {
+        project_id: selectedProject.project_id,
+        ...(currentChatID !== undefined && { playground_id: currentChatID }),
+        access_token: localStorage.getItem("customAIKey"),
+        chat_columns: allMessages,
+       
+      }; 
+      // Make API call with the combined form data
+      const response = await fetch("/api/manageChatPlayground", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      const responseData = await response.json();
+      if (response.ok) {
+        toast.success("The traces are successfully stored!");
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+    }
+  };
 
   const handleCreateChat = async () => {
     const currentDate = new Date();
@@ -936,7 +1006,9 @@ const getChromaCollectionName = async (store_id) => {
                        {chatVersions.map((version, index) => (
                 <Chat_version
                   key={`${version.id}-${ragCheck}-${selectedRag}-${chromaCollectionName}`}
+                  ref={el => (componentRefs.current[index] = el)}
                   versionId={version.id}
+                  onSave={() => handleMessagesUpdate(index)}
                   ragCheck={ragCheck}
                   selectedRag={selectedRag}
                   addChatVersion={addChatVersion}
