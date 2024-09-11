@@ -1,82 +1,66 @@
-import React, { useState } from "react";
+import React from "react";
 import dynamic from "next/dynamic";
 
 const BarChart = ({ tracesNumber }) => {
-  const [chartState] = useState({
-    options: {
-      chart: {
-        width: 100,
-        id: "basic-bar",
-      },
-      plotOptions: {
-        bar: {
-          columnWidth: "15%",
-          dataLabels: {
-            enabled: false, // Set to false to hide the data labels on top of the bars
-          },
-        },
-      },
-      xaxis: {
-        categories: [
-          "jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-          "Dec",
-        ],
-      },
-      fill: {
-        type: "solid",
-        colors: "#D4DB33",
-      },
-      responsive: [
-        {
-          breakpoint: 1280,
-          options: {
-            plotOptions: {
-              bar: {
-                columnWidth: "8px",
-                dataLabels: {
-                  enabled: false, // Set to false to hide the data labels on top of the bars
-                },
-              },
-            },
-          },
-        },
-      ],
+  // Default categories for months
+  const categories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  // Chart options
+  const chartOptions = {
+    chart: {
+      type: 'bar',
+      height: 350,
     },
-    series: [
-      {
-        name: "series-1",
-        data: tracesNumber,
+    xaxis: {
+      categories: categories,
+    },
+    plotOptions: {
+      bar: {
+        columnWidth: '50%',
+        dataLabels: {
+          position: 'top', // Display labels on top of the bars
+        },
       },
-    ],
-  });
+    },
+    fill: {
+      type: 'solid',
+      colors: '#D4DB33',
+    },
+    dataLabels: {
+      enabled: true,
+      offsetY: -15, // Adjust the vertical position of the labels
+      style: {
+        colors: ['#a1a1a1'], // Set the color of the labels to black
+        fontSize: '12px',
+        fontFamily: 'Arial',
+        fontWeight: 600,
+      },
+    },
+  };
+
+  // Ensure tracesNumber has 12 values (one for each month)
+  const seriesData = tracesNumber && tracesNumber.length === 12 ? tracesNumber : Array(12).fill(0);
+
+  const chartSeries = [
+    {
+      name: 'Sales',
+      data: seriesData,
+    },
+  ];
 
   const ReactApexChart = dynamic(() => import("react-apexcharts"), {
     ssr: false,
   });
+
   return (
-    <>
-      <div id="chart">
-        {typeof window !== "undefined" && ReactApexChart ? (
-          <ReactApexChart
-            options={chartState.options}
-            series={chartState.series}
-            type="bar"
-            width="100%"
-            height="100"
-          />
-        ) : null}
-      </div>
-    </>
+    <div>
+      <ReactApexChart
+        options={chartOptions}
+        series={chartSeries}
+        type="bar"
+        height="100"
+      />
+    </div>
   );
 };
 
