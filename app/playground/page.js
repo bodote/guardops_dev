@@ -43,8 +43,6 @@ const index = () => {
   const [syncAll, setsyncAll] = useState(false);
   const [syncAllMsg, setSyncAllMsg] = useState(false);
   const [analysisModelOpen, setAnalysisModelOpen] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [actionType, setActionType] = useState("");
   const [allSystemPrompt, setAllSystemPrompt] = useState("");
   const [allChatPrompt, setAllChatPrompt] = useState("");
@@ -53,7 +51,6 @@ const index = () => {
   const [chatSyncAll, setChatSyncAll] = useState(false);
   const [currentPlaygroundID, setCurrentPlaygroundID] = useState("");
   const [currentChatID, setCurrentChatID] = useState();
-  const [currentPlayground, setCurrentPlayground] = useState({});
   const [allPromtsDetails, setAllPromtsDetails] = useState([]);
   const [allChatsDetails, setAllChatsDetails] = useState([]);
   const [files, setFiles] = useState([]);
@@ -262,28 +259,6 @@ const index = () => {
     getChatPlaygrounds();
   }, []);
 
-  const handleSetTraces = async (playground) => {
-    setCurrentPlayground(playground);
-    setCurrentPlaygroundID(playground.playground_id);
-    try {
-      const response = await fetch(
-        `/api/manageTraces?playground_id=${playground.playground_id}`,
-        {
-          method: "GET",
-        }
-      );
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData) {
-          setRunsHistory(responseData.traces);
-        }
-      } else {
-        console.error("API request failed:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error during API request:", error);
-    }
-  };
 
 
 
@@ -320,7 +295,7 @@ const index = () => {
   const [allMessages, setAllMessages] = useState([]);
   const [updateTrigger, setUpdateTrigger] = useState(0); // State to trigger re-fetching
   const componentRefs = useRef([]);
-
+const [savePressed, setSavePressed] = useState(false);
   // Function to gather all messages from child components
   const updateAllMessages = useCallback(() => {
     const updatedMessages = componentRefs.current.map(ref => ref?.getMessages() || []);
@@ -334,8 +309,9 @@ const index = () => {
   }, [chatVersions, updateTrigger, updateAllMessages]);
 
   useEffect(() => {
-    if (updateTrigger > 0) {
+    if (savePressed) {
       traceChats();
+      setSavePressed(!savePressed)
     }
   }, [allMessages]);
 
@@ -377,7 +353,7 @@ useEffect(() => {
     }
   
   
-
+    
     try {
       
      
@@ -388,7 +364,6 @@ useEffect(() => {
         chat_columns: allMessages,
        
       }; 
-      // Make API call with the combined form data
       const response = await fetch("/api/manageChatPlayground", {
         method: "POST",
         body: JSON.stringify(formData),
@@ -404,6 +379,8 @@ useEffect(() => {
   };
 
   const handleCreateChat = async () => {
+      setChatVersions([{id:1}]);
+
     const currentDate = new Date();
 
     // Format the current date as YYYY-MM-DD
@@ -434,11 +411,9 @@ useEffect(() => {
       });
       const responseData = await response.json();
       if (response.ok) {
-        toast.success("Chat created successfully!");
        
         updatePlaygroundList();
         setCurrentChatID(responseData);
-        setCurrentPlayground();
       } else {
         toast.error(responseData.detail);
         console.error("API request failed:", response.statusText);
@@ -625,21 +600,17 @@ const getChromaCollectionName = async (store_id) => {
                   className="md:w-[182px] md:min-w-[182px] w-full overflow-y-auto md:border-r md:border-r-[#CCCCCC] h-[calc(100vh-44px)]"
                    
                 >
-                  <div className="sticky top-0 bg-white px-[16px] py-[12px] border-b-[#CCCCCC] border-b-[1px]">
-                   
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[10px] font-Inter py-[6px] px-[14px] rounded-md mb-3"
-                      >
-                        Prompt Templates
-                      </button>
-                    <button
-                      onClick={handleCreateChat}
-                      className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[12px] font-Inter py-[6px] px-[14px] rounded-md min-w-[112px]"
-                    >
-                      <FiPlus /> New Chat
-                    </button>
-                  </div>
+                <div className="sticky top-0 bg-white px-[16px] py-[12px] border-b-[#CCCCCC] border-b-[1px]">
+  <div className="flex justify-center items-center h-full">
+    <button
+      onClick={handleCreateChat}
+      className="flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium 2xl:text-[12px] text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+    >
+      <FiPlus /> New Chat
+    </button>
+  </div>
+</div>
+
                   {sortedDates.map(date => (
   <div key={date}>
     <h3 className="text-[14px] font-bold mt-5 ml-2">{date}</h3>
@@ -710,14 +681,7 @@ const getChromaCollectionName = async (store_id) => {
                                 </button>
                               </>
                             )}
-                            {deleteModalOpen && (
-                              <DeleteModal
-                                open={deleteModalOpen}
-                                setOpen={setDeleteModalOpen}
-                                selectedDataForDelete={currentPlayground}
-                                name="playground"
-                              />
-                            )}
+                           
 
                             <div className="flex items-center gap-[5px]">
                             {isModalOpen && (
@@ -828,6 +792,7 @@ const getChromaCollectionName = async (store_id) => {
                               <label className="text-[#252525] text-[12px] font-medium">
                                 Memory
                               </label>
+                              
                               {arenaCheck && (<button
                         onClick={() => setReview(true)}
                         className=" flex items-center  bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[10px] font-Inter py-[6px] px-[14px] rounded-md "
@@ -886,10 +851,16 @@ const getChromaCollectionName = async (store_id) => {
                               <label className="text-[#252525] text-[12px] font-medium">
                                 PII Checker
                               </label>
+                              
                             </div>
                           </div>
                           <div className="flex sm:items-center sm:gap-[18px] gap-[10px] sm:flex-row flex-col items-start lg:mt-0 mt-[10px]">
-                           
+                          <button
+                        onClick={() => setIsModalOpen(true)}
+                        className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[10px] font-Inter py-[6px] px-[14px] rounded-md "
+                      >
+                        Prompt Templates
+                      </button>
                             <Listbox value={selectedProject} onChange={setSelectedProject}>
                               {({ open }) => (
                                 <>
@@ -1036,6 +1007,7 @@ const getChromaCollectionName = async (store_id) => {
                   arenaCheck={arenaCheck}
                   chatHistory={version?.component?.props?.chatHistory}
                   chromaCollectionName={chromaCollectionName}
+                  setSavePressed={setSavePressed}
                 />
               ))}
                     </div>
@@ -1049,20 +1021,7 @@ const getChromaCollectionName = async (store_id) => {
              
             </div>
           </div>
-          {open && (
-            <NewPrompt
-              setOpen={setOpen}
-              open={open}
-              updatePlaygroundList={updatePlaygroundList}
-              actionType={actionType}
-              playground={actionType === "edit" ? currentPlayground : null}
-              setCurrentID={
-                 setCurrentChatID
-              }
-              setCurrentPlayground={setCurrentPlayground}
-              page="chat"
-            />
-          )}
+      
         </div>
 
       ) : (

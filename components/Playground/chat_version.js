@@ -81,7 +81,8 @@ const Chat_version = forwardRef(({
   arenaCheck,
   selectedProject,
   currentChatID,
-  chromaCollectionName
+  chromaCollectionName,
+  setSavePressed
 
   
 }, ref) => {
@@ -426,6 +427,7 @@ useEffect(() => {
     // Update messages and notify parent as well as trace the playground
    
     onSave();
+    setSavePressed(true)
   };
   
   const parseVercelResponse = (apiResponse) => {

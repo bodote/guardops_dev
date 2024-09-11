@@ -41,7 +41,7 @@
     "@vercel/otel": "^1.9.1",
     "@xenova/transformers": "^2.17.2",
     "ai": "^3.3.2",
-    "apexcharts": "^3.44.2",
+    "apexcharts": "^3.53.0",
     "autoprefixer": "^10.4.19",
     "axios": "^1.7.3",
     "better-react-mathjax": "^2.0.3",
