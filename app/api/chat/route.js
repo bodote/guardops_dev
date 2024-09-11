@@ -221,9 +221,9 @@ just reformulate it if needed and otherwise return it as is.`;
         ]);
         const data = new StreamData()
         const customHandler = {
-          handleChainEnd: async (outputs) => {
+          handleChainEnd: async (outputs, runId, parentRunId) => {
             if (outputs.context && Array.isArray(outputs.context)) {
-              data.append({ context: outputs.context });
+              data.append({ context: outputs.context, runId: runId , parentRunId: parentRunId});
             }
           },
         };
