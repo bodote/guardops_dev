@@ -32,6 +32,8 @@ const TraceDetails = ({
     project_name: params.get("name"),
     message: encodeURIComponent(selectedProject?.attributes.prompt),
   };
+
+
   const handleChatRowClick = (e, val) => {
     e.preventDefault();
     setType("chat");
