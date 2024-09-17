@@ -58,6 +58,7 @@ const index = () => {
   const [selectedProject, setSelectedProject] = useState({
     name: "Select a Project",
   });
+  
   const [selectedModel, setSelectedModel] = useState(null); // State to store the selected model
   const [searchProject, setSearchProject] = useState("");
   const [role, setRole] = useState("");
@@ -68,11 +69,11 @@ const index = () => {
   const params = useSearchParams();
   const data = params.get("data");
   const [runStart, setRunStart] = useState();
-
  
   const filteredVectorStores = vectorStores?.filter(vectorStore =>
     vectorStore.name.toLowerCase().includes(searchRag)
   );
+
   useEffect(() => {
     const parsedData = JSON.parse(data);
     if (parsedData && parsedData.input) {

@@ -40,11 +40,13 @@ const TraceElement = ({ element, handleClick }) => {
 
   const textColorClass = isFlagged() ? 'text-red-700' : 'text-black';
 
+
   return (
     <div className="relative mb-[10px]">
       <div
         className={`flex items-center relative bg-[#fff] z-[9] max-w-[466px] ${element.parent_id ? 'ml-[20px]' : ''}`}
         onClick={(e) => handleClick(e, element)}
+
       >
         <div className="border border-[#CCCCCC] rounded-2xl w-full h-[24px] overflow-clip flex items-center hover:bg-[#fffbeb] cursor-pointer">
           <div className="p-[5px_8px_5px_12px]">
@@ -52,11 +54,13 @@ const TraceElement = ({ element, handleClick }) => {
           </div>
           <div className="md:p-[6px_0px_6px_10px] p-[12px] border-x">
             <h1 data-tooltip-content={element.kind} className={`text-[10px] font-Archivo font-normal truncate w-[80px] ${textColorClass}`}>
+
               {element.kind}
             </h1>
           </div>
           <div className="md:p-[6px_0px_6px_10px] pl-[4px] border-r">
             <h1 data-tooltip-content={element.name} className={`text-[10px] font-Archivo font-normal truncate w-[80px] ${textColorClass}`}>
+
               {element.name}
             </h1>
           </div>
@@ -67,6 +71,7 @@ const TraceElement = ({ element, handleClick }) => {
           </div>
           <div className="md:p-[6px_0px_6px_10px] p-[12px]">
             <h1 className={`text-[10px] font-Archivo font-normal truncate w-[60px] ${textColorClass}`}>
+
               {handleLatency(element.start_time, element.end_time)} s
             </h1>
           </div>
@@ -88,3 +93,4 @@ const TraceElement = ({ element, handleClick }) => {
 };
 
 export default TraceElement;
+
