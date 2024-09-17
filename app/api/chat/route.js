@@ -277,7 +277,35 @@ just reformulate it if needed and otherwise return it as is.`;
 
     return response.toDataStreamResponse();
   } catch (error) {
-    console.log(error)
-    return new NextResponse(error)
+    let errorData;
+    
+    try {
+      // Attempt to parse the error body
+      const parsedError = JSON.parse(error.responseBody).error;
+      
+      // Check if the parsed error is an object or a string
+      if (typeof parsedError === 'object' && parsedError !== null) {
+        errorData = parsedError;
+      } else {
+        errorData = { message: parsedError };
+      }
+    } catch (parseError) {
+      // If parsing fails, use the raw error message
+      errorData = { message: error.message || 'An unknown error occurred' };
+    }
+
+    console.log('Full error data:', errorData);
+
+    // Convert the error data to a JSON string
+    const errorJson = JSON.stringify(errorData);
+
+    // Encode the JSON string
+    const encodedErrorJson = encodeURIComponent(errorJson);
+
+    // Return the encoded JSON error
+    return new NextResponse(encodedErrorJson, { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }

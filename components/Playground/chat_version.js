@@ -255,8 +255,31 @@ const Chat_version = forwardRef(({
   const {id,  messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages, error, data  } = useChat({
     body: formData,
     
-    onError: error => { setErrorOwn(error.message);}
-  });
+  onError: error => {
+    // Decode the error message
+    let decodedErrorJson = decodeURIComponent(error.message);
+
+    // Parse the JSON string back into an object
+    let errorData;
+    try {
+      errorData = JSON.parse(decodedErrorJson);
+    } catch (parseError) {
+      errorData = { message: decodedErrorJson };
+    }
+
+    // Remove the prefix if it exists in the error message
+    const prefixToRemove = "Failed to parse stream string. Invalid code ";
+    if (errorData.message && errorData.message.startsWith(prefixToRemove)) {
+      errorData.message = errorData.message.slice(prefixToRemove.length);
+    }
+
+    // Set the error message
+    setErrorOwn(errorData.message);
+
+    // Log the full error data for debugging purposes
+    console.error("FULL ERROR DATA", errorData);
+  }
+});
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
   const [editMessageId, setEditMessageId] = useState(null);
@@ -819,6 +842,8 @@ useEffect(() => {
                 {errorOwn}
               </p>
             )}
+
+
 
             <div
             ref={chatDivRef}
