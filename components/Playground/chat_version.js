@@ -637,11 +637,17 @@ useEffect(() => {
   const handleMessageInputChange = (event) => {
     setInput(event.target.value);
     if (syncAllMsg) {
-      setAllChatPrompt(event.target.value);
+      setAllChatPrompt({ 
+        value: event.target.value, 
+        timestamp: Date.now() 
+      });
     }
   };
   useEffect(() => {
-    setInput(allChatPrompt);
+    setInput(allChatPrompt?.value);
+    if (syncAllMsg){
+      setAllChatPrompt(allChatPrompt?.value)
+    }
   }, [allChatPrompt]);
 
 
@@ -790,7 +796,11 @@ useEffect(() => {
                onClick={() => {
 
                 if(syncAllMsg){
-                    setAllChatPrompt("");
+                    setInput("")
+                    setAllChatPrompt({ 
+                      value: "", 
+                      timestamp: Date.now() 
+                    });
                     setAllFiles(undefined);
                 }else{
                  setInput("");

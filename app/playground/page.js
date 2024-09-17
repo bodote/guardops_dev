@@ -123,7 +123,10 @@ const index = () => {
   .sort((a, b) => new Date(b.split(".").reverse().join("-")) - new Date(a.split(".").reverse().join("-")));
 
   const handleAddToPrompt = (content) => {
-    setAllChatPrompt(content)
+    setAllChatPrompt({ 
+      value: content, 
+      timestamp: Date.now() 
+    });
     setIsModalOpen(false);
   };
   const handleOutsideClick = (event) => {
