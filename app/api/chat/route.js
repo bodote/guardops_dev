@@ -12,6 +12,7 @@ import { NextResponse } from 'next/server';
 import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/hf_transformers';
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { ChatOpenAI } from "@langchain/openai";
+import { Fireworks } from "@langchain/community/llms/fireworks"
 import {
   RunnableMap,
   RunnableSequence,
@@ -61,17 +62,18 @@ export async function POST(req) {
         create: createOpenAI,
         apiKey: api_keys.groqKey,
         baseURL: 'https://api.groq.com/openai/v1',
-        compatibility: 'strict'
+        compatibility: 'compatible'
       },
       perplexity: {
         create: createOpenAI,
         apiKey: api_keys.perplexityKey,
         baseURL: 'https://api.perplexity.ai/',
-        compatibility: 'strict'
+        compatibility: 'compatible'
       },
       fireworks: {
         create: createOpenAI,
-        apiKey: api_keys.fireworksKey,
+        apiKey: process.env.FIREWORKS_KEY,
+        //apiKey: api_keys.fireworksKey,
         baseURL: 'https://api.fireworks.ai/inference/v1',
         compatibility: 'compatible'
       },
@@ -85,7 +87,7 @@ export async function POST(req) {
         create: createOpenAI,
         apiKey: api_keys.customKey,
         baseURL: 'https://lm3.hs-ansbach.de/worker2/v1',
-        compatibility: 'strict'
+        compatibility: 'compatible'
       }
     };
     let openAiModelSelected = false;
@@ -148,12 +150,24 @@ export async function POST(req) {
           }
         })
         const retriever = ScoreThresholdRetriever.fromVectorStore(vectorStore, {minSimilarityScore: 0.85,maxK:2})
-        const llm = new ChatOpenAI({
-          model: model,
-          apiKey: api_key_for_rag,
-          temperature: 0,
-          ...(base_url_for_rag ? { configuration: { baseURL: base_url_for_rag } } : {})
-        });
+        let llm;
+
+        if (provider === "fireworks") {
+            llm = new Fireworks({
+                model: model,
+                apiKey: api_key_for_rag,
+                temperature: 0,
+                ...(base_url_for_rag ? { configuration: { baseURL: base_url_for_rag } } : {})
+            });
+        } else {
+            llm = new ChatOpenAI({
+                model: model,
+                apiKey: api_key_for_rag,
+                temperature: 0,
+                ...(base_url_for_rag ? { configuration: { baseURL: base_url_for_rag } } : {})
+            });
+        }
+        
 
 
 
