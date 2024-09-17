@@ -176,6 +176,7 @@ const Chat_version = forwardRef(({
       googleKey:googleKey,
       mistralKey:mistralKey,
       perplexityKey:perplexityKey,
+      togetherKey:togetherKey
   
     }
   });
@@ -236,6 +237,7 @@ const Chat_version = forwardRef(({
         googleKey: googleKey,
         mistralKey: mistralKey,
         perplexityKey: perplexityKey,
+        togetherKey: togetherKey
       },
     });
   }, [

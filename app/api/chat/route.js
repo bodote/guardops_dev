@@ -34,7 +34,6 @@ export async function POST(req) {
   try {
 
     var { model, messages, prompt, settings, systemPrompt, provider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = body;
-
     const providerConfig = {
       openai: {
         create: createOpenAI,
@@ -74,7 +73,13 @@ export async function POST(req) {
         create: createOpenAI,
         apiKey: api_keys.fireworksKey,
         baseURL: 'https://api.fireworks.ai/inference/v1',
-        compatibility: 'strict'
+        compatibility: 'compatible'
+      },
+      together: {
+        create: createOpenAI,
+        apiKey: api_keys.togetherKey,
+        baseURL: 'https://api.together.xyz/v1',
+        compatibility: 'compatible'
       },
       custom: {
         create: createOpenAI,
@@ -260,7 +265,6 @@ just reformulate it if needed and otherwise return it as is.`;
 
     }
 
-
     const response = await streamText({
       model: target_model,
       prompt: prompt,
@@ -268,15 +272,12 @@ just reformulate it if needed and otherwise return it as is.`;
       maxTokens: Number(settings.maxTokens),
       temperature: Number(settings.temperature),
       messages: messagesToSend,
-      experimental_telemetry: {
-        isEnabled: true,
-        functionId: "playground_chat"
-      }
+    
     })
-
 
     return response.toDataStreamResponse();
   } catch (error) {
+    console.log("actual error ", error)
     let errorData;
     
     try {
@@ -294,7 +295,6 @@ just reformulate it if needed and otherwise return it as is.`;
       errorData = { message: error.message || 'An unknown error occurred' };
     }
 
-    console.log('Full error data:', errorData);
 
     // Convert the error data to a JSON string
     const errorJson = JSON.stringify(errorData);
