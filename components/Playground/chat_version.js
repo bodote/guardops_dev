@@ -645,9 +645,7 @@ useEffect(() => {
   };
   useEffect(() => {
     setInput(allChatPrompt?.value);
-    if (syncAllMsg){
-      setAllChatPrompt(allChatPrompt?.value)
-    }
+    
   }, [allChatPrompt]);
 
 
