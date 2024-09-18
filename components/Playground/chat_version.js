@@ -159,7 +159,7 @@ const Chat_version = forwardRef(({
   const [formData, setFormData] = useState( {
     max_tokens: Number(settings.maxTokens),
     model: selected.id1,
-    systemPrompt: open ? systemPrompt : "",
+    systemPrompt: systemPrompt,
     type: "chat",
     settings: settings,
     rag: ragCheck,
@@ -220,7 +220,7 @@ const Chat_version = forwardRef(({
     setFormData({
       max_tokens: Number(settings.maxTokens),
       model: selected.id1,
-      systemPrompt: open ? systemPrompt : "",
+      systemPrompt: systemPrompt,
       type: "chat",
       settings: settings,
       provider: selected.provider,
