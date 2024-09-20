@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
+import { FaCopy } from 'react-icons/fa';
 
 const FileContentModal = ({ isOpen, onClose, fileContent, fileName }) => {
   const modalRef = useRef(null);
+  const [copyText, setCopyText] = useState('Copy');
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -20,6 +22,14 @@ const FileContentModal = ({ isOpen, onClose, fileContent, fileName }) => {
     };
   }, [isOpen, onClose]);
 
+  const handleCopyToClipboard = () => {
+    navigator.clipboard.writeText(fileContent);
+    setCopyText('Copied');
+    setTimeout(() => {
+      setCopyText('Copy');
+    }, 1000); // Change back to "Copy" after 1 second
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -30,11 +40,20 @@ const FileContentModal = ({ isOpen, onClose, fileContent, fileName }) => {
       >
         <div className="flex justify-between items-center border-b pb-2 mb-4">
           <h2 className="text-xl font-bold">{fileName}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-900">
-            <FaTimes />
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={handleCopyToClipboard}
+              className="text-gray-500 hover:text-gray-900 flex items-center"
+            >
+              <FaCopy className="mr-1" />
+              {copyText}
+            </button>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-900">
+              <FaTimes />
+            </button>
+          </div>
         </div>
-        <div className="whitespace-pre-wrap break-words  text-gray-700 p-4">
+        <div className="whitespace-pre-wrap break-words text-gray-700 p-4">
           {fileContent}
         </div>
       </div>
