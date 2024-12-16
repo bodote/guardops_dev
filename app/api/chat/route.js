@@ -72,7 +72,7 @@ export async function POST(req) {
       },
       fireworks: {
         create: createOpenAI,
-        apiKey: api_keys.fireworksKey,
+        apiKey: process.env.FIREWORKS_KEY,
         //apiKey: api_keys.fireworksKey,
         baseURL: 'https://api.fireworks.ai/inference/v1',
         compatibility: 'compatible'
@@ -87,12 +87,6 @@ export async function POST(req) {
         create: createOpenAI,
         apiKey: api_keys.customKey,
         baseURL: 'https://lm3.hs-ansbach.de/worker2/v1',
-        compatibility: 'compatible'
-      },
-      custom_h: {
-        create: createOpenAI,
-        apiKey: api_keys.customKey,
-        baseURL: 'http://159.69.166.67:55504/v1',
         compatibility: 'compatible'
       }
     };
@@ -134,7 +128,15 @@ export async function POST(req) {
         const lastUserMessageIndex = messages.map(msg => msg.role).lastIndexOf("user");
         const question = messages[lastUserMessageIndex].content;
 
-       
+        const chat_history = messages
+          .filter((_, index) => index !== lastUserMessageIndex)  // Exclude the last User message
+          .map((element) => {
+            if (element.role === "assistant") {
+              return new AIMessage(element.content);
+            } else if (element.role === "user") {
+              return new HumanMessage(element.content);
+            }
+          });
 
         const embeddings = new HuggingFaceTransformersEmbeddings({ model: "Xenova/all-MiniLM-L6-v2" })
         const vectorStore = new Chroma(embeddings, {
@@ -147,13 +149,126 @@ export async function POST(req) {
             }
           }
         })
-        const hit = await vectorStore.similaritySearchWithScore(question)
-        //CAREFUL: https://docs.trychroma.com/guides#changing-the-distance-function chroma uses squared L2 and i need to find out how to switch to cosine similarity
-        const filteredResults = hit.filter(([document, score]) => score <= 1.5);
+        const retriever = ScoreThresholdRetriever.fromVectorStore(vectorStore, {minSimilarityScore: 0.85,maxK:2})
+        let llm;
 
-        console.log("for this query ", question, " got this response from the retriever ", filteredResults)
-      
+        if (provider === "fireworks") {
+            llm = new Fireworks({
+                model: model,
+                apiKey: api_key_for_rag,
+                temperature: 0,
+                ...(base_url_for_rag ? { configuration: { baseURL: base_url_for_rag } } : {})
+            });
+        } else {
+            llm = new ChatOpenAI({
+                model: model,
+                apiKey: api_key_for_rag,
+                temperature: 0,
+                ...(base_url_for_rag ? { configuration: { baseURL: base_url_for_rag } } : {})
+            });
+        }
+        
 
+
+
+        const contextualizeQSystemPrompt = `Given a chat history and the latest user question
+which might reference context in the chat history, formulate a standalone question
+which can be understood without the chat history. Do NOT answer the question,
+just reformulate it if needed and otherwise return it as is.`;
+
+
+        const contextualizeQPrompt = ChatPromptTemplate.fromMessages([
+          ["system", contextualizeQSystemPrompt],
+          new MessagesPlaceholder("chat_history"),
+          ["human", "{question}"],
+        ]);
+        const contextualizeQChain = contextualizeQPrompt
+          .pipe(llm)
+          .pipe(new StringOutputParser());
+
+
+        const qaSystemPrompt = `You are an assistant for question-answering tasks.
+  Use the following pieces of retrieved context to answer the question.
+  If you don't know the answer, just say that you don't know.
+  Use three sentences maximum and keep the answer concise.
+  
+  {context}`;
+
+        const qaPrompt = ChatPromptTemplate.fromMessages([
+          ["system", qaSystemPrompt],
+          new MessagesPlaceholder("chat_history"),
+          ["human", "{question}"],
+        ]);
+
+        const contextualizedQuestion = (input) => {
+          if ("chat_history" in input) {
+            return contextualizeQChain;
+          }
+          return input.question;
+        };
+
+        const ragChainWithSources = RunnableSequence.from([
+          RunnablePassthrough.assign({
+            contextualized_question: async (input) => {
+              if (input.chat_history && input.chat_history.length > 0) {
+                return contextualizeQChain.invoke({
+                  chat_history: input.chat_history,
+                  question: input.question,
+                });
+              }
+              return input.question;
+            }
+          }),
+          RunnableMap.from({
+            context: (input) => retriever.getRelevantDocuments(input.contextualized_question),
+            question: (input) => input.contextualized_question,
+            chat_history: (input) => input.chat_history,
+          }),
+          RunnablePassthrough.assign({
+            answer: RunnableSequence.from([
+              (input) => ({
+                context: formatDocumentsAsString(input.context),
+                question: input.question,
+                chat_history: input.chat_history,
+              }),
+              qaPrompt,
+              llm,
+              new StringOutputParser(),
+            ]),
+          }),
+
+        ]);
+        const data = new StreamData()
+        const customHandler = {
+          handleChainEnd: async (outputs, runId, parentRunId) => {
+            if (outputs.context && Array.isArray(outputs.context)) {
+              data.append({ context: outputs.context, runId: runId , parentRunId: parentRunId});
+            }
+          },
+        };
+        
+        const ragResponse = await ragChainWithSources.stream({ question, chat_history  }, { callbacks:[customHandler]});
+
+        //Here follows some needed code to make it work with the langchainadapter 
+        //This basically extracts the ragResponse.answer and assigns it to the extractedAnswerStream
+        let accumulatedResponse = {};
+        const extractAnswerStream = new TransformStream({
+          transform(chunk, controller) {
+
+            accumulatedResponse = { ...accumulatedResponse, ...chunk };
+
+            if (accumulatedResponse.answer) {
+              controller.enqueue(accumulatedResponse.answer);
+              accumulatedResponse = {};
+            }
+          },
+          flush(controller) {
+            if (accumulatedResponse.answer) {
+              controller.enqueue(accumulatedResponse.answer);
+            }
+          }
+        });
+        const answerStream = ragResponse.pipeThrough(extractAnswerStream);
 
         
         return LangChainAdapter.toDataStreamResponse(answerStream, {data, callbacks:{onFinal() { data.close()}}});
@@ -168,7 +283,7 @@ export async function POST(req) {
       model: target_model,
       prompt: prompt,
       system: systemPrompt,
-     // maxTokens: Number(settings.maxTokens),
+      maxTokens: Number(settings.maxTokens),
       temperature: Number(settings.temperature),
       messages: messagesToSend,
     

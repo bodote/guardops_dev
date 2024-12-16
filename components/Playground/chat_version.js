@@ -392,7 +392,7 @@ useEffect(() => {
     {
       input &&
         piiData.forEach((annotation, index) => {
-          elements.push(input?.substring(lastIndex, annotation.start));
+          elements.push(input.substring(lastIndex, annotation.start));
 
           elements.push(
             <span
@@ -407,7 +407,7 @@ useEffect(() => {
           );
           lastIndex = annotation.end;
         });
-      elements.push(input?.substring(lastIndex));
+      elements.push(input.substring(lastIndex));
     }
     return elements;
   };
