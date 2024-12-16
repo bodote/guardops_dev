@@ -1,5 +1,5 @@
 {
-  "name": "my-app",
+  "name": "coai",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "engines": {
-    "node": ">=19.6.1",
+    "node": "19.6.1",
     "npm": ">=9.4.0"
   },
   "dependencies": {
