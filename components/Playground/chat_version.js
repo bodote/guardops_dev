@@ -392,7 +392,7 @@ useEffect(() => {
     {
       input &&
         piiData.forEach((annotation, index) => {
-          elements.push(input.substring(lastIndex, annotation.start));
+          elements.push(input?.substring(lastIndex, annotation.start));
 
           elements.push(
             <span
@@ -401,7 +401,7 @@ useEffect(() => {
                 styles.highlight
               }`}
             >
-              {input.substring(annotation.start, annotation.end)}
+              {input?.substring(annotation.start, annotation.end)}
               <span className={styles.category}>{annotation.entity_type}</span>
             </span>
           );
