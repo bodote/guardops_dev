@@ -41,6 +41,10 @@ const providerList = [
     id: 9,
     name: "together",
   },
+  {
+    id: 10,
+    name: "custom_h"
+  }
 ];
 
 function classNames(...classes) {

@@ -72,8 +72,7 @@ export async function POST(req) {
       },
       fireworks: {
         create: createOpenAI,
-        apiKey: process.env.FIREWORKS_KEY,
-        //apiKey: api_keys.fireworksKey,
+        apiKey: api_keys.fireworksKey,
         baseURL: 'https://api.fireworks.ai/inference/v1',
         compatibility: 'compatible'
       },
@@ -87,6 +86,12 @@ export async function POST(req) {
         create: createOpenAI,
         apiKey: api_keys.customKey,
         baseURL: 'https://lm3.hs-ansbach.de/worker2/v1',
+        compatibility: 'compatible'
+      },
+      custom_h: {
+        create: createOpenAI,
+        apiKey: api_keys.customKey,
+        baseURL: 'http://159.69.166.67:55504/v1',
         compatibility: 'compatible'
       }
     };

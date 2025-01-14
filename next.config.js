@@ -20,6 +20,9 @@ webpack: (config) => {
       "sharp$": false,
       "onnxruntime-node$": false,
   }
+  config.externals.push({
+    'https://unpkg.com/@xenova/transformers@2.13.2': 'transformers',
+  });
   return config;
 },
 };
