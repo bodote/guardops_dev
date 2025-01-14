@@ -11,7 +11,8 @@ import {
   StarIcon,
   TraceIcon,
   UserIcon,
-  KnowledgeIcon
+  KnowledgeIcon,
+PromptingIcon
 } from "@/public/Assets/Icons/Allsvg";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Cookies from "js-cookie";
@@ -116,6 +117,19 @@ const Sidebar = () => {
                     <TraceIcon className="w-[24px]" />
                     <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
                       Playground
+                    </p>
+                  </a>
+                )}
+
+  {(role?.includes("Playground") ||
+                  role?.includes("Full_Access")) && (
+                  <a
+                    href="/prompting"
+                    className="flex gap-[10px] items-center mt-[30px]"
+                  >
+                    <PromptingIcon className="w-[24px]" />
+                    <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
+                      Prompting
                     </p>
                   </a>
                 )}
