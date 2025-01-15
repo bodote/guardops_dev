@@ -21,7 +21,6 @@ import Chat_version from "@/components/Playground/chat_version";
 import { getUserRole } from "@/helper/getRole";
 import Loader from "@/components/Loader/Loader";
 import { toast } from "react-toastify";
-import JSZip from "jszip";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }

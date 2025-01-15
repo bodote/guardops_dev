@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { Fragment} from 'react';
 import { Listbox, Transition } from '@headlessui/react';
-import { FaCheck, FaSearch, FaChevronDown, FaTimes, FaPencilAlt } from 'react-icons/fa';
+import { FaCheck, FaSearch, FaChevronDown, FaTimes, FaPencilAlt, FaSave } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const AIPrompting = ({ onBack }) => {
 
@@ -18,7 +19,10 @@ const AIPrompting = ({ onBack }) => {
   const [showTestSection, setShowTestSection] = useState(false);
   const [testResults, setTestResults] = useState({});
   const [isTestingPrompt, setIsTestingPrompt] = useState(false);
+
 const [testContext, setTestContext] = useState('');
+const [showTemplatePopup, setShowTemplatePopup] = useState(false);
+const [templateName, setTemplateName] = useState('');
 
   const dummyResponse = `Write a detailed and comprehensive response that thoroughly addresses the user's query. Begin by analyzing the key aspects of the question, then provide well-structured, relevant information supported by examples where appropriate.`;
 
@@ -41,7 +45,27 @@ const [testContext, setTestContext] = useState('');
 useEffect(() => {
   getModels();
 }, []);
-
+const handleSaveTemplate = async () => {
+  try {
+    // TODO: Implement API call to save template
+    // await fetch('/api/saveTemplate', {
+    //   method: 'POST',
+    //   body: JSON.stringify({
+    //     name: templateName,
+    //     prompt: generatedPrompt
+    //   })
+    // });
+    
+    // Show success message (you might want to use a toast notification system)
+    toast.success('Template saved successfully!', { autoClose: 1000 });
+    // Reset and close popup
+    setShowTemplatePopup(false);
+    setTemplateName('');
+  } catch (error) {
+    console.error('Error saving template:', error);
+    alert('Failed to save template');
+  }
+};
 // Add this function to fetch models
 const getModels = async () => {
   try {
@@ -89,8 +113,8 @@ const [promptHistory, setPromptHistory] = useState([
     userInput: 'Create a professional email template for client outreach',
     generatedPrompt: 'Write an email template that establishes a professional tone...',
     selectedModels: [
-      { model_id: 'gpt4', name: 'GPT-4' },
-      { model_id: 'claude', name: 'Claude' }
+      { model_id: 'gpt4', },
+      { model_id: 'claude' }
     ],
     testContext: 'Company: TechCorp\nProduct: AI Solutions',
     testResults: {
@@ -106,7 +130,7 @@ const [promptHistory, setPromptHistory] = useState([
     timestamp: '2024-03-20T10:35:00',
     userInput: 'Create a professional email template for client outreach',
     generatedPrompt: 'Write an email template with a more casual tone...',
-    selectedModels: [{ model_id: 'gpt4', name: 'GPT-4' }],
+    selectedModels: [{ model_id: 'gpt4' }],
     testContext: 'Company: TechCorp\nProduct: AI Solutions\nTone: Casual',
     testResults: {
       'gpt4': 'Hey there!\n\nI wanted to reach out...'
@@ -182,6 +206,9 @@ const restoreFromHistory = (historyItem) => {
   setSelectedHistoryItem(historyItem);
   setUserInput(historyItem.userInput);
   setGeneratedPrompt(historyItem.generatedPrompt);
+ const validModels = historyItem.selectedModels.filter(selected => 
+    availableModels.some(model => model.model_id === selected.model_id)
+  );
   setSelectedModels(historyItem.selectedModels);
   setTestContext(historyItem.testContext);
   setTestResults(historyItem.testResults);
@@ -352,14 +379,21 @@ const HistoryItem = ({ item, level = 0 }) => {
             {new Date(item.timestamp).toLocaleString()}
           </div>
           <div className="flex flex-wrap gap-1 mt-2">
-            {item.selectedModels.map((model) => (
-              <span
-                key={model.model_id}
-                className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
-              >
-                {model.name}
-              </span>
-            ))}
+            {item.selectedModels
+            .filter(selected => 
+              availableModels.some(model => model.model_id === selected.model_id)
+            )
+            .map((selected) => {
+              const modelInfo = availableModels.find(m => m.model_id === selected.model_id);
+              return modelInfo ? (
+                <span
+                  key={selected.model_id}
+                  className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
+                >
+                  {modelInfo.name}
+                </span>
+              ) : null;
+            })}
           </div>
         </button>
       </div>
@@ -460,16 +494,27 @@ const hasChanges = () => {
             </div>
 
             <div className="relative">
-              <div className="absolute -top-[1.75rem] left-0 text-sm text-gray-500">
-                Generated Prompt
-              </div>
-              <div className="border-l border-gray-300 bg-green-50 p-4 rounded-r-md font-mono min-h-[200px] whitespace-pre-wrap">
-                {generatedPrompt}
-                {isGenerating && (
-                  <span className="inline-block w-2 h-4 bg-green-500 ml-1 animate-pulse" />
-                )}
-              </div>
-            </div>
+  <div className="absolute -top-[1.75rem] left-0 text-sm text-gray-500">
+    Generated Prompt
+  </div>
+  <div className="relative border-l border-gray-300 bg-green-50 p-4 rounded-r-md font-mono min-h-[200px] whitespace-pre-wrap">
+    {generatedPrompt}
+    {isGenerating && (
+      <span className="inline-block w-2 h-4 bg-green-500 ml-1 animate-pulse" />
+    )}
+
+    {generatedPrompt && !isGenerating && (
+      <button
+        onClick={() => setShowTemplatePopup(true)}
+        className="absolute bottom-4 right-4 text-sm px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-1"
+      >
+        <FaSave className="h-3 w-3" />
+        Save to Template
+      </button>
+    )}
+  </div>
+</div>
+
           </div>
 
           {/* Test prompt section */}
@@ -500,7 +545,9 @@ const hasChanges = () => {
         <h3 className="font-medium mb-3">Select models to test with:</h3>
         <div className="relative w-full">
 <Listbox 
-  value={selectedModels} 
+  value={availableModels.filter(model => 
+    selectedModels.some(selected => selected.model_id === model.model_id)
+  )} 
   onChange={setSelectedModels}
   multiple
 >
@@ -510,23 +557,27 @@ const hasChanges = () => {
         {selectedModels.length === 0 ? (
           <span className="text-gray-500">Select models...</span>
         ) : (
-          selectedModels.map((model) => (
-            <span
-              key={model.model_id}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm group"
-            >
-              {model.name}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedModels(selectedModels.filter(m => m.model_id !== model.model_id));
-                }}
-                className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+             selectedModels
+            .filter(selected => 
+              availableModels.some(model => model.model_id === selected.model_id)
+            )
+            .map((model) => (
+              <span
+                key={model.model_id}
+                className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm group"
               >
-                <FaTimes className="h-3 w-3 hover:text-blue-600" />
-              </button>
-            </span>
-          ))
+                {model.name}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedModels(selectedModels.filter(m => m.model_id !== model.model_id));
+                  }}
+                  className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                >
+                  <FaTimes className="h-3 w-3 hover:text-blue-600" />
+                </button>
+              </span>
+            ))
         )}
       </div>
       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -555,27 +606,26 @@ const hasChanges = () => {
           </div>
         </div>
         
-        {filteredModels.map((model) => (
-          <Listbox.Option
-            key={model.model_id}
-            value={model}
-            onClick={() => {
-              const isSelected = selectedModels.some(m => m.model_id === model.model_id);
-              if (isSelected) {
-                setSelectedModels(selectedModels.filter(m => m.model_id !== model.model_id));
-              } else {
-                setSelectedModels([...selectedModels, model]);
+       {filteredModels.map((model) => {
+          const isSelected = selectedModels.some(m => m.model_id === model.model_id);
+          return (
+            <Listbox.Option
+              key={model.model_id}
+              value={model}
+              onClick={() => {
+                if (isSelected) {
+                  setSelectedModels(selectedModels.filter(m => m.model_id !== model.model_id));
+                } else {
+                  setSelectedModels([...selectedModels, model]);
+                }
+              }}
+              className={({ active }) =>
+                `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
+                  active ? 'bg-blue-100' : 'bg-white'
+                }`
               }
-            }}
-            className={({ active }) =>
-              `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                active ? 'bg-blue-100' : 'bg-white'
-              }`
-            }
-          >
-            {() => {
-              const isSelected = selectedModels.some(m => m.model_id === model.model_id);
-              return (
+            >
+              {() => (
                 <>
                   <span className={`block truncate ${isSelected ? 'font-medium' : 'font-normal'}`}>
                     {model.name}
@@ -586,10 +636,10 @@ const hasChanges = () => {
                     </span>
                   )}
                 </>
-              );
-            }}
-          </Listbox.Option>
-        ))}
+              )}
+            </Listbox.Option>
+          );
+        })}
       </Listbox.Options>
     </Transition>
   </div>
@@ -643,6 +693,60 @@ const hasChanges = () => {
         </div>
       </div>
     </div>
+
+{/* Template Popup */}
+{/* Template Popup */}
+{showTemplatePopup && (
+  <div 
+    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    onClick={() => setShowTemplatePopup(false)} // Close when clicking the backdrop
+  >
+    <div 
+      className="bg-white rounded-lg p-6 max-w-md w-full mx-4 relative"
+      onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the popup content
+    >
+      <button
+        onClick={() => setShowTemplatePopup(false)}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+      >
+        <FaTimes className="h-4 w-4" />
+      </button>
+      
+      <h3 className="text-lg font-medium mb-4">Save as Template</h3>
+      
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="templateName" className="block text-sm font-medium text-gray-700 mb-1">
+            Template Name
+          </label>
+          <input
+            type="text"
+            id="templateName"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            placeholder="Enter a name for your template"
+            autoFocus
+          />
+        </div>
+        
+        <div className="pt-2">
+          <button
+            onClick={handleSaveTemplate}
+            disabled={!templateName.trim()}
+            className={`w-full py-2 px-4 rounded-md text-white transition-colors
+              ${templateName.trim()
+                ? 'bg-green-600 hover:bg-green-700'
+                : 'bg-gray-400 cursor-not-allowed'
+              }`}
+          >
+            Save Template
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
   </div>
 );
 };
