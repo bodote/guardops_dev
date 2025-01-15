@@ -5,7 +5,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import { FaCheck, FaSearch, FaChevronDown, FaTimes, FaPencilAlt, FaSave } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
-const AIPrompting = ({ onBack }) => {
+const AIPrompting = ({ onBack, initialData = null }) => {
 
 // Add these state variables to your component
  const [availableModels, setAvailableModels] = useState([]);
@@ -103,7 +103,7 @@ const startNewIteration = () => {
 const filteredModels = availableModels.filter(model => 
   model.name.toLowerCase().includes(modelSearch.toLowerCase())
 );
-const [promptHistory, setPromptHistory] = useState([
+const dummyHistory =[
   {
     id: '1',
     parentId: null,
@@ -136,7 +136,10 @@ const [promptHistory, setPromptHistory] = useState([
       'gpt4': 'Hey there!\n\nI wanted to reach out...'
     }
   }
-]);
+];
+  const [promptHistory, setPromptHistory] = useState(initialData?.promptHistory || dummyHistory);
+
+
 const saveVariation = (originalItem) => {
   const newHistoryItem = {
     id: `${originalItem.id}.${Date.now()}`,
