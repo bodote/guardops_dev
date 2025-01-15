@@ -3,13 +3,18 @@ import { FaArrowLeft, FaSearch, FaHistory, FaBook } from 'react-icons/fa';
 import AIPrompting from './AIPrompting';
 
 const AIRefinement = ({ onBack }) => {
-  const [view, setView] = useState('menu'); // 'menu', 'history', 'templates'
+  const [view, setView] = useState('menu');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
   const [promptingHistory, setPromptingHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Dummy data - replace with API call
+  useEffect(() => {
+    if (view === 'history') {
+      fetchPromptingHistory();
+    }
+  }, [view]);
+
   const fetchPromptingHistory = async () => {
     setIsLoading(true);
     try {
@@ -31,13 +36,11 @@ const AIRefinement = ({ onBack }) => {
           timestamp: '2024-03-19T10:20:00Z',
           lastModified: '2024-03-19T14:30:00Z'
         },
-        // Add more dummy items...
       ];
       
       setPromptingHistory(data);
     } catch (error) {
       console.error('Error fetching history:', error);
-      // TODO: Show error toast
     }
     setIsLoading(false);
   };
@@ -65,45 +68,44 @@ const AIRefinement = ({ onBack }) => {
               'gpt4': 'Subject: Introducing Your New AI Assistant...'
             }
           },
-          // Add more history items...
         ],
-        // Add other necessary data
       };
       
       setSelectedItem(data);
     } catch (error) {
       console.error('Error fetching details:', error);
-      // TODO: Show error toast
     }
   };
 
-  useEffect(() => {
-    if (view === 'history') {
-      fetchPromptingHistory();
+  const handleBack = () => {
+    if (selectedItem) {
+      setSelectedItem(null);
+      setView('history');
+    } else if (view === 'history' || view === 'templates') {
+      setView('menu');
+    } else {
+      onBack();
     }
-  }, [view]);
+  };
 
   const filteredHistory = promptingHistory.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (selectedItem) {
-    return <AIPrompting 
-      onBack={() => setSelectedItem(null)}
-      initialData={selectedItem}
-    />;
-  }
+  const renderContent = () => {
+    if (selectedItem) {
+      return (
+        <AIPrompting 
+          onBack={handleBack}
+          initialData={selectedItem}
+         hideBackToMenu={true} // Add this prop
 
-  return (
-    <div className="max-w-7xl mx-auto mt-8">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
-      >
-        <FaArrowLeft /> Back to Menu
-      </button>
+        />
+      );
+    }
 
-      {view === 'menu' ? (
+    if (view === 'menu') {
+      return (
         <div className="mt-12 max-w-3xl mx-auto">
           <h2 className="text-2xl font-Archivo text-center mb-8 text-gray-800">
             What would you like to refine?
@@ -140,7 +142,11 @@ const AIRefinement = ({ onBack }) => {
             </button>
           </div>
         </div>
-      ) : view === 'history' ? (
+      );
+    }
+
+    if (view === 'history') {
+      return (
         <div className="max-w-3xl mx-auto">
           <div className="sticky top-0 bg-white z-10 pb-4">
             <div className="relative">
@@ -181,7 +187,21 @@ const AIRefinement = ({ onBack }) => {
             )}
           </div>
         </div>
-      ) : null}
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto mt-8">
+      <button
+        onClick={handleBack}
+        className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
+      >
+        <FaArrowLeft /> Back
+      </button>
+      {renderContent()}
     </div>
   );
 };

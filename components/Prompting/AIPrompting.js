@@ -5,7 +5,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import { FaCheck, FaSearch, FaChevronDown, FaTimes, FaPencilAlt, FaSave } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
-const AIPrompting = ({ onBack, initialData = null }) => {
+const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => {
 
 // Add these state variables to your component
  const [availableModels, setAvailableModels] = useState([]);
@@ -255,24 +255,33 @@ const handleTestPrompt = async () => {
   setIsTestingPrompt(true);
   setTestResults({});
 
-  // Simulate streaming for each selected model
-  for (const model of selectedModels) {
-    setTestResults(prev => ({ ...prev, [model.model_id]: '' }));
-    let index = 0;
+  try {
+    // Create an array of promises for each model's stream simulation
+    const modelStreams = selectedModels.map(async (model) => {
+      // Initialize empty result for this model
+      setTestResults(prev => ({ ...prev, [model.model_id]: '' }));
+      
+      const dummyTestResponse = `${testContext ? '[Using provided context]\n\n' : ''}This is a simulated response from ${model.name}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`;
+      
+      // Simulate streaming for this model
+      for (let index = 0; index < dummyTestResponse.length; index++) {
+        await new Promise(resolve => setTimeout(resolve, 20));
+        setTestResults(prev => ({
+          ...prev,
+          [model.model_id]: (prev[model.model_id] || '') + dummyTestResponse[index]
+        }));
+      }
+    });
+
+    // Run all streams in parallel
+    await Promise.all(modelStreams);
     
-    const dummyTestResponse = `${testContext ? '[Using provided context]\n\n' : ''}This is a simulated response from ${model.name}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`;
-    
-    while (index < dummyTestResponse.length) {
-      await new Promise(resolve => setTimeout(resolve, 20));
-      setTestResults(prev => ({
-        ...prev,
-        [model.model_id]: (prev[model.model_id] || '') + dummyTestResponse[index]
-      }));
-      index++;
-    }
+  } catch (error) {
+    console.error('Error testing prompt:', error);
+    toast.error('An error occurred while testing the prompt');
+  } finally {
+    setIsTestingPrompt(false);
   }
-  
-  setIsTestingPrompt(false);
 };
 
 const deleteHistoryItem = (itemId) => {
@@ -426,12 +435,14 @@ const hasChanges = () => {
 
   return (
   <div className="max-w-7xl mx-auto mt-8">
-    <button
-      onClick={onBack}
-      className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
-    >
-      <FaArrowLeft /> Back to Menu
-    </button>
+    {!hideBackToMenu && ( // Only show if hideBackToMenu is false
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
+        >
+          <FaArrowLeft /> Back
+        </button>
+      )}
 
     <div className="flex gap-6">
      {/* History Sidebar */}
