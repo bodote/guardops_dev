@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { Fragment} from 'react';
 import { Listbox, Transition } from '@headlessui/react';
-import { FaCheck, FaSearch, FaChevronDown, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaSearch, FaChevronDown, FaTimes, FaPencilAlt } from 'react-icons/fa';
 
 const AIPrompting = ({ onBack }) => {
 
@@ -56,22 +56,166 @@ const getModels = async () => {
     console.error("Error fetching models:", error);
   }
 };
+const startNewIteration = () => {
+  const latestItem = promptHistory[0];
+  const newHistoryItem = {
+    id: Date.now().toString(),
+    parentId: null,
+    name: latestItem.userInput.slice(0, 50), // Initial name from userInput
+    timestamp: new Date().toISOString(),
+    userInput: latestItem.userInput,
+    generatedPrompt: latestItem.generatedPrompt,
+    selectedModels: latestItem.selectedModels,
+    testContext: latestItem.testContext,
+    testResults: {}  // Start with empty results
+  };
+  
+  // Add to history and select it
+  setPromptHistory([newHistoryItem, ...promptHistory]);
+  restoreFromHistory(newHistoryItem);
+};
 
 // Add this function to filter models based on search
 const filteredModels = availableModels.filter(model => 
   model.name.toLowerCase().includes(modelSearch.toLowerCase())
 );
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (userInput.trim()) {
-      setIsGenerating(true);
-      setGeneratedPrompt('');
-      setStreamIndex(0);
-      setShowTestSection(false);
-      setTestResults({});
+const [promptHistory, setPromptHistory] = useState([
+  {
+    id: '1',
+    parentId: null,
+    name: 'Create a professional email template', // Initially set from userInput
+
+    timestamp: '2024-03-20T10:30:00',
+    userInput: 'Create a professional email template for client outreach',
+    generatedPrompt: 'Write an email template that establishes a professional tone...',
+    selectedModels: [
+      { model_id: 'gpt4', name: 'GPT-4' },
+      { model_id: 'claude', name: 'Claude' }
+    ],
+    testContext: 'Company: TechCorp\nProduct: AI Solutions',
+    testResults: {
+      'gpt4': 'Dear [Name],\n\nI hope this email finds you well...',
+      'claude': 'Hello [Name],\n\nI trust youre having a productive week...'
     }
+  },
+  {
+    id: '1.1', // Using dot notation to indicate hierarchy
+    parentId: '1',
+    name: 'Create a professional email template', // Initially set from userInput
+
+    timestamp: '2024-03-20T10:35:00',
+    userInput: 'Create a professional email template for client outreach',
+    generatedPrompt: 'Write an email template with a more casual tone...',
+    selectedModels: [{ model_id: 'gpt4', name: 'GPT-4' }],
+    testContext: 'Company: TechCorp\nProduct: AI Solutions\nTone: Casual',
+    testResults: {
+      'gpt4': 'Hey there!\n\nI wanted to reach out...'
+    }
+  }
+]);
+const saveVariation = (originalItem) => {
+  const newHistoryItem = {
+    id: `${originalItem.id}.${Date.now()}`,
+    parentId: originalItem.id,
+    name: userInput.slice(0, 50), // Initial name from userInput
+    timestamp: new Date().toISOString(),
+    userInput,
+    generatedPrompt,
+    selectedModels,
+    testContext,
+    testResults
   };
 
+  const updatedHistory = [...promptHistory];
+  const insertIndex = findLastBranchIndex(originalItem.id, updatedHistory) + 1;
+  updatedHistory.splice(insertIndex, 0, newHistoryItem);
+  setPromptHistory(updatedHistory);
+  
+  // Select the new item after saving
+  setSelectedHistoryItem(newHistoryItem);
+  
+  // Optional: Show a success toast/notification
+  // toast.success('Iteration saved successfully');
+};
+
+// Function to update the name of a history item
+const updateItemName = (itemId, newName) => {
+  setPromptHistory(history => 
+    history.map(item => 
+      item.id === itemId 
+        ? { ...item, name: newName.trim() || item.userInput.slice(0, 50) } // Fallback to userInput if empty
+        : item
+    )
+  );
+  setEditingId(null);
+};
+
+const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
+const findLastBranchIndex = (parentId, history) => {
+  let lastIndex = history.findIndex(item => item.id === parentId);
+  const prefix = parentId + '.';
+  
+  history.forEach((item, index) => {
+    if (item.id.startsWith(prefix) && index > lastIndex) {
+      lastIndex = index;
+    }
+  });
+  
+  return lastIndex;
+};
+// Add this function to save new prompts to history
+const saveToHistory = () => {
+  const newHistoryItem = {
+    id: Date.now().toString(),
+    timestamp: new Date().toISOString(),
+    userInput,
+    generatedPrompt,
+    selectedModels,
+    testContext,
+    testResults
+  };
+  setPromptHistory([newHistoryItem, ...promptHistory]);
+};
+
+// Add this function to restore from history
+const restoreFromHistory = (historyItem) => {
+  setSelectedHistoryItem(historyItem);
+  setUserInput(historyItem.userInput);
+  setGeneratedPrompt(historyItem.generatedPrompt);
+  setSelectedModels(historyItem.selectedModels);
+  setTestContext(historyItem.testContext);
+  setTestResults(historyItem.testResults);
+  setShowTestSection(Object.keys(historyItem.testResults).length > 0);
+};
+
+const handleSubmit = (e) => {
+  e.preventDefault();
+  if (userInput.trim()) {
+    setIsGenerating(true);
+    setGeneratedPrompt('');
+    setStreamIndex(0);
+    setShowTestSection(false);
+    setTestResults({});
+    
+    // If we're working from a selected history item, save as variation
+    if (selectedHistoryItem) {
+      saveVariation(selectedHistoryItem);
+    } else {
+      // Save as new root item
+      const newHistoryItem = {
+        id: Date.now().toString(),
+        parentId: null,
+        timestamp: new Date().toISOString(),
+        userInput,
+        generatedPrompt,
+        selectedModels,
+        testContext,
+        testResults
+      };
+      setPromptHistory([newHistoryItem, ...promptHistory]);
+    }
+  }
+};
 const handleTestPrompt = async () => {
   if (selectedModels.length === 0) {
     toast.error("Please select at least one model");
@@ -101,18 +245,195 @@ const handleTestPrompt = async () => {
   setIsTestingPrompt(false);
 };
 
-  return (
-    <div className="max-w-6xl mx-auto mt-8">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
-      >
-        <FaArrowLeft /> Back to Menu
-      </button>
+const deleteHistoryItem = (itemId) => {
+  // First, find all items that need to be deleted (item and its children)
+  const itemsToDelete = new Set();
+  
+  const findChildren = (id) => {
+    itemsToDelete.add(id);
+    promptHistory.forEach(item => {
+      if (item.parentId === id) {
+        findChildren(item.id);
+      }
+    });
+  };
+  
+  findChildren(itemId);
+  
+  // Filter out all items that should be deleted
+  const updatedHistory = promptHistory.filter(item => !itemsToDelete.has(item.id));
+  
+  // If the deleted item was selected, clear the selection
+  if (selectedHistoryItem?.id === itemId) {
+    setSelectedHistoryItem(null);
+  }
+  
+  setPromptHistory(updatedHistory);
+};
+const [editingId, setEditingId] = useState(null);
+const [customNames, setCustomNames] = useState({});
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-Archivo mb-6">AI Prompt Generator</h2>
+const HistoryItem = ({ item, level = 0 }) => {
+  const [editableName, setEditableName] = useState(item.name);
+
+  return (
+    <>
+      <div
+        className={`group relative w-full text-left p-3 rounded-md transition-colors
+          ${selectedHistoryItem?.id === item.id
+            ? 'bg-blue-50 border border-blue-200'
+            : 'hover:bg-gray-50'
+          }`}
+        style={{ marginLeft: `${level * 16}px` }}
+      >
+        {/* Branch line visualization */}
+        {level > 0 && (
+          <div className="absolute left-0 top-0 bottom-0 border-l-2 border-gray-200"
+               style={{ marginLeft: '-16px' }} />
+        )}
         
+       {/* Action buttons */}
+        <div className="absolute right-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditingId(item.id);
+              setEditableName(item.name);
+            }}
+            className="p-1 hover:bg-blue-100 rounded"
+          >
+            <FaPencilAlt className="h-3 w-3 text-blue-600" />
+          </button>
+          
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm('Are you sure you want to delete this item and all its variations?')) {
+                deleteHistoryItem(item.id);
+              }
+            }}
+            className="p-1 hover:bg-red-100 rounded"
+          >
+            <FaTimes className="h-3 w-3 text-red-600" />
+          </button>
+        </div>
+        
+        {/* Main content button */}
+       <button
+          onClick={() => restoreFromHistory(item)}
+          className="w-full text-left"
+        >
+          <div className="text-sm font-medium truncate pr-16">
+            {editingId === item.id ? (
+              <input
+                type="text"
+                value={editableName}
+                onChange={(e) => setEditableName(e.target.value)}
+                onBlur={() => updateItemName(item.id, editableName)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    updateItemName(item.id, editableName);
+                  } else if (e.key === 'Escape') {
+                    setEditingId(null);
+                    setEditableName(item.name);
+                  }
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full px-1 py-0.5 bg-white border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+              />
+            ) : (
+              <span className="block truncate">
+                {item.name}
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {new Date(item.timestamp).toLocaleString()}
+          </div>
+          <div className="flex flex-wrap gap-1 mt-2">
+            {item.selectedModels.map((model) => (
+              <span
+                key={model.model_id}
+                className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
+              >
+                {model.name}
+              </span>
+            ))}
+          </div>
+        </button>
+      </div>
+      
+      {/* Render children recursively */}
+      {promptHistory
+        .filter(h => h.parentId === item.id)
+        .map(child => (
+          <HistoryItem key={child.id} item={child} level={level + 1} />
+        ))}
+    </>
+  );
+};
+
+const hasChanges = () => {
+  if (!selectedHistoryItem) return false;
+  
+  return (
+    userInput !== selectedHistoryItem.userInput ||
+    generatedPrompt !== selectedHistoryItem.generatedPrompt ||
+    testContext !== selectedHistoryItem.testContext ||
+    JSON.stringify(selectedModels) !== JSON.stringify(selectedHistoryItem.selectedModels) ||
+    JSON.stringify(testResults) !== JSON.stringify(selectedHistoryItem.testResults)
+  );
+};
+
+
+  return (
+  <div className="max-w-7xl mx-auto mt-8">
+    <button
+      onClick={onBack}
+      className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
+    >
+      <FaArrowLeft /> Back to Menu
+    </button>
+
+    <div className="flex gap-6">
+     {/* History Sidebar */}
+<div className="w-64 pr-6 border-r border-gray-200 h-[calc(100vh-8rem)] overflow-y-auto">
+  <h3 className="font-medium text-lg mb-2">Prompt History</h3>
+  
+  
+  <div className="h-px bg-gray-200 mb-4" />
+  <button
+    onClick={startNewIteration}
+    className="flex items-center gap-1 px-2 py-1 mb-4 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors w-full"
+    disabled={promptHistory.length === 0}
+  >
+    <span className="text-lg leading-none">+</span>
+    New Iteration
+  </button>
+  <div className="space-y-2">
+    {promptHistory
+      .filter(item => !item.parentId)
+      .map(item => (
+        <HistoryItem key={item.id} item={item} />
+      ))}
+  </div>
+</div>
+
+   <div className="flex-1 flex flex-col h-[calc(100vh-8rem)]">
+        <div className="flex justify-between items-center mb-6 sticky top-0 bg-white z-10 py-4">
+ 
+          <h2 className="text-2xl font-Archivo">AI Prompt Generator</h2>
+          {selectedHistoryItem && hasChanges() && (
+            <button
+              onClick={() => saveVariation(selectedHistoryItem)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              <span>Save Iteration</span>
+            </button>
+          )}
+        </div>
+
         <div className="flex flex-col gap-6">
           {/* Main prompt generation section */}
           <div className={`grid md:grid-cols-2 gap-0`}>
@@ -178,84 +499,101 @@ const handleTestPrompt = async () => {
       <div>
         <h3 className="font-medium mb-3">Select models to test with:</h3>
         <div className="relative w-full">
-  <Listbox value={selectedModels} onChange={setSelectedModels} multiple>
-    <div className="relative">
-     <Listbox.Button className="relative w-full min-h-[42px] cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border border-gray-300 focus:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-300">
-  <div className="flex flex-wrap gap-2">
-    {selectedModels.length === 0 ? (
-      <span className="text-gray-500">Select models...</span>
-    ) : (
-      selectedModels.map((model) => (
-        <span
-          key={model.model_id}
-          className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm group"
-        >
-          {model.name}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedModels(selectedModels.filter(m => m.model_id !== model.model_id));
-            }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <FaTimes className="h-3 w-3 hover:text-blue-600" />
-          </button>
-        </span>
-      ))
-    )}
-  </div>
-  <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-    <FaChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
-  </span>
-</Listbox.Button>
-      <Transition
-        as={Fragment}
-        leave="transition ease-in duration-100"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-          <div className="sticky top-0 bg-white px-3 py-2">
-            <div className="relative">
-              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Search models..."
-                value={modelSearch}
-                onChange={(e) => setModelSearch(e.target.value)}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          </div>
-          {filteredModels.map((model) => (
-            <Listbox.Option
+<Listbox 
+  value={selectedModels} 
+  onChange={setSelectedModels}
+  multiple
+>
+  <div className="relative">
+    <Listbox.Button className="relative w-full min-h-[42px] cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border border-gray-300 focus:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-300">
+      <div className="flex flex-wrap gap-2">
+        {selectedModels.length === 0 ? (
+          <span className="text-gray-500">Select models...</span>
+        ) : (
+          selectedModels.map((model) => (
+            <span
               key={model.model_id}
-              value={model}
-              className={({ active, selected }) =>
-                `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                  active ? 'bg-blue-100' : 'bg-white'
-                }`
-              }
+              className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm group"
             >
-              {({ selected, active }) => (
+              {model.name}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedModels(selectedModels.filter(m => m.model_id !== model.model_id));
+                }}
+                className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+              >
+                <FaTimes className="h-3 w-3 hover:text-blue-600" />
+              </button>
+            </span>
+          ))
+        )}
+      </div>
+      <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+        <FaChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+      </span>
+    </Listbox.Button>
+
+    <Transition
+      as={Fragment}
+      leave="transition ease-in duration-100"
+      leaveFrom="opacity-100"
+      leaveTo="opacity-0"
+    >
+      <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+        <div className="sticky top-0 bg-white px-3 py-2 z-10 border-b">
+          <div className="relative">
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Search models..."
+              value={modelSearch}
+              onChange={(e) => setModelSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+        
+        {filteredModels.map((model) => (
+          <Listbox.Option
+            key={model.model_id}
+            value={model}
+            onClick={() => {
+              const isSelected = selectedModels.some(m => m.model_id === model.model_id);
+              if (isSelected) {
+                setSelectedModels(selectedModels.filter(m => m.model_id !== model.model_id));
+              } else {
+                setSelectedModels([...selectedModels, model]);
+              }
+            }}
+            className={({ active }) =>
+              `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
+                active ? 'bg-blue-100' : 'bg-white'
+              }`
+            }
+          >
+            {() => {
+              const isSelected = selectedModels.some(m => m.model_id === model.model_id);
+              return (
                 <>
-                  <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                  <span className={`block truncate ${isSelected ? 'font-medium' : 'font-normal'}`}>
                     {model.name}
                   </span>
-                  {selected && (
+                  {isSelected && (
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
                       <FaCheck className="h-4 w-4" aria-hidden="true" />
                     </span>
                   )}
                 </>
-              )}
-            </Listbox.Option>
-          ))}
-        </Listbox.Options>
-      </Transition>
-    </div>
-  </Listbox>
+              );
+            }}
+          </Listbox.Option>
+        ))}
+      </Listbox.Options>
+    </Transition>
+  </div>
+</Listbox>
       </div>
       </div>            
 
@@ -271,39 +609,42 @@ const handleTestPrompt = async () => {
                   </div>
 
                   {/* Test results */}
- {Object.keys(testResults).length > 0 && (
-      <div className="space-y-4">
-        {testContext && (
-          <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-md">
-            <h4 className="font-medium text-sm text-blue-700 mb-2">Test Context:</h4>
-            <div className="font-mono text-sm whitespace-pre-wrap text-blue-900">
-              {testContext}
-            </div>
+{Object.keys(testResults).length > 0 && (
+  <div className="space-y-4">
+    {testContext && (
+      <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-md">
+        <h4 className="font-medium text-sm text-blue-700 mb-2">Test Context:</h4>
+        <div className="font-mono text-sm whitespace-pre-wrap text-blue-900">
+          {testContext}
+        </div>
+      </div>
+    )}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {selectedModels.map((model) => (
+        <div key={model.model_id} className="border rounded-md p-4">
+          <h4 className="font-medium mb-2 text-gray-700">
+            {model.name}
+          </h4>
+          <div className="bg-white p-3 rounded font-mono text-sm whitespace-pre-wrap">
+            {testResults[model.model_id]}
+            {isTestingPrompt && !testResults[model.model_id] && (
+              <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse" />
+            )}
           </div>
-        )}
-        {selectedModels.map((model) => (
-          <div key={model.model_id} className="border rounded-md p-4">
-            <h4 className="font-medium mb-2 text-gray-700">
-              {model.name}
-            </h4>
-            <div className="bg-white p-3 rounded font-mono text-sm whitespace-pre-wrap">
-              {testResults[model.model_id]}
-              {isTestingPrompt && !testResults[model.model_id] && (
-                <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse" />
-              )}
-            </div>
-          </div>
-    ))}
+        </div>
+      ))}
+    </div>
   </div>
 )}
                 </div>
               )}
             </div>
-          )}
+         )}
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default AIPrompting;
