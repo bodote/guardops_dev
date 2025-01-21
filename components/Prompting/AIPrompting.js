@@ -624,6 +624,172 @@ Let's break down the key components:
               </button>
             </div>
           </div>
+
+          {/* Test Prompt Section */}
+          {generatedPrompt && !isGenerating && (
+            <div className="border-t pt-6 mt-6">
+              <button
+                onClick={() => setShowTestSection(!showTestSection)}
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Test your prompt
+                <FaChevronDown className={`transform transition-transform ${showTestSection ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showTestSection && (
+                <div className="mt-4 space-y-4">
+                  <div className="bg-gray-50 p-4 rounded-md space-y-4">
+                    {/* Test Context Input */}
+                    <div>
+                      <h3 className="font-medium mb-3">Test Context (Optional)</h3>
+                      <textarea
+                        className="w-full p-3 border border-gray-300 rounded-md font-mono text-sm min-h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Add any additional context or variables for testing your prompt..."
+                        value={testContext}
+                        onChange={(e) => setTestContext(e.target.value)}
+                      />
+                    </div>
+
+                    {/* Model Selection */}
+                    <div>
+                      <h3 className="font-medium mb-3">Select models to test with:</h3>
+                      <div className="relative w-full">
+                        <Listbox
+                          value={selectedModels}
+                          onChange={setSelectedModels}
+                          multiple
+                        >
+                          <div className="relative">
+                            <Listbox.Button className="relative w-full min-h-[42px] cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border border-gray-300 focus:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-300">
+                              <div className="flex flex-wrap gap-2">
+                                {selectedModels.length === 0 ? (
+                                  <span className="text-gray-500">Select models...</span>
+                                ) : (
+                                  selectedModels
+                                    .filter(selected =>
+                                      availableModels.some(model => model.model_id === selected.model_id)
+                                    )
+                                    .map((model) => (
+                                      <span
+                                        key={model.model_id}
+                                        className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm group"
+                                      >
+                                        {model.name}
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedModels(selectedModels.filter(m => m.model_id !== model.model_id));
+                                          }}
+                                          className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                                        >
+                                          <FaTimes className="h-3 w-3 hover:text-blue-600" />
+                                        </button>
+                                      </span>
+                                    ))
+                                )}
+                              </div>
+                              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                <FaChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                              </span>
+                            </Listbox.Button>
+
+                            <Transition
+                              as={Fragment}
+                              leave="transition ease-in duration-100"
+                              leaveFrom="opacity-100"
+                              leaveTo="opacity-0"
+                            >
+                              <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                <div className="sticky top-0 bg-white px-3 py-2 z-10 border-b">
+                                  <div className="relative">
+                                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                    <input
+                                      type="text"
+                                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Search models..."
+                                      value={modelSearch}
+                                      onChange={(e) => setModelSearch(e.target.value)}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  </div>
+                                </div>
+
+                                {filteredModels.map((model) => {
+                                  const isSelected = selectedModels.some(m => m.model_id === model.model_id);
+                                  return (
+                                    <Listbox.Option
+                                      key={model.model_id}
+                                      value={model}
+                                      className={({ active }) =>
+                                        `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-blue-100' : 'bg-white'
+                                        }`
+                                      }
+                                    >
+                                      {() => (
+                                        <>
+                                          <span className={`block truncate ${isSelected ? 'font-medium' : 'font-normal'}`}>
+                                            {model.name}
+                                          </span>
+                                          {isSelected && (
+                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                              <FaCheck className="h-4 w-4" aria-hidden="true" />
+                                            </span>
+                                          )}
+                                        </>
+                                      )}
+                                    </Listbox.Option>
+                                  );
+                                })}
+                              </Listbox.Options>
+                            </Transition>
+                          </div>
+                        </Listbox>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Test Button */}
+                  <button
+                    onClick={handleTestPrompt}
+                    disabled={selectedModels.length === 0 || isTestingPrompt}
+                    className={`px-6 py-2 bg-blue-600 text-white rounded-md 
+                    ${selectedModels.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+                  >
+                    {isTestingPrompt ? 'Testing...' : 'Run Test'}
+                  </button>
+
+                  {/* Test Results */}
+                  {Object.keys(testResults).length > 0 && (
+                    <div className="space-y-4">
+                      {testContext && (
+                        <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-md">
+                          <h4 className="font-medium text-sm text-blue-700 mb-2">Test Context:</h4>
+                          <div className="font-mono text-sm whitespace-pre-wrap text-blue-900">
+                            {testContext}
+                          </div>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {selectedModels.map((model) => (
+                          <div key={model.model_id} className="border rounded-md p-4">
+                            <h4 className="font-medium mb-2 text-gray-700">
+                              {model.name}
+                            </h4>
+                            <div className="bg-white p-3 rounded font-mono text-sm whitespace-pre-wrap">
+                              {testResults[model.model_id]}
+                              {isTestingPrompt && !testResults[model.model_id] && (
+                                <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse" />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
