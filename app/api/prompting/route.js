@@ -36,7 +36,6 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const promptId = searchParams.get('promptId');
 
-    console.log('Fetching details for promptId:', promptId);
 
     // Dummy data for prompt history
     const data = {

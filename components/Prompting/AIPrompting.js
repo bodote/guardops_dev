@@ -43,6 +43,7 @@ def greet(name="World"):
     # This function takes an optional parameter with default value "World"
     message = f"Hello, {name}!"
     return message
+\`\`\`
 
 Let's break down the key components:
 
@@ -318,9 +319,19 @@ Let's break down the key components:
   };
 
   const handleSaveConfirm = async () => {
+    // First ensure we have the latest edited prompt
+    const latestItem = {
+      ...promptHistory.items[0],
+      generatedPrompt: generatedPrompt // Use the current generatedPrompt state
+    };
+
     const historyToSave = {
       ...promptHistory,
-      name: saveTitle
+      name: saveTitle,
+      items: [
+        { ...latestItem }, // Use the updated item
+        ...promptHistory.items.slice(1) // Keep the rest of the items unchanged
+      ]
     };
     // Remove id if it exists, let backend generate it
     delete historyToSave.id;
@@ -349,11 +360,20 @@ Let's break down the key components:
   };
 
   const handleAutoSave = async () => {
-    const latestItem = promptHistory.items[0];
+    // First ensure we have the latest edited prompt
+    const latestItem = {
+      ...promptHistory.items[0],
+      generatedPrompt: generatedPrompt // Use the current generatedPrompt state
+    };
+
     const defaultTitle = latestItem?.userInput?.slice(0, 50) || 'New Prompt History';
     const historyToSave = {
       ...promptHistory,
-      name: defaultTitle
+      name: defaultTitle,
+      items: [
+        { ...latestItem }, // Use the updated item
+        ...promptHistory.items.slice(1) // Keep the rest of the items unchanged
+      ]
     };
     delete historyToSave.id;
 
@@ -456,6 +476,10 @@ Let's break down the key components:
       ...prev,
       items: [newHistoryItem, ...prev.items]
     }));
+  };
+
+  const handlePromptUpdate = (updatedPrompt) => {
+    setGeneratedPrompt(updatedPrompt);
   };
   // Add this function to restore from history
   const restoreFromHistory = (historyItem) => {
@@ -956,6 +980,9 @@ Let's break down the key components:
         isOpen={showPromptOverlay}
         onClose={() => setShowPromptOverlay(false)}
         prompt={generatedPrompt}
+        onUpdate={handlePromptUpdate}
+        setPrompt={setGeneratedPrompt}  // Pass the setter directly
+
       />
       {showSaveDialog && <SaveDialog />}
 

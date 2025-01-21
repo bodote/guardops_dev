@@ -6,11 +6,13 @@ import { toast } from 'react-toastify';
 import 'highlight.js/styles/atom-one-dark.css';
 const hljs = require('highlight.js/lib/common');
 
-const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt" }) => {
+const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt", onUpdate, setPrompt }) => {
     const [editedPrompt, setEditedPrompt] = useState(prompt);
     const [copiedIndex, setCopiedIndex] = useState(null);
     const [showSaveTemplate, setShowSaveTemplate] = useState(false);
     const [templateName, setTemplateName] = useState('');
+    const [editingIndex, setEditingIndex] = useState(null);
+    const [editingContent, setEditingContent] = useState('');
 
     useEffect(() => {
         if (isOpen) {
@@ -21,6 +23,7 @@ const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt" }) 
     useEffect(() => {
         setEditedPrompt(prompt);
     }, [prompt]);
+
 
     if (!isOpen) return null;
 
@@ -49,6 +52,43 @@ const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt" }) 
         return segments;
     };
 
+    const handleStartEditing = (index, content) => {
+        setEditingIndex(index);
+        setEditingContent(content);
+    };
+
+    const handleSaveEdit = (index) => {
+        const segments = parseContentSegments(editedPrompt);
+        segments[index].content = editingContent;
+        const newPrompt = segments.map(s =>
+            s.type === 'code' ? '```' + s.content + '```' : s.content
+        ).join('');
+        setEditedPrompt(newPrompt);
+        setEditingIndex(null);
+    };
+    const handleClose = () => {
+        if (editedPrompt !== prompt) {  // Only update if there are changes
+            setPrompt(editedPrompt);
+        }
+        onClose();
+    };
+
+
+    const handleCancelEdit = () => {
+        setEditingIndex(null);
+        setEditingContent('');
+    };
+
+    const handleKeyDown = (e, index) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSaveEdit(index);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handleCancelEdit();
+        }
+    };
+
     const copyToClipboard = async (text, id) => {
         try {
             await navigator.clipboard.writeText(text);
@@ -61,7 +101,6 @@ const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt" }) 
 
     const handleSaveTemplate = async () => {
         try {
-            // TODO: Replace with your actual API endpoint
             await fetch('/api/saveTemplate', {
                 method: 'POST',
                 headers: {
@@ -85,7 +124,7 @@ const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt" }) 
     return (
         <div
             className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-            onClick={onClose}
+            onClick={handleClose}
         >
             <div
                 className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col"
@@ -102,7 +141,7 @@ const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt" }) 
                             Save as Template
                         </button>
                         <button
-                            onClick={onClose}
+                            onClick={handleClose} // Changed from onClose to handleClose
                             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                         >
                             <FaTimes className="w-5 h-5 text-gray-500" />
@@ -114,61 +153,93 @@ const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt" }) 
                     <div className="bg-gray-50 rounded-lg">
                         {parseContentSegments(editedPrompt).map((segment, index) =>
                             segment.type === 'code' ? (
+
                                 <pre key={index} className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5 hljs">
-                                    <button
-                                        className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200"
-                                        onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}
-                                    >
-                                        {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
-                                    </button>
+                                    <div className="w-full flex justify-between pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200">
+                                        <div className="flex items-center pl-4">
+                                            {editingIndex === index && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleSaveEdit(index)}
+                                                        className="text-green-400 hover:text-green-300 mr-2"
+                                                    >
+                                                        ✓
+                                                    </button>
+                                                    <button
+                                                        onClick={handleCancelEdit}
+                                                        className="text-red-400 hover:text-red-300"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}
+                                        >
+                                            {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
+                                        </button>
+                                    </div>
                                     <code
                                         contentEditable={true}
-                                        onBlur={(e) => {
-                                            const newContent = e.target.textContent;
-                                            const segments = parseContentSegments(editedPrompt);
-                                            segments[index].content = newContent;
-                                            setEditedPrompt(segments.map(s =>
-                                                s.type === 'code' ? '```' + s.content + '```' : s.content
-                                            ).join(''));
-                                        }}
+                                        onFocus={() => handleStartEditing(index, segment.content)}
+                                        onKeyDown={(e) => handleKeyDown(e, index)}
+                                        onInput={(e) => setEditingContent(e.target.textContent)}
                                         className="block p-4"
                                     >
                                         {segment.content}
                                     </code>
                                 </pre>
                             ) : (
-                                <ReactMarkdown
-                                    key={index}
-                                    components={{
-                                        ul: ({ node, ...props }) => (
-                                            <ul style={{ display: 'block', listStyleType: 'disc', paddingInlineStart: '40px' }} {...props} />
-                                        ),
-                                        ol: ({ node, ...props }) => (
-                                            <ol style={{ display: 'block', listStyleType: 'decimal', paddingInlineStart: '40px' }} {...props} />
-                                        ),
-                                        h1: ({ node, ...props }) => (
-                                            <h1 className="font-bold text-6xl" {...props} />
-                                        ),
-                                        p: ({ node, ...props }) => (
-                                            <p
-                                                contentEditable={true}
-                                                onBlur={(e) => {
-                                                    const newContent = e.target.textContent;
-                                                    const segments = parseContentSegments(editedPrompt);
-                                                    segments[index].content = newContent;
-                                                    setEditedPrompt(segments.map(s =>
-                                                        s.type === 'code' ? '```' + s.content + '```' : s.content
-                                                    ).join(''));
+                                <div key={index} className="relative group p-4">
+                                    {editingIndex === index && (
+                                        <div className="absolute right-4 top-4 flex gap-2 bg-white shadow-sm rounded p-1">
+                                            <button
+                                                onClick={() => handleSaveEdit(index)}
+                                                className="text-green-600 hover:text-green-700"
+                                            >
+                                                ✓
+                                            </button>
+                                            <button
+                                                onClick={handleCancelEdit}
+                                                className="text-red-600 hover:text-red-700"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    )}
+                                    {editingIndex === index ? (
+                                        <div
+                                            contentEditable={true}
+                                            onInput={(e) => setEditingContent(e.target.textContent)}
+                                            onKeyDown={(e) => handleKeyDown(e, index)}
+                                            dangerouslySetInnerHTML={{ __html: editingContent }}
+                                            className="prose max-w-none focus:outline-none"
+                                        />
+                                    ) : (
+                                        <div
+                                            onClick={() => handleStartEditing(index, segment.content)}
+                                            className="cursor-text"
+                                        >
+                                            <ReactMarkdown
+                                                components={{
+                                                    ul: ({ node, ...props }) => (
+                                                        <ul style={{ display: 'block', listStyleType: 'disc', paddingInlineStart: '40px' }} {...props} />
+                                                    ),
+                                                    ol: ({ node, ...props }) => (
+                                                        <ol style={{ display: 'block', listStyleType: 'decimal', paddingInlineStart: '40px' }} {...props} />
+                                                    ),
+                                                    h1: ({ node, ...props }) => (
+                                                        <h1 className="font-bold text-6xl" {...props} />
+                                                    ),
                                                 }}
-                                                style={{ whiteSpace: 'pre-wrap' }}
-                                                {...props}
-                                            />
-                                        ),
-                                    }}
-                                    remarkPlugins={[gfm]}
-                                >
-                                    {segment.content}
-                                </ReactMarkdown>
+                                                remarkPlugins={[gfm]}
+                                            >
+                                                {segment.content}
+                                            </ReactMarkdown>
+                                        </div>
+                                    )}
+                                </div>
                             )
                         )}
                     </div>

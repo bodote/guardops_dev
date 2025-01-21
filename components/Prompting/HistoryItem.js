@@ -13,7 +13,6 @@ const HistoryItem = ({
 }) => {
     const [editableName, setEditableName] = useState(item.name);
     const [editingId, setEditingId] = useState(null);
-    const isPending = !item.generatedPrompt; // Check if item is pending
 
     return (
         <>
@@ -21,9 +20,7 @@ const HistoryItem = ({
                 className={`group relative w-full text-left p-3 rounded-md transition-colors
           ${selectedHistoryItem?.id === item.id
                         ? 'bg-blue-50 border border-blue-200'
-                        : isPending
-                            ? 'bg-gray-50 border border-dashed border-gray-300'
-                            : 'hover:bg-gray-50'
+                        : 'hover:bg-gray-50'
                     }`}
                 style={{ marginLeft: `${level * 16}px` }}
             >
@@ -90,8 +87,8 @@ const HistoryItem = ({
                                 autoFocus
                             />
                         ) : (
-                            <span className={`block truncate ${isPending ? 'text-gray-400 italic' : ''}`}>
-                                {isPending ? 'New Iteration' : item.name}
+                            <span className="block truncate">
+                                {item.name}
                             </span>
                         )}
                     </div>
