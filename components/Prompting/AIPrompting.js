@@ -7,10 +7,13 @@ import { toast } from 'react-toastify';
 import PromptOverlay from './PromptOverlay';
 import { Switch } from '@headlessui/react';
 import HistoryItem from './HistoryItem';
+import { v4 as uuidv4 } from 'uuid'; // Add this import at the top
 
 const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => {
 
   // Add these state variables to your component
+  console.log("this initial data", initialData);
+
   const [availableModels, setAvailableModels] = useState([]);
   const [selectedModels, setSelectedModels] = useState([]);
   const [modelSearch, setModelSearch] = useState('');
@@ -26,6 +29,8 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
   const [showTestSection, setShowTestSection] = useState(false);
   const [testResults, setTestResults] = useState({});
   const [isTestingPrompt, setIsTestingPrompt] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [saveTitle, setSaveTitle] = useState('');
 
   const [testContext, setTestContext] = useState('');
   const [showTemplatePopup, setShowTemplatePopup] = useState(false);
@@ -48,9 +53,27 @@ Let's break down the key components:
   const dummyTestResponse = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.`;
 
   useEffect(() => {
-    if (!initialData?.promptHistory && promptHistory.length === 0) {
+    console.log('useEffect triggered with initialData:', initialData);
+
+    if (initialData?.items?.length > 0) {
+      // If we have initial data, set up the first item
+      const firstItem = initialData.items[0];
+      console.log('Setting up first item:', firstItem);
+
+      setSelectedHistoryItem(firstItem);
+      setPendingHistoryItem(firstItem);
+
+      // Also set up the form fields
+      setUserInput(firstItem.userInput || '');
+      setGeneratedPrompt(firstItem.generatedPrompt || '');
+      setSelectedModels(firstItem.selectedModels || []);
+      setTestContext(firstItem.testContext || '');
+      setTestResults(firstItem.testResults || {});
+
+    } else if (!initialData?.items && promptHistory.items.length === 0) {
+      // If no initial data, create a blank item
       const initialItem = {
-        id: Date.now().toString(),
+        id: uuidv4(),
         parentId: null,
         name: 'New Iteration',
         timestamp: new Date().toISOString(),
@@ -61,11 +84,13 @@ Let's break down the key components:
         testResults: {}
       };
 
-      setPromptHistory([initialItem]);
+      setPromptHistory({
+        items: [initialItem]
+      });
       setSelectedHistoryItem(initialItem);
       setPendingHistoryItem(initialItem);
     }
-  }, []);
+  }, [initialData]);
 
   // Modify the streaming completion effect
   useEffect(() => {
@@ -106,7 +131,6 @@ Let's break down the key components:
   useEffect(() => {
     getModels();
   }, []);
-
   const handleNewIteration = () => {
     if (!autoHistory) {
       // Create a pending history item with empty/default values
@@ -122,7 +146,10 @@ Let's break down the key components:
         testResults: {}
       };
 
-      setPromptHistory(prev => [newItem, ...prev]);
+      setPromptHistory(prev => ({
+        ...prev,
+        items: [newItem, ...prev.items]
+      }));
       setSelectedHistoryItem(newItem);
       setPendingHistoryItem(newItem);
     }
@@ -138,7 +165,6 @@ Let's break down the key components:
     }
   };
 
-
   const updatePendingHistoryItem = () => {
     if (!selectedHistoryItem) return;
 
@@ -152,14 +178,16 @@ Let's break down the key components:
       name: userInput.slice(0, 50) // Update name with actual content
     };
 
-    setPromptHistory(prev =>
-      prev.map(item =>
+    setPromptHistory(prev => ({
+      ...prev,
+      items: prev.items.map(item =>
         item.id === selectedHistoryItem.id ? updatedItem : item
       )
-    );
+    }));
     setSelectedHistoryItem(updatedItem);
     setPendingHistoryItem(updatedItem);
   };
+
 
   const handleSaveTemplate = async () => {
     try {
@@ -197,7 +225,7 @@ Let's break down the key components:
     }
   };
   const startNewIteration = () => {
-    const latestItem = promptHistory[0];
+    const latestItem = promptHistory.items[0];
     const newHistoryItem = {
       id: Date.now().toString(),
       parentId: null,
@@ -211,49 +239,50 @@ Let's break down the key components:
     };
 
     // Add to history and select it
-    setPromptHistory([newHistoryItem, ...promptHistory]);
+    setPromptHistory(prev => ({
+      ...prev,
+      items: [newHistoryItem, ...prev.items]
+    }));
     restoreFromHistory(newHistoryItem);
   };
-
   // Add this function to filter models based on search
   const filteredModels = availableModels.filter(model =>
     model.name.toLowerCase().includes(modelSearch.toLowerCase())
   );
-  const dummyHistory = [
-    {
-      id: '1',
-      parentId: null,
-      name: 'Create a professional email template', // Initially set from userInput
-
-      timestamp: '2024-03-20T10:30:00',
-      userInput: 'Create a professional email template for client outreach',
-      generatedPrompt: 'Write an email template that establishes a professional tone...',
-      selectedModels: [
-        { model_id: 'gpt4', },
-        { model_id: 'claude' }
-      ],
-      testContext: 'Company: TechCorp\nProduct: AI Solutions',
-      testResults: {
-        'gpt4': 'Dear [Name],\n\nI hope this email finds you well...',
-        'claude': 'Hello [Name],\n\nI trust youre having a productive week...'
-      }
-    },
-    {
-      id: '1.1', // Using dot notation to indicate hierarchy
-      parentId: '1',
-      name: 'Create a professional email template', // Initially set from userInput
-
-      timestamp: '2024-03-20T10:35:00',
-      userInput: 'Create a professional email template for client outreach',
-      generatedPrompt: 'Write an email template with a more casual tone...',
-      selectedModels: [{ model_id: 'gpt4' }],
-      testContext: 'Company: TechCorp\nProduct: AI Solutions\nTone: Casual',
-      testResults: {
-        'gpt4': 'Hey there!\n\nI wanted to reach out...'
-      }
+  const dummyHistory = {
+    id: uuidv4(), // Using UUID 
+    items: [
+      {
+        id: '1',
+        parentId: null,
+        name: 'Create a professional email template',
+        timestamp: '2024-03-20T10:30:00',
+        userInput: 'Create a professional email template for client outreach',
+        generatedPrompt: 'Write an email template that establishes a professional tone...',
+        selectedModels: [
+          { model_id: 'gpt4' },
+          { model_id: 'claude' }
+        ],
+        testContext: 'Company: TechCorp\nProduct: AI Solutions',
+        testResults: {
+          'gpt4': 'Dear [Name],\n\nI hope this email finds you well...',
+          'claude': 'Hello [Name],\n\nI trust youre having a productive week...'
+        }
+      },
+      // ... other history items ...
+    ]
+  };
+  const [promptHistory, setPromptHistory] = useState(() => {
+    if (initialData && initialData.items) {
+      console.log('Initializing promptHistory with:', initialData);
+      return {
+        id: initialData.promptId,
+        items: initialData.items
+      };
     }
-  ];
-  const [promptHistory, setPromptHistory] = useState(initialData?.promptHistory || []);
+    return { items: [] };
+  });
+
   //const [promptHistory, setPromptHistory] = useState(initialData?.promptHistory || dummyHistory);
 
 
@@ -281,11 +310,87 @@ Let's break down the key components:
     // Optional: Show a success toast/notification
     // toast.success('Iteration saved successfully');
   };
+  const handleManualSave = () => {
+    const latestItem = promptHistory.items[0];
+    const defaultTitle = latestItem?.userInput?.slice(0, 50) || 'New Prompt History';
+    setSaveTitle(defaultTitle);
+    setShowSaveDialog(true);
+  };
+
+  const handleSaveConfirm = async () => {
+    const historyToSave = {
+      ...promptHistory,
+      name: saveTitle
+    };
+    // Remove id if it exists, let backend generate it
+    delete historyToSave.id;
+
+    try {
+      const response = await fetch('/api/prompting', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(historyToSave)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to log history');
+      }
+
+      const { savedHistory } = await response.json();
+      console.log('Saved History with server-generated ID:', savedHistory);
+
+    } catch (error) {
+      console.error('Error logging history:', error);
+    }
+
+    setShowSaveDialog(false);
+  };
+
+  const handleAutoSave = async () => {
+    const latestItem = promptHistory.items[0];
+    const defaultTitle = latestItem?.userInput?.slice(0, 50) || 'New Prompt History';
+    const historyToSave = {
+      ...promptHistory,
+      name: defaultTitle
+    };
+    delete historyToSave.id;
+
+    try {
+      const response = await fetch('/api/prompting', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(historyToSave)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to log history');
+      }
+
+      const { savedHistory } = await response.json();
+      console.log('Auto-Saved History with server-generated ID:', savedHistory);
+
+    } catch (error) {
+      console.error('Error logging history:', error);
+    }
+
+    onBack();
+  };
+  const handleBack = () => {
+    if (promptHistory.items.length > 0) {
+      handleAutoSave();
+    } else {
+      onBack();
+    }
+  };
   const createHistoryItem = (parentId = null) => {
     const newHistoryItem = {
-      id: parentId ? `${parentId}.${Date.now()}` : Date.now().toString(),
-      parentId,
-      name: userInput.slice(0, 50), // Initial name from userInput
+      id: uuidv4(), // Generate new UUID
+      parentId: parentId, // null for root items, parent's UUID for children
+      name: userInput.slice(0, 50),
       timestamp: new Date().toISOString(),
       userInput,
       generatedPrompt,
@@ -295,28 +400,35 @@ Let's break down the key components:
     };
 
     if (parentId) {
-      // Insert after the last item in the current branch
-      const updatedHistory = [...promptHistory];
+      const updatedHistory = [...promptHistory.items];
       const insertIndex = findLastBranchIndex(parentId, updatedHistory) + 1;
       updatedHistory.splice(insertIndex, 0, newHistoryItem);
-      setPromptHistory(updatedHistory);
+      setPromptHistory({
+        ...promptHistory,
+        items: updatedHistory
+      });
     } else {
-      // Add as first item if it's a root item
-      setPromptHistory([newHistoryItem, ...promptHistory]);
+      setPromptHistory({
+        ...promptHistory,
+        items: [newHistoryItem, ...promptHistory.items]
+      });
     }
 
     setSelectedHistoryItem(newHistoryItem);
   };
+
   // Function to update the name of a history item
   const updateItemName = (itemId, newName) => {
-    setPromptHistory(promptHistory.map(item =>
-      item.id === itemId ? { ...item, name: newName } : item
-    ));
+    setPromptHistory(prev => ({
+      ...prev,
+      items: prev.items.map(item =>
+        item.id === itemId ? { ...item, name: newName } : item
+      )
+    }));
   };
 
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
   const [autoHistory, setAutoHistory] = useState(false); // New state for automatic history toggle
-
   const findLastBranchIndex = (parentId, history) => {
     let lastIndex = history.findIndex(item => item.id === parentId);
     const prefix = parentId + '.';
@@ -340,11 +452,14 @@ Let's break down the key components:
       testContext,
       testResults
     };
-    setPromptHistory([newHistoryItem, ...promptHistory]);
+    setPromptHistory(prev => ({
+      ...prev,
+      items: [newHistoryItem, ...prev.items]
+    }));
   };
-
   // Add this function to restore from history
   const restoreFromHistory = (historyItem) => {
+    console.log('Restoring from history:', historyItem);
     setSelectedHistoryItem(historyItem);
     setUserInput(historyItem.userInput);
     setGeneratedPrompt(historyItem.generatedPrompt);
@@ -446,12 +561,11 @@ Let's break down the key components:
   };
 
   const deleteHistoryItem = (itemId) => {
-    // First, find all items that need to be deleted (item and its children)
     const itemsToDelete = new Set();
 
     const findChildren = (id) => {
       itemsToDelete.add(id);
-      promptHistory.forEach(item => {
+      promptHistory.items.forEach(item => {
         if (item.parentId === id) {
           findChildren(item.id);
         }
@@ -461,7 +575,7 @@ Let's break down the key components:
     findChildren(itemId);
 
     // Filter out all items that should be deleted
-    const updatedHistory = promptHistory.filter(item => !itemsToDelete.has(item.id));
+    const updatedItems = promptHistory.items.filter(item => !itemsToDelete.has(item.id));
 
     // If the deleted item was selected, clear the selection
     if (selectedHistoryItem?.id === itemId) {
@@ -469,7 +583,7 @@ Let's break down the key components:
     }
 
     // Create new blank item if this was the last item and auto history is disabled
-    if (updatedHistory.length === 0 && !autoHistory) {
+    if (updatedItems.length === 0 && !autoHistory) {
       const initialItem = {
         id: Date.now().toString(),
         parentId: null,
@@ -481,13 +595,20 @@ Let's break down the key components:
         testContext: '',
         testResults: {}
       };
-      setPromptHistory([initialItem]);
+      setPromptHistory({
+        ...promptHistory,
+        items: [initialItem]
+      });
       setSelectedHistoryItem(initialItem);
       setPendingHistoryItem(initialItem);
     } else {
-      setPromptHistory(updatedHistory);
+      setPromptHistory({
+        ...promptHistory,
+        items: updatedItems
+      });
     }
   };
+
   const [editingId, setEditingId] = useState(null);
   const [customNames, setCustomNames] = useState({});
 
@@ -505,6 +626,34 @@ Let's break down the key components:
     );
   };
 
+  const SaveDialog = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 className="text-lg font-medium mb-4">Save Prompt History</h3>
+        <input
+          type="text"
+          value={saveTitle}
+          onChange={(e) => setSaveTitle(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
+          placeholder="Enter a title"
+        />
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => setShowSaveDialog(false)}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSaveConfirm}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-7xl mx-auto mt-8">
@@ -512,7 +661,7 @@ Let's break down the key components:
       <div className="mb-6">
         {!hideBackToMenu && (
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
           >
             <FaArrowLeft /> Back
@@ -523,20 +672,29 @@ Let's break down the key components:
       <div className="flex gap-6">
         {/* History Sidebar */}
         <div className="w-64 pr-6 border-r border-gray-200 h-[calc(100vh-8rem)] overflow-y-auto">
-          {/* Auto History toggle */}
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-gray-600">Automatic History</span>
-            <Switch
-              checked={autoHistory}
-              onChange={setAutoHistory}
-              className={`${autoHistory ? 'bg-blue-600' : 'bg-gray-200'
-                } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+          {/* Auto History toggle and Save button */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Automatic History</span>
+              <Switch
+                checked={autoHistory}
+                onChange={setAutoHistory}
+                className={`${autoHistory ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+              >
+                <span
+                  className={`${autoHistory ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                />
+              </Switch>
+            </div>
+            <button
+              onClick={handleManualSave}
+              className="flex items-center text-gray-600 hover:text-gray-800"
+              title="Save History"
             >
-              <span
-                className={`${autoHistory ? 'translate-x-6' : 'translate-x-1'
-                  } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-              />
-            </Switch>
+              <FaSave className="w-4 h-4" />
+            </button>
           </div>
 
           <h3 className="font-medium text-lg mb-2">Prompt History</h3>
@@ -549,7 +707,7 @@ Let's break down the key components:
             New Iteration
           </button>
           <div className="space-y-2">
-            {promptHistory
+            {promptHistory.items
               .filter(item => !item.parentId)
               .map(item => (
                 <HistoryItem
@@ -558,7 +716,7 @@ Let's break down the key components:
                   restoreFromHistory={restoreFromHistory}
                   deleteHistoryItem={deleteHistoryItem}
                   selectedHistoryItem={selectedHistoryItem}
-                  promptHistory={promptHistory}
+                  promptHistory={promptHistory.items}
                   availableModels={availableModels}
                   updateItemName={updateItemName}
                 />
@@ -799,6 +957,8 @@ Let's break down the key components:
         onClose={() => setShowPromptOverlay(false)}
         prompt={generatedPrompt}
       />
+      {showSaveDialog && <SaveDialog />}
+
     </div>
   );
 };

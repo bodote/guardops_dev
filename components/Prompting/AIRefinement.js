@@ -18,26 +18,8 @@ const AIRefinement = ({ onBack }) => {
   const fetchPromptingHistory = async () => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/getPromptingHistory');
-      // const data = await response.json();
-      
-      // Dummy data
-      const data = [
-        {
-          id: '1',
-          name: 'Email Marketing Campaign',
-          timestamp: '2024-03-20T15:30:00Z',
-          lastModified: '2024-03-20T16:45:00Z'
-        },
-        {
-          id: '2',
-          name: 'Product Description Generator',
-          timestamp: '2024-03-19T10:20:00Z',
-          lastModified: '2024-03-19T14:30:00Z'
-        },
-      ];
-      
+      const response = await fetch('/api/prompting/list');
+      const data = await response.json();
       setPromptingHistory(data);
     } catch (error) {
       console.error('Error fetching history:', error);
@@ -47,47 +29,25 @@ const AIRefinement = ({ onBack }) => {
 
   const fetchPromptingDetails = async (id) => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/getPromptingDetails/${id}`);
-      // const data = await response.json();
-      
-      // Dummy detailed data
-      const data = {
-        id: id,
-        promptHistory: [
-          {
-            id: '1',
-            parentId: null,
-            name: 'Initial Email Campaign',
-            timestamp: '2024-03-20T15:30:00Z',
-            userInput: 'Create an email campaign for new product launch',
-            generatedPrompt: 'Write a compelling email...',
-            selectedModels: [{ model_id: 'gpt4' }],
-            testContext: 'Product: AI Assistant\nLaunch Date: April 2024',
-            testResults: {
-              'gpt4': 'Subject: Introducing Your New AI Assistant...'
-            }
-          },
-        ],
-      };
-      
+      const response = await fetch(`/api/prompting?promptId=${id}`);
+      const data = await response.json();
+      console.log('Fetched prompt details:', data);
       setSelectedItem(data);
     } catch (error) {
       console.error('Error fetching details:', error);
     }
   };
-
   const handleBack = () => {
     if (selectedItem) {
       setSelectedItem(null);
       setView('history');
+      fetchPromptingHistory(); // Re-fetch the history when going back
     } else if (view === 'history' || view === 'templates') {
       setView('menu');
     } else {
       onBack();
     }
   };
-
   const filteredHistory = promptingHistory.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -95,11 +55,11 @@ const AIRefinement = ({ onBack }) => {
   const renderContent = () => {
     if (selectedItem) {
       return (
-        <AIPrompting 
+        <AIPrompting
+          key={selectedItem.promptId}
           onBack={handleBack}
           initialData={selectedItem}
-         hideBackToMenu={true} // Add this prop
-
+          hideBackToMenu={true}
         />
       );
     }
