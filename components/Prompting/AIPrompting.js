@@ -12,12 +12,12 @@ import { v4 as uuidv4 } from 'uuid'; // Add this import at the top
 const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => {
 
   // Add these state variables to your component
-  console.log("this initial data", initialData);
 
   const [availableModels, setAvailableModels] = useState([]);
   const [selectedModels, setSelectedModels] = useState([]);
   const [modelSearch, setModelSearch] = useState('');
   const [showPromptOverlay, setShowPromptOverlay] = useState(false);
+  const [currentPromptId, setCurrentPromptId] = useState(initialData?.prompt_id || null);
 
   const [userInput, setUserInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -26,11 +26,12 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
 
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [streamIndex, setStreamIndex] = useState(0);
-  const [showTestSection, setShowTestSection] = useState(false);
+  const [showTestSection, setShowTestSection] = useState(true);
   const [testResults, setTestResults] = useState({});
   const [isTestingPrompt, setIsTestingPrompt] = useState(false);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveTitle, setSaveTitle] = useState('');
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+
 
   const [testContext, setTestContext] = useState('');
   const [showTemplatePopup, setShowTemplatePopup] = useState(false);
@@ -52,44 +53,61 @@ Let's break down the key components:
 3. The \`if __name__ == "__main__":\` block is a common Python idiom for executable code`;
 
   const dummyTestResponse = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.`;
+  useEffect(() => {
+    if (Object.keys(testResults).length > 0) {
+      // Update history whenever testResults changes
+      if (autoHistory) {
+        if (!selectedHistoryItem) {
+          createHistoryItem(null);
+        } else {
+          createHistoryItem(selectedHistoryItem.id);
+        }
+      } else {
+        updatePendingHistoryItem();
+      }
+    }
+  }, [testResults]);
+  useEffect(() => {
+    if (initialData?.prompt_id) {
+      setCurrentPromptId(initialData.prompt_id);
+    }
+  }, [initialData]);
+
 
   useEffect(() => {
-    console.log('useEffect triggered with initialData:', initialData);
+    if (initialData?.items) {
+      // Transform the data from snake_case to camelCase
+      const transformedItems = initialData.items.map(item => ({
+        id: item.id,
+        parentId: item.parent_id,
+        name: item.name,
+        timestamp: item.timestamp,
+        userInput: item.user_input,
+        generatedPrompt: item.generated_prompt,
+        selectedModels: item.selected_models || [],
+        testContext: item.test_context || '',
+        testResults: item.test_results || {}
+      }));
 
-    if (initialData?.items?.length > 0) {
-      // If we have initial data, set up the first item
-      const firstItem = initialData.items[0];
-      console.log('Setting up first item:', firstItem);
-
-      setSelectedHistoryItem(firstItem);
-      setPendingHistoryItem(firstItem);
-
-      // Also set up the form fields
-      setUserInput(firstItem.userInput || '');
-      setGeneratedPrompt(firstItem.generatedPrompt || '');
-      setSelectedModels(firstItem.selectedModels || []);
-      setTestContext(firstItem.testContext || '');
-      setTestResults(firstItem.testResults || {});
-
-    } else if (!initialData?.items && promptHistory.items.length === 0) {
-      // If no initial data, create a blank item
-      const initialItem = {
-        id: uuidv4(),
-        parentId: null,
-        name: 'New Iteration',
-        timestamp: new Date().toISOString(),
-        userInput: '',
-        generatedPrompt: '',
-        selectedModels: [],
-        testContext: '',
-        testResults: {}
-      };
-
+      // Set the prompt history with transformed data
       setPromptHistory({
-        items: [initialItem]
+        id: initialData.prompt_id,
+        items: transformedItems
       });
-      setSelectedHistoryItem(initialItem);
-      setPendingHistoryItem(initialItem);
+
+      // Set up the first item if available
+      if (transformedItems.length > 0) {
+        const firstItem = transformedItems[0];
+        setSelectedHistoryItem(firstItem);
+        setPendingHistoryItem(firstItem);
+
+        // Set up the form fields
+        setUserInput(firstItem.userInput || '');
+        setGeneratedPrompt(firstItem.generatedPrompt || '');
+        setSelectedModels(firstItem.selectedModels || []);
+        setTestContext(firstItem.testContext || '');
+        setTestResults(firstItem.testResults || {});
+      }
     }
   }, [initialData]);
 
@@ -107,6 +125,7 @@ Let's break down the key components:
       setStreamIndex(0);
 
       if (generatedPrompt) {
+
         if (autoHistory) {
           // Special case: If this is the first item (only blank item exists)
           if (promptHistory.length === 1 && !promptHistory[0].generatedPrompt) {
@@ -158,6 +177,7 @@ Let's break down the key components:
     // Clear all fields
     setUserInput('');
     setGeneratedPrompt('');
+    setSelectedModels([]);
     setTestContext('');
     setTestResults({});
 
@@ -174,21 +194,23 @@ Let's break down the key components:
       userInput,
       generatedPrompt,
       selectedModels,
-      testContext,
-      testResults,
-      name: userInput.slice(0, 50) // Update name with actual content
+      testContext: testContext || '',
+      testResults: testResults || {},  // Use passed results or fall back to state
+      name: userInput.slice(0, 50)
     };
 
-    setPromptHistory(prev => ({
-      ...prev,
-      items: prev.items.map(item =>
-        item.id === selectedHistoryItem.id ? updatedItem : item
-      )
-    }));
+    setPromptHistory(prev => {
+      const newHistory = {
+        ...prev,
+        items: prev.items.map(item =>
+          item.id === selectedHistoryItem.id ? updatedItem : item
+        )
+      };
+      return newHistory;
+    });
     setSelectedHistoryItem(updatedItem);
     setPendingHistoryItem(updatedItem);
   };
-
 
   const handleSaveTemplate = async () => {
     try {
@@ -225,54 +247,12 @@ Let's break down the key components:
       console.error("Error fetching models:", error);
     }
   };
-  const startNewIteration = () => {
-    const latestItem = promptHistory.items[0];
-    const newHistoryItem = {
-      id: Date.now().toString(),
-      parentId: null,
-      name: latestItem.userInput.slice(0, 50), // Initial name from userInput
-      timestamp: new Date().toISOString(),
-      userInput: latestItem.userInput,
-      generatedPrompt: latestItem.generatedPrompt,
-      selectedModels: latestItem.selectedModels,
-      testContext: latestItem.testContext,
-      testResults: {}  // Start with empty results
-    };
 
-    // Add to history and select it
-    setPromptHistory(prev => ({
-      ...prev,
-      items: [newHistoryItem, ...prev.items]
-    }));
-    restoreFromHistory(newHistoryItem);
-  };
   // Add this function to filter models based on search
   const filteredModels = availableModels.filter(model =>
     model.name.toLowerCase().includes(modelSearch.toLowerCase())
   );
-  const dummyHistory = {
-    id: uuidv4(), // Using UUID 
-    items: [
-      {
-        id: '1',
-        parentId: null,
-        name: 'Create a professional email template',
-        timestamp: '2024-03-20T10:30:00',
-        userInput: 'Create a professional email template for client outreach',
-        generatedPrompt: 'Write an email template that establishes a professional tone...',
-        selectedModels: [
-          { model_id: 'gpt4' },
-          { model_id: 'claude' }
-        ],
-        testContext: 'Company: TechCorp\nProduct: AI Solutions',
-        testResults: {
-          'gpt4': 'Dear [Name],\n\nI hope this email finds you well...',
-          'claude': 'Hello [Name],\n\nI trust youre having a productive week...'
-        }
-      },
-      // ... other history items ...
-    ]
-  };
+
   const [promptHistory, setPromptHistory] = useState(() => {
     if (initialData && initialData.items) {
       console.log('Initializing promptHistory with:', initialData);
@@ -284,121 +264,219 @@ Let's break down the key components:
     return { items: [] };
   });
 
-  //const [promptHistory, setPromptHistory] = useState(initialData?.promptHistory || dummyHistory);
 
+  const handleAutoSave = async () => {
+    try {
+      const latestItem = {
+        ...promptHistory.items[0],
+        generatedPrompt: generatedPrompt
+      };
+      const defaultTitle = latestItem?.userInput?.slice(0, 50) || 'New Prompt History';
 
-  const saveVariation = (originalItem) => {
-    const newHistoryItem = {
-      id: `${originalItem.id}.${Date.now()}`,
-      parentId: originalItem.id,
-      name: userInput.slice(0, 50), // Initial name from userInput
-      timestamp: new Date().toISOString(),
-      userInput,
-      generatedPrompt,
-      selectedModels,
-      testContext,
-      testResults
-    };
+      if (!currentPromptId) {
+        // Create new prompt list item
+        const promptResponse = await fetch('/api/prompting/list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: defaultTitle,
+          })
+        });
 
-    const updatedHistory = [...promptHistory];
-    const insertIndex = findLastBranchIndex(originalItem.id, updatedHistory) + 1;
-    updatedHistory.splice(insertIndex, 0, newHistoryItem);
-    setPromptHistory(updatedHistory);
+        if (!promptResponse.ok) {
+          throw new Error('Failed to create prompt');
+        }
 
-    // Select the new item after saving
-    setSelectedHistoryItem(newHistoryItem);
+        const promptData = await promptResponse.json();
+        promptId = promptData.data; // Extract the ID from the response data
+        setCurrentPromptId(promptId);
 
-    // Optional: Show a success toast/notification
-    // toast.success('Iteration saved successfully');
+        // Initial save of prompt details
+        const detailsResponse = await fetch('/api/prompting', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt_id: promptId,
+            items: [
+              {
+                id: latestItem.id,
+                parentId: latestItem.parentId,
+                name: latestItem.name,
+                timestamp: latestItem.timestamp,
+                userInput: latestItem.userInput,
+                generatedPrompt: latestItem.generatedPrompt,
+                selectedModels: latestItem.selectedModels,
+                testContext: latestItem.testContext,
+                testResults: latestItem.testResults
+              },
+              ...promptHistory.items.slice(1).map(item => ({
+                id: item.id,
+                parentId: item.parentId,
+                name: item.name,
+                timestamp: item.timestamp,
+                userInput: item.userInput,
+                generatedPrompt: item.generatedPrompt,
+                selectedModels: Array.isArray(item.selectedModels) ? item.selectedModels : [],
+                testContext: item.testContext || '',
+                testResults: item.testResults || {}
+              }))
+            ]
+          })
+        });
+
+        if (!detailsResponse.ok) {
+          throw new Error('Failed to save prompt details');
+        }
+      } else {
+        // Update prompt list item first
+        const listResponse = await fetch('/api/prompting/list', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt_id: currentPromptId,
+            name: defaultTitle,
+          })
+        });
+
+        if (!listResponse.ok) {
+          throw new Error('Failed to update prompt list');
+        }
+
+        // Then update prompt details
+        const detailsResponse = await fetch('/api/prompting', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt_id: currentPromptId,
+            items: [
+              { ...latestItem },
+              ...promptHistory.items.slice(1)
+            ]
+          })
+        });
+
+        if (!detailsResponse.ok) {
+          throw new Error('Failed to update prompt details');
+        }
+      }
+
+    } catch (error) {
+      console.error('Error saving prompt:', error);
+      toast.error('Failed to save prompt');
+    }
   };
+
   const handleManualSave = () => {
+
     const latestItem = promptHistory.items[0];
     const defaultTitle = latestItem?.userInput?.slice(0, 50) || 'New Prompt History';
+
     setSaveTitle(defaultTitle);
     setShowSaveDialog(true);
   };
 
   const handleSaveConfirm = async () => {
-    // First ensure we have the latest edited prompt
-    const latestItem = {
-      ...promptHistory.items[0],
-      generatedPrompt: generatedPrompt // Use the current generatedPrompt state
-    };
-
-    const historyToSave = {
-      ...promptHistory,
-      name: saveTitle,
-      items: [
-        { ...latestItem }, // Use the updated item
-        ...promptHistory.items.slice(1) // Keep the rest of the items unchanged
-      ]
-    };
-    // Remove id if it exists, let backend generate it
-    delete historyToSave.id;
-
     try {
-      const response = await fetch('/api/prompting', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(historyToSave)
-      });
+      let promptId = currentPromptId;
 
-      if (!response.ok) {
-        throw new Error('Failed to log history');
+      if (!promptId) {
+        // Create new prompt if we don't have an ID
+        const promptResponse = await fetch('/api/prompting/list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: saveTitle,
+          })
+        });
+
+        if (!promptResponse.ok) {
+          throw new Error('Failed to create prompt');
+        }
+
+        const promptData = await promptResponse.json();
+        promptId = promptData.data; // Extract the ID from the response data
+        setCurrentPromptId(promptId);
+
+
+        // Initial save of prompt details
+        const detailsResponse = await fetch('/api/prompting', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt_id: promptId,
+            items: promptHistory.items.map(item => ({
+              id: item.id,
+              parentId: item.parentId,
+              name: item.name,
+              timestamp: item.timestamp,
+              userInput: item.userInput,
+              generatedPrompt: item.generatedPrompt,
+              selectedModels: Array.isArray(item.selectedModels) ? item.selectedModels : [],
+              testContext: item.testContext || '',
+              testResults: item.testResults || {}
+            }))
+          })
+        });
+
+        if (!detailsResponse.ok) {
+          throw new Error('Failed to save prompt details');
+        }
+      } else {
+        // Update prompt list item first
+        const listResponse = await fetch('/api/prompting/list', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt_id: promptId,
+            name: saveTitle,
+          })
+        });
+
+        if (!listResponse.ok) {
+          throw new Error('Failed to update prompt list');
+        }
+
+        // Then update prompt details
+        const detailsResponse = await fetch('/api/prompting', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt_id: promptId,
+            items: promptHistory.items
+          })
+        });
+
+        if (!detailsResponse.ok) {
+          throw new Error('Failed to update prompt details');
+        }
       }
 
-      const { savedHistory } = await response.json();
-      console.log('Saved History with server-generated ID:', savedHistory);
+      toast.success('Prompt saved successfully!');
+      setShowSaveDialog(false);
 
     } catch (error) {
-      console.error('Error logging history:', error);
+      console.error('Error saving prompt:', error);
+      toast.error('Failed to save prompt');
     }
-
-    setShowSaveDialog(false);
   };
 
-  const handleAutoSave = async () => {
-    // First ensure we have the latest edited prompt
-    const latestItem = {
-      ...promptHistory.items[0],
-      generatedPrompt: generatedPrompt // Use the current generatedPrompt state
-    };
 
-    const defaultTitle = latestItem?.userInput?.slice(0, 50) || 'New Prompt History';
-    const historyToSave = {
-      ...promptHistory,
-      name: defaultTitle,
-      items: [
-        { ...latestItem }, // Use the updated item
-        ...promptHistory.items.slice(1) // Keep the rest of the items unchanged
-      ]
-    };
-    delete historyToSave.id;
-
-    try {
-      const response = await fetch('/api/prompting', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(historyToSave)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to log history');
-      }
-
-      const { savedHistory } = await response.json();
-      console.log('Auto-Saved History with server-generated ID:', savedHistory);
-
-    } catch (error) {
-      console.error('Error logging history:', error);
-    }
-
-    onBack();
-  };
   const handleBack = () => {
     if (promptHistory.items.length > 0) {
       handleAutoSave();
@@ -406,6 +484,8 @@ Let's break down the key components:
       onBack();
     }
   };
+
+
   const createHistoryItem = (parentId = null) => {
     const newHistoryItem = {
       id: uuidv4(), // Generate new UUID
@@ -414,9 +494,9 @@ Let's break down the key components:
       timestamp: new Date().toISOString(),
       userInput,
       generatedPrompt,
-      selectedModels,
-      testContext,
-      testResults: {}
+      selectedModels: selectedModels.map(model => model.model_id), // Only store model_ids
+      testContext: testContext || '',
+      testResults: currentTestResults || testResults || {}  // Use passed results or fall back to state
     };
 
     if (parentId) {
@@ -483,17 +563,15 @@ Let's break down the key components:
   };
   // Add this function to restore from history
   const restoreFromHistory = (historyItem) => {
-    console.log('Restoring from history:', historyItem);
     setSelectedHistoryItem(historyItem);
     setUserInput(historyItem.userInput);
     setGeneratedPrompt(historyItem.generatedPrompt);
-    const validModels = historyItem.selectedModels.filter(selected =>
-      availableModels.some(model => model.model_id === selected.model_id)
-    );
+    const validModels = historyItem.selectedModels?.filter(selected =>
+      availableModels.some(model => model.model_id === selected)
+    ) || [];
     setSelectedModels(historyItem.selectedModels);
     setTestContext(historyItem.testContext);
     setTestResults(historyItem.testResults);
-    setShowTestSection(Object.keys(historyItem.testResults).length > 0);
   };
 
   const handleStopGeneration = () => {
@@ -532,7 +610,7 @@ Let's break down the key components:
       return userInput.trim() !== '';
     }
     // Compare with selected history item's input
-    return userInput.trim() !== selectedHistoryItem.userInput.trim();
+    return userInput?.trim() !== selectedHistoryItem.userInput?.trim();
   };
 
   // Modified handleSubmit to work with history
@@ -553,28 +631,58 @@ Let's break down the key components:
     }
 
     setIsTestingPrompt(true);
-    setTestResults({});
+    const newTestResults = {};  // Create new object to store results
 
     try {
-      // Create an array of promises for each model's stream simulation
-      const modelStreams = selectedModels.map(async (model) => {
-        // Initialize empty result for this model
-        setTestResults(prev => ({ ...prev, [model.model_id]: '' }));
+      const modelStreams = selectedModels.map(async (modelId) => {
+        // Get the full model info for the name
+        const modelInfo = availableModels.find(m => m.model_id === modelId);
+        const dummyTestResponse = `${testContext ? '[Using provided context]\n\n' : ''}This is a simulated response from ${modelInfo?.name || modelId}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`;
 
-        const dummyTestResponse = `${testContext ? '[Using provided context]\n\n' : ''}This is a simulated response from ${model.name}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`;
+        // Initialize empty result for this model
+        newTestResults[modelId] = '';
+        setTestResults(prev => ({ ...prev, [modelId]: '' }));
 
         // Simulate streaming for this model
         for (let index = 0; index < dummyTestResponse.length; index++) {
           await new Promise(resolve => setTimeout(resolve, 20));
+          newTestResults[modelId] = (newTestResults[modelId] || '') + dummyTestResponse[index];
           setTestResults(prev => ({
             ...prev,
-            [model.model_id]: (prev[model.model_id] || '') + dummyTestResponse[index]
+            [modelId]: newTestResults[modelId]
           }));
         }
       });
 
       // Run all streams in parallel
       await Promise.all(modelStreams);
+
+      setTestResults(newTestResults);
+
+      // Update the history with newTestResults directly instead of waiting for state
+      if (autoHistory) {
+        if (!selectedHistoryItem) {
+          createHistoryItem(null, newTestResults);
+        } else {
+          createHistoryItem(selectedHistoryItem.id, newTestResults);
+        }
+      } else {
+        updatePendingHistoryItem(newTestResults);
+      }
+
+
+
+
+      if (autoHistory) {
+        if (!selectedHistoryItem) {
+          createHistoryItem();
+        } else {
+          createHistoryItem(selectedHistoryItem.id);
+        }
+      } else {
+        updatePendingHistoryItem();
+      }
+
 
     } catch (error) {
       console.error('Error testing prompt:', error);
@@ -660,10 +768,14 @@ Let's break down the key components:
           onChange={(e) => setSaveTitle(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
           placeholder="Enter a title"
+          autoFocus // Add this to automatically focus the input
         />
         <div className="flex justify-end gap-2">
           <button
-            onClick={() => setShowSaveDialog(false)}
+            onClick={() => {
+              setShowSaveDialog(false);
+              setSaveTitle(''); // Reset the title when closing
+            }}
             className="px-4 py-2 text-gray-600 hover:text-gray-800"
           >
             Cancel
@@ -671,6 +783,7 @@ Let's break down the key components:
           <button
             onClick={handleSaveConfirm}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            disabled={!saveTitle.trim()} // Disable if empty
           >
             Save
           </button>
@@ -725,8 +838,11 @@ Let's break down the key components:
           <div className="h-px bg-gray-200 mb-4" />
           <button
             onClick={handleNewIteration}
-            className="flex items-center gap-1 px-2 py-1 mb-4 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors w-full"
-          >
+            className={`flex items-center gap-1 px-2 py-1 mb-4 text-sm text-blue-600 
+    ${isTestingPrompt
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:text-blue-800 hover:bg-blue-50'} 
+    rounded-md transition-colors w-full`}          >
             <span className="text-lg leading-none">+</span>
             New Iteration
           </button>
@@ -810,166 +926,148 @@ Let's break down the key components:
           {/* Test Prompt Section */}
           {generatedPrompt && !isGenerating && (
             <div className="border-t pt-6 mt-6">
-              <button
-                onClick={() => setShowTestSection(!showTestSection)}
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Test your prompt
-                <FaChevronDown className={`transform transition-transform ${showTestSection ? 'rotate-180' : ''}`} />
-              </button>
 
-              {showTestSection && (
-                <div className="mt-4 space-y-4">
-                  <div className="bg-gray-50 p-4 rounded-md space-y-4">
-                    {/* Test Context Input */}
-                    <div>
-                      <h3 className="font-medium mb-3">Test Context (Optional)</h3>
-                      <textarea
-                        className="w-full p-3 border border-gray-300 rounded-md font-mono text-sm min-h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Add any additional context or variables for testing your prompt..."
-                        value={testContext}
-                        onChange={(e) => setTestContext(e.target.value)}
-                      />
-                    </div>
 
-                    {/* Model Selection */}
-                    <div>
-                      <h3 className="font-medium mb-3">Select models to test with:</h3>
-                      <div className="relative w-full">
-                        <Listbox
-                          value={selectedModels}
-                          onChange={setSelectedModels}
-                          multiple
-                        >
-                          <div className="relative">
-                            <Listbox.Button className="relative w-full min-h-[42px] cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border border-gray-300 focus:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-300">
-                              <div className="flex flex-wrap gap-2">
-                                {selectedModels.length === 0 ? (
-                                  <span className="text-gray-500">Select models...</span>
-                                ) : (
-                                  selectedModels
-                                    .filter(selected =>
-                                      availableModels.some(model => model.model_id === selected.model_id)
-                                    )
-                                    .map((model) => (
-                                      <span
-                                        key={model.model_id}
-                                        className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm group"
-                                      >
-                                        {model.name}
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedModels(selectedModels.filter(m => m.model_id !== model.model_id));
-                                          }}
-                                          className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                                        >
-                                          <FaTimes className="h-3 w-3 hover:text-blue-600" />
-                                        </button>
-                                      </span>
-                                    ))
-                                )}
-                              </div>
-                              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                                <FaChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
-                              </span>
-                            </Listbox.Button>
-
-                            <Transition
-                              as={Fragment}
-                              leave="transition ease-in duration-100"
-                              leaveFrom="opacity-100"
-                              leaveTo="opacity-0"
-                            >
-                              <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                <div className="sticky top-0 bg-white px-3 py-2 z-10 border-b">
-                                  <div className="relative">
-                                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                    <input
-                                      type="text"
-                                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      placeholder="Search models..."
-                                      value={modelSearch}
-                                      onChange={(e) => setModelSearch(e.target.value)}
-                                      onClick={(e) => e.stopPropagation()}
-                                    />
-                                  </div>
-                                </div>
-
-                                {filteredModels.map((model) => {
-                                  const isSelected = selectedModels.some(m => m.model_id === model.model_id);
-                                  return (
-                                    <Listbox.Option
-                                      key={model.model_id}
-                                      value={model}
-                                      className={({ active }) =>
-                                        `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-blue-100' : 'bg-white'
-                                        }`
-                                      }
-                                    >
-                                      {() => (
-                                        <>
-                                          <span className={`block truncate ${isSelected ? 'font-medium' : 'font-normal'}`}>
-                                            {model.name}
-                                          </span>
-                                          {isSelected && (
-                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
-                                              <FaCheck className="h-4 w-4" aria-hidden="true" />
-                                            </span>
-                                          )}
-                                        </>
-                                      )}
-                                    </Listbox.Option>
-                                  );
-                                })}
-                              </Listbox.Options>
-                            </Transition>
-                          </div>
-                        </Listbox>
-                      </div>
-                    </div>
+              <div className="mt-4 space-y-4">
+                <div className="bg-gray-50 p-4 rounded-md space-y-4">
+                  {/* Test Context Input */}
+                  <div>
+                    <h3 className="font-medium mb-3">Test Context (Optional)</h3>
+                    <textarea
+                      className="w-full p-3 border border-gray-300 rounded-md font-mono text-sm min-h-[100px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Add any additional context or variables for testing your prompt..."
+                      value={testContext}
+                      onChange={(e) => setTestContext(e.target.value)}
+                    />
                   </div>
 
-                  {/* Test Button */}
-                  <button
-                    onClick={handleTestPrompt}
-                    disabled={selectedModels.length === 0 || isTestingPrompt}
-                    className={`px-6 py-2 bg-blue-600 text-white rounded-md 
-                    ${selectedModels.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
-                  >
-                    {isTestingPrompt ? 'Testing...' : 'Run Test'}
-                  </button>
+                  {/* Model Selection */}
+                  <div>
+                    <h3 className="font-medium mb-3">Select models to test with:</h3>
+                    <div className="relative w-full">
+                      <Listbox
+                        value={selectedModels}
+                        onChange={setSelectedModels}
+                        multiple
+                      >
+                        <div className="relative">
+                          <Listbox.Button className="relative w-full min-h-[42px] cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border border-gray-300 focus:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-blue-300">
+                            <div className="flex flex-wrap gap-2">
+                              {selectedModels.length === 0 ? (
+                                <span className="text-gray-500">Select models...</span>
+                              ) : (
+                                selectedModels.map((modelId) => {
+                                  const model = availableModels.find(m => m.model_id === modelId);
+                                  return model ? (
+                                    <span
+                                      key={modelId}
+                                      className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm group"
+                                    >
+                                      {model.name}
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedModels(selectedModels.filter(id => id !== modelId));
+                                        }}
+                                        className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                                      >
+                                        <FaTimes className="h-3 w-3 hover:text-blue-600" />
+                                      </button>
+                                    </span>
+                                  ) : null;
+                                })
+                              )}
+                            </div>
+                            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                              <FaChevronDown className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                            </span>
+                          </Listbox.Button>
 
-                  {/* Test Results */}
-                  {Object.keys(testResults).length > 0 && (
-                    <div className="space-y-4">
-                      {testContext && (
-                        <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-md">
-                          <h4 className="font-medium text-sm text-blue-700 mb-2">Test Context:</h4>
-                          <div className="font-mono text-sm whitespace-pre-wrap text-blue-900">
-                            {testContext}
-                          </div>
+                          <Transition
+                            as={Fragment}
+                            leave="transition ease-in duration-100"
+                            leaveFrom="opacity-100"
+                            leaveTo="opacity-0"
+                          >
+                            <Listbox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                              {/* Search input remains the same */}
+                              {filteredModels.map((model) => {
+                                const isSelected = selectedModels.includes(model.model_id);
+                                return (
+                                  <Listbox.Option
+                                    key={model.model_id}
+                                    value={model.model_id} // Now we just pass the model_id
+                                    className={({ active }) =>
+                                      `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-blue-100' : 'bg-white'
+                                      }`
+                                    }
+                                  >
+                                    {() => (
+                                      <>
+                                        <span className={`block truncate ${isSelected ? 'font-medium' : 'font-normal'}`}>
+                                          {model.name}
+                                        </span>
+                                        {isSelected && (
+                                          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-600">
+                                            <FaCheck className="h-4 w-4" aria-hidden="true" />
+                                          </span>
+                                        )}
+                                      </>
+                                    )}
+                                  </Listbox.Option>
+                                );
+                              })}
+                            </Listbox.Options>
+                          </Transition>
                         </div>
-                      )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {selectedModels.map((model) => (
-                          <div key={model.model_id} className="border rounded-md p-4">
+                      </Listbox>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Test Button */}
+                <button
+                  onClick={handleTestPrompt}
+                  disabled={selectedModels.length === 0 || isTestingPrompt}
+                  className={`px-6 py-2 bg-blue-600 text-white rounded-md 
+                    ${selectedModels.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+                >
+                  {isTestingPrompt ? 'Testing...' : 'Run Test'}
+                </button>
+
+                {/* Test Results */}
+                {Object.keys(testResults).length > 0 && (
+                  <div className="space-y-4">
+                    {testContext && (
+                      <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-md">
+                        <h4 className="font-medium text-sm text-blue-700 mb-2">Test Context:</h4>
+                        <div className="font-mono text-sm whitespace-pre-wrap text-blue-900">
+                          {testContext}
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {selectedModels.map((modelId) => {
+                        const model = availableModels.find(m => m.model_id === modelId);
+                        return model ? (
+                          <div key={modelId} className="border rounded-md p-4">
                             <h4 className="font-medium mb-2 text-gray-700">
                               {model.name}
                             </h4>
                             <div className="bg-white p-3 rounded font-mono text-sm whitespace-pre-wrap">
-                              {testResults[model.model_id]}
-                              {isTestingPrompt && !testResults[model.model_id] && (
+                              {testResults[modelId]}
+                              {isTestingPrompt && !testResults[modelId] && (
                                 <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse" />
                               )}
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        ) : null;
+                      })}
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
         </div>

@@ -96,15 +96,15 @@ const HistoryItem = ({
                         {new Date(item.timestamp).toLocaleString()}
                     </div>
                     <div className="flex flex-wrap gap-1 mt-2">
-                        {item.selectedModels
-                            .filter(selected =>
-                                availableModels.some(model => model.model_id === selected.model_id)
+                        {(item.selectedModels || [])
+                            .filter(modelId =>
+                                availableModels.some(model => model.model_id === modelId)
                             )
-                            .map((selected) => {
-                                const modelInfo = availableModels.find(m => m.model_id === selected.model_id);
+                            .map((modelId) => {
+                                const modelInfo = availableModels.find(m => m.model_id === modelId);
                                 return modelInfo ? (
                                     <span
-                                        key={selected.model_id}
+                                        key={modelId}
                                         className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
                                     >
                                         {modelInfo.name}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaSearch, FaHistory, FaBook } from 'react-icons/fa';
+import { FaArrowLeft, FaSearch, FaHistory, FaBook, FaTrash } from 'react-icons/fa';
 import AIPrompting from './AIPrompting';
-
+import { toast } from 'react-toastify';
 const AIRefinement = ({ onBack }) => {
   const [view, setView] = useState('menu');
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,23 +18,72 @@ const AIRefinement = ({ onBack }) => {
   const fetchPromptingHistory = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/prompting/list');
-      const data = await response.json();
-      setPromptingHistory(data);
+      const response = await fetch('/api/prompting/list', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch history');
+      }
+
+      const { data } = await response.json();
+      setPromptingHistory(data.prompts);
     } catch (error) {
       console.error('Error fetching history:', error);
+      toast.error('Failed to fetch prompt history');
     }
     setIsLoading(false);
   };
 
+  const handleDeletePrompt = async (promptId, e) => {
+    e.stopPropagation(); // Prevent triggering the button click event
+
+    try {
+      const response = await fetch('/api/prompting/list', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt_id: promptId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete prompt');
+      }
+
+      toast.success('Prompt deleted successfully');
+      fetchPromptingHistory(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting prompt:', error);
+      toast.error('Failed to delete prompt');
+    }
+  };
+
+
   const fetchPromptingDetails = async (id) => {
     try {
-      const response = await fetch(`/api/prompting?promptId=${id}`);
-      const data = await response.json();
+      const response = await fetch(`/api/prompting?prompt_id=${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch prompt details');
+      }
+
+      const { data } = await response.json();
       console.log('Fetched prompt details:', data);
       setSelectedItem(data);
     } catch (error) {
       console.error('Error fetching details:', error);
+      toast.error('Failed to fetch prompt details');
     }
   };
   const handleBack = () => {
@@ -48,7 +97,7 @@ const AIRefinement = ({ onBack }) => {
       onBack();
     }
   };
-  const filteredHistory = promptingHistory.filter(item =>
+  const filteredHistory = promptingHistory?.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -104,11 +153,20 @@ const AIRefinement = ({ onBack }) => {
         </div>
       );
     }
-
     if (view === 'history') {
       return (
         <div className="max-w-3xl mx-auto">
-          <div className="sticky top-0 bg-white z-10 pb-4">
+          <div className="sticky top-0 bg-white z-10 pb-4 space-y-4">
+            {/* Add "Start from scratch" button */}
+            <button
+              onClick={() => setSelectedItem({})} // Empty object will render AIPrompting without initialData
+              className="w-full p-3 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 
+            transition-colors flex items-center justify-center gap-2 text-green-700 font-medium"
+            >
+              <span className="text-xl">+</span> Start from scratch
+            </button>
+
+            {/* Existing search input */}
             <div className="relative">
               <input
                 type="text"
@@ -124,25 +182,36 @@ const AIRefinement = ({ onBack }) => {
           <div className="space-y-4 mt-4">
             {isLoading ? (
               <div className="text-center py-8 text-gray-500">Loading...</div>
-            ) : filteredHistory.length === 0 ? (
+            ) : filteredHistory?.length === 0 ? (
               <div className="text-center py-8 text-gray-500">No prompts found</div>
             ) : (
-              filteredHistory.map(item => (
-                <button
+              filteredHistory?.map(item => (
+                <div
                   key={item.id}
-                  onClick={() => fetchPromptingDetails(item.id)}
-                  className="w-full p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-200 text-left"
+                  className="relative group"
                 >
-                  <h3 className="font-medium text-lg">{item.name}</h3>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Created: {new Date(item.timestamp).toLocaleDateString()}
-                    {item.lastModified && (
-                      <span className="ml-4">
-                        Last modified: {new Date(item.lastModified).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-                </button>
+                  <button
+                    onClick={() => fetchPromptingDetails(item.prompt_id)}
+                    className="w-full p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-200 text-left"
+                  >
+                    <h3 className="font-medium text-lg">{item.name}</h3>
+                    <div className="text-sm text-gray-500 mt-1">
+                      Created: {new Date(item.timestamp).toLocaleDateString()}
+                      {item.lastModified && (
+                        <span className="ml-4">
+                          Last modified: {new Date(item.lastModified).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                  <button
+                    onClick={(e) => handleDeletePrompt(item.prompt_id, e)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-500 hover:text-red-700"
+                    title="Delete prompt"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
               ))
             )}
           </div>

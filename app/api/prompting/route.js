@@ -1,74 +1,137 @@
-import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
+import { getToken } from "@/utils/getToken";
+import { cookies } from 'next/headers';
 
-export async function POST(request) {
-    const historyData = await request.json();
+export async function GET(req, res) {
+    try {
+        const cookieStore = cookies();
+        const user = cookieStore.get("user_id").value;
+        const baseUrl = process.env.BackendBaseUrl;
+        const token = await getToken();
 
-    // Generate UUID for the new Prompt entry
-    const promptId = uuidv4();
+        if (!token) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
 
-    // Data for Prompts table
-    const promptData = {
-        id: promptId,
-        name: historyData.name,
-        timestamp: new Date().toISOString(),
-        lastModified: new Date().toISOString()
-    };
+        // Get prompt_id from search params
+        const { searchParams } = new URL(req.url);
+        const promptId = searchParams.get('prompt_id');
 
-    // Data for PromptHistory table
-    const promptHistoryData = {
-        promptId: promptId,
-        items: historyData.items
-    };
+        if (!promptId) {
+            return Response.json({ error: "Prompt ID is required" }, { status: 400 });
+        }
 
-    // Server-side console log
-    console.log('New Prompt:', promptData);
-    console.log('Prompt History:', promptHistoryData);
+        const Url = `${baseUrl}api/get_prompt_details`;
+        const queryParams = new URLSearchParams({
+            user_id: user,
+            prompt_id: promptId
+        });
+        const urlWithParams = `${Url}?${queryParams}`;
 
-    // Return both pieces of data
-    return NextResponse.json({
-        prompt: promptData,
-        history: promptHistoryData
-    });
+        const response = await fetch(urlWithParams, {
+            method: "GET",
+            headers: new Headers({
+                authorization: `Bearer ${token}`,
+            }),
+        });
+        console.log('Prompting Details Response Status:', response.status);
+        console.log('Prompting Details Response Headers:', Object.fromEntries(response.headers));
+        const data = await response.json();
+        console.log('Prompting Details Response Body:', JSON.stringify(data, null, 2));
+        return Response.json({ data });
+    } catch (error) {
+        console.error("Error:", error);
+        return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    }
 }
-export async function GET(request) {
-    // Get promptId from URL search params
-    const { searchParams } = new URL(request.url);
-    const promptId = searchParams.get('promptId');
 
+export async function POST(req, res) {
+    try {
+        const bodyData = await req.json();
+        const cookieStore = cookies();
+        const user = cookieStore.get("user_id").value;
+        const baseUrl = process.env.BackendBaseUrl;
+        const token = await getToken();
+        if (!token) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
 
-    // Dummy data for prompt history
-    const data = {
-        promptId: promptId,
-        items: [
-            {
-                id: '456e7890-f12d-34e5-6789-012345678901',
-                parentId: null,
-                name: 'Initial Email Campaign',
-                timestamp: '2024-03-20T15:30:00Z',
-                userInput: 'Create an email campaign for new product launch',
-                generatedPrompt: 'Write a compelling email...',
-                selectedModels: [{ model_id: 'gpt4' }],
-                testContext: 'Product: AI Assistant\nLaunch Date: April 2024',
-                testResults: {
-                    'gpt4': 'Subject: Introducing Your New AI Assistant...'
-                }
-            },
-            {
-                id: '789a1234-b56c-78d9-ef01-234567890abc',
-                parentId: '456e7890-f12d-34e5-6789-012345678901',
-                name: 'Email Campaign Iteration 1',
-                timestamp: '2024-03-20T16:30:00Z',
-                userInput: 'Make the email more engaging',
-                generatedPrompt: 'Revise the email to...',
-                selectedModels: [{ model_id: 'gpt4' }],
-                testContext: 'Previous metrics: 25% open rate',
-                testResults: {
-                    'gpt4': 'Subject: Don\'t Miss Out - Your AI Assistant Awaits...'
-                }
-            }
-        ]
-    };
+        const Url = `${baseUrl}api/save_prompt_details`;
 
-    return Response.json(data);
+        // Transform the items to match backend expectations
+        const transformedItems = bodyData.items.map(item => ({
+            id: item.id,
+            parent_id: item.parentId,
+            name: item.name,
+            timestamp: item.timestamp,
+            user_input: item.userInput,
+            generated_prompt: item.generatedPrompt,
+            selected_models: item.selectedModels,
+            test_context: item.testContext,
+            test_results: item.testResults
+        }));
+
+        // Prepare the request body
+        const requestBody = {
+            user_id: user,
+            prompt_id: bodyData.prompt_id, // Make sure this exists in bodyData
+            items: transformedItems
+        };
+        console.log('Request Body:', JSON.stringify(requestBody, null, 2));
+
+        const response = await fetch(Url, {
+            method: "POST",
+            headers: new Headers({
+                'Content-Type': 'application/json',
+                authorization: `Bearer ${token}`,
+            }),
+            body: JSON.stringify(requestBody)
+        });
+
+        const data = await response.json();
+        return Response.json({ data });
+    } catch (error) {
+        console.error("Error:", error);
+        return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}
+export async function PATCH(req, res) {
+    try {
+        const bodyData = await req.json();
+        const cookieStore = cookies();
+        const user = cookieStore.get("user_id").value;
+        const baseUrl = process.env.BackendBaseUrl;
+        const token = await getToken();
+
+        if (!token) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const Url = `${baseUrl}api/update_prompt_details`;
+
+        // Prepare the request body
+        const requestBody = {
+            user_id: user,
+            prompt_id: bodyData.prompt_id,
+            items: bodyData.items
+        };
+
+        const response = await fetch(Url, {
+            method: "PATCH",
+            headers: new Headers({
+                'Content-Type': 'application/json',
+                authorization: `Bearer ${token}`,
+            }),
+            body: JSON.stringify(requestBody)
+        });
+
+        if (response.status === 200) {
+            const data = await response.json();
+            return Response.json({ data });
+        } else {
+            throw new Error("Failed to update prompt details");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    }
 }
