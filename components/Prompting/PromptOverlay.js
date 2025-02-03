@@ -66,6 +66,7 @@ const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt", on
         setEditedPrompt(newPrompt);
         setEditingIndex(null);
     };
+
     const handleClose = () => {
         if (editedPrompt !== prompt) {  // Only update if there are changes
             setPrompt(editedPrompt);
@@ -100,24 +101,40 @@ const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt", on
     };
 
     const handleSaveTemplate = async () => {
-        try {
-            await fetch('/api/saveTemplate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: templateName,
-                    content: editedPrompt
-                })
-            });
+        if (templateName.trim() === "") {
+            toast.error("Please enter a template name!");
+            return false;
+        }
+        const segments = parseContentSegments(editedPrompt);
+        const fullPrompt = segments.map(s =>
+            s.type === 'code' ? '```' + s.content + '```' : s.content
+        ).join('');
 
-            toast.success('Template saved successfully!');
-            setShowSaveTemplate(false);
-            setTemplateName('');
+        const formData = {
+            template_name: templateName,
+            template_description: "Prompt saved by prompting process",
+            template_link: "",
+            template: fullPrompt,
+        };
+
+        try {
+            const response = await fetch("/api/manageTemplates", {
+                method: "POST",
+                body: JSON.stringify(formData),
+            });
+            const responseData = await response.json();
+
+            if (response.ok) {
+                toast.success("Template created successfully!");
+                setShowSaveTemplate(false);
+                setTemplateName('');
+            } else {
+                toast.error(responseData.detail);
+                console.error("API request failed:", response.statusText);
+            }
         } catch (error) {
-            console.error('Error saving template:', error);
-            toast.error('Failed to save template');
+            console.error("Error during API request:", error);
+            toast.error("Failed to save template");
         }
     };
 
@@ -209,12 +226,11 @@ const PromptOverlay = ({ isOpen, onClose, prompt, title = "Generated Prompt", on
                                         </div>
                                     )}
                                     {editingIndex === index ? (
-                                        <div
-                                            contentEditable={true}
-                                            onInput={(e) => setEditingContent(e.target.textContent)}
+                                        <textarea
+                                            value={editingContent}
+                                            onChange={(e) => setEditingContent(e.target.value)}
                                             onKeyDown={(e) => handleKeyDown(e, index)}
-                                            dangerouslySetInnerHTML={{ __html: editingContent }}
-                                            className="prose max-w-none focus:outline-none"
+                                            className="w-full h-full min-h-[100px] prose max-w-none focus:outline-none p-2 border rounded"
                                         />
                                     ) : (
                                         <div

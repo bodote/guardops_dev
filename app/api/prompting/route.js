@@ -33,10 +33,7 @@ export async function GET(req, res) {
                 authorization: `Bearer ${token}`,
             }),
         });
-        console.log('Prompting Details Response Status:', response.status);
-        console.log('Prompting Details Response Headers:', Object.fromEntries(response.headers));
         const data = await response.json();
-        console.log('Prompting Details Response Body:', JSON.stringify(data, null, 2));
         return Response.json({ data });
     } catch (error) {
         console.error("Error:", error);
@@ -76,7 +73,6 @@ export async function POST(req, res) {
             prompt_id: bodyData.prompt_id, // Make sure this exists in bodyData
             items: transformedItems
         };
-        console.log('Request Body:', JSON.stringify(requestBody, null, 2));
 
         const response = await fetch(Url, {
             method: "POST",

@@ -8,12 +8,42 @@ const AIRefinement = ({ onBack }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [promptingHistory, setPromptingHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [templates, setTemplates] = useState([]);  // Add this
+  const [sourceView, setSourceView] = useState(null);
 
   useEffect(() => {
     if (view === 'history') {
       fetchPromptingHistory();
+    } else if (view === 'templates') {
+      fetchTemplates();
     }
   }, [view]);
+
+
+  const fetchTemplates = async () => {
+    setIsLoading(true);
+    try {
+      setSourceView('templates');
+      const response = await fetch('/api/manageTemplates', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch templates');
+      }
+
+      const data = await response.json();
+      console.log('Templates data:', data);  // This will show the full response
+      setTemplates(data.prompt_templates); // Store just the array of templates
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      toast.error('Failed to fetch templates');
+    }
+    setIsLoading(false);
+  };
 
   const fetchPromptingHistory = async () => {
     setIsLoading(true);
@@ -67,6 +97,7 @@ const AIRefinement = ({ onBack }) => {
 
   const fetchPromptingDetails = async (id) => {
     try {
+      setSourceView('history');
       const response = await fetch(`/api/prompting?prompt_id=${id}`, {
         method: 'GET',
         headers: {
@@ -89,8 +120,13 @@ const AIRefinement = ({ onBack }) => {
   const handleBack = () => {
     if (selectedItem) {
       setSelectedItem(null);
-      setView('history');
-      fetchPromptingHistory(); // Re-fetch the history when going back
+      setView(sourceView);  // Go back to the source view
+      if (sourceView === 'history') {
+        fetchPromptingHistory(); // Re-fetch history if going back to history
+      } else if (sourceView === 'templates') {
+        fetchTemplates(); // Re-fetch templates if going back to templates
+      }
+      setSourceView(null);  // Reset the source
     } else if (view === 'history' || view === 'templates') {
       setView('menu');
     } else {
@@ -105,7 +141,7 @@ const AIRefinement = ({ onBack }) => {
     if (selectedItem) {
       return (
         <AIPrompting
-          key={selectedItem.promptId}
+          key={selectedItem.promptId || `template-${selectedItem.name}`}
           onBack={handleBack}
           initialData={selectedItem}
           hideBackToMenu={true}
@@ -218,7 +254,101 @@ const AIRefinement = ({ onBack }) => {
         </div>
       );
     }
+    if (view === 'templates') {
+      const filteredTemplates = templates
+        ?.sort((a, b) => new Date(b.last_updated) - new Date(a.last_updated))
+        ?.filter(template => {
+          const searchLower = searchQuery.toLowerCase();
+          return (
+            template.name.toLowerCase().includes(searchLower) ||
+            template.description.toLowerCase().includes(searchLower) ||
+            (template.tags && template.tags.some(tag =>
+              tag.toLowerCase().includes(searchLower)
+            )) ||
+            template.template.toLowerCase().includes(searchLower)
+          );
+        });
 
+      return (
+        <div className="max-w-3xl mx-auto">
+          <div className="sticky top-0 bg-white z-10 pb-4 space-y-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search templates by name, content, or tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+          </div>
+
+          <div className="space-y-4 mt-4">
+            {isLoading ? (
+              <div className="text-center py-8 text-gray-500">Loading...</div>
+            ) : filteredTemplates?.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">No templates found</div>
+            ) : (
+              filteredTemplates.map(template => (
+                <div
+                  key={template.template_id}
+                  className="relative group"
+                >
+                  <button
+                    onClick={() => {
+                      setSourceView('templates');  // Track that we came from templates
+                      setSelectedItem({
+                        items: [{
+                          id: Date.now().toString(),
+                          parentId: null,
+                          name: template.name,
+                          timestamp: new Date().toISOString(),
+                          userInput: template.template,
+                          generated_prompt: template.template,
+                          selectedModels: [],
+                          testContext: '',
+                          testResults: {}
+                        }]
+                      });
+                    }}
+                    className="w-full p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-200 text-left"
+                  >
+                    <h3 className="font-medium text-lg">{template.name}</h3>
+                    <p className="text-sm text-gray-600 mt-2 font-mono whitespace-pre-wrap line-clamp-3">
+                      {template.template}
+                    </p>
+                    <div className="text-sm text-gray-500 mt-2">
+                      Last updated: {new Date(template.last_updated).toLocaleDateString()}
+                    </div>
+                    <div className="mt-2 space-x-2">
+                      {template.hub_template && (
+                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                          Hub Template
+                        </span>
+                      )}
+                      {template.published && (
+                        <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                          Published
+                        </span>
+                      )}
+                      {template.tags && template.tags.map(tag => (
+                        <span
+                          key={tag}
+                          className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      );
+    }
     return null;
   };
 
