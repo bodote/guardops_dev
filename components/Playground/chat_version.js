@@ -1,4 +1,4 @@
-import React, { DragEvent, useState, Fragment, useEffect, useRef, useCallback, useImperativeHandle , forwardRef} from "react";
+import React, { DragEvent, useState, Fragment, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from "react";
 import {
   EditIcon,
   MinusIcon,
@@ -58,7 +58,7 @@ function TextFilePreview({ file }) {
 
 const Chat_version = forwardRef(({
   columnCount,
-  onSave ,
+  onSave,
   chatVersionId,
   removeChatVersion,
   addChatVersion,
@@ -84,14 +84,14 @@ const Chat_version = forwardRef(({
   chromaCollectionName,
   setSavePressed
 
-  
+
 }, ref) => {
   hljs.highlightAll();
-  
+
   useImperativeHandle(ref, () => ({
     getMessages: () => {
 
-      if(isLoading){
+      if (isLoading) {
         return
       }
       const newMessages = [];
@@ -126,8 +126,8 @@ const Chat_version = forwardRef(({
     selectedModel
       ? selectedModel
       : {
-          name: "Select a Model",
-        }
+        name: "Select a Model",
+      }
   );
 
   const [showSettings, setShowSettings] = useState(false);
@@ -136,12 +136,12 @@ const Chat_version = forwardRef(({
   const [openaiKey, setOpenaiKey] = useState("");
   const [togetherKey, setTogetherKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState("");
-    // vercel keys
-  const [anthropicKey, setAnthropicKey] = useState(""); 
-  const [cohereKey, setCohereKey] = useState(""); 
-  const [googleKey, setGoogleKey] = useState(""); 
-  const [mistralKey, setMistralKey] = useState(""); 
-  const [perplexityKey, setPerplexityKey] = useState(""); 
+  // vercel keys
+  const [anthropicKey, setAnthropicKey] = useState("");
+  const [cohereKey, setCohereKey] = useState("");
+  const [googleKey, setGoogleKey] = useState("");
+  const [mistralKey, setMistralKey] = useState("");
+  const [perplexityKey, setPerplexityKey] = useState("");
   const [errorOwn, setErrorOwn] = useState("");
   const [tooltipData, setTooltipData] = useState({});
   const [searchModel, setSearchModel] = useState("");
@@ -156,7 +156,7 @@ const Chat_version = forwardRef(({
     frequencyPenalty: 0.3,
     presencePenalty: 0.3,
   });
-  const [formData, setFormData] = useState( {
+  const [formData, setFormData] = useState({
     max_tokens: Number(settings.maxTokens),
     model: selected.id1,
     systemPrompt: systemPrompt,
@@ -168,19 +168,19 @@ const Chat_version = forwardRef(({
     provider: selected.provider,
     multimodal: selected.multimodal | false,
     api_keys: {
-      openaiKey:openaiKey,
+      openaiKey: openaiKey,
       fireworksKey: fireworksAIKey,
       customKey: customAIKey,
-      anthropicKey:anthropicKey,
-      cohereKey:cohereKey,
-      googleKey:googleKey,
-      mistralKey:mistralKey,
-      perplexityKey:perplexityKey,
-      togetherKey:togetherKey
-  
+      anthropicKey: anthropicKey,
+      cohereKey: cohereKey,
+      googleKey: googleKey,
+      mistralKey: mistralKey,
+      perplexityKey: perplexityKey,
+      togetherKey: togetherKey
+
     }
   });
-  
+
   const handleDragOver = (event) => {
     event.preventDefault();
     setIsDragging(true);
@@ -188,7 +188,7 @@ const Chat_version = forwardRef(({
 
   const handleDragLeave = (event) => {
     event.preventDefault();
-    setIsDragging(false); 
+    setIsDragging(false);
   };
 
   const handleDrop = (event) => {
@@ -205,7 +205,7 @@ const Chat_version = forwardRef(({
         const dataTransfer = new DataTransfer();
         validFiles.forEach((file) => dataTransfer.items.add(file));
         setFiles(dataTransfer.files);
-        if(syncAllMsg){
+        if (syncAllMsg) {
           setAllFiles(dataTransfer.files);
         }
       } else {
@@ -217,29 +217,52 @@ const Chat_version = forwardRef(({
     setIsDragging(false);
   };
   useEffect(() => {
-    setFormData({
-      max_tokens: Number(settings.maxTokens),
-      model: selected.id1,
-      systemPrompt: systemPrompt,
-      type: "chat",
-      settings: settings,
-      provider: selected.provider,
-      rag: ragCheck,
-      selectedRag: selectedRag,
-      chromaCollectionName: chromaCollectionName,
-      multimodal: selected.multimodal | false,
-      api_keys: {
-        openaiKey: openaiKey,
-        fireworksKey: fireworksAIKey,
-        customKey: customAIKey,
-        anthropicKey: anthropicKey,
-        cohereKey: cohereKey,
-        googleKey: googleKey,
-        mistralKey: mistralKey,
-        perplexityKey: perplexityKey,
-        togetherKey: togetherKey
-      },
-    });
+    const updateFormData = async () => {
+      let providerInfo = {
+        provider: selected.provider,
+        customProvider: false
+      };
+
+      // Check if it's a custom provider (UUID format)
+      if (selected.provider?.includes('-')) {
+        const provider = await fetchProviderDetails(selected.provider);
+        if (provider) {
+          providerInfo = {
+            provider: {
+              baseUrl: provider.baseUrl,
+              apiKey: customAIKey // Using customAIKey for custom providers
+            },
+            customProvider: true
+          };
+        }
+      }
+
+      setFormData({
+        max_tokens: Number(settings.maxTokens),
+        model: selected.id1,
+        systemPrompt: systemPrompt,
+        type: "chat",
+        settings: settings,
+        ...providerInfo, // Spread the provider info
+        rag: ragCheck,
+        selectedRag: selectedRag,
+        chromaCollectionName: chromaCollectionName,
+        multimodal: selected.multimodal | false,
+        api_keys: {
+          openaiKey: openaiKey,
+          fireworksKey: fireworksAIKey,
+          customKey: customAIKey,
+          anthropicKey: anthropicKey,
+          cohereKey: cohereKey,
+          googleKey: googleKey,
+          mistralKey: mistralKey,
+          perplexityKey: perplexityKey,
+          togetherKey: togetherKey
+        },
+      });
+    };
+
+    updateFormData();
   }, [
     settings,
     open,
@@ -254,79 +277,91 @@ const Chat_version = forwardRef(({
     mistralKey,
     perplexityKey,
   ]);
-  const {id,  messages, input, stop, handleInputChange,isLoading, handleSubmit, reload , setInput, setMessages, error, data  } = useChat({
+  const { id, messages, input, stop, handleInputChange, isLoading, handleSubmit, reload, setInput, setMessages, error, data } = useChat({
     body: formData,
-    
-  onError: error => {
-    // Decode the error message
-    let decodedErrorJson = decodeURIComponent(error.message);
 
-    // Parse the JSON string back into an object
-    let errorData;
-    try {
-      errorData = JSON.parse(decodedErrorJson);
-    } catch (parseError) {
-      errorData = { message: decodedErrorJson };
+    onError: error => {
+      // Decode the error message
+      let decodedErrorJson = decodeURIComponent(error.message);
+
+      // Parse the JSON string back into an object
+      let errorData;
+      try {
+        errorData = JSON.parse(decodedErrorJson);
+      } catch (parseError) {
+        errorData = { message: decodedErrorJson };
+      }
+
+      // Remove the prefix if it exists in the error message
+      const prefixToRemove = "Failed to parse stream string. Invalid code ";
+      if (errorData.message && errorData.message.startsWith(prefixToRemove)) {
+        errorData.message = errorData.message.slice(prefixToRemove.length);
+      }
+
+      // Set the error message
+      setErrorOwn(errorData.message);
+
+      // Log the full error data for debugging purposes
+      console.error("FULL ERROR DATA", errorData);
     }
-
-    // Remove the prefix if it exists in the error message
-    const prefixToRemove = "Failed to parse stream string. Invalid code ";
-    if (errorData.message && errorData.message.startsWith(prefixToRemove)) {
-      errorData.message = errorData.message.slice(prefixToRemove.length);
-    }
-
-    // Set the error message
-    setErrorOwn(errorData.message);
-
-    // Log the full error data for debugging purposes
-    console.error("FULL ERROR DATA", errorData);
-  }
-});
+  });
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
   const [editMessageId, setEditMessageId] = useState(null);
   const [editedMessageContent, setEditedMessageContent] = useState('');
   const textareaRef = useRef(null);
   const [copiedIndex, setCopiedIndex] = useState(null);
-  const chatDivRef= useRef(null);
+  const chatDivRef = useRef(null);
 
-const [ragInfo, setRagInfo] = useState([]);
-//the index to make sure that each source gets displayed at the right response
-let assistantIndex = 0;
+  const [ragInfo, setRagInfo] = useState([]);
+  //the index to make sure that each source gets displayed at the right response
+  let assistantIndex = 0;
 
-// useEffect to update the filtered data when `data` changes
-useEffect(() => {
-  if (data && Array.isArray(data)) { // Check if data exists and is an array
-    // Filter out elements that do not have `parentRunId`
-    const filteredData = data.filter(item => !item.parentRunId);
-    setRagInfo(filteredData);
-  }
-}, [data]); // Re-run this effect whenever `data` changes
+  // useEffect to update the filtered data when `data` changes
+  useEffect(() => {
+    if (data && Array.isArray(data)) { // Check if data exists and is an array
+      // Filter out elements that do not have `parentRunId`
+      const filteredData = data.filter(item => !item.parentRunId);
+      setRagInfo(filteredData);
+    }
+  }, [data]); // Re-run this effect whenever `data` changes
 
   useEffect(() => {
     if (chatDivRef.current) {
       chatDivRef.current.scrollTop = chatDivRef.current.scrollHeight;
     }
   }, [messages]);
-  
-  
+
+
   const handleFileChange = (event) => {
-   
+
     if (event.target.files) {
       setFiles(event.target.files);
-      if(syncAllMsg){
+      if (syncAllMsg) {
         setAllFiles(event.target.files);
       }
-      
+
     }
   };
- 
+
   const handleSettingsChange = (settingName, value) => {
     setSettings({ ...settings, [settingName]: value });
   };
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
       setShowSettings(false);
+    }
+  };
+
+  const fetchProviderDetails = async (providerId) => {
+    try {
+      const response = await fetch('/api/customProviders');
+      const { data } = await response.json();
+      const provider = data.custom_providers.find(p => p.provider_id === providerId);
+      return provider;
+    } catch (error) {
+      console.error("Failed to fetch provider details:", error);
+      return null;
     }
   };
   const getModels = async () => {
@@ -375,13 +410,13 @@ useEffect(() => {
         content: pair.attributes.output || "",
       },
     ]);
-    
+
 
     if (model) {
       setSelected(model);
     }
-    
-     setMessages(newMessages);
+
+    setMessages(newMessages);
   };
 
 
@@ -397,9 +432,8 @@ useEffect(() => {
           elements.push(
             <span
               key={index}
-              className={`${styles[annotation.entity_type]} ${
-                styles.highlight
-              }`}
+              className={`${styles[annotation.entity_type]} ${styles.highlight
+                }`}
             >
               {input?.substring(annotation.start, annotation.end)}
               <span className={styles.category}>{annotation.entity_type}</span>
@@ -450,11 +484,11 @@ useEffect(() => {
 
   const handleSave = () => {
     // Update messages and notify parent as well as trace the playground
-   
+
     onSave();
     setSavePressed(true)
   };
-  
+
   const parseVercelResponse = (apiResponse) => {
     const segments = [];
     const regex = /```(.*?)```/gs;
@@ -479,7 +513,7 @@ useEffect(() => {
     return segments;
   };
 
-  
+
   const handleSelect = (model) => {
     setSelected(model);
     setSelectedModel(model);
@@ -507,48 +541,48 @@ useEffect(() => {
     setMessages((prevMessages) => {
       const editIndex = prevMessages.findIndex((message) => message.id === id);
       if (editIndex === -1) return prevMessages; // Message not found, return current state
-  
+
       const updatedMessages = prevMessages
-        .slice(0, editIndex + 1) 
+        .slice(0, editIndex + 1)
         .map((message, index) =>
           index === editIndex
             ? { ...message, content: editedMessageContent } // Update the edited message
             : message
         );
-  
+
       return updatedMessages;
     });
-  
+
     // Reset editing state and reload
     setEditMessageId(null);
     setEditedMessageContent('');
     reload(); // Call reload to update the component if necessary
   };
-  
+
   const cancelEditing = () => {
     setEditMessageId(null);
     setEditedMessageContent('');
   };
   const filteredModels = models
-  .filter((model) => {
-    const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
-    const regex = new RegExp(trimmedSearchModel, "gi");
-    const trimmedModelName = model.name
-      .replace(/[^\w\s]/g, "")
-      .replace(/\s+/g, "");
-    return trimmedModelName.match(regex);
-  })
-  .sort((a, b) => {
-    const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-    const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-    if (nameA < nameB) {
-      return -1;
-    }
-    if (nameA > nameB) {
-      return 1;
-    }
-    return 0; // names must be equal
-  });
+    .filter((model) => {
+      const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
+      const regex = new RegExp(trimmedSearchModel, "gi");
+      const trimmedModelName = model.name
+        .replace(/[^\w\s]/g, "")
+        .replace(/\s+/g, "");
+      return trimmedModelName.match(regex);
+    })
+    .sort((a, b) => {
+      const nameA = a.name.toUpperCase(); // ignore upper and lowercase
+      const nameB = b.name.toUpperCase(); // ignore upper and lowercase
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+      return 0; // names must be equal
+    });
 
 
   // Load API key from Local Storage
@@ -560,7 +594,7 @@ useEffect(() => {
     setOpenaiKey(key1);
     const key2 = localStorage.getItem("customAIKey") || "";
     setCustomAIKey(key2);
-    
+
     const key4 = localStorage.getItem("togetherKey") || "";
     setTogetherKey(key4);
     const key5 = localStorage.getItem("anthropicKey") || "";
@@ -592,14 +626,14 @@ useEffect(() => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [showSettings]);
-  
+
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         cancelEditing();
       }
     };
-  
+
     if (editMessageId !== null) {
       window.addEventListener('keydown', handleKeyDown);
       // Focus the textarea when editing starts
@@ -607,7 +641,7 @@ useEffect(() => {
         textareaRef.current.focus();
       }
     }
-  
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
@@ -615,18 +649,19 @@ useEffect(() => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-        if(!isLoading){
+        if (!isLoading) {
           setErrorOwn(null);
 
-        handleSubmit(event, {
-          experimental_attachments: files,
-        });
+          handleSubmit(event, {
+            experimental_attachments: files,
+          });
 
-        setFiles(undefined);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          setFiles(undefined);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
         }
-      }}
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => {
@@ -637,22 +672,22 @@ useEffect(() => {
   const handleMessageInputChange = (event) => {
     setInput(event.target.value);
     if (syncAllMsg) {
-      setAllChatPrompt({ 
-        value: event.target.value, 
-        timestamp: Date.now() 
+      setAllChatPrompt({
+        value: event.target.value,
+        timestamp: Date.now()
       });
     }
   };
   useEffect(() => {
     setInput(allChatPrompt?.value);
-    
+
   }, [allChatPrompt]);
 
 
   useEffect(() => {
     setFiles(allFiles);
   }, [allFiles]);
- 
+
   const handlePaste = (event) => {
     const items = event.clipboardData?.items;
 
@@ -671,7 +706,7 @@ useEffect(() => {
           const dataTransfer = new DataTransfer();
           validFiles.forEach((file) => dataTransfer.items.add(file));
           setFiles(dataTransfer.files);
-          if(syncAllMsg){
+          if (syncAllMsg) {
             setAllFiles(dataTransfer.files)
           }
         } else {
@@ -690,11 +725,11 @@ useEffect(() => {
     setSystemPrompt(allSystemPrompt);
   }, [allSystemPrompt]);
   return (
-    
+
     <div className="flex sm:flex-row flex-col items-start">
-      
+
       <div className="w-full">
-        <div className="border-r-[#CCCCCC] border-r-[1px]"> 
+        <div className="border-r-[#CCCCCC] border-r-[1px]">
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative 2xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
             <div className="flex items-center gap-2">
               <Listbox value={selected} onChange={handleSelect}>
@@ -702,9 +737,8 @@ useEffect(() => {
                   <>
                     <div className="relative">
                       <Listbox.Button
-                        className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
-                          columnCount > 2 ? "sm:!w-[130px]" : ""
-                        }`}
+                        className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${columnCount > 2 ? "sm:!w-[130px]" : ""
+                          }`}
                       >
                         <span className="flex items-center">
                           <span className=" block truncate pr-[20px]">
@@ -739,7 +773,7 @@ useEffect(() => {
                               placeholder="Search..."
                               value={searchModel}
                               onChange={(e) => setSearchModel(e.target.value)}
-                             
+
                             />
                           </div>
                           {filteredModels.map((model) => (
@@ -786,30 +820,29 @@ useEffect(() => {
               </button>
             </div>
             <div
-              className={`flex gap-[17px] sm:mt-0 mt-[20px] ${
-                columnCount > 2 ? "2xl:!gap-[10px] xl:!gap-[6px] !gap-[10px]" : ""
-              }`}
+              className={`flex gap-[17px] sm:mt-0 mt-[20px] ${columnCount > 2 ? "2xl:!gap-[10px] xl:!gap-[6px] !gap-[10px]" : ""
+                }`}
             >
-             <button
-               onClick={() => {
+              <button
+                onClick={() => {
 
-                if(syncAllMsg){
+                  if (syncAllMsg) {
                     setInput("")
-                    setAllChatPrompt({ 
-                      value: "", 
-                      timestamp: Date.now() 
+                    setAllChatPrompt({
+                      value: "",
+                      timestamp: Date.now()
                     });
                     setAllFiles(undefined);
-                }else{
-                 setInput("");
-                 setFiles(undefined);
+                  } else {
+                    setInput("");
+                    setFiles(undefined);
 
+                  }
+                  setMessages([]);
                 }
-                 setMessages([]);
                 }
-               }
-             >
-             
+              >
+
                 <LoadingIcon />
               </button>
               <button onClick={handleSave}>
@@ -856,10 +889,9 @@ useEffect(() => {
 
 
             <div
-            ref={chatDivRef}
-              className={`bg-[#F7F7F7] h-[calc(100vh-287px)] overflow-y-auto ${
-                errorOwn ? "pt-[44px]" : ""
-              }`}
+              ref={chatDivRef}
+              className={`bg-[#F7F7F7] h-[calc(100vh-287px)] overflow-y-auto ${errorOwn ? "pt-[44px]" : ""
+                }`}
             >
               {open && (
                 <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] m-[10px] mt-[16px]">
@@ -910,347 +942,344 @@ useEffect(() => {
               )}
               <div
                 className={open ? "h-[calc(100vh-520px)] overflow-auto" : ""}
-              >  
+              >
 
-{messages.map((message, index) => {
-  // Keep track of the current assistant message index
-  const isAssistant = message.role === 'assistant';
-  const currentRagInfo = isAssistant ? ragInfo[assistantIndex] : null;
+                {messages.map((message, index) => {
+                  // Keep track of the current assistant message index
+                  const isAssistant = message.role === 'assistant';
+                  const currentRagInfo = isAssistant ? ragInfo[assistantIndex] : null;
 
 
-  if (isAssistant) {
-    assistantIndex++;
-  }
-  return (
-    <div key={message.id} className="flex justify-center">
-      <div className="w-[75%]">
-        {message.role === 'user' ? (
-          <div
-            className={`mb-2 bg-[#e1e1e1] md:p-[19px_31px] flex flex-col rounded-3xl ${index === 0 ? 'mt-4' : ''}`}
-          >
-            <div className="flex justify-between">
-              <div className="flex sm:gap-[19px] gap-[8px] flex-col w-full">
-                <div className="flex items-start">
-                  <User2Icon className="min-w-[16px]" />
-                  {editMessageId === message.id ? (
-                    <textarea
-                      ref={textareaRef}
-                      value={editedMessageContent}
-                      onChange={(e) => setEditedMessageContent(e.target.value)}
-                      className="ml-5 border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
-                    />
-                  ) : (
-                    <p className="ml-5 md:text-[16px] text-[14px]">
-                      {message.content}
-                    </p>
-                  )}
-                </div>
-                {editMessageId === message.id && (
-                  <div className="flex gap-2 mt-2 ml-10">
-                    <button
-                      className="p-1 border-1 rounded-full bg-gray-400 hover:bg-gray-700"
-                      onClick={() => cancelEditing()}
-                    >
-                      <AiOutlineStop className="text-[16px]" />
-                    </button>
-                    <button
-                      className="p-1 border-1 rounded-full text-[12px] bg-[#D4DB33] hover:bg-[#0D859A]"
-                      onClick={() => saveEditedMessage(message.id)}
-                    >
-                      Save & Resend
-                    </button>
-                  </div>
-                )}
-              </div>
-              {editMessageId !== message.id && (
-                <button
-                  className="text-[20px] text-[#2B3F6C] group-hover:block"
-                  onClick={() => handleEditMessage(message.id, message.content)}
-                >
-                  <RiEdit2Line />
-                </button>
-              )}
-            </div>
-            <div className="flex flex-wrap justify-start">
-              {message.experimental_attachments?.map((attachment) => (
-                <div key={attachment.name} className="mb-3 mr-3">
-                  {attachment.contentType?.startsWith("image") ? (
-                    <img
-                      className="rounded-md h-60"
-                      src={attachment.url}
-                      alt={attachment.name}
-                    />
-                  ) : attachment.contentType?.startsWith("text") ? (
-                    <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
-                      {getTextFromDataUrl(attachment.url)}
-                    </div>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="mb-2  md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px] rounded-3xl">
-            <FireIcon className="min-w-[16px]" />
-            <div className="w-[calc(100%-35px)]">
-              {parseVercelResponse(message.content).map((segment, index) =>
-                segment.type === 'code' ? (
-                  (() => {
-                    return (
-                      <pre className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5">
-                        <button className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200" onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
-                          {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
-                        </button>
-                        <code>{segment.content}</code>
-                      </pre>
-                    );
-                  })()
-                ) : (
-                  <ReactMarkdown
-                    components={{
-                      ul: ({ node, ...props }) => (
-                        <ul
-                          style={{
-                            display: 'block',
-                            listStyleType: 'disc',
-                            paddingInlineStart: '40px',
-                          }}
-                          {...props}
-                        />
-                      ),
-                      ol: ({ node, ...props }) => (
-                        <ol
-                          style={{
-                            display: 'block',
-                            listStyleType: 'decimal',
-                            paddingInlineStart: '40px',
-                          }}
-                          {...props}
-                        />
-                      ),
-                      h1: ({ node, ...props }) => (
-                        <h1
-                          className="font-bold text-6xl"
-                          {...props}
-                        />
-                      ),
-                      p: ({ node, ...props }) => (
-                        <p
-                          style={{
-                            whiteSpace: 'pre-wrap',
-                          }}
-                          {...props}
-                        />
-                      ),
-                    }}
-                    remarkPlugins={[gfm]}
-                    key={index}
-                    children={segment.content}
-                  />
-                )
-              )}
-          {currentRagInfo && currentRagInfo.context && currentRagInfo.context.length > 0 && (
-                      <div className="mt-4 w-full">
-                        <div className="bg-gray-200 p-4 rounded-lg">
-                          <p className="text-sm font-medium mb-2">Relevant documents</p>
-                          {currentRagInfo.context.map((item, index) => (
-                            <FileSource 
-                              key={index}
-                              source={item.metadata.source}
-                              content={item.pageContent}
-                            />
-                          ))}
-                          <p className="text-xs text-gray-500 mt-2">Run ID: {currentRagInfo.runId}</p>
-                        </div>
+                  if (isAssistant) {
+                    assistantIndex++;
+                  }
+                  return (
+                    <div key={message.id} className="flex justify-center">
+                      <div className="w-[75%]">
+                        {message.role === 'user' ? (
+                          <div
+                            className={`mb-2 bg-[#e1e1e1] md:p-[19px_31px] flex flex-col rounded-3xl ${index === 0 ? 'mt-4' : ''}`}
+                          >
+                            <div className="flex justify-between">
+                              <div className="flex sm:gap-[19px] gap-[8px] flex-col w-full">
+                                <div className="flex items-start">
+                                  <User2Icon className="min-w-[16px]" />
+                                  {editMessageId === message.id ? (
+                                    <textarea
+                                      ref={textareaRef}
+                                      value={editedMessageContent}
+                                      onChange={(e) => setEditedMessageContent(e.target.value)}
+                                      className="ml-5 border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
+                                    />
+                                  ) : (
+                                    <p className="ml-5 md:text-[16px] text-[14px]">
+                                      {message.content}
+                                    </p>
+                                  )}
+                                </div>
+                                {editMessageId === message.id && (
+                                  <div className="flex gap-2 mt-2 ml-10">
+                                    <button
+                                      className="p-1 border-1 rounded-full bg-gray-400 hover:bg-gray-700"
+                                      onClick={() => cancelEditing()}
+                                    >
+                                      <AiOutlineStop className="text-[16px]" />
+                                    </button>
+                                    <button
+                                      className="p-1 border-1 rounded-full text-[12px] bg-[#D4DB33] hover:bg-[#0D859A]"
+                                      onClick={() => saveEditedMessage(message.id)}
+                                    >
+                                      Save & Resend
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                              {editMessageId !== message.id && (
+                                <button
+                                  className="text-[20px] text-[#2B3F6C] group-hover:block"
+                                  onClick={() => handleEditMessage(message.id, message.content)}
+                                >
+                                  <RiEdit2Line />
+                                </button>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap justify-start">
+                              {message.experimental_attachments?.map((attachment) => (
+                                <div key={attachment.name} className="mb-3 mr-3">
+                                  {attachment.contentType?.startsWith("image") ? (
+                                    <img
+                                      className="rounded-md h-60"
+                                      src={attachment.url}
+                                      alt={attachment.name}
+                                    />
+                                  ) : attachment.contentType?.startsWith("text") ? (
+                                    <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
+                                      {getTextFromDataUrl(attachment.url)}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mb-2  md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px] rounded-3xl">
+                            <FireIcon className="min-w-[16px]" />
+                            <div className="w-[calc(100%-35px)]">
+                              {parseVercelResponse(message.content).map((segment, index) =>
+                                segment.type === 'code' ? (
+                                  (() => {
+                                    return (
+                                      <pre className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5">
+                                        <button className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200" onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
+                                          {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
+                                        </button>
+                                        <code>{segment.content}</code>
+                                      </pre>
+                                    );
+                                  })()
+                                ) : (
+                                  <ReactMarkdown
+                                    components={{
+                                      ul: ({ node, ...props }) => (
+                                        <ul
+                                          style={{
+                                            display: 'block',
+                                            listStyleType: 'disc',
+                                            paddingInlineStart: '40px',
+                                          }}
+                                          {...props}
+                                        />
+                                      ),
+                                      ol: ({ node, ...props }) => (
+                                        <ol
+                                          style={{
+                                            display: 'block',
+                                            listStyleType: 'decimal',
+                                            paddingInlineStart: '40px',
+                                          }}
+                                          {...props}
+                                        />
+                                      ),
+                                      h1: ({ node, ...props }) => (
+                                        <h1
+                                          className="font-bold text-6xl"
+                                          {...props}
+                                        />
+                                      ),
+                                      p: ({ node, ...props }) => (
+                                        <p
+                                          style={{
+                                            whiteSpace: 'pre-wrap',
+                                          }}
+                                          {...props}
+                                        />
+                                      ),
+                                    }}
+                                    remarkPlugins={[gfm]}
+                                    key={index}
+                                    children={segment.content}
+                                  />
+                                )
+                              )}
+                              {currentRagInfo && currentRagInfo.context && currentRagInfo.context.length > 0 && (
+                                <div className="mt-4 w-full">
+                                  <div className="bg-gray-200 p-4 rounded-lg">
+                                    <p className="text-sm font-medium mb-2">Relevant documents</p>
+                                    {currentRagInfo.context.map((item, index) => (
+                                      <FileSource
+                                        key={index}
+                                        source={item.metadata.source}
+                                        content={item.pageContent}
+                                      />
+                                    ))}
+                                    <p className="text-xs text-gray-500 mt-2">Run ID: {currentRagInfo.runId}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-})}
+                    </div>
+                  );
+                })}
 
               </div>
             </div>
             <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
-  <div className="flex">
-    {/* Left Side (Input Area) */}
-    <div className={`flex-grow ${piiCheck ? "w-1/2" : "w-full"}`}>
-    <div className={`rounded-md bg-[#e1e1e1] ${arenaCheck ? 'border-black border' : ''}`}
-           onDragOver={handleDragOver}
-           onDragLeave={handleDragLeave}
-           onDrop={handleDrop}>
-             <AnimatePresence>
-                           {isDragging && (
-                             <motion.div
-                               className="absolute pointer-events-none dark:bg-zinc-900/90  z-10 flex flex-row justify-center items-center flex flex-col gap-1 bg-zinc-100/90 top-0 left-0 right-0 bottom-0"
-                               initial={{ opacity: 0 }}
-                               animate={{ opacity: 1 }}
-                               exit={{ opacity: 0 }}
-                             >
-                               <div>Drag and drop files here</div>
-                               <div className="text-sm dark:text-zinc-400 text-zinc-500">
-                                 {"(images and text)"}
-                               </div>
-                             </motion.div>
-                           )}
-                         </AnimatePresence>
-        <textarea
-          placeholder="Send a message"
-          value={input}
-          onChange={handleMessageInputChange}
-          onPaste={handlePaste}
-          className={`border-0 resize-y bg-[#e1e1e1] focus:ring-0 focus:shadow-none w-full rounded-md}`}
-        />
-        <div className="pl-2 pb-2 flex items-center gap-[5px]">
-          <label htmlFor="fileInput" className="bg-gray-600 hover:bg-gray-800 text-white rounded-full cursor-pointer">
-            <svg
-              className="cursor-pointer hover:text-gray-700 border rounded-full p-1 h-8"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="white"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1"
-                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-              />
-            </svg>
-            <input
-              hidden
-              type="file"
-              onChange={handleFileChange}
-              multiple
-              ref={fileInputRef}
-              accept="image/*, text/*"
-              id="fileInput"
-            />
-          </label>
-          <AnimatePresence>
-            {files && files.length > 0 && (
-              <div className="flex items-center bottom-12 px-4 w-full md:w-[500px] md:px-0">
-                {Array.from(files).map((file) =>
-                  file.type.startsWith("image") ? (
-                    <div key={file.name} className="ml-2">
-                      <motion.img
-                        src={URL.createObjectURL(file)}
-                        alt={file.name}
-                        className="rounded-md w-24"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{
-                          y: -10,
-                          scale: 1.1,
-                          opacity: 0,
-                          transition: { duration: 0.2 },
-                        }}
-                      />
+              <div className="flex">
+                {/* Left Side (Input Area) */}
+                <div className={`flex-grow ${piiCheck ? "w-1/2" : "w-full"}`}>
+                  <div className={`rounded-md bg-[#e1e1e1] ${arenaCheck ? 'border-black border' : ''}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}>
+                    <AnimatePresence>
+                      {isDragging && (
+                        <motion.div
+                          className="absolute pointer-events-none dark:bg-zinc-900/90  z-10 flex flex-row justify-center items-center flex flex-col gap-1 bg-zinc-100/90 top-0 left-0 right-0 bottom-0"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        >
+                          <div>Drag and drop files here</div>
+                          <div className="text-sm dark:text-zinc-400 text-zinc-500">
+                            {"(images and text)"}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    <textarea
+                      placeholder="Send a message"
+                      value={input}
+                      onChange={handleMessageInputChange}
+                      onPaste={handlePaste}
+                      className={`border-0 resize-y bg-[#e1e1e1] focus:ring-0 focus:shadow-none w-full rounded-md}`}
+                    />
+                    <div className="pl-2 pb-2 flex items-center gap-[5px]">
+                      <label htmlFor="fileInput" className="bg-gray-600 hover:bg-gray-800 text-white rounded-full cursor-pointer">
+                        <svg
+                          className="cursor-pointer hover:text-gray-700 border rounded-full p-1 h-8"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="white"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1"
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                          />
+                        </svg>
+                        <input
+                          hidden
+                          type="file"
+                          onChange={handleFileChange}
+                          multiple
+                          ref={fileInputRef}
+                          accept="image/*, text/*"
+                          id="fileInput"
+                        />
+                      </label>
+                      <AnimatePresence>
+                        {files && files.length > 0 && (
+                          <div className="flex items-center bottom-12 px-4 w-full md:w-[500px] md:px-0">
+                            {Array.from(files).map((file) =>
+                              file.type.startsWith("image") ? (
+                                <div key={file.name} className="ml-2">
+                                  <motion.img
+                                    src={URL.createObjectURL(file)}
+                                    alt={file.name}
+                                    className="rounded-md w-24"
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{
+                                      y: -10,
+                                      scale: 1.1,
+                                      opacity: 0,
+                                      transition: { duration: 0.2 },
+                                    }}
+                                  />
+                                </div>
+                              ) : file.type.startsWith("text") ? (
+                                <div key={file.name} className="ml-2">
+                                  <motion.div
+                                    key={file.name}
+                                    className="text-[8px] leading-1 w-28 h-16 overflow-hidden text-zinc-500 border p-2 rounded-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400"
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{
+                                      y: -10,
+                                      scale: 1.1,
+                                      opacity: 0,
+                                      transition: { duration: 0.2 },
+                                    }}
+                                  >
+                                    <TextFilePreview file={file} />
+                                  </motion.div>
+                                </div>
+                              ) : null
+                            )}
+                          </div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                  ) : file.type.startsWith("text") ? (
-                    <div key={file.name} className="ml-2">
-                      <motion.div
-                        key={file.name}
-                        className="text-[8px] leading-1 w-28 h-16 overflow-hidden text-zinc-500 border p-2 rounded-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{
-                          y: -10,
-                          scale: 1.1,
-                          opacity: 0,
-                          transition: { duration: 0.2 },
-                        }}
-                      >
-                        <TextFilePreview file={file} />
-                      </motion.div>
-                    </div>
-                  ) : null
+                  </div>
+                </div>
+
+                {/* Right Side (PII Check Area) */}
+                {piiCheck && (
+                  <div className="w-1/2 text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none ml-2 mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] max-h-[100px] overflow-y-auto flex-grow">
+                    {getParsedText()}
+                  </div>
                 )}
+
               </div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-    </div>
 
-    {/* Right Side (PII Check Area) */}
-   {piiCheck && (
-     <div className="w-1/2 text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none ml-2 mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] max-h-[100px] overflow-y-auto flex-grow">
-       {getParsedText()}
-     </div>
-   )}
-   
-  </div>
+              <div className="flex justify-end gap-[10px] pr-[13px] pb-2 mt-2">
+                <div className="flex items-center gap-[5px]">
+                  <Switch
+                    checked={syncAllMsg}
+                    onChange={() => setSyncAllMsg(!syncAllMsg)}
+                    className={classNames(
+                      syncAllMsg ? "bg-[#0074fb]" : "bg-[#898989]",
+                      "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                    )}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={classNames(
+                        syncAllMsg ? "translate-x-[11px]" : "translate-x-0",
+                        "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                      )}
+                    />
+                  </Switch>
+                  <label className="text-[#252525] text-[12px] font-medium">
+                    Sync to all
+                  </label>
+                </div>
+                <button
+                  onClick={event => {
+                    if (!isLoading) {
+                      setErrorOwn(null);
+                      handleSubmit(event, {
+                        experimental_attachments: files,
+                      });
 
-  <div className="flex justify-end gap-[10px] pr-[13px] pb-2 mt-2">
-    <div className="flex items-center gap-[5px]">
-      <Switch
-        checked={syncAllMsg}
-        onChange={() => setSyncAllMsg(!syncAllMsg)}
-        className={classNames(
-          syncAllMsg ? "bg-[#0074fb]" : "bg-[#898989]",
-          "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-        )}
-      >
-        <span
-          aria-hidden="true"
-          className={classNames(
-            syncAllMsg ? "translate-x-[11px]" : "translate-x-0",
-            "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-          )}
-        />
-      </Switch>
-      <label className="text-[#252525] text-[12px] font-medium">
-        Sync to all
-      </label>
-    </div>
-    <button
-      onClick={event => {
-        if (!isLoading) {
-          setErrorOwn(null);
-          handleSubmit(event, {
-            experimental_attachments: files,
-          });
+                      setFiles(undefined);
 
-          setFiles(undefined);
-
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-        }
-      }}
-      className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
-        isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
-      }`}
-      disabled={isLoading}
-      value={input}
-      onChange={handleInputChange}
-    >
-      Send
-    </button>
-    <button
-      onClick={stop}
-      className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
-        !isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
-      }`}
-      disabled={!isLoading}
-    >
-      Stop
-    </button>
-    <button
-      onClick={() => { setErrorOwn(null); reload(); }}
-      className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${
-        isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
-      }`}
-      disabled={isLoading}
-    >
-      Reload
-    </button>
-  </div>
-</div>
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                      }
+                    }
+                  }}
+                  className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
+                    }`}
+                  disabled={isLoading}
+                  value={input}
+                  onChange={handleInputChange}
+                >
+                  Send
+                </button>
+                <button
+                  onClick={stop}
+                  className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${!isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
+                    }`}
+                  disabled={!isLoading}
+                >
+                  Stop
+                </button>
+                <button
+                  onClick={() => { setErrorOwn(null); reload(); }}
+                  className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
+                    }`}
+                  disabled={isLoading}
+                >
+                  Reload
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

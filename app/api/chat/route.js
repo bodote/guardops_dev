@@ -37,7 +37,7 @@ export async function POST(req) {
   const body = await req.json()
   try {
 
-    var { model, messages, prompt, settings, systemPrompt, provider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = body;
+    var { model, messages, prompt, settings, systemPrompt, provider, customProvider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = body;
     const providerConfig = {
       openai: {
         create: createOpenAI,
@@ -100,7 +100,18 @@ export async function POST(req) {
     };
     let openAiModelSelected = false;
 
-    if (providerConfig[provider]?.create === createOpenAI) {
+    if (customProvider) {
+      // For custom providers, always use createOpenAI with the provided baseUrl
+      providerConfig[provider.baseUrl] = {
+        create: createOpenAI,
+        apiKey: provider.apiKey,
+        baseURL: provider.baseUrl,
+        compatibility: 'compatible'
+      };
+      // Use the baseUrl as the provider key
+      provider = provider.baseUrl;
+      openAiModelSelected = true;
+    } else if (providerConfig[provider]?.create === createOpenAI) {
       openAiModelSelected = true;
     }
     const { create, apiKey, baseURL, compatibility } = providerConfig[provider] || {};

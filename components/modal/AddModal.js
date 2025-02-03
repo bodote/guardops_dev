@@ -1,62 +1,32 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 import { Dialog, Listbox, Transition } from "@headlessui/react";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiSearch } from "react-icons/fi";
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { toast } from "react-toastify";
-
-const providerList = [
-  {
-    id: 1,
-    name: "anthropic",
-  },
-  {
-    id: 2,
-    name: "cohere",
-  },
-  {
-    id: 3,
-    name: "custom",
-  },
-  {
-    id: 4,
-    name: "fireworks",
-  },
-  {
-    id: 5,
-    name: "google",
-  },
-  {
-    id: 6,
-    name: "mistral",
-  },
-  {
-    id: 7,
-    name: "openai",
-  },
-  {
-    id: 8,
-    name: "perplexity",
-  },
-  {
-    id: 9,
-    name: "together",
-  },
-  {
-    id: 10,
-    name: "custom_h"
-  }
+const DEFAULT_PROVIDERS = [
+  { id: 1, name: "anthropic" },
+  { id: 2, name: "cohere" },
+  { id: 3, name: "custom" },
+  { id: 4, name: "fireworks" },
+  { id: 5, name: "google" },
+  { id: 6, name: "mistral" },
+  { id: 7, name: "openai" },
+  { id: 8, name: "perplexity" },
+  { id: 9, name: "together" },
+  { id: 10, name: "custom_h" }
 ];
+
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
 const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
-  const [selected, setSelected] = useState(
-    value
-      ? providerList.find((provider) => provider.name === value.provider)
-      : providerList[0]
-  );
+  const [customProviders, setCustomProviders] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allProviders, setAllProviders] = useState(DEFAULT_PROVIDERS);
+  const [selected, setSelected] = useState(DEFAULT_PROVIDERS[0]);
+
   const valueFormat = (price) => {
     if (price.includes("/")) {
       const [pricePerToken, tokens] = price.split(" / ");
@@ -69,6 +39,9 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
       return price;
     }
   };
+  const filteredProviders = allProviders.filter(provider =>
+    provider.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   const [settings, setSettings] = useState({
     context: value ? parseFloat(String(value.context).replace(/,/g, "")) : 0,
     inputCost: value ? valueFormat(value.input_price) : 0,
@@ -115,12 +88,53 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
       }));
     }
   };
-  
+
+  useEffect(() => {
+    const fetchCustomProviders = async () => {
+      try {
+        const response = await fetch('/api/customProviders');
+        const { data } = await response.json();
+        const transformedProviders = (data.custom_providers || []).map(provider => ({
+          id: provider.provider_id,
+          name: provider.name,
+          isCustom: true,
+          provider_id: provider.provider_id
+        }));
+        setCustomProviders(transformedProviders);
+      } catch (error) {
+        console.error("Failed to fetch custom providers:", error);
+        toast.error("Failed to load custom providers");
+      }
+    };
+
+    fetchCustomProviders();
+  }, []);
+
+
+  useEffect(() => {
+    const combined = [...DEFAULT_PROVIDERS, ...customProviders].sort((a, b) =>
+      a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    );
+    setAllProviders(combined);
+
+    // Update selected based on value prop and combined providers
+    if (value) {
+      const matchingProvider = combined.find((provider) =>
+        provider.isCustom
+          ? provider.provider_id === value.provider
+          : provider.name === value.provider
+      );
+      if (matchingProvider) {
+        setSelected(matchingProvider);
+      }
+    }
+  }, [customProviders, value]);
 
   const handleAddModel = async () => {
     const modelFormData = {
       ...modelData,
-      provider: selected.name,
+      // Use provider_id for custom providers, name for default ones
+      provider: selected.isCustom ? selected.provider_id : selected.name,
       context: settings.context,
       input_price: settings.inputCost,
       output_price: settings.outputCost,
@@ -259,7 +273,7 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                         placeholder="Name for your model"
                         value={modelData.name}
                         onChange={handleOnChange}
-                        
+
                       />
                     </div>
                     <div>
@@ -306,15 +320,11 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                             <div className="relative mt-2">
                               <Listbox.Button className="h-[42px] border border-[#EAEBF0] rounded w-full font-medium text-[15px] font-Inter focus:ring-0 focus:outline-none focus:!border-[#EAEBF0]">
                                 <span className="ml-3 block truncate text-left">
-                                  {selected.name}
+                                  {selected?.name}
                                 </span>
                                 <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
                                   <MdKeyboardArrowUp
-                                    className={
-                                      open
-                                        ? "h-5 w-5 text-gray-400 rotate-[0]"
-                                        : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                                    }
+                                    className={open ? "h-5 w-5 text-gray-400 rotate-[0]" : "h-5 w-5 text-gray-400 rotate-[180deg]"}
                                     aria-hidden="true"
                                   />
                                 </span>
@@ -327,16 +337,29 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                                 leaveFrom="opacity-100"
                                 leaveTo="opacity-0"
                               >
-                                <Listbox.Options className="absolute z-10 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                                  {providerList.map((provider) => (
+                                <Listbox.Options className="absolute z-10 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                                  {/* Add search input */}
+                                  <div className="px-3 py-2 border-b">
+                                    <div className="relative">
+                                      <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                      <input
+                                        type="text"
+                                        className="w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-[#D4DB33]"
+                                        placeholder="Search providers..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {filteredProviders.map((provider) => (
                                     <Listbox.Option
                                       key={provider.id}
                                       className={({ active }) =>
                                         classNames(
-                                          active
-                                            ? "bg-[#f0efef] rounded-md"
-                                            : "text-[#000]",
-                                          "relative cursor-default select-none py-2 pl-3 pr-9"
+                                          active ? "bg-[#f0efef] rounded-md" : "text-[#000]",
+                                          "relative cursor-default select-none py-2 pl-3 pr-9",
+                                          provider.isCustom ? "italic" : ""
                                         )
                                       }
                                       value={provider}
@@ -346,25 +369,22 @@ const AddModal = ({ open, setOpen, value, model_status, updateModelList }) => {
                                           <div className="flex items-center">
                                             <span
                                               className={classNames(
-                                                selected
-                                                  ? "font-medium"
-                                                  : "font-normal",
+                                                selected ? "font-medium" : "font-normal",
                                                 "block truncate"
                                               )}
                                             >
                                               {provider.name}
+                                              {provider.isCustom && " (Custom)"}
                                             </span>
                                           </div>
 
                                           {selected ? (
                                             <span
                                               className={classNames(
-                                                active
-                                                  ? "text-white"
-                                                  : "text-indigo-600",
+                                                active ? "text-white" : "text-indigo-600",
                                                 "absolute inset-y-0 right-0 flex items-center pr-4"
                                               )}
-                                            ></span>
+                                            />
                                           ) : null}
                                         </>
                                       )}
