@@ -5,6 +5,8 @@ import {
   RightIcon,
   SearchIcon,
 } from "@/public/Assets/Icons/Allsvg";
+import InfiniteScroll from 'react-infinite-scroll-component';
+
 import React, { useEffect, useRef, useState } from "react";
 import Projectstabledata from "@/components/Projectsdetails/Projectstabledata";
 import { RiFilter2Fill } from "react-icons/ri";
@@ -35,6 +37,9 @@ const ProjectDetails = () => {
       setActive(false);
     }
   };
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (active) {
@@ -46,14 +51,22 @@ const ProjectDetails = () => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [active]);
+  const loadMore = () => {
+    if (!loading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      getProjectDetails(nextPage);
+    }
+  };
 
-  const getProjectDetails = async () => {
+  const getProjectDetails = async (pageNum = 1) => {
     try {
+      setLoading(true);
       const url = new URL(window.location.href);
       const projectId = url.pathname.split("/").pop();
 
       const response = await fetch(
-        `/api/manageTraces?project_id=${projectId}`,
+        `/api/manageTraces?project_id=${projectId}&page=${pageNum}&limit=20`,
         {
           method: "GET",
         }
@@ -61,16 +74,33 @@ const ProjectDetails = () => {
 
       if (response.ok) {
         const responseData = await response.json();
+
         if (responseData.traces) {
-          setTraceList(responseData.traces);
+          if (pageNum === 1) {
+            setTraceList(responseData.traces);
+          } else {
+            setTraceList(prevTraces => [...prevTraces, ...responseData.traces]);
+          }
+
+          setHasMore(responseData.has_more);
+
+
+          // Process traces for charts
           let traces = [];
           responseData.traces.map((trace) =>
             trace.map((data) => {
               data.parent_id === null && traces.push(data);
             })
           );
+
           if (traces) {
-            setTracesData(traces);
+            if (pageNum === 1) {
+              setTracesData(traces);
+            } else {
+              setTracesData(prevData => [...prevData, ...traces]);
+            }
+
+            // Update charts data
             const monthCounts = Array(12).fill(0);
             traces.forEach((trace) => {
               const startTime = new Date(trace.start_time);
@@ -80,17 +110,19 @@ const ProjectDetails = () => {
             setTracesNumber(monthCounts);
           }
         }
-      } else {
-        console.error("API request failed:", response.statusText);
       }
     } catch (error) {
       console.error("Error during API request:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    getProjectDetails();
+    getProjectDetails(1);
   }, []);
+
+
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
 
@@ -126,7 +158,7 @@ const ProjectDetails = () => {
               </h1>
             </div>
             {/* <LockIcon /> */}
-            <Logout/>
+            <Logout />
           </div>
 
           <div className="flex lg:flex-row flex-col my-[14px] sm:pl-[22px] pl-[16px] sm:pr-[35px] pr-[16px] xl:gap-[52px] gap-[20px]">
@@ -330,13 +362,34 @@ const ProjectDetails = () => {
               </div>
             </div>
           </div>
-          <div>
-            <Projectstabledata
-              searchTrace={searchTrace}
-              setSelectedTrace={setSelectedTrace}
-              traceList={traceList}
-              setTraceList={setTraceList}
-            />
+          <div
+            id="scrollableDiv"
+            style={{
+              height: 'calc(100vh - 300px)',
+              overflow: 'auto',
+              marginTop: '20px'
+            }}
+          >
+            <InfiniteScroll
+              dataLength={traceList.length}
+              next={loadMore}
+              hasMore={hasMore}
+              loader={
+                <div className="text-center py-4">
+                  <h4>Loading more traces...</h4>
+                </div>
+              }
+
+              scrollableTarget="scrollableDiv"
+              scrollThreshold={0.8}
+            >
+              <Projectstabledata
+                searchTrace={searchTrace}
+                setSelectedTrace={setSelectedTrace}
+                traceList={traceList}
+                setTraceList={setTraceList}
+              />
+            </InfiniteScroll>
           </div>
         </div>
       </div>

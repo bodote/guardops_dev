@@ -19,6 +19,8 @@ export default async function handler(req, res) {
           Url = `${baseUrl}api/get_project_traces`;
           queryParams = new URLSearchParams({
             project_id: req.query.project_id,
+            page: req.query.page || 1,
+            limit: req.query.limit || 20,
           });
           urlWithParams = `${Url}?${queryParams}`;
           try {
