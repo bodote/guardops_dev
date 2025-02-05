@@ -61,6 +61,7 @@ const ProjectDetails = () => {
 
   const getProjectDetails = async (pageNum = 1) => {
     try {
+      console.log('Fetching page:', pageNum);
       setLoading(true);
       const url = new URL(window.location.href);
       const projectId = url.pathname.split("/").pop();
@@ -74,6 +75,7 @@ const ProjectDetails = () => {
 
       if (response.ok) {
         const responseData = await response.json();
+        console.log('Response data:', responseData);
 
         if (responseData.traces) {
           if (pageNum === 1) {
@@ -84,30 +86,44 @@ const ProjectDetails = () => {
 
           setHasMore(responseData.has_more);
 
-
           // Process traces for charts
           let traces = [];
-          responseData.traces.map((trace) =>
-            trace.map((data) => {
-              data.parent_id === null && traces.push(data);
-            })
-          );
+          responseData.traces.forEach((trace) => {
+            trace.forEach((data) => {
+              if (data.parent_id === null) {
+                traces.push(data);
+              }
+            });
+          });
 
-          if (traces) {
+          if (traces.length > 0) {
             if (pageNum === 1) {
               setTracesData(traces);
+              // Initialize month counts
+              const monthCounts = Array(12).fill(0);
+              traces.forEach((trace) => {
+                const startTime = new Date(trace.start_time);
+                const monthIndex = startTime.getMonth();
+                monthCounts[monthIndex]++;
+              });
+              setTracesNumber(monthCounts);
             } else {
-              setTracesData(prevData => [...prevData, ...traces]);
-            }
+              // Update existing traces data and month counts
+              setTracesData(prevData => {
+                const newData = [...prevData, ...traces];
 
-            // Update charts data
-            const monthCounts = Array(12).fill(0);
-            traces.forEach((trace) => {
-              const startTime = new Date(trace.start_time);
-              const monthIndex = startTime.getMonth();
-              monthCounts[monthIndex]++;
-            });
-            setTracesNumber(monthCounts);
+                // Recalculate month counts with all data
+                const monthCounts = Array(12).fill(0);
+                newData.forEach((trace) => {
+                  const startTime = new Date(trace.start_time);
+                  const monthIndex = startTime.getMonth();
+                  monthCounts[monthIndex]++;
+                });
+                setTracesNumber(monthCounts);
+
+                return newData;
+              });
+            }
           }
         }
       }
@@ -117,8 +133,28 @@ const ProjectDetails = () => {
       setLoading(false);
     }
   };
-
+  // Automatic background loading
   useEffect(() => {
+    const loadNextPage = async () => {
+      if (!loading && hasMore) {
+        const nextPage = page + 1;
+        console.log('Auto-loading next page:', nextPage);
+        setPage(nextPage);
+        await getProjectDetails(nextPage);
+      }
+    };
+
+    // Start loading next page after a short delay
+    const timer = setTimeout(() => {
+      loadNextPage();
+    }, 1000); // 1 second delay between loads
+
+    return () => clearTimeout(timer);
+  }, [page, hasMore, loading]);
+
+  // Initial load
+  useEffect(() => {
+    console.log('Initial load');
     getProjectDetails(1);
   }, []);
 
@@ -200,7 +236,11 @@ const ProjectDetails = () => {
               <h1 className="font-Inter text-[12px]  font-normal text-[#000000] ">
                 Traces per month
               </h1>
-              {tracesNumber && <BarChart tracesNumber={tracesNumber} />}
+              {tracesNumber ? (
+                <BarChart tracesNumber={tracesNumber} />
+              ) : (
+                <div className="text-center py-4">Loading chart data...</div>
+              )}
             </div>
             <div className="bg-[#f5f5f5] p-[2px_16px_15px_8px] rounded-xl lg:min-w-[285px]">
               <h1 className="font-Inter text-[14px] font-normal text-[#000000] ">
@@ -372,16 +412,14 @@ const ProjectDetails = () => {
           >
             <InfiniteScroll
               dataLength={traceList.length}
-              next={loadMore}
+              next={() => { }} // Empty function since we're loading automatically
               hasMore={hasMore}
               loader={
                 <div className="text-center py-4">
                   <h4>Loading more traces...</h4>
                 </div>
               }
-
               scrollableTarget="scrollableDiv"
-              scrollThreshold={0.8}
             >
               <Projectstabledata
                 searchTrace={searchTrace}

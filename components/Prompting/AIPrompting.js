@@ -22,11 +22,9 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
   const [userInput, setUserInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [abortController, setAbortController] = useState(null);
-  const [pendingHistoryItem, setPendingHistoryItem] = useState(null);
 
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [streamIndex, setStreamIndex] = useState(0);
-  const [showTestSection, setShowTestSection] = useState(true);
   const [testResults, setTestResults] = useState({});
   const [isTestingPrompt, setIsTestingPrompt] = useState(false);
   const [saveTitle, setSaveTitle] = useState('');
@@ -34,25 +32,7 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
 
 
   const [testContext, setTestContext] = useState('');
-  const [showTemplatePopup, setShowTemplatePopup] = useState(false);
-  const [templateName, setTemplateName] = useState('');
 
-  const dummyResponse = `Here's a simple example:
-
-\`\`\`python
-def greet(name="World"):
-    # This function takes an optional parameter with default value "World"
-    message = f"Hello, {name}!"
-    return message
-\`\`\`
-
-Let's break down the key components:
-
-1. We define a function called \`greet\` that accepts an optional parameter
-2. The function uses an f-string for string formatting
-3. The \`if __name__ == "__main__":\` block is a common Python idiom for executable code`;
-
-  const dummyTestResponse = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.`;
   useEffect(() => {
     if (Object.keys(testResults).length > 0) {
       // Update history whenever testResults changes
@@ -72,6 +52,7 @@ Let's break down the key components:
       setCurrentPromptId(initialData.prompt_id);
     }
   }, [initialData]);
+
 
 
   useEffect(() => {
@@ -111,41 +92,6 @@ Let's break down the key components:
     }
   }, [initialData]);
 
-  // Modify the streaming completion effect
-  useEffect(() => {
-    if (isGenerating && streamIndex < dummyResponse.length) {
-      const timer = setTimeout(() => {
-        setGeneratedPrompt(prev => prev + dummyResponse[streamIndex]);
-        setStreamIndex(prev => prev + 1);
-      }, 20);
-
-      return () => clearTimeout(timer);
-    } else if (streamIndex >= dummyResponse.length) {
-      setIsGenerating(false);
-      setStreamIndex(0);
-
-      if (generatedPrompt) {
-
-        if (autoHistory) {
-          // Special case: If this is the first item (only blank item exists)
-          if (promptHistory.length === 1 && !promptHistory[0].generatedPrompt) {
-            // Override the blank item
-            updatePendingHistoryItem();
-          } else {
-            // Normal automatic history behavior
-            if (!selectedHistoryItem) {
-              createHistoryItem();
-            } else {
-              createHistoryItem(selectedHistoryItem.id);
-            }
-          }
-        } else {
-          // Manual mode - always update current item
-          updatePendingHistoryItem();
-        }
-      }
-    }
-  }, [isGenerating, streamIndex]);
 
   // Add this effect to fetch models when component mounts
   useEffect(() => {
@@ -212,28 +158,7 @@ Let's break down the key components:
     setPendingHistoryItem(updatedItem);
   };
 
-  const handleSaveTemplate = async () => {
-    try {
-      // TODO: Implement API call to save template
-      // await fetch('/api/saveTemplate', {
-      //   method: 'POST',
-      //   body: JSON.stringify({
-      //     name: templateName,
-      //     prompt: generatedPrompt
-      //   })
-      // });
 
-      // Show success message (you might want to use a toast notification system)
-      toast.success('Template saved successfully!', { autoClose: 1000 });
-      // Reset and close popup
-      setShowTemplatePopup(false);
-      setTemplateName('');
-    } catch (error) {
-      console.error('Error saving template:', error);
-      alert('Failed to save template');
-    }
-  };
-  // Add this function to fetch models
   const getModels = async () => {
     try {
       const response = await fetch(`/api/manageModels`, {
@@ -248,7 +173,6 @@ Let's break down the key components:
     }
   };
 
-  // Add this function to filter models based on search
   const filteredModels = availableModels.filter(model =>
     model.name.toLowerCase().includes(modelSearch.toLowerCase())
   );
@@ -612,18 +536,68 @@ Let's break down the key components:
     // Compare with selected history item's input
     return userInput?.trim() !== selectedHistoryItem.userInput?.trim();
   };
-
-  // Modified handleSubmit to work with history
+  // ... existing code ...
   const handleSubmit = async () => {
     setIsGenerating(true);
-    setGeneratedPrompt(''); // Clear previous response
-    setStreamIndex(0); // Reset stream index
+    setGeneratedPrompt(''); // Clear any previous response
 
     const controller = new AbortController();
     setAbortController(controller);
+
+    try {
+      const response = await fetch('/api/prompting/list/optimizer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          instructions: userInput,
+          generated_prompt: generatedPrompt || undefined,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const fullResponse = data.data;
+
+      // Set full text response directly
+      setGeneratedPrompt(fullResponse);
+
+      // After receiving the full response, update history if needed
+      if (autoHistory) {
+        if (
+          promptHistory.items.length === 1 &&
+          !promptHistory.items[0].generatedPrompt
+        ) {
+          updatePendingHistoryItem();
+        } else {
+          if (!selectedHistoryItem) {
+            createHistoryItem();
+          } else {
+            createHistoryItem(selectedHistoryItem.id);
+          }
+        }
+      } else {
+        updatePendingHistoryItem();
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted');
+      } else {
+        console.error('Error:', error);
+        toast.error('Failed to generate prompt');
+      }
+    } finally {
+      setIsGenerating(false);
+      setAbortController(null);
+    }
   };
 
-
+  // ... existing code ...
   const handleTestPrompt = async () => {
     if (selectedModels.length === 0) {
       toast.error("Please select at least one model");
@@ -875,24 +849,24 @@ Let's break down the key components:
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
               />
-              <div className="absolute bottom-4 right-4 flex gap-2">
+              <div className="absolute bottom-4 right-4">
                 <button
                   onClick={isGenerating ? handleStopGeneration : handleSubmit}
-                  className={`px-4 py-2 rounded-md flex items-center gap-2 ${isGenerating
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isGenerating
+                    ? 'bg-red-100 hover:bg-red-200 text-red-600'
                     : hasInputChanged()
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-blue-300 text-white cursor-not-allowed'
+                      ? 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     }`}
                   disabled={!hasInputChanged() && !isGenerating}
+                  title={isGenerating ? "Stop Generation" : "Generate Prompt"}
                 >
                   {isGenerating ? (
-                    <>
-                      <FaStop className="w-4 h-4" />
-                      Stop Generation
-                    </>
+                    <FaStop className="w-4 h-4" />
                   ) : (
-                    'Generate Prompt'
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
                   )}
                 </button>
               </div>
@@ -907,10 +881,17 @@ Let's break down the key components:
                 onClick={() => setShowPromptOverlay(true)}
                 className="w-full text-left relative border-l border-gray-300 bg-green-50 p-4 rounded-r-md font-mono h-[200px] overflow-y-auto hover:bg-green-100 transition-colors group"
               >
-                {generatedPrompt}
-                {isGenerating && (
-                  <span className="inline-block w-2 h-4 bg-green-500 ml-1 animate-pulse" />
-                )}
+                <div className="flex flex-col">
+                  {/* Render the full generated prompt */}
+                  <div>{generatedPrompt}</div>
+                  {/* Optionally, show a spinner if needed */}
+                  {isGenerating && (
+                    <div className="flex items-center gap-2 text-gray-500 mt-2">
+                      <div className="animate-spin w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full"></div>
+                      <span>Thinking...</span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Edit indicator */}
                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
