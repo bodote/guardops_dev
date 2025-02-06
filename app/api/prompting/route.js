@@ -104,11 +104,24 @@ export async function PATCH(req, res) {
 
         const Url = `${baseUrl}api/update_prompt_details`;
 
+        // Transform the items to match backend expectations
+        const transformedItems = bodyData.items.map(item => ({
+            id: item.id,
+            parent_id: item.parentId,
+            name: item.name,
+            timestamp: item.timestamp,
+            user_input: item.userInput,
+            generated_prompt: item.generatedPrompt,
+            selected_models: item.selectedModels,
+            test_context: item.testContext,
+            test_results: item.testResults
+        }));
+
         // Prepare the request body
         const requestBody = {
             user_id: user,
             prompt_id: bodyData.prompt_id,
-            items: bodyData.items
+            items: transformedItems
         };
 
         const response = await fetch(Url, {
