@@ -227,10 +227,11 @@ const Chat_version = forwardRef(({
       if (selected.provider?.includes('-')) {
         const provider = await fetchProviderDetails(selected.provider);
         if (provider) {
+          const storedKey = localStorage.getItem(selected.provider); // Using selected.provider as it is the provider_id
           providerInfo = {
             provider: {
               baseUrl: provider.baseUrl,
-              apiKey: customAIKey // Using customAIKey for custom providers
+              apiKey: storedKey // Using the stored key mapped to provider ID
             },
             customProvider: true
           };

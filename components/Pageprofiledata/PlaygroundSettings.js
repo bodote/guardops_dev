@@ -104,7 +104,7 @@ const PlaygroundSettings = () => {
       // Load saved keys for custom providers
       const savedKeys = {};
       data.custom_providers.forEach(provider => {
-        savedKeys[provider.provider_id] = localStorage.getItem(`customProvider_${provider.provider_id}`) || "";
+        savedKeys[provider.provider_id] = localStorage.getItem(`${provider.provider_id}`) || "";
       });
       setCustomProviderKeys(savedKeys);
     } catch (error) {
@@ -159,7 +159,7 @@ const PlaygroundSettings = () => {
       if (response.ok) {
         toast.success('Custom provider deleted successfully');
         fetchCustomProviders();
-        localStorage.removeItem(`customProvider_${providerId}`);
+        localStorage.removeItem(`${providerId}`);
         // Refresh models list as some models might have been deleted
         getModels();
       }
@@ -274,7 +274,7 @@ const PlaygroundSettings = () => {
                   }}
                   saveApiKey={() => {
                     localStorage.setItem(
-                      `customProvider_${provider.provider_id}`,
+                      `${provider.provider_id}`,
                       customProviderKeys[provider.provider_id]
                     );
                   }}

@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { Fragment } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
-import { FaCheck, FaSearch, FaChevronDown, FaTimes, FaPencilAlt, FaSave, FaStop } from 'react-icons/fa';
+import { FaCheck, FaSearch, FaChevronDown, FaTimes, FaPencilAlt, FaSave, FaStop, FaPlay } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import PromptOverlay from './PromptOverlay';
 import { Switch } from '@headlessui/react';
 import HistoryItem from './HistoryItem';
+
 import { v4 as uuidv4 } from 'uuid'; // Add this import at the top
+import { useChat } from 'ai/react';
+import TestModel from './TestModel';
 
 const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => {
 
@@ -30,6 +33,8 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
   const [saveTitle, setSaveTitle] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
+  const [testRunTrigger, setTestRunTrigger] = useState(0);
+  const testModelRefs = useRef(new Map());
 
   const [testContext, setTestContext] = useState('');
 
@@ -179,7 +184,6 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
 
   const [promptHistory, setPromptHistory] = useState(() => {
     if (initialData && initialData.items) {
-      console.log('Initializing promptHistory with:', initialData);
       return {
         id: initialData.promptId,
         items: initialData.items
@@ -597,74 +601,7 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
     }
   };
 
-  // ... existing code ...
-  const handleTestPrompt = async () => {
-    if (selectedModels.length === 0) {
-      toast.error("Please select at least one model");
-      return;
-    }
 
-    setIsTestingPrompt(true);
-    const newTestResults = {};  // Create new object to store results
-
-    try {
-      const modelStreams = selectedModels.map(async (modelId) => {
-        // Get the full model info for the name
-        const modelInfo = availableModels.find(m => m.model_id === modelId);
-        const dummyTestResponse = `${testContext ? '[Using provided context]\n\n' : ''}This is a simulated response from ${modelInfo?.name || modelId}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.`;
-
-        // Initialize empty result for this model
-        newTestResults[modelId] = '';
-        setTestResults(prev => ({ ...prev, [modelId]: '' }));
-
-        // Simulate streaming for this model
-        for (let index = 0; index < dummyTestResponse.length; index++) {
-          await new Promise(resolve => setTimeout(resolve, 20));
-          newTestResults[modelId] = (newTestResults[modelId] || '') + dummyTestResponse[index];
-          setTestResults(prev => ({
-            ...prev,
-            [modelId]: newTestResults[modelId]
-          }));
-        }
-      });
-
-      // Run all streams in parallel
-      await Promise.all(modelStreams);
-
-      setTestResults(newTestResults);
-
-      // Update the history with newTestResults directly instead of waiting for state
-      if (autoHistory) {
-        if (!selectedHistoryItem) {
-          createHistoryItem(null, newTestResults);
-        } else {
-          createHistoryItem(selectedHistoryItem.id, newTestResults);
-        }
-      } else {
-        updatePendingHistoryItem(newTestResults);
-      }
-
-
-
-
-      if (autoHistory) {
-        if (!selectedHistoryItem) {
-          createHistoryItem();
-        } else {
-          createHistoryItem(selectedHistoryItem.id);
-        }
-      } else {
-        updatePendingHistoryItem();
-      }
-
-
-    } catch (error) {
-      console.error('Error testing prompt:', error);
-      toast.error('An error occurred while testing the prompt');
-    } finally {
-      setIsTestingPrompt(false);
-    }
-  };
 
   const deleteHistoryItem = (itemId) => {
     const itemsToDelete = new Set();
@@ -765,6 +702,48 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
       </div>
     </div>
   );
+
+  // Add this function to check if any model is still loading
+  const isAnyModelLoading = () => {
+    let isLoading = false;
+    testModelRefs.current.forEach((ref) => {
+      if (ref?.isLoading) {
+        isLoading = true;
+      }
+    });
+    return isLoading;
+  };
+  useEffect(() => {
+    if (!isAnyModelLoading() && isTestingPrompt) {
+      setIsTestingPrompt(false);
+    }
+  }, [isAnyModelLoading()]); // Add dependency on isAnyModelLoading
+
+  // Add this function to stop all models
+  const stopAllTests = () => {
+    testModelRefs.current.forEach((ref) => {
+      if (ref?.stop) {
+        ref.stop();
+      }
+    });
+    setIsTestingPrompt(false); // Reset the testing state after stopping
+  };
+  const [testModelRefsUpdate, setTestModelRefsUpdate] = useState(0);
+  const loadingStatesRef = useRef({});
+
+  const handleLoadingChange = useCallback((modelId, isLoading) => {
+    // Update the loading state for this specific model
+    loadingStatesRef.current[modelId] = isLoading;
+
+    // Check if any model is still loading
+    const isAnyLoading = Object.values(loadingStatesRef.current).some(state => state);
+
+    // Only reset isTestingPrompt when nothing is loading
+    if (!isAnyLoading && isTestingPrompt) {
+      setIsTestingPrompt(false);
+    }
+  }, [isTestingPrompt]);
+
 
   return (
     <div className="max-w-7xl mx-auto mt-8">
@@ -905,10 +884,9 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
           </div>
 
           {/* Test Prompt Section */}
+
           {generatedPrompt && !isGenerating && (
             <div className="border-t pt-6 mt-6">
-
-
               <div className="mt-4 space-y-4">
                 <div className="bg-gray-50 p-4 rounded-md space-y-4">
                   {/* Test Context Input */}
@@ -1008,44 +986,67 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
 
                 {/* Test Button */}
                 <button
-                  onClick={handleTestPrompt}
-                  disabled={selectedModels.length === 0 || isTestingPrompt}
-                  className={`px-6 py-2 bg-blue-600 text-white rounded-md 
-                    ${selectedModels.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+                  onClick={() => {
+                    if (isAnyModelLoading() || isTestingPrompt) {
+                      stopAllTests();
+                    } else {
+                      if (selectedModels.length === 0) {
+                        toast.error("Please select at least one model");
+                        return;
+                      }
+                      setIsTestingPrompt(true); // Set testing state when starting tests
+                      testModelRefs.current.forEach((ref) => {
+                        if (ref?.runTest) {
+                          ref.runTest();
+                        }
+                      });
+                    }
+                  }}
+                  disabled={selectedModels.length === 0 && !isTestingPrompt}
+                  className={`px-6 py-2 flex items-center gap-2 ${(isTestingPrompt)
+                    ? 'bg-red-600 hover:bg-red-700 text-white'
+                    : selectedModels.length === 0
+                      ? 'bg-gray-300 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    } rounded-md transition-colors`}
                 >
-                  {isTestingPrompt ? 'Testing...' : 'Run Test'}
+                  {(isTestingPrompt) ? (
+                    <>
+                      <FaStop className="w-4 h-4" />
+                      <span>Stop Test</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaPlay className="w-4 h-4" />
+                      <span>Run Test</span>
+                    </>
+                  )}
                 </button>
-
                 {/* Test Results */}
-                {Object.keys(testResults).length > 0 && (
-                  <div className="space-y-4">
-                    {testContext && (
-                      <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-md">
-                        <h4 className="font-medium text-sm text-blue-700 mb-2">Test Context:</h4>
-                        <div className="font-mono text-sm whitespace-pre-wrap text-blue-900">
-                          {testContext}
-                        </div>
-                      </div>
-                    )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {selectedModels.map((modelId) => {
-                        const model = availableModels.find(m => m.model_id === modelId);
-                        return model ? (
-                          <div key={modelId} className="border rounded-md p-4">
-                            <h4 className="font-medium mb-2 text-gray-700">
-                              {model.name}
-                            </h4>
-                            <div className="bg-white p-3 rounded font-mono text-sm whitespace-pre-wrap">
-                              {testResults[modelId]}
-                              {isTestingPrompt && !testResults[modelId] && (
-                                <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse" />
-                              )}
-                            </div>
-                          </div>
-                        ) : null;
-                      })}
-                    </div>
+                {selectedModels.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    {selectedModels.map((modelId) => {
+                      const modelInfo = availableModels.find(m => m.model_id === modelId);
+                      return modelInfo ? (
+                        <TestModel
+                          key={modelId}
+                          ref={(el) => {
+                            if (el) {
+                              testModelRefs.current.set(modelId, el);
+                            } else {
+                              testModelRefs.current.delete(modelId);
+                            }
+                          }}
+                          onLoadingChange={(isLoading) => handleLoadingChange(modelId, isLoading)}
+                          model={modelInfo}
+                          prompt={generatedPrompt}
+                          testContext={testContext}
+                        />
+                      ) : null;
+                    })}
+
                   </div>
+
                 )}
               </div>
 
