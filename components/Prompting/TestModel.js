@@ -3,7 +3,7 @@ import { useCompletion } from 'ai/react';
 import ReactMarkdown from 'react-markdown';
 import { FaStop } from 'react-icons/fa';
 
-const TestModel = forwardRef(({ model, prompt, testContext, onLoadingChange }, ref) => {
+const TestModel = forwardRef(({ model, prompt, testContext, onLoadingChange, setPromptHistory, selectedHistoryItem }, ref) => {
     // Add states for all API keys
     const [fireworksAIKey, setFireworksAIKey] = useState('');
     const [openaiKey, setOpenaiKey] = useState('');
@@ -100,10 +100,29 @@ const TestModel = forwardRef(({ model, prompt, testContext, onLoadingChange }, r
         updateRequestBody();
     }, [model, openaiKey, fireworksAIKey, customAIKey, anthropicKey, cohereKey, googleKey, mistralKey, perplexityKey, groqKey, togetherKey]);
 
-    const { completion, complete, isLoading, error, stop } = useCompletion({
+    const { completion, complete, isLoading, error, setCompletion, stop } = useCompletion({
         body: requestBody,
         onError: (err) => {
             console.error(`Error testing model ${model.name}:`, err);
+        },
+        onFinish: (prompt, completion) => {
+            if (setPromptHistory && selectedHistoryItem) {
+                console.log("THIS COMPLETION", completion)
+                setPromptHistory(prev => ({
+                    ...prev,
+                    items: prev.items.map(item =>
+                        item.id === selectedHistoryItem.id
+                            ? {
+                                ...item,
+                                testResults: {
+                                    ...item.testResults,
+                                    [model.model_id]: completion
+                                }
+                            }
+                            : item
+                    )
+                }));
+            }
         }
     });
 
@@ -116,10 +135,15 @@ const TestModel = forwardRef(({ model, prompt, testContext, onLoadingChange }, r
                 complete(fullPrompt);
             },
             stop,
-            isLoading
+            isLoading,
+            result: completion
         };
-    }, [isLoading, stop, onLoadingChange]);
-
+    }, [isLoading, stop, onLoadingChange, completion]);;
+    useEffect(() => {
+        if (model.testResult) {
+            setCompletion(model.testResult);
+        }
+    }, [model.testResult, setCompletion]);
     return (
         <div className="border rounded-md p-4">
             <div className="flex items-center justify-between mb-4">

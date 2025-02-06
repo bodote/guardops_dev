@@ -8,32 +8,30 @@ import PromptOverlay from './PromptOverlay';
 import { Switch } from '@headlessui/react';
 import HistoryItem from './HistoryItem';
 
-import { v4 as uuidv4 } from 'uuid'; // Add this import at the top
+import { v4 as uuidv4 } from 'uuid';
 import { useChat } from 'ai/react';
 import TestModel from './TestModel';
 
 const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => {
 
-  // Add these state variables to your component
 
   const [availableModels, setAvailableModels] = useState([]);
   const [selectedModels, setSelectedModels] = useState([]);
   const [modelSearch, setModelSearch] = useState('');
   const [showPromptOverlay, setShowPromptOverlay] = useState(false);
   const [currentPromptId, setCurrentPromptId] = useState(initialData?.prompt_id || null);
+  const [pendingHistoryItem, setPendingHistoryItem] = useState(null);
 
   const [userInput, setUserInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [abortController, setAbortController] = useState(null);
 
   const [generatedPrompt, setGeneratedPrompt] = useState('');
-  const [streamIndex, setStreamIndex] = useState(0);
   const [testResults, setTestResults] = useState({});
   const [isTestingPrompt, setIsTestingPrompt] = useState(false);
   const [saveTitle, setSaveTitle] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
-  const [testRunTrigger, setTestRunTrigger] = useState(0);
   const testModelRefs = useRef(new Map());
 
   const [testContext, setTestContext] = useState('');
@@ -45,7 +43,15 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
         if (!selectedHistoryItem) {
           createHistoryItem(null);
         } else {
-          createHistoryItem(selectedHistoryItem.id);
+          // Update the current history item with new test results
+          setPromptHistory(prev => ({
+            ...prev,
+            items: prev.items.map(item =>
+              item.id === selectedHistoryItem.id
+                ? { ...item, testResults: testResults }
+                : item
+            )
+          }));
         }
       } else {
         updatePendingHistoryItem();
@@ -102,16 +108,65 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
   useEffect(() => {
     getModels();
   }, []);
+  const handleRunTests = () => {
+    if (isAnyModelLoading() || isTestingPrompt) {
+      stopAllTests();
+    } else {
+      if (selectedModels.length === 0) {
+        toast.error("Please select at least one model");
+        return;
+      }
+
+      // Ensure we have a history item; if not, create one
+      let currentHistory = selectedHistoryItem;
+      if (!currentHistory) {
+        currentHistory = createHistoryItem();
+      } else {
+        // Update the current history with the selected models (if needed)
+        currentHistory = { ...currentHistory, selectedModels: selectedModels };
+        setPromptHistory(prev => ({
+          ...prev,
+          items: prev.items.map(item =>
+            item.id === currentHistory.id ? currentHistory : item
+          )
+        }));
+      }
+
+      // Generate a unique test run ID
+      const testRunId = uuidv4();
+
+      // Update the current history item with the testRunId and clear any prior testResults
+      currentHistory = { ...currentHistory, testRunId, testResults: {} };
+      setSelectedHistoryItem(currentHistory);
+      setPromptHistory(prev => ({
+        ...prev,
+        items: prev.items.map(item =>
+          item.id === currentHistory.id ? currentHistory : item
+        )
+      }));
+
+      // Capture the target history item and its test run ID – this ensures that even if the user switches active history afterward, our callbacks update the proper item.
+      currentTestHistoryRef.current = { id: currentHistory.id, testRunId };
+
+      setIsTestingPrompt(true);
+      testModelRefs.current.forEach((modelRef) => {
+        if (modelRef?.runTest) {
+          modelRef.runTest();
+        }
+      });
+    }
+  };
+
   const handleNewIteration = () => {
     if (!autoHistory) {
-      // Create a pending history item with empty/default values
+      // Create a pending history item with values from the previously selected item
       const newItem = {
         id: Date.now().toString(),
         parentId: selectedHistoryItem?.id || null,
-        name: 'New Iteration', // Default name until content is saved
+        name: selectedHistoryItem?.userInput?.slice(0, 50) || 'New Iteration', // Use previous name
         timestamp: new Date().toISOString(),
-        userInput: '',
-        generatedPrompt: '',
+        userInput: selectedHistoryItem?.userInput || '', // Pre-populate userInput
+        generatedPrompt: selectedHistoryItem?.generatedPrompt || '', // Pre-populate generatedPrompt
         selectedModels: [],
         testContext: '',
         testResults: {}
@@ -123,21 +178,16 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
       }));
       setSelectedHistoryItem(newItem);
       setPendingHistoryItem(newItem);
-    }
 
-    // Clear all fields
-    setUserInput('');
-    setGeneratedPrompt('');
-    setSelectedModels([]);
-    setTestContext('');
-    setTestResults({});
-
-    if (autoHistory) {
-      setSelectedHistoryItem(null);
+      // Also update the form fields with the pre-populated data
+      setUserInput(selectedHistoryItem?.userInput || '');
+      setGeneratedPrompt(selectedHistoryItem?.generatedPrompt || '');
+      setSelectedModels([]);
+      setTestContext('');
+      setTestResults({});
     }
   };
-
-  const updatePendingHistoryItem = () => {
+  const updatePendingHistoryItem = (currentTestResults = null) => {
     if (!selectedHistoryItem) return;
 
     const updatedItem = {
@@ -146,19 +196,16 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
       generatedPrompt,
       selectedModels,
       testContext: testContext || '',
-      testResults: testResults || {},  // Use passed results or fall back to state
+      testResults: currentTestResults || testResults || {},
       name: userInput.slice(0, 50)
     };
 
-    setPromptHistory(prev => {
-      const newHistory = {
-        ...prev,
-        items: prev.items.map(item =>
-          item.id === selectedHistoryItem.id ? updatedItem : item
-        )
-      };
-      return newHistory;
-    });
+    setPromptHistory(prev => ({
+      ...prev,
+      items: prev.items.map(item =>
+        item.id === selectedHistoryItem.id ? updatedItem : item
+      )
+    }));
     setSelectedHistoryItem(updatedItem);
     setPendingHistoryItem(updatedItem);
   };
@@ -406,25 +453,30 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
 
 
   const handleBack = () => {
-    if (promptHistory.items.length > 0) {
-      handleAutoSave();
+    // Check if any history item has actual content
+    const hasContent = promptHistory.items.some(item =>
+      item.userInput?.trim() || item.generatedPrompt?.trim()
+    );
+
+    if (hasContent) {
+      // Show save dialog only if there's actual content to save
+      setShowSaveDialog(true);
     } else {
       onBack();
     }
   };
 
-
-  const createHistoryItem = (parentId = null) => {
+  const createHistoryItem = (parentId = null, currentTestResults = null) => {
     const newHistoryItem = {
-      id: uuidv4(), // Generate new UUID
-      parentId: parentId, // null for root items, parent's UUID for children
+      id: uuidv4(),
+      parentId: parentId,
       name: userInput.slice(0, 50),
       timestamp: new Date().toISOString(),
       userInput,
       generatedPrompt,
-      selectedModels: selectedModels.map(model => model.model_id), // Only store model_ids
+      selectedModels: selectedModels.map(model => model.model_id),
       testContext: testContext || '',
-      testResults: currentTestResults || testResults || {}  // Use passed results or fall back to state
+      testResults: currentTestResults || {}
     };
 
     if (parentId) {
@@ -445,6 +497,7 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
     setSelectedHistoryItem(newHistoryItem);
   };
 
+
   // Function to update the name of a history item
   const updateItemName = (itemId, newName) => {
     setPromptHistory(prev => ({
@@ -456,7 +509,30 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
   };
 
   const [selectedHistoryItem, setSelectedHistoryItem] = useState(null);
-  const [autoHistory, setAutoHistory] = useState(false); // New state for automatic history toggle
+  const currentTestHistoryRef = useRef(null); // NEW: Capture which history item is being tested
+
+  const [autoHistory, setAutoHistory] = useState(true); // New state for automatic history toggle
+  useEffect(() => {
+    if (!autoHistory && promptHistory.items.length === 0) {
+      const initialItem = {
+        id: Date.now().toString(),
+        parentId: null,
+        name: 'New Iteration',
+        timestamp: new Date().toISOString(),
+        userInput: '',
+        generatedPrompt: '',
+        selectedModels: [],
+        testContext: '',
+        testResults: {}
+      };
+      setPromptHistory({
+        ...promptHistory,
+        items: [initialItem]
+      });
+      setSelectedHistoryItem(initialItem);
+      setPendingHistoryItem(initialItem);
+    }
+  }, [autoHistory]);
   const findLastBranchIndex = (parentId, history) => {
     let lastIndex = history.findIndex(item => item.id === parentId);
     const prefix = parentId + '.';
@@ -540,10 +616,59 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
     // Compare with selected history item's input
     return userInput?.trim() !== selectedHistoryItem.userInput?.trim();
   };
-  // ... existing code ...
   const handleSubmit = async () => {
     setIsGenerating(true);
     setGeneratedPrompt(''); // Clear any previous response
+
+    let itemToUpdate = selectedHistoryItem;
+
+    if (autoHistory && hasInputChanged()) {
+      // Auto history mode - create new items
+      const isInitialBlankItem = promptHistory.items.length === 1 &&
+        !promptHistory.items[0].generatedPrompt &&
+        !promptHistory.items[0].userInput;
+
+      if (isInitialBlankItem) {
+        updatePendingHistoryItem();
+      } else {
+        // Create new history item as child of current item
+        const newHistoryItem = {
+          id: uuidv4(),
+          parentId: selectedHistoryItem?.id || null,
+          name: userInput.slice(0, 50),
+          timestamp: new Date().toISOString(),
+          userInput: userInput,
+          generatedPrompt: '',
+          selectedModels: [],
+          testContext: '',
+          testResults: {}
+        };
+
+        setPromptHistory(prev => ({
+          ...prev,
+          items: [newHistoryItem, ...prev.items]
+        }));
+        setSelectedHistoryItem(newHistoryItem);
+        itemToUpdate = newHistoryItem;
+      }
+    } else {
+      // Manual history mode - update current item
+      if (selectedHistoryItem) {
+        // Update the current item's userInput immediately
+        setPromptHistory(prev => ({
+          ...prev,
+          items: prev.items.map(item =>
+            item.id === selectedHistoryItem.id
+              ? {
+                ...item,
+                userInput: userInput,
+                name: userInput.slice(0, 50) // Update name as well
+              }
+              : item
+          )
+        }));
+      }
+    }
 
     const controller = new AbortController();
     setAbortController(controller);
@@ -571,23 +696,18 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
       // Set full text response directly
       setGeneratedPrompt(fullResponse);
 
-      // After receiving the full response, update history if needed
-      if (autoHistory) {
-        if (
-          promptHistory.items.length === 1 &&
-          !promptHistory.items[0].generatedPrompt
-        ) {
-          updatePendingHistoryItem();
-        } else {
-          if (!selectedHistoryItem) {
-            createHistoryItem();
-          } else {
-            createHistoryItem(selectedHistoryItem.id);
-          }
-        }
-      } else {
-        updatePendingHistoryItem();
+      // After receiving the full response, update history
+      if (itemToUpdate) {
+        setPromptHistory(prev => ({
+          ...prev,
+          items: prev.items.map(item =>
+            item.id === itemToUpdate.id
+              ? { ...item, generatedPrompt: fullResponse }
+              : item
+          )
+        }));
       }
+
     } catch (error) {
       if (error.name === 'AbortError') {
         console.log('Request was aborted');
@@ -600,9 +720,6 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
       setAbortController(null);
     }
   };
-
-
-
   const deleteHistoryItem = (itemId) => {
     const itemsToDelete = new Set();
 
@@ -672,38 +789,41 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
   const SaveDialog = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 className="text-lg font-medium mb-4">Save Prompt History</h3>
+        <h3 className="text-lg font-medium mb-4">Save Changes?</h3>
         <input
           type="text"
           value={saveTitle}
           onChange={(e) => setSaveTitle(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
           placeholder="Enter a title"
-          autoFocus // Add this to automatically focus the input
+          autoFocus
         />
         <div className="flex justify-end gap-2">
           <button
             onClick={() => {
               setShowSaveDialog(false);
-              setSaveTitle(''); // Reset the title when closing
+              setSaveTitle('');
+              onBack(); // Exit without saving
             }}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
           >
-            Cancel
+            Exit without saving
           </button>
           <button
-            onClick={handleSaveConfirm}
+            onClick={async () => {
+              await handleSaveConfirm();
+              onBack(); // Exit after saving
+            }}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            disabled={!saveTitle.trim()} // Disable if empty
+            disabled={!saveTitle.trim()}
           >
-            Save
+            Save and exit
           </button>
         </div>
       </div>
     </div>
   );
 
-  // Add this function to check if any model is still loading
   const isAnyModelLoading = () => {
     let isLoading = false;
     testModelRefs.current.forEach((ref) => {
@@ -717,34 +837,26 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
     if (!isAnyModelLoading() && isTestingPrompt) {
       setIsTestingPrompt(false);
     }
-  }, [isAnyModelLoading()]); // Add dependency on isAnyModelLoading
+  }, [isAnyModelLoading()]);
 
-  // Add this function to stop all models
   const stopAllTests = () => {
     testModelRefs.current.forEach((ref) => {
       if (ref?.stop) {
         ref.stop();
       }
     });
-    setIsTestingPrompt(false); // Reset the testing state after stopping
+    setIsTestingPrompt(false);
   };
-  const [testModelRefsUpdate, setTestModelRefsUpdate] = useState(0);
   const loadingStatesRef = useRef({});
 
   const handleLoadingChange = useCallback((modelId, isLoading) => {
-    // Update the loading state for this specific model
     loadingStatesRef.current[modelId] = isLoading;
-
-    // Check if any model is still loading
     const isAnyLoading = Object.values(loadingStatesRef.current).some(state => state);
 
-    // Only reset isTestingPrompt when nothing is loading
-    if (!isAnyLoading && isTestingPrompt) {
+    if (!isAnyLoading) {
       setIsTestingPrompt(false);
     }
-  }, [isTestingPrompt]);
-
-
+  }, []);
   return (
     <div className="max-w-7xl mx-auto mt-8">
       {/* Header with Back button only */}
@@ -955,7 +1067,7 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
                                 return (
                                   <Listbox.Option
                                     key={model.model_id}
-                                    value={model.model_id} // Now we just pass the model_id
+                                    value={model.model_id}
                                     className={({ active }) =>
                                       `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-blue-100' : 'bg-white'
                                       }`
@@ -986,22 +1098,7 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
 
                 {/* Test Button */}
                 <button
-                  onClick={() => {
-                    if (isAnyModelLoading() || isTestingPrompt) {
-                      stopAllTests();
-                    } else {
-                      if (selectedModels.length === 0) {
-                        toast.error("Please select at least one model");
-                        return;
-                      }
-                      setIsTestingPrompt(true); // Set testing state when starting tests
-                      testModelRefs.current.forEach((ref) => {
-                        if (ref?.runTest) {
-                          ref.runTest();
-                        }
-                      });
-                    }
-                  }}
+                  onClick={handleRunTests}
                   disabled={selectedModels.length === 0 && !isTestingPrompt}
                   className={`px-6 py-2 flex items-center gap-2 ${(isTestingPrompt)
                     ? 'bg-red-600 hover:bg-red-700 text-white'
@@ -1038,9 +1135,14 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
                             }
                           }}
                           onLoadingChange={(isLoading) => handleLoadingChange(modelId, isLoading)}
-                          model={modelInfo}
+                          model={{
+                            ...modelInfo,
+                            testResult: selectedHistoryItem?.testResults?.[modelId]
+                          }}
                           prompt={generatedPrompt}
                           testContext={testContext}
+                          setPromptHistory={setPromptHistory}        // Add these props
+                          selectedHistoryItem={selectedHistoryItem}  // Add these props
                         />
                       ) : null;
                     })}
@@ -1061,7 +1163,7 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
         onClose={() => setShowPromptOverlay(false)}
         prompt={generatedPrompt}
         onUpdate={handlePromptUpdate}
-        setPrompt={setGeneratedPrompt}  // Pass the setter directly
+        setPrompt={setGeneratedPrompt}
 
       />
       {showSaveDialog && <SaveDialog />}

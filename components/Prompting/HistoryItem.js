@@ -93,8 +93,15 @@ const HistoryItem = ({
                         )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                        {new Date(item.timestamp).toLocaleString()}
-                    </div>
+                        {new Date(item.timestamp).toLocaleString('de-DE', {
+                            timeZone: 'Europe/Berlin',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        })}                    </div>
                     <div className="flex flex-wrap gap-1 mt-2">
                         {(item.selectedModels || [])
                             .filter(modelId =>
