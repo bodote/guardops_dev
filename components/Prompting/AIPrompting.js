@@ -702,9 +702,19 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
           ...prev,
           items: prev.items.map(item =>
             item.id === itemToUpdate.id
-              ? { ...item, generatedPrompt: fullResponse }
+              ? {
+                ...item,
+                generatedPrompt: fullResponse,
+                name: item.userInput?.slice(0, 50) || fullResponse.slice(0, 50)  // Update name
+              }
               : item
           )
+        }));
+
+        // Also update the selected history item
+        setSelectedHistoryItem(prev => ({
+          ...prev,
+          generatedPrompt: fullResponse
         }));
       }
 
