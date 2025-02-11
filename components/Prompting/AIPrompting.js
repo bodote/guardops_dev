@@ -451,20 +451,128 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
     }
   };
 
+  // Add this debug function
+  const debugState = () => {
+    console.log('=== Current State Debug ===');
+    console.log('Initial Data:', initialData);
+    console.log('Current History:', promptHistory);
+    console.log('Selected Item:', selectedHistoryItem);
+    console.log('Form State:', {
+      userInput,
+      generatedPrompt,
+      testContext,
+      selectedModels,
+      testResults
+    });
+    console.log('========================');
+  };
+
+  const hasUnsavedChanges = () => {
+    debugState(); // Add this debug call
+
+    // First check current form state against selected history item
+    if (selectedHistoryItem) {
+      const hasCurrentChanges =
+        userInput !== selectedHistoryItem.userInput ||
+        generatedPrompt !== selectedHistoryItem.generatedPrompt ||
+        testContext !== selectedHistoryItem.testContext ||
+        JSON.stringify(selectedModels) !== JSON.stringify(selectedHistoryItem.selectedModels) ||
+        JSON.stringify(testResults) !== JSON.stringify(selectedHistoryItem.testResults);
+
+      if (hasCurrentChanges) {
+        console.log('Form state changes detected');
+        return true;
+      }
+    }
+
+    // If there's no initial data, check if we have any content
+    if (!initialData) {
+      const hasContent = promptHistory.items.some(item =>
+        item.userInput?.trim() || item.generatedPrompt?.trim()
+      );
+      if (hasContent) {
+        console.log('New content detected without initial data');
+        return true;
+      }
+    }
+
+    // Compare current promptHistory with initialData
+    if (!initialData?.items || !promptHistory.items) return false;
+
+    // Check if number of items changed
+    if (initialData.items.length !== promptHistory.items.length) {
+      console.log('Number of items changed');
+      return true;
+    }
+
+    // Compare each item's content including names
+    const hasChanges = promptHistory.items.some((currentItem) => {
+      const originalItem = initialData.items.find(item => item.id === currentItem.id);
+      if (!originalItem) {
+        console.log('New item detected:', currentItem.id);
+        return true;
+      }
+
+      const itemChanged =
+        currentItem.name !== originalItem.name ||
+        currentItem.userInput !== originalItem.user_input ||
+        currentItem.generatedPrompt !== originalItem.generated_prompt ||
+        currentItem.testContext !== originalItem.test_context ||
+        JSON.stringify(currentItem.testResults) !== JSON.stringify(originalItem.test_results) ||
+        JSON.stringify(currentItem.selectedModels) !== JSON.stringify(originalItem.selected_models);
+
+      if (itemChanged) {
+        console.log('Changes detected in item:', currentItem.id);
+        console.log('Original:', originalItem);
+        console.log('Current:', currentItem);
+      }
+
+      return itemChanged;
+    });
+
+    console.log('Has changes:', hasChanges);
+    return hasChanges;
+  };
 
   const handleBack = () => {
-    // Check if any history item has actual content
-    const hasContent = promptHistory.items.some(item =>
-      item.userInput?.trim() || item.generatedPrompt?.trim()
-    );
+    console.log('Back button clicked');
+    const hasChanges = hasUnsavedChanges();
+    console.log('Has unsaved changes:', hasChanges);
 
-    if (hasContent) {
-      // Show save dialog only if there's actual content to save
+    if (hasChanges) {
+      console.log('Showing save dialog');
+      // Set initial save title based on current item
+      const latestItem = promptHistory.items[0];
+      const defaultTitle = latestItem?.userInput?.slice(0, 50) || 'New Prompt History';
+      setSaveTitle(defaultTitle);
       setShowSaveDialog(true);
     } else {
+      console.log('No changes detected, going back');
       onBack();
     }
   };
+
+  // Add this effect to update promptHistory when form fields change
+  useEffect(() => {
+    if (selectedHistoryItem) {
+      console.log('Form fields changed, updating promptHistory');
+      const updatedItem = {
+        ...selectedHistoryItem,
+        userInput,
+        generatedPrompt,
+        selectedModels,
+        testContext,
+        testResults
+      };
+
+      setPromptHistory(prev => ({
+        ...prev,
+        items: prev.items.map(item =>
+          item.id === selectedHistoryItem.id ? updatedItem : item
+        )
+      }));
+    }
+  }, [userInput, generatedPrompt, selectedModels, testContext, testResults]);
 
   const createHistoryItem = (parentId = null, currentTestResults = null) => {
     const newHistoryItem = {
