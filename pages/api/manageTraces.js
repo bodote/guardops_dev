@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   let urlWithParams = null;
   const baseUrl = process.env.BackendBaseUrl;
   const { method } = req;
-
+  const user = req.cookies.user_id;
   try {
     const token = await getToken();
     if (!token) {
@@ -83,6 +83,48 @@ export default async function handler(req, res) {
           }
         }
         break;
+      case "PATCH":
+
+        if (req.body.action === 'move' && req.body.sourceProjectId && req.body.targetProjectId) {
+          Url = `${baseUrl}api/move_traces_to_other_project`;
+          queryParams = new URLSearchParams({
+            source_project: req.body.sourceProjectId,
+            target_project: req.body.targetProjectId,
+            user_id: user
+          });
+          urlWithParams = `${Url}?${queryParams}`;
+
+          try {
+            const response = await fetch(urlWithParams, {
+              method: "PATCH",
+              headers: new Headers({
+                authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.detail || 'Failed to move traces');
+            }
+
+            res.status(response.status).json(data);
+          } catch (error) {
+            console.error("Error during trace move:", error);
+            res.status(error.status || 500).json({
+              error: error.message || "Internal Server Error"
+            });
+          }
+        } else {
+          res.status(400).json({
+            error: "Missing required parameters for move operation"
+          });
+        }
+        break;
+      default:
+        res.setHeader('Allow', ['GET', 'PATCH']);
+        res.status(405).end(`Method ${method} Not Allowed`);
     }
   } catch (error) {
     console.error("Error:", error);

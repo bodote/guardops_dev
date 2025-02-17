@@ -2,236 +2,210 @@ import React, { useState, Fragment } from "react";
 import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { IoChevronDownOutline } from "react-icons/io5";
 
+
 const DeleteProjectModal = ({
   open,
   setOpen,
   selectedProjectForDelete,
-  selected,
-  setSelected,
-  people,
   handleProjectDelete,
+  projects,
 }) => {
-  const [moveToTraceModelOpen, setMoveToTraceModelOpen] = useState(false);
-  const [chekval, setChekval] = useState(false);
-  function classNames(...classes) {
-    return classes.filter(Boolean).join(" ");
-  }
+  const [isMoving, setIsMoving] = useState(false);
+  const [targetProject, setTargetProject] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredProjects = projects
+    .filter(p => p.project_id !== selectedProjectForDelete.project_id)
+    .filter(p =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+  const handleConfirm = async (action) => {
+    try {
+      if (action === 'move') {
+        // First move the traces
+        const response = await fetch('/api/manageTraces', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sourceProjectId: selectedProjectForDelete.project_id,
+            targetProjectId: targetProject?.project_id,
+            action: action,
+          })
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to move traces');
+        }
+
+        // After successful move, delete the source project
+        await handleProjectDelete('delete');
+      } else if (action === 'delete') {
+        // Just delete the project without moving traces
+        await handleProjectDelete('delete');
+      }
+
+      setOpen(false);
+    } catch (error) {
+      console.error('Error managing traces:', error);
+    }
+  };
+
   return (
-    <>
-      <Transition.Root show={open} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-10"
-          // initialFocus={cancelButtonRef}
-          onClose={setChekval}
-        >
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 transition-opacity" />
-          </Transition.Child>
+    <Transition.Root show={open} as={Fragment}>
+      <Dialog
+        as="div"
+        className="fixed inset-0 z-[100]"
+        onClose={() => setOpen(false)}
+      >
 
-          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg border-[#BDBDBD] border-[1px] bg-white text-left transition-all sm:w-[442px]">
-                  <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto z-50 outline-none ">
-                    <div className="relative w-full  mx-auto max-w-[470px]">
-                      <div className="rounded-lg  relative flex flex-col w-full bg-white outline-none focus:outline-none  sm:px-[41px] px-[15px]">
-                        <h3 className="text-[14px] font-medium font-Inter text-[#000000] pb-[12px] pt-[16px] text-center">
-                          Delete selected Project{" "}
-                        </h3>
-                        <p className="text-left text-[14px] font-medium font-Inter text-[#68727D] ">
-                          Do you want to delete the trace in this project or move them to a
-                          different project?
+        <div className="fixed inset-0 z-[101] w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+
+              <Dialog.Panel className="relative transform overflow-visible rounded-lg bg-white border border-gray-200 shadow-xl transition-all sm:w-[500px]">
+                <div className="px-6 py-5">
+                  <div className="text-center mb-5">
+                    <Dialog.Title className="text-lg font-semibold text-gray-900">
+                      Delete Project
+                    </Dialog.Title>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Choose what to do with the traces in this project
+                    </p>
+                  </div>
+
+                  {!isMoving ? (
+                    <div className="bg-gray-50 p-4 rounded-lg mb-5">
+                      <p className="text-sm font-medium text-gray-900">
+                        {selectedProjectForDelete.name}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="flex-1 bg-gray-50 p-4 rounded-lg">
+                        <p className="text-sm font-medium text-gray-900">
+                          {selectedProjectForDelete.name}
                         </p>
-                        <input
-                          type="text"
-                          name="emailaddresss"
-                          id="emailaddresss"
-                          placeholder={selectedProjectForDelete.name}
-                          className="h-10 bg-[#F7F7F8] border border-[#EAEBF0] mt-[6px] rounded  w-full font-normal text-[15px] font-Inter placeholder:text-[#000000]"
-                        />
-
-                        <div className="flex justify-center my-[12px] sm:gap-[16px] gap-[8px] flex-wrap">
-                          <button
-                            onClick={() => {
-                              handleProjectDelete("delete");
-                              setOpen(false);
-                            }}
-                            className=" bg-[#E33B32] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
-                          >
-                            Delete
-                          </button>
-                          <button
-                            onClick={() => setMoveToTraceModelOpen(true)}
-                            className=" bg-[#D4DB33] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
-                          >
-                            Move Traces
-                          </button>
-                          <button
-                            onClick={() => setOpen(false)}
-                            className=" bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
-                          >
-                            Cancel
-                          </button>
-                        </div>
                       </div>
-                    </div>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition.Root>
-      <Transition.Root show={moveToTraceModelOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-10"
-          // initialFocus={cancelButtonRef}
-          onClose={setMoveToTraceModelOpen}
-        >
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 transition-opacity" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-            <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                enterTo="opacity-100 translate-y-0 sm:scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              >
-                <Dialog.Panel className="relative transform overflow-hidden rounded-lg border-[#BDBDBD] border-[1px] bg-white text-left transition-all sm:w-[442px]">
-                  <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto z-50 outline-none ">
-                    <div className="relative w-full  mx-auto max-w-[470px]">
-                      <h1 className="text-[14px] text-black text-center font-medium mb-3 mt-[20px]">
-                        Select Dataset to add to
-                      </h1>
-                      <Listbox value={selected} onChange={setSelected}>
-                        {({ opens }) => (
-                          <>
-                            <div className="relative mt-2 max-w-[290px] w-full mx-auto">
-                              <Listbox.Button className="relative w-full cursor-default rounded-[7px] bg-white pl-3 pr-10 text-left text-gray-900 border-[1px] border-[#ccc] sm:text-sm sm:leading-6 ">
-                                <span className="flex items-center">
-                                  <span className="ml-2 block truncate text-[12px]">
-                                    {selected.name}
-                                  </span>
-                                </span>
-                                <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                                  <IoChevronDownOutline
-                                    className="text-[14px] text-black"
-                                    aria-hidden="true"
+                      <div className="text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <Listbox value={targetProject} onChange={setTargetProject}>
+                          <div className="relative">
+                            <Listbox.Button className="relative w-full cursor-pointer rounded-lg bg-gray-50 py-2.5 pl-4 pr-10 text-left hover:bg-gray-100 transition-colors">
+                              <span className="block truncate text-sm font-normal">
+                                {targetProject?.name || 'Select target project'}
+                              </span>
+                              <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                <IoChevronDownOutline className="h-4 w-4 text-gray-400" />
+                              </span>
+                            </Listbox.Button>
+                            <Transition
+                              as={Fragment}
+                              leave="transition ease-in duration-100"
+                              leaveFrom="opacity-100"
+                              leaveTo="opacity-0"
+                            >
+                              <Listbox.Options className="absolute z-[102] w-full overflow-visible bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                <div className="sticky top-0 bg-white p-2 border-b">
+                                  <input
+                                    type="text"
+                                    className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Search projects..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
                                   />
-                                </span>
-                              </Listbox.Button>
+                                </div>
+                                <div className="max-h-[200px] overflow-auto">
+                                  {filteredProjects.length > 0 ? (
+                                    filteredProjects.map((project) => (
+                                      <Listbox.Option
+                                        key={project.project_id}
+                                        value={project}
+                                        className={({ active }) =>
+                                          `relative cursor-pointer select-none py-2.5 pl-4 pr-4 text-sm ${active ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
+                                          }`
+                                        }
+                                      >
+                                        {({ selected }) => (
+                                          <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                            {project.name}
+                                          </span>
+                                        )}
+                                      </Listbox.Option>
+                                    ))
+                                  ) : (
+                                    <div className="py-2.5 px-4 text-sm text-gray-500 text-center">
+                                      No projects found
+                                    </div>
+                                  )}
+                                </div>
+                              </Listbox.Options>
+                            </Transition>
+                          </div>
+                        </Listbox>
 
-                              <Transition
-                                show={opens}
-                                as={Fragment}
-                                leave="transition ease-in duration-100"
-                                leaveFrom="opacity-100"
-                                leaveTo="opacity-0"
-                              >
-                                <Listbox.Options className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-[8px] bg-white py-1 text-base ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border-[1px] border-[#ccc] shadow-none">
-                                  {people.map((person) => (
-                                    <Listbox.Option
-                                      key={person.id}
-                                      className={({ active }) =>
-                                        classNames(
-                                          active
-                                            ? "bg-[#eee]"
-                                            : "text-gray-900",
-                                          "relative cursor-default select-none py-[4px] pl-3 pr-9 text-[12px]"
-                                        )
-                                      }
-                                      value={person}
-                                    >
-                                      {({ selected, active }) => (
-                                        <>
-                                          <div className="flex items-center">
-                                            <span
-                                              className={classNames(
-                                                selected
-                                                  ? "font-semibold"
-                                                  : "font-normal",
-                                                "ml-3 block truncate"
-                                              )}
-                                            >
-                                              {person.name}
-                                            </span>
-                                          </div>
-
-                                          {selected ? (
-                                            <span
-                                              className={classNames(
-                                                active
-                                                  ? "text-white"
-                                                  : "text-indigo-600",
-                                                "absolute inset-y-0 right-0 flex items-center pr-4"
-                                              )}
-                                            ></span>
-                                          ) : null}
-                                        </>
-                                      )}
-                                    </Listbox.Option>
-                                  ))}
-                                </Listbox.Options>
-                              </Transition>
-                            </div>
-                          </>
-                        )}
-                      </Listbox>
-                      <div className="max-w-[290px] w-full flex justify-between items-center mx-auto mt-[30px] pb-[20px]">
-                        <button
-                          onClick={() => setMoveToTraceModelOpen(false)}
-                          className=" bg-[#E33B32] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
-                        >
-                          cancel
-                        </button>
-                        <button
-                          onClick={() => setMoveToTraceModelOpen(false)}
-                          className=" bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[14px] font-Inter py-[6px] px-[14px] rounded-md"
-                        >
-                          Confirm
-                        </button>
                       </div>
                     </div>
+                  )}
+
+                  <div className="flex justify-center gap-3 mt-8">
+                    <button
+                      onClick={() => setOpen(false)}
+                      className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    {!isMoving ? (
+                      <>
+                        <button
+                          onClick={() => setIsMoving(true)}
+                          className="px-5 py-2 text-sm font-medium text-gray-700 bg-white rounded-full shadow-sm ring-1 ring-gray-300 hover:bg-gray-50 transition-all"
+                        >
+                          Move Traces
+                        </button>
+                        <button
+                          onClick={() => handleConfirm('delete')}
+                          className="px-5 py-2 text-sm font-medium text-white bg-red-500 rounded-full shadow-sm hover:bg-red-600 transition-colors"
+                        >
+                          Delete Project
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => handleConfirm('move')}
+                        disabled={!targetProject}
+                        className={`px-5 py-2 text-sm font-medium text-white rounded-full shadow-sm transition-all ${targetProject
+                          ? 'bg-blue-500 hover:bg-blue-600'
+                          : 'bg-gray-200 cursor-not-allowed'
+                          }`}
+                      >
+                        Confirm Move
+                      </button>
+                    )}
                   </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
-        </Dialog>
-      </Transition.Root>
-    </>
+        </div>
+      </Dialog>
+    </Transition.Root>
   );
 };
 

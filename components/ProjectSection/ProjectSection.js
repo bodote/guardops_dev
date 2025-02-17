@@ -262,6 +262,7 @@ const ProjectSection = () => {
                             selected={selected}
                             handleProjectDelete={handleProjectDelete}
                             setSelected={setSelected}
+                            projects={projectList}
                           />
                         )
                       )}
