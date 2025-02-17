@@ -15,8 +15,9 @@ import { MdOutlineAdd } from "react-icons/md";
 import { useSearchParams } from "next/navigation";
 import SelectDatasetModal from "@/components/modal/SelectDatasetModal";
 import Logout from "@/components/Logout/Logout";
+import InfiniteScroll from 'react-infinite-scroll-component';
 
-const ProjectDetails = () => {
+const DatasetDetails = () => {
   const [active, setActive] = useState(false);
   const [tracesNumber, setTracesNumber] = useState();
   const [tracesData, setTracesData] = useState();
@@ -26,6 +27,10 @@ const ProjectDetails = () => {
   const modalRef = useRef();
   const searchParams = useSearchParams();
   const datasetName = searchParams.get("name");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+
 
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -44,13 +49,14 @@ const ProjectDetails = () => {
     };
   }, [active]);
 
-  const getDatasetDetails = async () => {
+  const getDatasetDetails = async (pageNum = 1) => {
     try {
+      setLoading(true);
       const url = new URL(window.location.href);
       const datasetId = url.pathname.split("/").pop();
 
       const response = await fetch(
-        `/api/manageTraces?dataset_id=${datasetId}`,
+        `/api/manageTraces?dataset_id=${datasetId}&page=${pageNum}&limit=20`,
         {
           method: "GET",
         }
@@ -58,37 +64,80 @@ const ProjectDetails = () => {
 
       if (response.ok) {
         const responseData = await response.json();
+
         if (responseData.traces) {
-          setTraceList(responseData.traces);
+          if (pageNum === 1) {
+            setTraceList(responseData.traces);
+          } else {
+            setTraceList(prevTraces => [...prevTraces, ...responseData.traces]);
+          }
+
+          setHasMore(responseData.has_more);
+
           let traces = [];
-          responseData.traces.map((trace) =>
-            trace.map((data) => {
-              data.parent_id === null && traces.push(data);
-            })
-          );
-          if (traces) {
-            setTracesData(traces);
-            const monthCounts = Array(12).fill(0);
-            traces.forEach((trace) => {
-              const startTime = new Date(trace.start_time);
-              const monthIndex = startTime.getMonth();
-              monthCounts[monthIndex]++;
+          responseData.traces.forEach((trace) => {
+            trace.forEach((data) => {
+              if (data.parent_id === null) {
+                traces.push(data);
+              }
             });
-            setTracesNumber(monthCounts);
+          });
+
+          if (traces.length > 0) {
+            if (pageNum === 1) {
+              setTracesData(traces);
+              const monthCounts = Array(12).fill(0);
+              traces.forEach((trace) => {
+                const startTime = new Date(trace.start_time);
+                const monthIndex = startTime.getMonth();
+                monthCounts[monthIndex]++;
+              });
+              setTracesNumber(monthCounts);
+            } else {
+              setTracesData(prevData => {
+                const newData = [...prevData, ...traces];
+                const monthCounts = Array(12).fill(0);
+                newData.forEach((trace) => {
+                  const startTime = new Date(trace.start_time);
+                  const monthIndex = startTime.getMonth();
+                  monthCounts[monthIndex]++;
+                });
+                setTracesNumber(monthCounts);
+                return newData;
+              });
+            }
           }
         }
-      } else {
-        console.error("API request failed:", response.statusText);
       }
     } catch (error) {
       console.error("Error during API request:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     getDatasetDetails();
   }, []);
+  useEffect(() => {
+    const loadNextPage = async () => {
+      if (!loading && hasMore) {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        await getDatasetDetails(nextPage);
+      }
+    };
 
+    const timer = setTimeout(() => {
+      loadNextPage();
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [page, hasMore, loading]);
+
+  useEffect(() => {
+    getDatasetDetails(1);
+  }, []);
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
 
@@ -125,7 +174,7 @@ const ProjectDetails = () => {
               </h1>
             </div>
             {/* <LockIcon /> */}
-            <Logout/>
+            <Logout />
           </div>
 
           <div className="flex lg:flex-row flex-col my-[14px] sm:pl-[22px] pl-[16px] sm:pr-[35px] pr-[16px] xl:gap-[52px] gap-[20px]">
@@ -330,12 +379,33 @@ const ProjectDetails = () => {
             </div>
           </div>
           <div>
-            <Projectstabledata
-              searchTrace={searchTrace}
-              setSelectedTrace={setSelectedTrace}
-              traceList={traceList}
-              setTraceList={setTraceList}
-            />
+            <div
+              id="scrollableDiv"
+              style={{
+                height: 'calc(100vh - 300px)',
+                overflow: 'auto',
+                marginTop: '20px'
+              }}
+            >
+              <InfiniteScroll
+                dataLength={traceList.length}
+                next={() => { }} // Empty function since we're loading automatically
+                hasMore={hasMore}
+                loader={
+                  <div className="text-center py-4">
+                    <h4>Loading more traces...</h4>
+                  </div>
+                }
+                scrollableTarget="scrollableDiv"
+              >
+                <Projectstabledata
+                  searchTrace={searchTrace}
+                  setSelectedTrace={setSelectedTrace}
+                  traceList={traceList}
+                  setTraceList={setTraceList}
+                />
+              </InfiniteScroll>
+            </div>
           </div>
         </div>
       </div>
@@ -343,4 +413,4 @@ const ProjectDetails = () => {
   );
 };
 
-export default ProjectDetails;
+export default DatasetDetails;

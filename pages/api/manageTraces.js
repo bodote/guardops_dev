@@ -63,6 +63,8 @@ export default async function handler(req, res) {
           Url = `${baseUrl}api/get_dataset_traces`;
           queryParams = new URLSearchParams({
             dataset_id: req.query.dataset_id,
+            page: req.query.page || 1,
+            limit: req.query.limit || 20,
           });
           urlWithParams = `${Url}?${queryParams}`;
           try {
