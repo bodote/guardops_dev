@@ -374,7 +374,7 @@ export async function POST(req) {
 ${context}
 
 If you don't find relevant information in the context, just say you don't know.
-Keep your answer concise, using three sentences maximum.`
+Keep your answer concise, using three sentences maximum. Always respond in the language of the question regardless of the language of the context.`
           },
           ...messages
         ];

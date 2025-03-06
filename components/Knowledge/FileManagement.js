@@ -6,7 +6,16 @@ import {
   FaTrash,
   FaEdit,
   FaFilePdf,
-  FaFileAlt
+  FaFileAlt,
+  FaFileWord,
+  FaFileExcel,
+  FaFilePowerpoint,
+  FaFileImage,
+  FaFileCode,
+  FaFileArchive,
+  FaEnvelope,
+  FaTable,
+  FaMarkdown
 } from "react-icons/fa";
 import { AnimatePresence, motion } from "framer-motion";
 import { HubShareIcon } from "@/public/Assets/Icons/Allsvg";
@@ -19,7 +28,7 @@ const FileManagement = () => {
   const [currentFolderFiles, setCurrentFolderFiles] = useState([]);
   const [showMenu, setShowMenu] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editFolderName, setEditFolderName] = useState("");
   const [editingFolder, setEditingFolder] = useState(null);
   const [isFileModalOpen, setIsFileModalOpen] = useState(false); // State for file content modal
@@ -112,18 +121,36 @@ const FileManagement = () => {
     const formData = new FormData();
     formData.set("folder_id", currentFolder);
 
+    const allowedFileTypes = [
+      '.bmp', '.csv', '.doc', '.docx', '.eml', '.epub', '.heic', '.html',
+      '.jpeg', '.jpg', '.png', '.md', '.msg', '.odt', '.org', '.p7s', '.pdf',
+      '.png', '.ppt', '.pptx', '.rst', '.rtf', '.tiff', '.txt', '.tsv',
+      '.xls', '.xlsx', '.xml'
+    ];
+
     let filesToSend = [];
- for (let i = 0; i < files.length; i++) {
-   const file = files[i];
-   if (file.type === "application/pdf" || file.name.endsWith(".txt")) {
-     filesToSend.push(file);
-     formData.append("files[]", file);
-   } else {
-     alert("Only PDF and TXT files are allowed.");
-     return;
-   }
- }
- 
+    let invalidFiles = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+
+      if (allowedFileTypes.includes(fileExtension)) {
+        filesToSend.push(file);
+        formData.append("files[]", file);
+      } else {
+        invalidFiles.push(file.name);
+      }
+    }
+
+    if (invalidFiles.length > 0) {
+      alert(`Incompatible file(s): ${invalidFiles.join(', ')}\n\nAllowed file types:\n${allowedFileTypes.join(', ')}`);
+      return;
+    }
+
+    if (filesToSend.length === 0) {
+      return;
+    }
 
     try {
       const response = await fetch(`/api/knowledge/files`, {
@@ -143,7 +170,7 @@ const FileManagement = () => {
       if (!newFilesResponse.ok) {
         throw new Error("Failed to fetch updated files");
       }
-      
+
       const newFilesData = await newFilesResponse.json();
       setCurrentFolderFiles(newFilesData.data.files);
 
@@ -293,12 +320,11 @@ const FileManagement = () => {
         {folders.map((folder, index) => (
           <div
             key={folder.folder_id}
-            className={`relative folder-card border border-gray-200 rounded-lg p-4 flex flex-col items-center cursor-pointer ${
-              folder.folder_id === currentFolder ? "bg-gray-400 text-white" : "hover:bg-gray-300"
-            }`}            
+            className={`relative folder-card border border-gray-200 rounded-lg p-4 flex flex-col items-center cursor-pointer ${folder.folder_id === currentFolder ? "bg-gray-400 text-white" : "hover:bg-gray-300"
+              }`}
             onClick={() => setCurrentFolder(folder.folder_id)}
             ref={folderNameRef}
-            onDoubleClick={() => renameFolder(folder)} 
+            onDoubleClick={() => renameFolder(folder)}
           >
             <FaFolder className="text-coai-blue text-4xl mb-2" />
             {editingFolder === folder.folder_id ? (
@@ -335,7 +361,7 @@ const FileManagement = () => {
                 >
                   <FaTrash className="inline mr-2  " /> Delete
                 </button>
-                
+
               </div>
             )}
           </div>
@@ -365,7 +391,7 @@ const FileManagement = () => {
                 >
                   <div>Drag and drop files here</div>
                   <div className="text-sm dark:text-zinc-400 text-zinc-500">
-                    Only PDF files are allowed
+                    Supported file types include PDF, Word Documents, Excel Sheets, Mails and more
                   </div>
                 </motion.div>
               )}
@@ -374,7 +400,7 @@ const FileManagement = () => {
             <p className="text-gray-500">Drag and Drop Files Here</p>
             <input
               type="file"
-              accept="application/pdf, text/plain"
+              accept=".bmp,.csv,.doc,.docx,.eml,.epub,.heic,.html,.jpeg,.jpg,.png,.md,.msg,.odt,.org,.p7s,.pdf,.png,.ppt,.pptx,.rst,.rtf,.tiff,.txt,.tsv,.xls,.xlsx,.xml"
               onChange={handleFileUpload}
               className="hidden"
               ref={inputRef}
@@ -382,34 +408,98 @@ const FileManagement = () => {
           </div>
 
           <div className="files grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
-       {currentFolderFiles?.map((file) => (
-         <div
-           key={file.file_id}
-           className="relative file-card border border-gray-300 rounded-lg p-4 flex flex-col items-center hover:bg-gray-100 cursor-pointer hover:bg-gray-300"
-           onClick={() => openFileContentModal(file.file, file.name)}
-         >
-           {file.name.endsWith('.pdf') ? (
-             <>
-               <FaFilePdf className="text-red-500 text-4xl mb-2" />
-               <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                 {file.name}
-               </p>
-             </>
-           ) : (
-             <>
-               <FaFileAlt className="text-blue-500 text-4xl mb-2" />
-               <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                 {file.name}
-               </p>
-             </>
-           )}
-           <FaTrash
-             className="absolute text-gray-800 top-2 right-2  cursor-pointer hover:text-gray-500 "
-             onClick={() => deleteFile(file.file_id)}
-           />
-         </div>
-       ))}
-       
+            {currentFolderFiles?.map((file) => {
+              const fileExtension = file.name.split('.').pop().toLowerCase();
+
+              let FileIcon = FaFileAlt;
+              let iconColor = "text-blue-500";
+
+              // Determine icon and color based on file extension
+              switch (fileExtension) {
+                // Documents
+                case 'pdf':
+                  FileIcon = FaFilePdf;
+                  iconColor = "text-red-500";
+                  break;
+                case 'doc':
+                case 'docx':
+                case 'odt':
+                case 'rtf':
+                  FileIcon = FaFileWord;
+                  iconColor = "text-blue-600";
+                  break;
+                case 'xls':
+                case 'xlsx':
+                case 'csv':
+                case 'tsv':
+                  FileIcon = FaFileExcel;
+                  iconColor = "text-green-600";
+                  break;
+                case 'ppt':
+                case 'pptx':
+                  FileIcon = FaFilePowerpoint;
+                  iconColor = "text-orange-600";
+                  break;
+                // Images
+                case 'jpg':
+                case 'jpeg':
+                case 'png':
+                case 'bmp':
+                case 'tiff':
+                case 'heic':
+                  FileIcon = FaFileImage;
+                  iconColor = "text-purple-500";
+                  break;
+                // Code and Markup
+                case 'html':
+                case 'xml':
+                  FileIcon = FaFileCode;
+                  iconColor = "text-yellow-600";
+                  break;
+                case 'md':
+                case 'rst':
+                case 'org':
+                  FileIcon = FaMarkdown;
+                  iconColor = "text-gray-600";
+                  break;
+                // Email and Messages
+                case 'eml':
+                case 'msg':
+                  FileIcon = FaEnvelope;
+                  iconColor = "text-blue-400";
+                  break;
+                // Data
+                case 'csv':
+                case 'tsv':
+                  FileIcon = FaTable;
+                  iconColor = "text-green-500";
+                  break;
+                // Default for other types
+                default:
+                  FileIcon = FaFileAlt;
+                  iconColor = "text-gray-500";
+              }
+
+              return (
+                <div
+                  key={file.file_id}
+                  className="relative file-card border border-gray-300 rounded-lg p-4 flex flex-col items-center hover:bg-gray-100 cursor-pointer hover:bg-gray-300"
+                  onClick={() => openFileContentModal(file.file, file.name)}
+                >
+                  <FileIcon className={`${iconColor} text-4xl mb-2`} />
+                  <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                    {file.name}
+                  </p>
+                  <FaTrash
+                    className="absolute text-gray-800 top-2 right-2 cursor-pointer hover:text-gray-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteFile(file.file_id);
+                    }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -421,7 +511,7 @@ const FileManagement = () => {
           onFolderCreated={handleFolderCreated}
         />
       )}
-     <FileContentModal
+      <FileContentModal
         isOpen={isFileModalOpen}
         onClose={() => setIsFileModalOpen(false)}
         fileContent={fileContent}

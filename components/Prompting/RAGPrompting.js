@@ -1250,21 +1250,35 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                     {generatedPrompt && (
                         <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                             <h3 className="text-lg font-medium mb-3">Optimization Details</h3>
-
                             {validationScore && (
                                 <div className="mb-4">
                                     <span className="text-sm font-medium text-gray-700">Validation Score: </span>
                                     <span className="text-blue-600 font-mono">
                                         {Math.round(validationScore * 100)}%
                                     </span>
-                                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                                        <div
-                                            className="bg-blue-600 rounded-full h-2"
-                                            style={{ width: `${Math.round(validationScore * 100)}%` }}
-                                        ></div>
+
+                                    {/* Progress bar container with full gradient */}
+                                    <div className="relative w-full h-2 mt-1 rounded-full bg-gray-200 overflow-hidden">
+                                        {/* Full gradient background (always visible but covered) */}
+                                        <div className="absolute inset-0 w-full h-full"
+                                            style={{
+                                                background: `linear-gradient(90deg, 
+               hsl(0, 100%, 50%) 0%, 
+               hsl(30, 100%, 50%) 25%, 
+               hsl(60, 100%, 50%) 50%, 
+               hsl(90, 100%, 50%) 75%, 
+               hsl(120, 100%, 50%) 100%)`
+                                            }}></div>
+
+                                        {/* White overlay that covers part of the gradient */}
+                                        <div className="absolute top-0 bottom-0 right-0 bg-white h-full transition-all duration-500"
+                                            style={{
+                                                width: `${100 - Math.round(validationScore * 100)}%`
+                                            }}></div>
                                     </div>
                                 </div>
                             )}
+
 
                             {validationDetails?.length > 0 && (
                                 <div className="mt-4">
@@ -1277,9 +1291,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                                                 <tr>
                                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Context</th>
                                                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Question</th>
-                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Answer</th>
-                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Response</th>
+                                                    <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Score</th>
+                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Feedback</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="bg-white divide-y divide-gray-200">
@@ -1288,7 +1302,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                                                         <td className="px-4 py-2 text-sm text-gray-800">
                                                             <div className="max-h-32 overflow-y-auto">
                                                                 <div className="whitespace-pre-wrap break-words pr-2">
-                                                                    {detail.context}
+                                                                    {detail.context_snippet || "No context provided"}
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -1296,7 +1310,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                                                         <td className="px-4 py-2 text-sm text-gray-800">
                                                             <div className="max-h-32 overflow-y-auto">
                                                                 <div className="whitespace-pre-wrap break-words pr-2">
-                                                                    {detail.generated_question}
+                                                                    {detail.question}
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -1304,24 +1318,30 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                                                         <td className="px-4 py-2 text-sm text-gray-800">
                                                             <div className="max-h-32 overflow-y-auto">
                                                                 <div className="whitespace-pre-wrap break-words pr-2">
-                                                                    {detail.model_answer}
+                                                                    {detail.model_response}
                                                                 </div>
                                                             </div>
                                                         </td>
 
-                                                        <td className="px-4 py-2 text-center"> {/* Centered status */}
-                                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${detail.validation_passed
-                                                                ? 'bg-green-100 text-green-800'
-                                                                : 'bg-red-100 text-red-800'
-                                                                }`}>
-                                                                {detail.validation_passed ? 'Passed' : 'Failed'}
-                                                            </span>
+                                                        <td className="px-4 py-2 text-center">
+                                                            <div className="flex flex-col items-center">
+                                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${detail.validation_passed
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : 'bg-red-100 text-red-800'
+                                                                    }`}>
+                                                                    {detail.score.toFixed(1)}/10
+                                                                </span>
+                                                                <span className={`text-xs mt-1 ${detail.validation_passed ? 'text-green-600' : 'text-red-600'
+                                                                    }`}>
+                                                                    {detail.validation_passed ? 'Passed' : 'Failed'}
+                                                                </span>
+                                                            </div>
                                                         </td>
 
                                                         <td className="px-4 py-2 text-sm text-gray-800">
                                                             <div className="max-h-32 overflow-y-auto">
                                                                 <div className="whitespace-pre-wrap break-words pr-2">
-                                                                    {detail.validation_reason}
+                                                                    {detail.feedback}
                                                                 </div>
                                                             </div>
                                                         </td>
