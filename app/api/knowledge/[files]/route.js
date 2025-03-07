@@ -48,12 +48,11 @@ export async function GET(req, res) {
 
 
 }
-
 export async function POST(req) {
   try {
     const formData = await req.formData();
     const folder_id = formData.get("folder_id");
-    const files = formData.getAll("files[]"); // Ensure this is correctly getting your files
+    const files = formData.getAll("files[]");
     const cookieStore = cookies();
     const user = cookieStore.get("user_id").value;
     const baseUrl = process.env.BackendBaseUrl;
@@ -70,10 +69,10 @@ export async function POST(req) {
     });
 
     const urlWithParams = `${url}?${queryParams}`;
-
-    // Create a new FormData object for the fetch request
     const uploadData = new FormData();
-    files.forEach(file => uploadData.append("files", file)); // Use append to add files to FormData
+    files.forEach(file => uploadData.append("files", file));
+    console.log("Uploading files:", files);
+    // Actually wait for the response from FastAPI
     const response = await fetch(urlWithParams, {
       method: "POST",
       headers: {
@@ -83,17 +82,28 @@ export async function POST(req) {
     });
 
     if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
+      throw new Error(`FastAPI returned ${response.status}`);
     }
 
-    const data = await response.json();
-    return new Response(JSON.stringify({ data }), { status: 200 });
+    // Get the actual response from FastAPI
+    const fastApiData = await response.json();
+    console.log("FastAPI response:", fastApiData);
+    // Return the PROPER structure that the frontend expects
+    return new Response(JSON.stringify(fastApiData), {  // Remove the extra data wrapper
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
   } catch (error) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
+    console.error("Error starting upload:", error);
+    return new Response(JSON.stringify({
+      error: error.message || "Internal Server Error",
+      data: { file_ids: [] }
+    }), { status: 500 });
   }
 }
-
 
 
 export async function DELETE(req, res) {
