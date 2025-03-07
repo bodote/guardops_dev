@@ -59,6 +59,7 @@ const Projectstabledata = ({
       );
     }
   };
+
   const sortData = () => {
     const sortedProjectList = [...traceList];
 
@@ -101,6 +102,47 @@ const Projectstabledata = ({
             .includes(searchTrace.toLowerCase()))
     )
   );
+
+  // Function to find the best content from a trace, prioritizing output
+  const findBestContent = (trace) => {
+    // First, find a span with output
+    const spanWithOutput = trace.find(span =>
+      span.attributes?.output && span.attributes.output.trim() !== ""
+    ) || trace.find(span =>
+      span.attributes?.response && span.attributes.response.trim() !== ""
+    ) || trace.find(span =>
+      span.attributes?.content && span.attributes.content.trim() !== ""
+    ) || trace.find(span =>
+      span.attributes?.llm_completions_0_content && span.attributes.llm_completions_0_content.trim() !== ""
+    );
+
+    // If we found a span with output, use it
+    if (spanWithOutput) {
+      let output = "";
+      if (spanWithOutput.attributes?.output) {
+        output = spanWithOutput.attributes.output.replace(/\{"tokens":\d+\}/g, "");
+      } else if (spanWithOutput.attributes?.response) {
+        output = spanWithOutput.attributes.response;
+      } else if (spanWithOutput.attributes?.content) {
+        output = spanWithOutput.attributes.content;
+      } else if (spanWithOutput.attributes?.llm_completions_0_content) {
+        output = spanWithOutput.attributes.llm_completions_0_content;
+      }
+
+      // Get the prompt from the same span if available
+      let prompt = "";
+      if (spanWithOutput.attributes?.prompt) {
+        prompt = spanWithOutput.attributes.prompt;
+      } else if (spanWithOutput.attributes?.llm_prompts_0_content) {
+        prompt = spanWithOutput.attributes.llm_prompts_0_content;
+      }
+
+      return { prompt, output, span: spanWithOutput };
+    }
+
+    // If no span has output, just return empty strings
+    return { prompt: "", output: "", span: null };
+  };
 
   return (
     <>
@@ -158,94 +200,91 @@ const Projectstabledata = ({
             </tr>
           </thead>
           <tbody>
-          {filteredProjects.map((data) => {
-  // Check if any of the vals in the data array are flagged
-  const isAnyFlagged = data.some(
-    (val) =>
-      (val.attributes?.prompt_moderation?.flagged ?? false) ||
-      (val.attributes?.output_moderation?.flagged ?? false)
-  );
+            {filteredProjects.map((data, index) => {
+              // Check if any of the vals in the data array are flagged
+              const isAnyFlagged = data.some(
+                (val) =>
+                  (val.attributes?.prompt_moderation?.flagged ?? false) ||
+                  (val.attributes?.output_moderation?.flagged ?? false)
+              );
 
-  const textColorClass = isAnyFlagged ? "text-red-700" : "text-[#0D859A]";
+              const textColorClass = isAnyFlagged ? "text-red-700" : "text-[#0D859A]";
 
-  return data.map((val, innerEle) => (
-    val.parent_id == null && (
-      <tr
-        key={innerEle}
-        className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
-      >
-        <td className="py-[14px] px-[10px] text-center">
-          <input
-            type="checkbox"
-            onChange={(e) => handleSelectTraces(e, val)}
-            className="w-4 h-4 border border-[#334851] border-opacity-[0.3] rounded focus:ring-0 focus:outline-none focus:!border-[#334851]"
-          />
-        </td>
-        <td className="text-[#bbbbbb]">
-          <IoChevronForwardCircleOutline />
-        </td>
-        <td className="py-[14px] px-[10px] text-[14px] text-[#171C26] font-medium font-Inter text-center">
-          {innerEle}
-        </td>
-        <td
-          onClick={() => openModal(data)}
-          className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center ${textColorClass}`}
-        >
-          <p className="hover:underline cursor-pointer">
-            {val.kind}
-          </p>
-        </td>
-        <td className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px] ${textColorClass}`}>
-          <p className="line-clamp">{val.attributes?.prompt}</p>
-        </td>
-        <td className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center ${textColorClass}`}>
-          <p className="line-clamp">
-            {val.attributes?.output.replace(
-              /\{"tokens":\d+\}/g,
-              ""
-            )}
-          </p>
-        </td>
-        <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
-          {handleSpanStartTime(val.start_time)}
-          <br />
-        </td>
-        <td className="py-[14px] px-[10px] text-[14px] font-normal font-Inter text-[#464F60] text-center">
-          <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
-            {handleLatency(val.start_time, val.end_time)}s
-          </p>
-        </td>
-        <td className="py-[14px] px-[10px] text-[12px] font-medium font-Inter text-[#464F60] text-center">
-          <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
-            {val.attributes?.total_tokens}
-          </p>
-        </td>
-        <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center">
-          {val?.status.status_code}
-        </td>
-        <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter">
-          <div className="flex gap-[5px] items-center relative">
-            {/* {option &&
+              // Find the root span
+              const rootSpan = data.find(span => span.parent_id === null);
 
-            <div className="absolute top-[18px] right-[10px] bg-[#d8d8d9] border-[1px] border-[#868fa0] rounded-[5px] p-[3px]">
-              <div className="flex items-center"><RiAddBoxLine className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Add</span></div>
-              <div className="flex items-center"><MdDeleteOutline className="text-[#868fa0] text-[20px]" /><span className="text-[#868fa0] text-[16px]">Delete</span></div>
-              </div>
-            } */}
-            <div onClick={() => setOption(!option)}>
-              <ThreeDotsIcon />
-            </div>
-          </div>
-        </td>
-      </tr>
-    )
-  ));
-})}
+              // Find the best content from any span in the trace, prioritizing output
+              const { prompt, output, span: bestSpan } = findBestContent(data);
 
+              // Use the best span for display if available, otherwise fall back to root span
+              const displaySpan = bestSpan || rootSpan;
+
+              return (
+                rootSpan && (
+                  <tr
+                    key={index}
+                    className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
+                  >
+                    <td className="py-[14px] px-[10px] text-center">
+                      <input
+                        type="checkbox"
+                        onChange={(e) => handleSelectTraces(e, rootSpan)}
+                        className="w-4 h-4 border border-[#334851] border-opacity-[0.3] rounded focus:ring-0 focus:outline-none focus:!border-[#334851]"
+                      />
+                    </td>
+                    <td className="text-[#bbbbbb]">
+                      <IoChevronForwardCircleOutline />
+                    </td>
+                    <td className="py-[14px] px-[10px] text-[14px] text-[#171C26] font-medium font-Inter text-center">
+                      {index}
+                    </td>
+                    <td
+                      onClick={() => openModal(data)}
+                      className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center ${textColorClass}`}
+                    >
+                      <p className="hover:underline cursor-pointer">
+                        {rootSpan.kind}
+                      </p>
+                    </td>
+                    <td className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px] ${textColorClass}`}>
+                      <p className="line-clamp">{prompt}</p>
+                    </td>
+                    <td className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center ${textColorClass}`}>
+                      <p className="line-clamp">
+                        {output}
+                      </p>
+                    </td>
+                    <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
+                      {handleSpanStartTime(rootSpan.start_time)}
+                      <br />
+                    </td>
+                    <td className="py-[14px] px-[10px] text-[14px] font-normal font-Inter text-[#464F60] text-center">
+                      <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
+                        {handleLatency(rootSpan.start_time, rootSpan.end_time)}s
+                      </p>
+                    </td>
+                    <td className="py-[14px] px-[10px] text-[12px] font-medium font-Inter text-[#464F60] text-center">
+                      <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
+                        {rootSpan.attributes?.total_tokens}
+                      </p>
+                    </td>
+                    <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center">
+                      {rootSpan?.status.status_code}
+                    </td>
+                    <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter">
+                      <div className="flex gap-[5px] items-center relative">
+                        <div onClick={() => setOption(!option)}>
+                          <ThreeDotsIcon />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              );
+            })}
 
             {isModalOpen && (
               <div
-                // ref={modalRef}
                 style={{ width: `${width}%` }}
                 className="modal overflow-x-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 lg:flex-row flex-col h-screen trace-modal-main"
               >
