@@ -18,6 +18,8 @@ import {
   FaMarkdown,
   FaSpinner,
 } from "react-icons/fa";
+import { FaSync, FaSearch, FaSortAlphaDown, FaSortAlphaUp, FaTrashAlt } from "react-icons/fa";
+
 import { AnimatePresence, motion } from "framer-motion";
 import { HubShareIcon } from "@/public/Assets/Icons/Allsvg";
 import AddFolderModal from "../modal/AddFolderModal";
@@ -46,10 +48,82 @@ const FileManagement = () => {
   const menuRef = useRef(null);
   const editInputRef = useRef(null);
   const folderNameRef = useRef(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
+  // Add sorti
   // Get upload functions from the global store
   const { addUploads, updateUpload } = useUploadStore();
+  // Add sorting function
+  const sortFiles = (files) => {
+    if (!files) return [];
 
+    return [...files].sort((a, b) => {
+      if (sortConfig.key === 'name') {
+        // Sort by full filename
+        return sortConfig.direction === 'asc'
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      } else if (sortConfig.key === 'type') {
+        // First sort by extension, then by filename for same extensions
+        const extA = a.name.split('.').pop().toLowerCase();
+        const extB = b.name.split('.').pop().toLowerCase();
+
+        if (extA === extB) {
+          // If extensions are the same, sort by filename
+          return sortConfig.direction === 'asc'
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+        }
+
+        // Sort by extension
+        return sortConfig.direction === 'asc'
+          ? extA.localeCompare(extB)
+          : extB.localeCompare(extA);
+      }
+      return 0;
+    });
+  };
+
+  // Add file filtering function
+  const filterFiles = (files) => {
+    if (!searchQuery) return files;
+    try {
+      const regex = new RegExp(searchQuery, 'i');
+      return files?.filter(file => regex.test(file.name));
+    } catch (e) {
+      // If regex is invalid, fall back to simple includes
+      return files?.filter(file => file.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+  };
+
+  // Add bulk delete function
+  const handleBulkDelete = async () => {
+    if (selectedFiles.length === 0) return;
+
+    const isConfirmed = window.confirm(
+      `Are you sure you want to delete ${selectedFiles.length} selected file(s)?`
+    );
+
+    if (!isConfirmed) return;
+
+    for (const fileId of selectedFiles) {
+      await deleteFile(fileId);
+    }
+
+    setSelectedFiles([]);
+  };
+
+  // Toggle file selection
+  const toggleFileSelection = (e, fileId) => {
+    e.stopPropagation();
+    setSelectedFiles(prev =>
+      prev.includes(fileId)
+        ? prev.filter(id => id !== fileId)
+        : [...prev, fileId]
+    );
+  };
   const fetchFolders = async () => {
     try {
       const response = await fetch("/api/knowledge", {
@@ -367,7 +441,7 @@ const FileManagement = () => {
       }
 
       setCurrentFolderFiles(
-        currentFolderFiles.filter((file) => file.file_id !== fileId)
+        currentFolderFiles?.filter((file) => file.file_id !== fileId)
       );
     } catch (error) {
       console.error("Error deleting file:", error);
@@ -451,9 +525,9 @@ const FileManagement = () => {
       }
     }
   };
-
   return (
     <div className="file-management p-4">
+      {/* Folders Section */}
       <div className="folders grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 max-h-[23vh] overflow-y-auto">
         <div
           className="folder-card border border-dashed border-gray-400 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-300"
@@ -515,9 +589,21 @@ const FileManagement = () => {
         ))}
       </div>
 
+      {/* Files Section */}
       {currentFolder && (
         <div className="files mt-8">
-          <h2 className="text-xl font-bold mb-4">Files</h2>
+          {/* Header with Reload Button */}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Files</h2>
+            <button
+              onClick={() => fetchFiles(currentFolder)}
+              className="p-2 rounded-lg transition-all duration-200 hover:bg-gray-200 group"
+              title="Reload files"
+            >
+              <FaSync className="text-gray-600 group-hover:text-coai-blue transition-colors duration-200 w-5 h-5" />
+            </button>
+          </div>
+          {/* Upload Area */}
           <div
             className="file-upload-area border border-dashed border-gray-400 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-300"
             onDrop={handleDrop}
@@ -552,88 +638,197 @@ const FileManagement = () => {
             />
           </div>
 
+          {/* Search and Sort Controls */}
+          <div className="mt-4 space-y-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="Search files (supports regex)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-coai-blue"
+                />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setSortConfig({
+                    key: 'name',
+                    direction: sortConfig.key === 'name' && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                  })}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors duration-200 flex items-center gap-1 ${sortConfig.key === 'name' ? 'bg-gray-100' : ''
+                    }`}
+                  title="Sort by name"
+                >
+                  <span className="text-sm text-gray-600">Name</span>
+                  {sortConfig.key === 'name' && (
+                    sortConfig.direction === 'asc'
+                      ? <FaSortAlphaDown className="text-coai-blue" />
+                      : <FaSortAlphaUp className="text-coai-blue" />
+                  )}
+                </button>
+                <button
+                  onClick={() => setSortConfig({
+                    key: 'type',
+                    direction: sortConfig.key === 'type' && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                  })}
+                  className={`p-2 rounded hover:bg-gray-200 transition-colors duration-200 flex items-center gap-1 ${sortConfig.key === 'type' ? 'bg-gray-100' : ''
+                    }`}
+                  title="Sort by type"
+                >
+                  <span className="text-sm text-gray-600">Type</span>
+                  {sortConfig.key === 'type' && (
+                    sortConfig.direction === 'asc'
+                      ? <FaSortAlphaDown className="text-coai-blue" />
+                      : <FaSortAlphaUp className="text-coai-blue" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+
+            {/* Bulk Delete Bar */}
+            {selectedFiles.length > 0 && (
+              <div className="flex items-center justify-between bg-red-50 p-2 rounded-lg">
+                <span className="text-sm text-red-600">
+                  {selectedFiles.length} files selected
+                </span>
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center space-x-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  <FaTrashAlt />
+                  <span>Delete Selected</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Files Grid */}
           <div className="files grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
-            {currentFolderFiles?.map((file) => {
+            {sortFiles(filterFiles(currentFolderFiles))?.map((file) => {
               const fileExtension = file.name.split(".").pop().toLowerCase();
               let FileIcon = FaFileAlt;
               let iconColor = "text-blue-500";
 
-              switch (fileExtension) {
-                case "pdf":
-                  FileIcon = FaFilePdf;
-                  iconColor = "text-red-500";
-                  break;
-                case "doc":
-                case "docx":
-                case "odt":
-                case "rtf":
-                  FileIcon = FaFileWord;
-                  iconColor = "text-blue-600";
-                  break;
-                case "xls":
-                case "xlsx":
-                case "csv":
-                case "tsv":
-                  FileIcon = FaFileExcel;
-                  iconColor = "text-green-600";
-                  break;
-                case "ppt":
-                case "pptx":
-                  FileIcon = FaFilePowerpoint;
-                  iconColor = "text-orange-600";
-                  break;
-                case "jpg":
-                case "jpeg":
-                case "png":
-                case "bmp":
-                case "tiff":
-                case "heic":
-                  FileIcon = FaFileImage;
-                  iconColor = "text-purple-500";
-                  break;
-                case "html":
-                case "xml":
-                  FileIcon = FaFileCode;
-                  iconColor = "text-yellow-600";
-                  break;
-                case "md":
-                case "rst":
-                case "org":
-                  FileIcon = FaMarkdown;
-                  iconColor = "text-gray-600";
-                  break;
-                case "eml":
-                case "msg":
-                  FileIcon = FaEnvelope;
-                  iconColor = "text-blue-400";
-                  break;
-                case "csv":
-                case "tsv":
-                  FileIcon = FaTable;
-                  iconColor = "text-green-500";
-                  break;
-                default:
-                  FileIcon = FaFileAlt;
-                  iconColor = "text-gray-500";
+              // Parse the file.file content if it's a string
+              let fileContent;
+              try {
+                fileContent = typeof file.file === 'string' ? JSON.parse(file.file) : file.file;
+              } catch (e) {
+                fileContent = file.file;
+              }
+
+              // Check if file is still processing
+              const isProcessing = fileContent?.status === "processing";
+
+              // Only determine icon if not processing
+              if (!isProcessing) {
+                switch (fileExtension) {
+                  case "pdf":
+                    FileIcon = FaFilePdf;
+                    iconColor = "text-red-500";
+                    break;
+                  case "doc":
+                  case "docx":
+                  case "odt":
+                  case "rtf":
+                    FileIcon = FaFileWord;
+                    iconColor = "text-blue-600";
+                    break;
+                  case "xls":
+                  case "xlsx":
+                  case "csv":
+                  case "tsv":
+                    FileIcon = FaFileExcel;
+                    iconColor = "text-green-600";
+                    break;
+                  case "ppt":
+                  case "pptx":
+                    FileIcon = FaFilePowerpoint;
+                    iconColor = "text-orange-600";
+                    break;
+                  case "jpg":
+                  case "jpeg":
+                  case "png":
+                  case "bmp":
+                  case "tiff":
+                  case "heic":
+                    FileIcon = FaFileImage;
+                    iconColor = "text-purple-500";
+                    break;
+                  case "html":
+                  case "xml":
+                    FileIcon = FaFileCode;
+                    iconColor = "text-yellow-600";
+                    break;
+                  case "md":
+                  case "rst":
+                  case "org":
+                    FileIcon = FaMarkdown;
+                    iconColor = "text-gray-600";
+                    break;
+                  case "eml":
+                  case "msg":
+                    FileIcon = FaEnvelope;
+                    iconColor = "text-blue-400";
+                    break;
+                  case "csv":
+                  case "tsv":
+                    FileIcon = FaTable;
+                    iconColor = "text-green-500";
+                    break;
+                  default:
+                    FileIcon = FaFileAlt;
+                    iconColor = "text-gray-500";
+                }
               }
 
               return (
                 <div
                   key={file.file_id}
-                  className="relative file-card border border-gray-300 rounded-lg p-4 flex flex-col items-center hover:bg-gray-100 cursor-pointer hover:bg-gray-300"
+                  className={`relative file-card border border-gray-300 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-all duration-200
+          ${selectedFiles.includes(file.file_id)
+                      ? 'bg-blue-50 border-blue-300 hover:bg-blue-100'
+                      : 'hover:bg-gray-200'
+                    }`}
                   onClick={() => openFileContentModal(file.file, file.name)}
                 >
-                  <FileIcon className={`${iconColor} text-4xl mb-2`} />
-                  <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap">
+                  <div className="absolute top-2 left-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedFiles.includes(file.file_id)}
+                      onChange={(e) => toggleFileSelection(e, file.file_id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Icon with processing state */}
+                  <div className="relative">
+                    {isProcessing ? (
+                      <div className="flex flex-col items-center">
+                        <FaSpinner className="text-4xl mb-2 text-coai-blue animate-spin" />
+                      </div>
+                    ) : (
+                      <FileIcon className={`${iconColor} text-4xl mb-2`} />
+                    )}
+                  </div>
+
+                  <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap mt-2">
                     {file.name}
                   </p>
-                  <FaTrash
-                    className="absolute text-gray-800 top-2 right-2 cursor-pointer hover:text-gray-500"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteFile(file.file_id);
-                    }}
-                  />
+
+                  {!selectedFiles.includes(file.file_id) && (
+                    <FaTrash
+                      className="absolute text-gray-800 top-2 right-2 cursor-pointer hover:text-gray-500"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteFile(file.file_id);
+                      }}
+                    />
+                  )}
                 </div>
               );
             })}
@@ -641,7 +836,7 @@ const FileManagement = () => {
         </div>
       )}
 
-      {/* Initial File Upload Overlay */}
+      {/* Modals and Overlays */}
       {showUploadingOverlay && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-96 overflow-y-auto">
@@ -651,16 +846,16 @@ const FileManagement = () => {
                 <div key={index} className="flex items-center">
                   <div className="mr-3">
                     {file.status === "pending" && (
-                      <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>
+                      <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
                     )}
                     {file.status === "processing" && (
                       <FaSpinner className="w-5 h-5 text-blue-500 animate-spin" />
                     )}
                     {file.status === "completed" && (
-                      <div className="w-5 h-5 bg-green-500 rounded-full"></div>
+                      <div className="w-5 h-5 bg-green-500 rounded-full" />
                     )}
                     {file.status === "error" && (
-                      <div className="w-5 h-5 bg-red-500 rounded-full"></div>
+                      <div className="w-5 h-5 bg-red-500 rounded-full" />
                     )}
                   </div>
                   <div className="flex-1 truncate">
@@ -685,6 +880,7 @@ const FileManagement = () => {
           onFolderCreated={handleFolderCreated}
         />
       )}
+
       <FileContentModal
         isOpen={isFileModalOpen}
         onClose={() => setIsFileModalOpen(false)}
@@ -692,7 +888,6 @@ const FileManagement = () => {
         fileName={fileName}
       />
 
-      {/* Global Upload Progress Overlay */}
       <UploadProgressOverlay />
     </div>
   );
