@@ -36,6 +36,9 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
 
   const [testContext, setTestContext] = useState('');
 
+  // Add a ref to track when we're in the submission process
+  const isSubmittingRef = useRef(false);
+
   useEffect(() => {
     if (Object.keys(testResults).length > 0) {
       // Update history whenever testResults changes
@@ -554,25 +557,29 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
 
   // Add this effect to update promptHistory when form fields change
   useEffect(() => {
-    if (selectedHistoryItem) {
-      console.log('Form fields changed, updating promptHistory');
-      const updatedItem = {
-        ...selectedHistoryItem,
-        userInput,
-        generatedPrompt,
-        selectedModels,
-        testContext,
-        testResults
-      };
-
-      setPromptHistory(prev => ({
-        ...prev,
-        items: prev.items.map(item =>
-          item.id === selectedHistoryItem.id ? updatedItem : item
-        )
-      }));
+    // Skip updates if we're in the submission process or don't have a selected item
+    if (isSubmittingRef.current || !selectedHistoryItem) {
+      return;
     }
-  }, [userInput, generatedPrompt, selectedModels, testContext, testResults]);
+
+    // Don't update the selected item's userInput automatically
+    // This prevents overwriting previous history items when typing in a new input
+    const updatedItem = {
+      ...selectedHistoryItem,
+      // Preserve the original userInput and only update other fields
+      generatedPrompt,
+      selectedModels,
+      testContext,
+      testResults
+    };
+
+    setPromptHistory(prev => ({
+      ...prev,
+      items: prev.items.map(item =>
+        item.id === selectedHistoryItem.id ? updatedItem : item
+      )
+    }));
+  }, [generatedPrompt, selectedModels, testContext, testResults]);
 
   const createHistoryItem = (parentId = null, currentTestResults = null) => {
     const newHistoryItem = {
@@ -675,15 +682,56 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
   };
   // Add this function to restore from history
   const restoreFromHistory = (historyItem) => {
-    setSelectedHistoryItem(historyItem);
-    setUserInput(historyItem.userInput);
-    setGeneratedPrompt(historyItem.generatedPrompt);
-    const validModels = historyItem.selectedModels?.filter(selected =>
-      availableModels.some(model => model.model_id === selected)
-    ) || [];
-    setSelectedModels(historyItem.selectedModels);
-    setTestContext(historyItem.testContext);
-    setTestResults(historyItem.testResults);
+    // Set a flag to prevent automatic updates during history navigation
+    isSubmittingRef.current = true;
+
+    try {
+      // First update the selected history item reference
+      setSelectedHistoryItem(historyItem);
+
+      // Save the current item's changes if needed (when switching items)
+      if (selectedHistoryItem && selectedHistoryItem.id !== historyItem.id) {
+        // Only update non-userInput fields of the previous item to preserve its original input
+        setPromptHistory(prev => ({
+          ...prev,
+          items: prev.items.map(item =>
+            item.id === selectedHistoryItem.id
+              ? {
+                ...item,
+                // Preserve userInput but update other fields
+                generatedPrompt: generatedPrompt,
+                selectedModels: selectedModels,
+                testContext: testContext,
+                testResults: testResults
+              }
+              : item
+          )
+        }));
+      }
+
+      // Then update all the form fields with the history item's values
+      setUserInput(historyItem.userInput || '');
+      setGeneratedPrompt(historyItem.generatedPrompt || '');
+
+      // Handle models properly
+      if (Array.isArray(historyItem.selectedModels)) {
+        setSelectedModels(historyItem.selectedModels);
+      } else {
+        setSelectedModels([]);
+      }
+
+      // Set other fields
+      setTestContext(historyItem.testContext || '');
+      setTestResults(historyItem.testResults || {});
+
+      // Also update the pending history item
+      setPendingHistoryItem(historyItem);
+    } finally {
+      // Reset the flag after all state updates
+      setTimeout(() => {
+        isSubmittingRef.current = false;
+      }, 0);
+    }
   };
 
   const handleStopGeneration = () => {
@@ -725,70 +773,136 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
     return userInput?.trim() !== selectedHistoryItem.userInput?.trim();
   };
   const handleSubmit = async () => {
+    // Set the flag to prevent automatic updates during submission
+    isSubmittingRef.current = true;
     setIsGenerating(true);
     setGeneratedPrompt(''); // Clear any previous response
 
-    let itemToUpdate = selectedHistoryItem;
-
-    if (autoHistory && hasInputChanged()) {
-      // Auto history mode - create new items
-      const isInitialBlankItem = promptHistory.items.length === 1 &&
-        !promptHistory.items[0].generatedPrompt &&
-        !promptHistory.items[0].userInput;
-
-      if (isInitialBlankItem) {
-        updatePendingHistoryItem();
-      } else {
-        // Create new history item as child of current item
-        const newHistoryItem = {
-          id: uuidv4(),
-          parentId: selectedHistoryItem?.id || null,
-          name: userInput.slice(0, 50),
-          timestamp: new Date().toISOString(),
-          userInput: userInput,
-          generatedPrompt: '',
-          selectedModels: [],
-          testContext: '',
-          testResults: {}
-        };
-
-        setPromptHistory(prev => ({
-          ...prev,
-          items: [newHistoryItem, ...prev.items]
-        }));
-        setSelectedHistoryItem(newHistoryItem);
-        itemToUpdate = newHistoryItem;
-      }
-    } else {
-      // Manual history mode - update current item
-      if (selectedHistoryItem) {
-        // Update the current item's userInput immediately
-        setPromptHistory(prev => ({
-          ...prev,
-          items: prev.items.map(item =>
-            item.id === selectedHistoryItem.id
-              ? {
-                ...item,
-                userInput: userInput,
-                name: userInput.slice(0, 50) // Update name as well
-              }
-              : item
-          )
-        }));
-      }
-    }
-
-    const controller = new AbortController();
-    setAbortController(controller);
-
     try {
+      // Capture the current values at the start of the process
+      const capturedUserInput = userInput;
+      const currentHistoryItem = selectedHistoryItem;
+
+      // Store a copy of the current history items with their original inputs
+      const originalHistoryItems = promptHistory.items.map(item => ({
+        ...item,
+        originalUserInput: item.userInput // Preserve original inputs
+      }));
+
+      let itemToUpdate = selectedHistoryItem;
+
+      if (autoHistory && hasInputChanged()) {
+        // Auto history mode - create new items
+        const isInitialBlankItem = promptHistory.items.length === 1 &&
+          !promptHistory.items[0].generatedPrompt &&
+          !promptHistory.items[0].userInput;
+
+        if (isInitialBlankItem) {
+          // Update the blank item but preserve other items
+          setPromptHistory(prev => ({
+            ...prev,
+            items: prev.items.map((item, index) =>
+              index === 0
+                ? {
+                  ...item,
+                  userInput: capturedUserInput,
+                  name: capturedUserInput.slice(0, 50)
+                }
+                : {
+                  ...item,
+                  userInput: item.originalUserInput || item.userInput
+                }
+            )
+          }));
+
+          itemToUpdate = {
+            ...promptHistory.items[0],
+            userInput: capturedUserInput
+          };
+          setSelectedHistoryItem(itemToUpdate);
+        } else {
+          // Create new history item as child of current item
+          const newHistoryItem = {
+            id: uuidv4(),
+            parentId: currentHistoryItem?.id || null,
+            name: capturedUserInput.slice(0, 50),
+            timestamp: new Date().toISOString(),
+            userInput: capturedUserInput,
+            generatedPrompt: '',
+            selectedModels: [],
+            testContext: '',
+            testResults: {}
+          };
+
+          // Create updated history items array with preserved originals
+          let updatedItems;
+          if (currentHistoryItem?.id) {
+            const updatedHistory = [...originalHistoryItems];
+            const insertIndex = findLastBranchIndex(currentHistoryItem.id, updatedHistory) + 1;
+            updatedHistory.splice(insertIndex, 0, newHistoryItem);
+
+            // Restore original inputs and remove the temporary property
+            updatedItems = updatedHistory.map(item => {
+              if (item.id !== newHistoryItem.id && item.originalUserInput !== undefined) {
+                return {
+                  ...item,
+                  userInput: item.originalUserInput,
+                  originalUserInput: undefined
+                };
+              }
+              return item;
+            });
+          } else {
+            // If there's no current item, add the new one at the beginning
+            const preservedItems = originalHistoryItems.map(item => ({
+              ...item,
+              userInput: item.originalUserInput,
+              originalUserInput: undefined
+            }));
+
+            updatedItems = [newHistoryItem, ...preservedItems];
+          }
+
+          setPromptHistory({
+            ...promptHistory,
+            items: updatedItems
+          });
+
+          itemToUpdate = newHistoryItem;
+          setSelectedHistoryItem(newHistoryItem);
+        }
+      } else {
+        // Manual history mode - update current item
+        if (currentHistoryItem) {
+          // Update the current item's userInput immediately
+          const updatedItem = {
+            ...currentHistoryItem,
+            userInput: capturedUserInput,
+            name: capturedUserInput.slice(0, 50) // Update name as well
+          };
+
+          setPromptHistory(prev => ({
+            ...prev,
+            items: prev.items.map(item =>
+              item.id === currentHistoryItem.id ? updatedItem : item
+            )
+          }));
+
+          itemToUpdate = updatedItem;
+          setSelectedHistoryItem(updatedItem);
+        }
+      }
+
+      const controller = new AbortController();
+      setAbortController(controller);
+
       const response = await fetch('/api/prompting/list/optimizer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          instructions: userInput,
+          instructions: capturedUserInput,
           generated_prompt: generatedPrompt || undefined,
         }),
         signal: controller.signal,
@@ -813,7 +927,8 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
               ? {
                 ...item,
                 generatedPrompt: fullResponse,
-                name: item.userInput?.slice(0, 50) || fullResponse.slice(0, 50)  // Update name
+                name: item.userInput?.slice(0, 50) || fullResponse.slice(0, 50),  // Update name
+                userInput: item.userInput // Ensure original input is preserved
               }
               : item
           )
@@ -836,6 +951,9 @@ const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => 
     } finally {
       setIsGenerating(false);
       setAbortController(null);
+
+      // Reset the submission flag
+      isSubmittingRef.current = false;
     }
   };
   const deleteHistoryItem = (itemId) => {

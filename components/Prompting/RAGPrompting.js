@@ -122,7 +122,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                 generatedPrompt: item.generated_prompt,
                 selectedModels: item.selected_models || [],
                 testContext: item.test_context || '',
-                testResults: item.test_results || {}
+                testResults: item.test_results || {},
+                validationScore: item.validation_score || null,
+                validationDetails: item.validation_details || []
             }));
 
             // Set the prompt history with transformed data
@@ -143,6 +145,8 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                 setSelectedModels(firstItem.selectedModels || []);
                 setTestContext(firstItem.testContext || '');
                 setTestResults(firstItem.testResults || {});
+                setValidationScore(firstItem.validationScore || null);
+                setValidationDetails(firstItem.validationDetails || []);
             }
         }
     }, [initialData]);
@@ -213,22 +217,18 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                 generatedPrompt: selectedHistoryItem?.generatedPrompt || '', // Pre-populate generatedPrompt
                 selectedModels: [],
                 testContext: '',
-                testResults: {}
+                testResults: {},
+                validationScore: null,
+                validationDetails: []
             };
 
             setPromptHistory(prev => ({
                 ...prev,
                 items: [newItem, ...prev.items]
             }));
-            setSelectedHistoryItem(newItem);
-            setPendingHistoryItem(newItem);
 
-            // Also update the form fields with the pre-populated data
-            setUserInput(selectedHistoryItem?.userInput || '');
-            setGeneratedPrompt(selectedHistoryItem?.generatedPrompt || '');
-            setSelectedModels([]);
-            setTestContext('');
-            setTestResults({});
+            // Use restoreFromHistory to ensure consistent state updates
+            restoreFromHistory(newItem);
         }
     };
     const updatePendingHistoryItem = (currentTestResults = null) => {
@@ -241,7 +241,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
             selectedModels,
             testContext: testContext || '',
             testResults: currentTestResults || testResults || {},
-            name: userInput.slice(0, 50)
+            name: userInput.slice(0, 50),
+            validationScore: validationScore,
+            validationDetails: validationDetails
         };
 
         setPromptHistory(prev => ({
@@ -330,7 +332,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                                 generatedPrompt: latestItem.generatedPrompt,
                                 selectedModels: latestItem.selectedModels,
                                 testContext: latestItem.testContext,
-                                testResults: latestItem.testResults
+                                testResults: latestItem.testResults,
+                                validationScore: latestItem.validationScore,
+                                validationDetails: latestItem.validationDetails
                             },
                             ...promptHistory.items.slice(1).map(item => ({
                                 id: item.id,
@@ -341,7 +345,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                                 generatedPrompt: item.generatedPrompt,
                                 selectedModels: Array.isArray(item.selectedModels) ? item.selectedModels : [],
                                 testContext: item.testContext || '',
-                                testResults: item.testResults || {}
+                                testResults: item.testResults || {},
+                                validationScore: item.validationScore || null,
+                                validationDetails: item.validationDetails || []
                             }))
                         ]
                     })
@@ -377,7 +383,19 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                         prompt_id: currentPromptId,
                         items: [
                             { ...latestItem },
-                            ...promptHistory.items.slice(1)
+                            ...promptHistory.items.slice(1).map(item => ({
+                                id: item.id,
+                                parentId: item.parentId,
+                                name: item.name,
+                                timestamp: item.timestamp,
+                                userInput: item.userInput,
+                                generatedPrompt: item.generatedPrompt,
+                                selectedModels: Array.isArray(item.selectedModels) ? item.selectedModels : [],
+                                testContext: item.testContext || '',
+                                testResults: item.testResults || {},
+                                validationScore: item.validationScore || null,
+                                validationDetails: item.validationDetails || []
+                            }))
                         ]
                     })
                 });
@@ -444,7 +462,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                             generatedPrompt: item.generatedPrompt,
                             selectedModels: Array.isArray(item.selectedModels) ? item.selectedModels : [],
                             testContext: item.testContext || '',
-                            testResults: item.testResults || {}
+                            testResults: item.testResults || {},
+                            validationScore: item.validationScore || null,
+                            validationDetails: item.validationDetails || []
                         }))
                     })
                 });
@@ -477,7 +497,19 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                     },
                     body: JSON.stringify({
                         prompt_id: promptId,
-                        items: promptHistory.items
+                        items: promptHistory.items.map(item => ({
+                            id: item.id,
+                            parentId: item.parentId,
+                            name: item.name,
+                            timestamp: item.timestamp,
+                            userInput: item.userInput,
+                            generatedPrompt: item.generatedPrompt,
+                            selectedModels: Array.isArray(item.selectedModels) ? item.selectedModels : [],
+                            testContext: item.testContext || '',
+                            testResults: item.testResults || {},
+                            validationScore: item.validationScore || null,
+                            validationDetails: item.validationDetails || []
+                        }))
                     })
                 });
 
@@ -521,7 +553,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                 generatedPrompt !== selectedHistoryItem.generatedPrompt ||
                 testContext !== selectedHistoryItem.testContext ||
                 JSON.stringify(selectedModels) !== JSON.stringify(selectedHistoryItem.selectedModels) ||
-                JSON.stringify(testResults) !== JSON.stringify(selectedHistoryItem.testResults);
+                JSON.stringify(testResults) !== JSON.stringify(selectedHistoryItem.testResults) ||
+                validationScore !== selectedHistoryItem.validationScore ||
+                JSON.stringify(validationDetails) !== JSON.stringify(selectedHistoryItem.validationDetails);
 
             if (hasCurrentChanges) {
                 console.log('Form state changes detected');
@@ -563,7 +597,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                 currentItem.generatedPrompt !== originalItem.generated_prompt ||
                 currentItem.testContext !== originalItem.test_context ||
                 JSON.stringify(currentItem.testResults) !== JSON.stringify(originalItem.test_results) ||
-                JSON.stringify(currentItem.selectedModels) !== JSON.stringify(originalItem.selected_models);
+                JSON.stringify(currentItem.selectedModels) !== JSON.stringify(originalItem.selected_models) ||
+                currentItem.validationScore !== originalItem.validation_score ||
+                JSON.stringify(currentItem.validationDetails) !== JSON.stringify(originalItem.validation_details);
 
             if (itemChanged) {
                 console.log('Changes detected in item:', currentItem.id);
@@ -596,27 +632,41 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
         }
     };
 
-    // Add this effect to update promptHistory when form fields change
-    useEffect(() => {
-        if (selectedHistoryItem) {
-            console.log('Form fields changed, updating promptHistory');
-            const updatedItem = {
-                ...selectedHistoryItem,
-                userInput,
-                generatedPrompt,
-                selectedModels,
-                testContext,
-                testResults
-            };
+    // Add a ref to track when we're in the submission process
+    const isSubmittingRef = useRef(false);
 
-            setPromptHistory(prev => ({
-                ...prev,
-                items: prev.items.map(item =>
-                    item.id === selectedHistoryItem.id ? updatedItem : item
-                )
-            }));
+    // Update the effect to check this ref
+    useEffect(() => {
+        // Skip updates if we're in the submission process
+        if (isSubmittingRef.current) {
+            return;
         }
-    }, [userInput, generatedPrompt, selectedModels, testContext, testResults]);
+
+        // Skip automatic updates during history navigation or when we don't have a selected item
+        if (!selectedHistoryItem) {
+            return;
+        }
+
+        // Don't update the selected item's userInput automatically
+        // This prevents overwriting previous history items when typing in a new input
+        const updatedItem = {
+            ...selectedHistoryItem,
+            // Preserve the original userInput and only update other fields
+            generatedPrompt,
+            selectedModels,
+            testContext,
+            testResults,
+            validationScore,
+            validationDetails
+        };
+
+        setPromptHistory(prev => ({
+            ...prev,
+            items: prev.items.map(item =>
+                item.id === selectedHistoryItem.id ? updatedItem : item
+            )
+        }));
+    }, [generatedPrompt, selectedModels, testContext, testResults, validationScore, validationDetails]);
 
     const createHistoryItem = (parentId = null, currentTestResults = null) => {
         const newHistoryItem = {
@@ -628,7 +678,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
             generatedPrompt,
             selectedModels: selectedModels.map(model => model.model_id),
             testContext: testContext || '',
-            testResults: currentTestResults || {}
+            testResults: currentTestResults || {},
+            validationScore: validationScore,
+            validationDetails: validationDetails
         };
 
         if (parentId) {
@@ -675,7 +727,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                 generatedPrompt: '',
                 selectedModels: [],
                 testContext: '',
-                testResults: {}
+                testResults: {},
+                validationScore: null,
+                validationDetails: []
             };
             setPromptHistory({
                 ...promptHistory,
@@ -717,17 +771,64 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
     const handlePromptUpdate = (updatedPrompt) => {
         setGeneratedPrompt(updatedPrompt);
     };
-    // Add this function to restore from history
+    // Fix the restoreFromHistory function to properly set all state values
     const restoreFromHistory = (historyItem) => {
-        setSelectedHistoryItem(historyItem);
-        setUserInput(historyItem.userInput);
-        setGeneratedPrompt(historyItem.generatedPrompt);
-        const validModels = historyItem.selectedModels?.filter(selected =>
-            availableModels.some(model => model.model_id === selected)
-        ) || [];
-        setSelectedModels(historyItem.selectedModels);
-        setTestContext(historyItem.testContext);
-        setTestResults(historyItem.testResults);
+        // Set a flag to prevent automatic updates during history navigation
+        isSubmittingRef.current = true;
+
+        try {
+            // First update the selected history item reference
+            setSelectedHistoryItem(historyItem);
+
+            // Save the current item's changes if needed (e.g., when switching from one item to another)
+            if (selectedHistoryItem && selectedHistoryItem.id !== historyItem.id) {
+                // Only update non-userInput fields of the previous item to preserve its original input
+                setPromptHistory(prev => ({
+                    ...prev,
+                    items: prev.items.map(item =>
+                        item.id === selectedHistoryItem.id
+                            ? {
+                                ...item,
+                                // Preserve userInput but update other fields
+                                generatedPrompt: generatedPrompt,
+                                selectedModels: selectedModels,
+                                testContext: testContext,
+                                testResults: testResults,
+                                validationScore: validationScore,
+                                validationDetails: validationDetails
+                            }
+                            : item
+                    )
+                }));
+            }
+
+            // Then update all the form fields with the history item's values
+            setUserInput(historyItem.userInput || '');
+            setGeneratedPrompt(historyItem.generatedPrompt || '');
+
+            // Handle models properly
+            if (Array.isArray(historyItem.selectedModels)) {
+                setSelectedModels(historyItem.selectedModels);
+            } else {
+                setSelectedModels([]);
+            }
+
+            // Set other fields
+            setTestContext(historyItem.testContext || '');
+            setTestResults(historyItem.testResults || {});
+
+            // Restore validation data
+            setValidationScore(historyItem.validationScore || null);
+            setValidationDetails(historyItem.validationDetails || []);
+
+            // Also update the pending history item
+            setPendingHistoryItem(historyItem);
+        } finally {
+            // Reset the flag after all state updates
+            setTimeout(() => {
+                isSubmittingRef.current = false;
+            }, 0);
+        }
     };
 
     const handleStopGeneration = () => {
@@ -779,11 +880,135 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
             return;
         }
 
-        setIsGenerating(true);
-        const controller = new AbortController();
-        setAbortController(controller);
+        // Set the ref to prevent automatic updates during submission
+        isSubmittingRef.current = true;
 
         try {
+            // ===== 1. Capture the current values at the start of the process =====
+            const capturedUserInput = userInput; // Capture the current user input
+            const currentHistoryItem = selectedHistoryItem; // Capture the currently selected history item
+
+            // Store a copy of the current history items with their original inputs
+            const originalHistoryItems = promptHistory.items.map(item => ({
+                ...item,
+                originalUserInput: item.userInput // Preserve original inputs
+            }));
+
+            // ===== 2. Create a new history item if in auto history mode =====
+            let targetHistoryItem;
+
+            if (autoHistory) {
+                // Create a new history item with the captured input
+                const newHistoryItem = {
+                    id: uuidv4(),
+                    parentId: currentHistoryItem?.id || null,
+                    name: capturedUserInput.slice(0, 50) || 'New Iteration',
+                    timestamp: new Date().toISOString(),
+                    userInput: capturedUserInput, // Use the captured input
+                    generatedPrompt: '', // Will be filled later
+                    selectedModels: selectedModels.map(model =>
+                        typeof model === 'string' ? model : model.model_id
+                    ),
+                    testContext: testContext || '',
+                    testResults: {},
+                    validationScore: null,
+                    validationDetails: [],
+                    isGenerating: true
+                };
+
+                // Insert the new item at the appropriate position, ensuring previous items keep their original input
+                let updatedItems;
+                if (currentHistoryItem?.id) {
+                    const updatedHistory = [...originalHistoryItems];
+                    const insertIndex = findLastBranchIndex(currentHistoryItem.id, updatedHistory) + 1;
+                    updatedHistory.splice(insertIndex, 0, newHistoryItem);
+
+                    // Restore original inputs and remove the temporary originalUserInput property
+                    updatedItems = updatedHistory.map(item => {
+                        if (item.id !== newHistoryItem.id && item.originalUserInput !== undefined) {
+                            return {
+                                ...item,
+                                userInput: item.originalUserInput,
+                                originalUserInput: undefined
+                            };
+                        }
+                        return item;
+                    });
+                } else {
+                    // Restore original inputs and remove the temporary originalUserInput property
+                    const preservedItems = originalHistoryItems.map(item => ({
+                        ...item,
+                        userInput: item.originalUserInput,
+                        originalUserInput: undefined
+                    }));
+
+                    updatedItems = [newHistoryItem, ...preservedItems];
+                }
+
+                // Update the history with the new item
+                setPromptHistory(prev => {
+                    // First create a new history state that preserves all original inputs
+                    const preservedItems = prev.items.map(item => ({
+                        ...item,
+                        // Ensure each item keeps its own userInput unchanged
+                        userInput: item.originalUserInput || item.userInput
+                    }));
+
+                    let newItems;
+                    if (updatedItems) {
+                        // Use our prepared items array that has originalUserInput handling
+                        newItems = updatedItems;
+                    } else {
+                        // For manual mode or other cases
+                        newItems = preservedItems;
+                    }
+
+                    return {
+                        ...prev,
+                        items: newItems
+                    };
+                });
+
+                // Set this as our target for the API results
+                targetHistoryItem = newHistoryItem;
+
+                // Update UI state to match the new item
+                setUserInput(capturedUserInput);
+                setGeneratedPrompt('');
+                setValidationScore(null);
+                setValidationDetails([]);
+
+                // Select the new history item
+                setSelectedHistoryItem(newHistoryItem);
+                setPendingHistoryItem(newHistoryItem);
+            } else {
+                // In manual mode, just update the current item
+                if (currentHistoryItem) {
+                    const updatedItem = {
+                        ...currentHistoryItem,
+                        userInput: capturedUserInput,
+                        name: capturedUserInput.slice(0, 50) || currentHistoryItem.name,
+                        isGenerating: true
+                    };
+
+                    setPromptHistory(prev => ({
+                        ...prev,
+                        items: prev.items.map(item =>
+                            item.id === currentHistoryItem.id ? updatedItem : item
+                        )
+                    }));
+
+                    targetHistoryItem = updatedItem;
+                    setSelectedHistoryItem(updatedItem);
+                    setPendingHistoryItem(updatedItem);
+                }
+            }
+
+            // ===== 3. Start the generation process =====
+            setIsGenerating(true);
+            const controller = new AbortController();
+            setAbortController(controller);
+
             const response = await fetch('/api/prompting/list/optimizer/rag', {
                 method: 'POST',
                 headers: {
@@ -791,7 +1016,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                 },
                 body: JSON.stringify({
                     store_id: selectedVectorStore,
-                    target_behavior: userInput
+                    target_behavior: capturedUserInput
                 }),
                 signal: controller.signal
             });
@@ -803,39 +1028,36 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
             const data = await response.json();
             const result = data.data;
 
-            // Update state with new results
-            setGeneratedPrompt(result.optimized_prompt);
-            setValidationScore(result.validation_score);
-            setValidationDetails(result.validation_details || []);
-            // History management using existing patterns
-            if (autoHistory) {
-                // Use createHistoryItem to maintain parent/child relationships
-                createHistoryItem(selectedHistoryItem?.id || null, {
-                    testResults: {}, // Preserve existing test results pattern
-                    validationScore: result.validation_score,
-                    sampleContexts: result.sample_context_used,
-                    vectorStore: selectedVectorStore
-                });
-            } else {
-                // For manual history, update pending item with RAG data
+            // ===== 4. Update the target history item with the results =====
+            if (targetHistoryItem) {
                 const updatedItem = {
-                    ...pendingHistoryItem,
-                    userInput,
+                    ...targetHistoryItem,
                     generatedPrompt: result.optimized_prompt,
                     validationScore: result.validation_score,
+                    validationDetails: result.validation_details || [],
                     sampleContexts: result.sample_context_used,
-                    vectorStore: selectedVectorStore
+                    vectorStore: selectedVectorStore,
+                    isGenerating: false,
+                    userInput: capturedUserInput // Ensure input is preserved
                 };
 
-                setPendingHistoryItem(updatedItem);
+                // Update the history
                 setPromptHistory(prev => ({
                     ...prev,
                     items: prev.items.map(item =>
-                        item.id === updatedItem.id ? updatedItem : item
+                        item.id === targetHistoryItem.id ? updatedItem : item
                     )
                 }));
-            }
 
+                // Update the selected item
+                setSelectedHistoryItem(updatedItem);
+                setPendingHistoryItem(updatedItem);
+
+                // Update the UI state
+                setGeneratedPrompt(result.optimized_prompt);
+                setValidationScore(result.validation_score);
+                setValidationDetails(result.validation_details || []);
+            }
         } catch (error) {
             if (error.name !== 'AbortError') {
                 console.error('Error:', error);
@@ -844,8 +1066,12 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
         } finally {
             setIsGenerating(false);
             setAbortController(null);
+
+            // Reset the submission ref
+            isSubmittingRef.current = false;
         }
     };
+    // Update the deleteHistoryItem function to properly handle user input when creating a new blank item
     const deleteHistoryItem = (itemId) => {
         const itemsToDelete = new Set();
 
@@ -879,19 +1105,28 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                 generatedPrompt: '',
                 selectedModels: [],
                 testContext: '',
-                testResults: {}
+                testResults: {},
+                validationScore: null,
+                validationDetails: []
             };
+
             setPromptHistory({
                 ...promptHistory,
                 items: [initialItem]
             });
-            setSelectedHistoryItem(initialItem);
-            setPendingHistoryItem(initialItem);
+
+            // Use restoreFromHistory to ensure consistent state updates
+            restoreFromHistory(initialItem);
         } else {
             setPromptHistory({
                 ...promptHistory,
                 items: updatedItems
             });
+
+            // If we still have items and the selected one was deleted, select the first one
+            if (updatedItems.length > 0 && selectedHistoryItem?.id === itemId) {
+                restoreFromHistory(updatedItems[0]);
+            }
         }
     };
 
@@ -908,7 +1143,9 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
             generatedPrompt !== selectedHistoryItem.generatedPrompt ||
             testContext !== selectedHistoryItem.testContext ||
             JSON.stringify(selectedModels) !== JSON.stringify(selectedHistoryItem.selectedModels) ||
-            JSON.stringify(testResults) !== JSON.stringify(selectedHistoryItem.testResults)
+            JSON.stringify(testResults) !== JSON.stringify(selectedHistoryItem.testResults) ||
+            validationScore !== selectedHistoryItem.validationScore ||
+            JSON.stringify(validationDetails) !== JSON.stringify(selectedHistoryItem.validationDetails)
         );
     };
 
