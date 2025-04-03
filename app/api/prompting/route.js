@@ -34,7 +34,15 @@ export async function GET(req, res) {
             }),
         });
         const data = await response.json();
-        return Response.json({ data });
+
+        // Transform the response to include vector_store_id at the top level
+        const transformedData = {
+            ...data,
+            vector_store_id: data.vector_store_id || null,
+            items: data.items || []
+        };
+
+        return Response.json({ data: transformedData });
     } catch (error) {
         console.error("Error:", error);
         return Response.json({ error: "Internal Server Error" }, { status: 500 });
@@ -64,7 +72,9 @@ export async function POST(req, res) {
             generated_prompt: item.generatedPrompt,
             selected_models: item.selectedModels,
             test_context: item.testContext,
-            test_results: item.testResults
+            test_results: item.testResults,
+            validation_score: item.validationScore,
+            validation_details: item.validationDetails
         }));
 
         // Prepare the request body
@@ -114,7 +124,9 @@ export async function PATCH(req, res) {
             generated_prompt: item.generatedPrompt,
             selected_models: item.selectedModels,
             test_context: item.testContext,
-            test_results: item.testResults
+            test_results: item.testResults,
+            validation_score: item.validationScore,
+            validation_details: item.validationDetails
         }));
 
         // Prepare the request body

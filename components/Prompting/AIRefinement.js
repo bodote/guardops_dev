@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaArrowLeft, FaSearch, FaHistory, FaBook, FaTrash } from 'react-icons/fa';
+import { FaArrowLeft, FaSearch, FaHistory, FaBook, FaTrash, FaDatabase } from 'react-icons/fa';
 import AIPrompting from './AIPrompting';
+import RAGPrompting from './RAGPrompting';
 import { toast } from 'react-toastify';
 const AIRefinement = ({ onBack }) => {
   const [view, setView] = useState('menu');
@@ -10,15 +11,36 @@ const AIRefinement = ({ onBack }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [templates, setTemplates] = useState([]);  // Add this
   const [sourceView, setSourceView] = useState(null);
+  const [promptType, setPromptType] = useState(null); // Add state to track prompt type
+  const [vectorStores, setVectorStores] = useState({}); // Map to store vector store ID -> name
 
   useEffect(() => {
     if (view === 'history') {
       fetchPromptingHistory();
+      fetchVectorStores();
     } else if (view === 'templates') {
       fetchTemplates();
     }
   }, [view]);
 
+  // Fetch vector stores data
+  const fetchVectorStores = async () => {
+    try {
+      const response = await fetch("/api/knowledge/files/vectorstore", {
+        method: "GET",
+      });
+      if (!response.ok) throw new Error("Failed to fetch vector stores");
+      const data = await response.json();
+      // Create a map of store_id -> name for quick lookups
+      const storeMap = {};
+      data.data.stores.forEach(store => {
+        storeMap[store.store_id] = store.name;
+      });
+      setVectorStores(storeMap);
+    } catch (error) {
+      console.error("Error fetching vector stores:", error);
+    }
+  };
 
   const fetchTemplates = async () => {
     setIsLoading(true);
@@ -111,6 +133,13 @@ const AIRefinement = ({ onBack }) => {
 
       const { data } = await response.json();
       console.log('Fetched prompt details:', data);
+
+      // Determine if this is a knowledge-based prompt by checking for validation details in any item
+      const isKnowledgeBasedPrompt = data.items.some(item =>
+        item.validation_details && item.validation_details.length > 0
+      );
+
+      setPromptType(isKnowledgeBasedPrompt ? 'rag' : 'default');
       setSelectedItem(data);
     } catch (error) {
       console.error('Error fetching details:', error);
@@ -120,6 +149,7 @@ const AIRefinement = ({ onBack }) => {
   const handleBack = () => {
     if (selectedItem) {
       setSelectedItem(null);
+      setPromptType(null); // Reset prompt type
       setView(sourceView);  // Go back to the source view
       if (sourceView === 'history') {
         fetchPromptingHistory(); // Re-fetch history if going back to history
@@ -133,20 +163,41 @@ const AIRefinement = ({ onBack }) => {
       onBack();
     }
   };
-  const filteredHistory = promptingHistory?.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredHistory = promptingHistory?.filter(item => {
+    const searchLower = searchQuery.toLowerCase();
+    // Check if name matches search query
+    const nameMatch = item.name.toLowerCase().includes(searchLower);
+
+    // Check if vector store name matches search query (if item has a vector store)
+    const vectorStoreMatch = item.vector_store_id &&
+      vectorStores[item.vector_store_id] &&
+      vectorStores[item.vector_store_id].toLowerCase().includes(searchLower);
+
+    // Return true if either name or vector store name matches
+    return nameMatch || vectorStoreMatch;
+  });
 
   const renderContent = () => {
     if (selectedItem) {
-      return (
-        <AIPrompting
-          key={selectedItem.promptId || `template-${selectedItem.name}`}
-          onBack={handleBack}
-          initialData={selectedItem}
-          hideBackToMenu={true}
-        />
-      );
+      if (promptType === 'rag') {
+        return (
+          <RAGPrompting
+            key={`rag-${selectedItem.promptId || `template-${selectedItem.name}`}`}
+            onBack={handleBack}
+            initialData={selectedItem}
+            hideBackToMenu={true}
+          />
+        );
+      } else {
+        return (
+          <AIPrompting
+            key={`ai-${selectedItem.promptId || `template-${selectedItem.name}`}`}
+            onBack={handleBack}
+            initialData={selectedItem}
+            hideBackToMenu={true}
+          />
+        );
+      }
     }
 
     if (view === 'menu') {
@@ -193,14 +244,31 @@ const AIRefinement = ({ onBack }) => {
       return (
         <div className="max-w-3xl mx-auto">
           <div className="sticky top-0 bg-white z-10 pb-4 space-y-4">
-            {/* Add "Start from scratch" button */}
-            <button
-              onClick={() => setSelectedItem({})} // Empty object will render AIPrompting without initialData
-              className="w-full p-3 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 
-            transition-colors flex items-center justify-center gap-2 text-green-700 font-medium"
-            >
-              <span className="text-xl">+</span> Start from scratch
-            </button>
+            {/* Add buttons for creating new prompts */}
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => {
+                  setPromptType('default');
+                  setSelectedItem({});
+                }}
+                className="p-3 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 
+                transition-colors flex items-center justify-center gap-2 text-blue-700 font-medium"
+              >
+                <span className="text-xl">+</span> New AI Prompt
+              </button>
+
+              <button
+                onClick={() => {
+                  setPromptType('rag');
+                  setSelectedItem({});
+                }}
+                className="p-3 bg-green-50 hover:bg-green-100 rounded-lg border border-green-200 
+                transition-colors flex items-center justify-center gap-2 text-green-700 font-medium"
+              >
+
+                <span className="text-xl">+</span><span>New Knowledge-based Prompt</span><FaDatabase className="text-sm" />
+              </button>
+            </div>
 
             {/* Existing search input */}
             <div className="relative">
@@ -226,27 +294,46 @@ const AIRefinement = ({ onBack }) => {
                   key={item.id}
                   className="relative group"
                 >
-                  <button
-                    onClick={() => fetchPromptingDetails(item.prompt_id)}
-                    className="w-full p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-200 text-left"
-                  >
-                    <h3 className="font-medium text-lg">{item.name}</h3>
-                    <div className="text-sm text-gray-500 mt-1">
-                      Created: {new Date(item.timestamp).toLocaleDateString()}
-                      {item.lastModified && (
-                        <span className="ml-4">
-                          Last modified: {new Date(item.lastModified).toLocaleDateString()}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                  <button
-                    onClick={(e) => handleDeletePrompt(item.prompt_id, e)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-500 hover:text-red-700"
-                    title="Delete prompt"
-                  >
-                    <FaTrash />
-                  </button>
+                  <div className="w-full p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-200 text-left relative">
+                    <button
+                      onClick={() => fetchPromptingDetails(item.prompt_id)}
+                      className="w-full text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-lg flex-grow">{item.name}</h3>
+                        {/* Add a badge to indicate knowledge-based prompts if known */}
+                        {item.is_rag_prompt && (
+                          <span className="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full flex items-center gap-1 whitespace-nowrap">
+                            <FaDatabase className="text-xs" /> Knowledge-based
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        Created: {new Date(item.timestamp).toLocaleDateString()}
+                        {item.lastModified && (
+                          <span className="ml-4">
+                            Last modified: {new Date(item.lastModified).toLocaleDateString()}
+                          </span>
+                        )}
+                        {/* Display vector store name if it exists */}
+                        {item.vector_store_id && vectorStores[item.vector_store_id] && (
+                          <span className="ml-4 inline-flex items-center gap-1 text-green-600">
+                            <FaDatabase className="text-xs" />
+                            {vectorStores[item.vector_store_id]}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+
+                    {/* Delete button positioned in the top right */}
+                    <button
+                      onClick={(e) => handleDeletePrompt(item.prompt_id, e)}
+                      className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-500 hover:text-red-700 bg-white rounded-full hover:bg-red-50"
+                      title="Delete prompt"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -298,6 +385,8 @@ const AIRefinement = ({ onBack }) => {
                   <button
                     onClick={() => {
                       setSourceView('templates');  // Track that we came from templates
+                      // Default to AIPrompting for templates
+                      setPromptType('default');
                       setSelectedItem({
                         items: [{
                           id: Date.now().toString(),

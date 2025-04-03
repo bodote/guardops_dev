@@ -38,11 +38,21 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
     const [saveTitle, setSaveTitle] = useState('');
     const [showSaveDialog, setShowSaveDialog] = useState(false);
 
+    // Add job tracking state
+    const [optimizationJobId, setOptimizationJobId] = useState(null);
+    const [optimizationProgress, setOptimizationProgress] = useState(0);
+
     const testModelRefs = useRef(new Map());
 
     const [testContext, setTestContext] = useState('');
     const [vectorStores, setVectorStores] = useState([]);
-    const [selectedVectorStore, setSelectedVectorStore] = useState('');
+    const [selectedVectorStore, setSelectedVectorStore] = useState(() => {
+        // If we have initialData with a vector store ID, use it
+        if (initialData?.vector_store_id) {
+            return initialData.vector_store_id;
+        }
+        return null;
+    });
     const [vectorStoreSearch, setVectorStoreSearch] = useState('');
     const [chromaCollectionName, setChromaCollectionName] = useState("");
 
@@ -112,6 +122,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
 
     useEffect(() => {
         if (initialData?.items) {
+            console.log("this initial data", initialData)
             // Transform the data from snake_case to camelCase
             const transformedItems = initialData.items.map(item => ({
                 id: item.id,
@@ -288,10 +299,20 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
 
     const handleAutoSave = async () => {
         try {
+            // Debug log to check validation data
+            console.log("Auto-saving with validation data:", {
+                validationScore,
+                validationDetailsLength: validationDetails?.length
+            });
+
+            // Make sure latestItem has the most recent validation data
             const latestItem = {
                 ...promptHistory.items[0],
-                generatedPrompt: generatedPrompt
+                generatedPrompt: generatedPrompt,
+                validationScore: validationScore,
+                validationDetails: validationDetails
             };
+
             const defaultTitle = latestItem?.userInput?.slice(0, 50) || 'New Prompt History';
 
             if (!currentPromptId) {
@@ -303,6 +324,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                     },
                     body: JSON.stringify({
                         name: defaultTitle,
+                        vector_store_id: selectedVectorStore // Add vector store ID to prompt creation
                     })
                 });
 
@@ -366,6 +388,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                     body: JSON.stringify({
                         prompt_id: currentPromptId,
                         name: defaultTitle,
+                        vector_store_id: selectedVectorStore // Add vector store ID to prompt update
                     })
                 });
 
@@ -383,19 +406,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                         prompt_id: currentPromptId,
                         items: [
                             { ...latestItem },
-                            ...promptHistory.items.slice(1).map(item => ({
-                                id: item.id,
-                                parentId: item.parentId,
-                                name: item.name,
-                                timestamp: item.timestamp,
-                                userInput: item.userInput,
-                                generatedPrompt: item.generatedPrompt,
-                                selectedModels: Array.isArray(item.selectedModels) ? item.selectedModels : [],
-                                testContext: item.testContext || '',
-                                testResults: item.testResults || {},
-                                validationScore: item.validationScore || null,
-                                validationDetails: item.validationDetails || []
-                            }))
+                            ...promptHistory.items.slice(1)
                         ]
                     })
                 });
@@ -433,6 +444,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                     },
                     body: JSON.stringify({
                         name: saveTitle,
+                        vector_store_id: selectedVectorStore // Add vector store ID to prompt creation
                     })
                 });
 
@@ -444,8 +456,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                 promptId = promptData.data; // Extract the ID from the response data
                 setCurrentPromptId(promptId);
 
-
-                // Initial save of prompt details
+                // Initial save of prompt details with updated validation data
                 const detailsResponse = await fetch('/api/prompting', {
                     method: 'POST',
                     headers: {
@@ -453,18 +464,18 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                     },
                     body: JSON.stringify({
                         prompt_id: promptId,
-                        items: promptHistory.items.map(item => ({
+                        items: promptHistory.items.map((item, index) => ({
                             id: item.id,
                             parentId: item.parentId,
                             name: item.name,
                             timestamp: item.timestamp,
                             userInput: item.userInput,
-                            generatedPrompt: item.generatedPrompt,
+                            generatedPrompt: index === 0 ? generatedPrompt : item.generatedPrompt,
                             selectedModels: Array.isArray(item.selectedModels) ? item.selectedModels : [],
                             testContext: item.testContext || '',
                             testResults: item.testResults || {},
-                            validationScore: item.validationScore || null,
-                            validationDetails: item.validationDetails || []
+                            validationScore: index === 0 ? validationScore : (item.validationScore || null),
+                            validationDetails: index === 0 ? validationDetails : (item.validationDetails || [])
                         }))
                     })
                 });
@@ -482,6 +493,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                     body: JSON.stringify({
                         prompt_id: promptId,
                         name: saveTitle,
+                        vector_store_id: selectedVectorStore // Add vector store ID to prompt update
                     })
                 });
 
@@ -497,19 +509,7 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                     },
                     body: JSON.stringify({
                         prompt_id: promptId,
-                        items: promptHistory.items.map(item => ({
-                            id: item.id,
-                            parentId: item.parentId,
-                            name: item.name,
-                            timestamp: item.timestamp,
-                            userInput: item.userInput,
-                            generatedPrompt: item.generatedPrompt,
-                            selectedModels: Array.isArray(item.selectedModels) ? item.selectedModels : [],
-                            testContext: item.testContext || '',
-                            testResults: item.testResults || {},
-                            validationScore: item.validationScore || null,
-                            validationDetails: item.validationDetails || []
-                        }))
+                        items: promptHistory.items
                     })
                 });
 
@@ -832,8 +832,14 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
     };
 
     const handleStopGeneration = () => {
+        // Clear any job state if there is one
+        if (optimizationJobId) {
+            cancelOptimizationJob(optimizationJobId);
+            setOptimizationJobId(null);
+        }
+
         setIsGenerating(false);
-        setStreamIndex(0);
+
         if (abortController) {
             abortController.abort();
             setAbortController(null);
@@ -880,115 +886,56 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
             return;
         }
 
+        // Don't start a new job if one is already in progress
+        if (optimizationJobId) {
+            toast.info("An optimization job is already in progress");
+            return;
+        }
+
         // Set the ref to prevent automatic updates during submission
         isSubmittingRef.current = true;
 
         try {
-            // ===== 1. Capture the current values at the start of the process =====
-            const capturedUserInput = userInput; // Capture the current user input
-            const currentHistoryItem = selectedHistoryItem; // Capture the currently selected history item
+            // Capture current values
+            const capturedUserInput = userInput;
+            const currentHistoryItem = selectedHistoryItem;
 
-            // Store a copy of the current history items with their original inputs
-            const originalHistoryItems = promptHistory.items.map(item => ({
-                ...item,
-                originalUserInput: item.userInput // Preserve original inputs
-            }));
-
-            // ===== 2. Create a new history item if in auto history mode =====
+            // Create or update history item
             let targetHistoryItem;
 
             if (autoHistory) {
-                // Create a new history item with the captured input
+                // Create a new history item
                 const newHistoryItem = {
                     id: uuidv4(),
                     parentId: currentHistoryItem?.id || null,
                     name: capturedUserInput.slice(0, 50) || 'New Iteration',
                     timestamp: new Date().toISOString(),
-                    userInput: capturedUserInput, // Use the captured input
-                    generatedPrompt: '', // Will be filled later
-                    selectedModels: selectedModels.map(model =>
-                        typeof model === 'string' ? model : model.model_id
-                    ),
-                    testContext: testContext || '',
+                    userInput: capturedUserInput,
+                    generatedPrompt: '',
+                    selectedModels: [],
+                    testContext: '',
                     testResults: {},
                     validationScore: null,
                     validationDetails: [],
-                    isGenerating: true
+                    vectorStore: selectedVectorStore
                 };
 
-                // Insert the new item at the appropriate position, ensuring previous items keep their original input
-                let updatedItems;
-                if (currentHistoryItem?.id) {
-                    const updatedHistory = [...originalHistoryItems];
-                    const insertIndex = findLastBranchIndex(currentHistoryItem.id, updatedHistory) + 1;
-                    updatedHistory.splice(insertIndex, 0, newHistoryItem);
+                // Add to history
+                setPromptHistory(prev => ({
+                    ...prev,
+                    items: [newHistoryItem, ...prev.items]
+                }));
 
-                    // Restore original inputs and remove the temporary originalUserInput property
-                    updatedItems = updatedHistory.map(item => {
-                        if (item.id !== newHistoryItem.id && item.originalUserInput !== undefined) {
-                            return {
-                                ...item,
-                                userInput: item.originalUserInput,
-                                originalUserInput: undefined
-                            };
-                        }
-                        return item;
-                    });
-                } else {
-                    // Restore original inputs and remove the temporary originalUserInput property
-                    const preservedItems = originalHistoryItems.map(item => ({
-                        ...item,
-                        userInput: item.originalUserInput,
-                        originalUserInput: undefined
-                    }));
-
-                    updatedItems = [newHistoryItem, ...preservedItems];
-                }
-
-                // Update the history with the new item
-                setPromptHistory(prev => {
-                    // First create a new history state that preserves all original inputs
-                    const preservedItems = prev.items.map(item => ({
-                        ...item,
-                        // Ensure each item keeps its own userInput unchanged
-                        userInput: item.originalUserInput || item.userInput
-                    }));
-
-                    let newItems;
-                    if (updatedItems) {
-                        // Use our prepared items array that has originalUserInput handling
-                        newItems = updatedItems;
-                    } else {
-                        // For manual mode or other cases
-                        newItems = preservedItems;
-                    }
-
-                    return {
-                        ...prev,
-                        items: newItems
-                    };
-                });
-
-                // Set this as our target for the API results
                 targetHistoryItem = newHistoryItem;
-
-                // Update UI state to match the new item
-                setUserInput(capturedUserInput);
-                setGeneratedPrompt('');
-                setValidationScore(null);
-                setValidationDetails([]);
-
-                // Select the new history item
                 setSelectedHistoryItem(newHistoryItem);
-                setPendingHistoryItem(newHistoryItem);
             } else {
-                // In manual mode, just update the current item
+                // Update existing item
                 if (currentHistoryItem) {
                     const updatedItem = {
                         ...currentHistoryItem,
                         userInput: capturedUserInput,
                         name: capturedUserInput.slice(0, 50) || currentHistoryItem.name,
-                        isGenerating: true
+                        vectorStore: selectedVectorStore
                     };
 
                     setPromptHistory(prev => ({
@@ -1000,74 +947,83 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
 
                     targetHistoryItem = updatedItem;
                     setSelectedHistoryItem(updatedItem);
-                    setPendingHistoryItem(updatedItem);
                 }
             }
 
-            // ===== 3. Start the generation process =====
+            // Start the optimization process
             setIsGenerating(true);
-            const controller = new AbortController();
-            setAbortController(controller);
+            toast.info("Starting RAG prompt optimization...");
 
-            const response = await fetch('/api/prompting/list/optimizer/rag', {
+            const response = await fetch('/api/optimize_rag_prompt', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     store_id: selectedVectorStore,
-                    target_behavior: capturedUserInput
-                }),
-                signal: controller.signal
+                    target_behavior: capturedUserInput,
+                    item_id: targetHistoryItem?.id
+                })
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Request failed: ${response.status}`);
             }
 
             const data = await response.json();
-            const result = data.data;
 
-            // ===== 4. Update the target history item with the results =====
-            if (targetHistoryItem) {
-                const updatedItem = {
-                    ...targetHistoryItem,
-                    generatedPrompt: result.optimized_prompt,
-                    validationScore: result.validation_score,
-                    validationDetails: result.validation_details || [],
-                    sampleContexts: result.sample_context_used,
-                    vectorStore: selectedVectorStore,
-                    isGenerating: false,
-                    userInput: capturedUserInput // Ensure input is preserved
-                };
+            // Check if we received a task ID (async processing)
+            if (data.task_id) {
+                const jobId = data.task_id;
+                setOptimizationJobId(jobId);
 
-                // Update the history
-                setPromptHistory(prev => ({
-                    ...prev,
-                    items: prev.items.map(item =>
-                        item.id === targetHistoryItem.id ? updatedItem : item
-                    )
-                }));
+                // Store job ID with history item
+                if (targetHistoryItem) {
+                    setPromptHistory(prev => ({
+                        ...prev,
+                        items: prev.items.map(item =>
+                            item.id === targetHistoryItem.id
+                                ? { ...item, optimizationJobId: jobId }
+                                : item
+                        )
+                    }));
+                }
 
-                // Update the selected item
-                setSelectedHistoryItem(updatedItem);
-                setPendingHistoryItem(updatedItem);
+                // Start polling for results
+                const intervalId = startPollingForResults(jobId);
+            } else {
+                // We got immediate results (unlikely for RAG)
+                setIsGenerating(false);
 
-                // Update the UI state
-                setGeneratedPrompt(result.optimized_prompt);
-                setValidationScore(result.validation_score);
-                setValidationDetails(result.validation_details || []);
+                // Update with results
+                setGeneratedPrompt(data.optimized_prompt);
+                setValidationScore(data.validation_score);
+                setValidationDetails(data.validation_details || []);
+
+                // Update history item
+                if (targetHistoryItem) {
+                    const updatedItem = {
+                        ...targetHistoryItem,
+                        generatedPrompt: data.optimized_prompt,
+                        validationScore: data.validation_score,
+                        validationDetails: data.validation_details || [],
+                    };
+
+                    setPromptHistory(prev => ({
+                        ...prev,
+                        items: prev.items.map(item =>
+                            item.id === targetHistoryItem.id ? updatedItem : item
+                        )
+                    }));
+
+                    setSelectedHistoryItem(updatedItem);
+                }
             }
         } catch (error) {
-            if (error.name !== 'AbortError') {
-                console.error('Error:', error);
-                toast.error(error.message || 'Failed to generate prompt');
-            }
-        } finally {
+            console.error("Error:", error);
             setIsGenerating(false);
-            setAbortController(null);
-
-            // Reset the submission ref
+            toast.error(error.message || "Failed to start optimization");
+        } finally {
             isSubmittingRef.current = false;
         }
     };
@@ -1220,6 +1176,222 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
             setIsTestingPrompt(false);
         }
     }, []);
+
+    // Add effect to cancel job on unmount or navigation
+    useEffect(() => {
+        // Store current job ID to be used in cleanup
+        const currentJobId = optimizationJobId;
+
+        // Cleanup function to cancel job when unmounting
+        return () => {
+            // Only cancel if component is unmounting AND we have a job ID
+            // By checking against the current value from closure, we avoid canceling
+            // when the job ID changes to null due to successful completion
+            if (currentJobId && optimizationJobId === currentJobId) {
+                console.log("Component unmounting, cancelling job:", currentJobId);
+                cancelOptimizationJob(currentJobId);
+            }
+        };
+    }, []);  // Empty dependency array - only run on mount/unmount
+
+    // Function to cancel a job
+    const cancelOptimizationJob = async (jobId) => {
+        try {
+            await fetch(`/api/optimize_rag_prompt/cancel/${jobId}`, {
+                method: 'POST',
+            });
+            console.log("Cancellation request sent for job:", jobId);
+        } catch (err) {
+            console.error("Failed to cancel job:", err);
+        }
+    };
+
+    // Function to start polling for results
+    const startPollingForResults = (jobId) => {
+        // Track poll count for debugging
+        let pollCount = 0;
+
+        // Create a polling interval
+        const intervalId = setInterval(async () => {
+            try {
+                pollCount++;
+                console.log(`Poll #${pollCount} for job status:`, jobId);
+
+                const response = await fetch(`/api/optimize_rag_prompt/status/${jobId}`);
+
+                // Check status and log raw response
+                console.log(`Poll #${pollCount} status code:`, response.status);
+
+                if (!response.ok) {
+                    console.error("Error checking job status:", response.statusText);
+                    return;
+                }
+
+                // Clone the response and get text for logging
+                const responseClone = response.clone();
+                const rawResponseText = await responseClone.text();
+                console.log(`Poll #${pollCount} raw response:`, rawResponseText);
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (error) {
+                    console.error(`Error parsing JSON on poll #${pollCount}:`, error, "Raw text:", rawResponseText);
+                    return;
+                }
+
+                console.log(`Poll #${pollCount} parsed data:`, data);
+
+                // Fake progress updates
+                setOptimizationProgress(prev => {
+                    const newProgress = Math.min(prev + 5, 95);
+                    return newProgress;
+                });
+
+                if (data.status === "completed") {
+                    console.log(`Job completed on poll #${pollCount}:`, jobId);
+                    clearInterval(intervalId);
+                    setOptimizationProgress(100);
+                    setOptimizationJobId(null);
+
+                    // Process the results - data has the fields directly, not inside a result object
+                    console.log("Job completed result:", data);
+
+                    // Update UI with results - using the correct structure
+                    setGeneratedPrompt(data.optimized_prompt);
+                    setValidationScore(data.validation_score);
+                    setValidationDetails(data.validation_details || []);
+                    setIsGenerating(false);
+
+                    // Update history item
+                    if (selectedHistoryItem) {
+                        const updatedItem = {
+                            ...selectedHistoryItem,
+                            generatedPrompt: data.optimized_prompt,
+                            validationScore: data.validation_score,
+                            validationDetails: data.validation_details || [],
+                            optimizationJobId: null
+                        };
+
+                        // Update history
+                        setPromptHistory(prev => ({
+                            ...prev,
+                            items: prev.items.map(item =>
+                                item.id === selectedHistoryItem.id ? updatedItem : item
+                            )
+                        }));
+
+                        setSelectedHistoryItem(updatedItem);
+                    }
+
+                    toast.success("RAG prompt optimization complete!");
+                } else if (data.status === "failed" || data.status === "cancelled") {
+                    console.log(`Job ${data.status} on poll #${pollCount}:`, jobId);
+                    clearInterval(intervalId);
+                    setOptimizationProgress(0);
+                    setOptimizationJobId(null);
+                    setIsGenerating(false);
+
+                    const errorMessage = data.error || "RAG optimization failed";
+                    toast.error(errorMessage);
+                } else {
+                    console.log(`Job still processing on poll #${pollCount}, status:`, data.status);
+
+                    // Just to be safe: If we're on poll #10, set a backup timer to check again later
+                    if (pollCount === 10) {
+                        console.log("Setting a backup check after poll #10");
+                        setTimeout(() => {
+                            // Check if job is still active
+                            if (optimizationJobId === jobId) {
+                                console.log("Backup check triggered. Job still active, restarting polling...");
+                                startPollingForResults(jobId); // Restart polling
+                            }
+                        }, 10000); // Check again after 10 seconds
+                    }
+                }
+            } catch (error) {
+                console.error(`Error on poll #${pollCount}:`, error);
+            }
+        }, 5000); // Poll every 5 seconds
+
+        // Set a maximum polling time (30 minutes)
+        setTimeout(() => {
+            console.log(`Maximum polling time reached after ${pollCount} polls, clearing interval:`, intervalId);
+            clearInterval(intervalId);
+            if (optimizationJobId) {
+                setOptimizationProgress(0);
+                setIsGenerating(false);
+                toast.info("Optimization is taking longer than expected. Check back later for results.");
+            }
+        }, 30 * 60 * 1000);
+
+        console.log("Started polling for job:", jobId, "with interval ID:", intervalId);
+        return intervalId;
+    };
+
+    useEffect(() => {
+        // Check for in-progress jobs related to the current history item
+        const checkForActiveJobs = async () => {
+            if (selectedHistoryItem?.optimizationJobId) {
+                try {
+                    const jobId = selectedHistoryItem.optimizationJobId;
+                    console.log("Checking for active job:", jobId);
+
+                    const response = await fetch(`/api/optimize_rag_prompt/status/${jobId}`);
+
+                    if (!response.ok) {
+                        console.error("Error checking job status:", response.statusText);
+                        return;
+                    }
+
+                    const data = await response.json();
+                    console.log("Active job status response:", data);
+
+                    // If job is still processing, resume polling
+                    if (data.status === "processing") {
+                        console.log("Resuming processing job:", jobId);
+                        setOptimizationJobId(jobId);
+                        setIsGenerating(true);
+                        toast.info("Resuming RAG prompt optimization that was in progress...");
+                        startPollingForResults(jobId);
+                    }
+                    // If job completed while we were away, fetch the results
+                    else if (data.status === "completed") {
+                        console.log("Found completed job:", jobId);
+                        // Update with the results - data structure contains fields directly
+                        setGeneratedPrompt(data.optimized_prompt);
+                        setValidationScore(data.validation_score);
+                        setValidationDetails(data.validation_details || []);
+
+                        // Update the history item
+                        const updatedItem = {
+                            ...selectedHistoryItem,
+                            generatedPrompt: data.optimized_prompt,
+                            validationScore: data.validation_score,
+                            validationDetails: data.validation_details || [],
+                            optimizationJobId: null // Clear the job ID
+                        };
+
+                        setPromptHistory(prev => ({
+                            ...prev,
+                            items: prev.items.map(item =>
+                                item.id === selectedHistoryItem.id ? updatedItem : item
+                            )
+                        }));
+
+                        setSelectedHistoryItem(updatedItem);
+                        setPendingHistoryItem(updatedItem);
+                        toast.success("RAG prompt optimization completed successfully!");
+                    }
+                } catch (error) {
+                    console.error("Error checking for active jobs:", error);
+                }
+            }
+        };
+
+        checkForActiveJobs();
+    }, [selectedHistoryItem]);
+
     return (
         <div className="max-w-7xl mx-auto mt-8">
             {/* Header with Back button only */}
@@ -1456,30 +1628,61 @@ const RAGPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) =>
                             <div className="absolute -top-[1.75rem] left-0 text-sm text-gray-500">
                                 Generated Prompt
                             </div>
-                            <button
-                                onClick={() => setShowPromptOverlay(true)}
-                                className="w-full text-left relative border-l border-gray-300 bg-green-50 p-4 rounded-r-md font-mono h-[200px] overflow-y-auto hover:bg-green-100 transition-colors group"
-                            >
-                                <div className="flex flex-col">
-                                    {/* Render the full generated prompt */}
-                                    <div>{generatedPrompt}</div>
-                                    {/* Optionally, show a spinner if needed */}
-                                    {isGenerating && (
-                                        <div className="flex items-center gap-2 text-gray-500 mt-2">
-                                            <div className="animate-spin w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full"></div>
-                                            <span>Thinking...</span>
-                                        </div>
-                                    )}
-                                </div>
 
-                                {/* Edit indicator */}
-                                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <div className="flex items-center gap-2 text-sm text-green-700 bg-green-200 px-3 py-1.5 rounded">
-                                        <FaPencilAlt className="w-3 h-3" />
-                                        <span>View/Edit</span>
+                            {isGenerating ? (
+                                <div className="w-full text-left relative border-l border-gray-300 bg-yellow-50 p-4 rounded-r-md font-mono h-[200px] overflow-y-auto">
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div>
+                                        <h3 className="text-lg font-medium text-gray-800 mb-2">Optimizing RAG Prompt</h3>
+                                        <p className="text-sm text-gray-600 text-center mb-3">
+                                            This process typically takes 2-5 minutes to complete.
+                                        </p>
+
+                                        {/* Progress bar */}
+                                        <div className="w-full max-w-md bg-gray-200 rounded-full h-2.5 mb-2">
+                                            <div
+                                                className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
+                                                style={{ width: `${optimizationProgress}%` }}>
+                                            </div>
+                                        </div>
+
+                                        {optimizationJobId && (
+                                            <button
+                                                onClick={() => {
+                                                    if (window.confirm("Are you sure you want to cancel the optimization?")) {
+                                                        cancelOptimizationJob(optimizationJobId);
+                                                        setOptimizationJobId(null);
+                                                        setIsGenerating(false);
+                                                        setOptimizationProgress(0);
+                                                        toast.info("Optimization cancelled");
+                                                    }
+                                                }}
+                                                className="mt-4 px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 text-sm"
+                                            >
+                                                Cancel Optimization
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
-                            </button>
+                            ) : (
+                                <button
+                                    onClick={() => setShowPromptOverlay(true)}
+                                    className="w-full text-left relative border-l border-gray-300 bg-green-50 p-4 rounded-r-md font-mono h-[200px] overflow-y-auto hover:bg-green-100 transition-colors group"
+                                >
+                                    <div className="flex flex-col">
+                                        {/* Render the full generated prompt */}
+                                        <div>{generatedPrompt}</div>
+                                    </div>
+
+                                    {/* Edit indicator */}
+                                    <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-2 text-sm text-green-700 bg-green-200 px-3 py-1.5 rounded">
+                                            <FaPencilAlt className="w-3 h-3" />
+                                            <span>View/Edit</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            )}
                         </div>
                     </div>
 

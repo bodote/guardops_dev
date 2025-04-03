@@ -14,6 +14,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
+import { FaRobot, FaBrain, FaServer, FaDatabase, FaCloud } from "react-icons/fa";
 import styles from "@/styles/TextHighlighter.module.css";
 import { Tooltip } from "react-tooltip";
 import { AnimatePresence, motion } from "framer-motion";
@@ -516,8 +517,12 @@ const Chat_version = forwardRef(({
 
 
   const handleSelect = (model) => {
+    // Update local state
     setSelected(model);
-    setSelectedModel(model);
+    // Only update parent state for this specific component instance
+    if (setSelectedModel) {
+      setSelectedModel(model);
+    }
   };
   const handleEditMessage = (id, currentContent) => {
     setEditMessageId(id);
@@ -564,14 +569,63 @@ const Chat_version = forwardRef(({
     setEditMessageId(null);
     setEditedMessageContent('');
   };
+  // Store provider names
+  const [providerNames, setProviderNames] = useState({});
+
+  // Fetch custom provider names
+  useEffect(() => {
+    const fetchCustomProviderNames = async () => {
+      try {
+        const response = await fetch('/api/customProviders');
+        const { data } = await response.json();
+
+        if (data.custom_providers) {
+          const newProviderNames = {};
+          data.custom_providers.forEach(provider => {
+            newProviderNames[provider.provider_id] = provider.name;
+          });
+          setProviderNames(newProviderNames);
+        }
+      } catch (error) {
+        console.error("Failed to fetch provider details:", error);
+      }
+    };
+
+    fetchCustomProviderNames();
+  }, []);
+
+  // Get provider display name helper function
+  const getProviderDisplayName = (provider) => {
+    if (!provider) return "";
+
+    // If it's a UUID-format provider (contains hyphen)
+    if (provider.includes('-')) {
+      return providerNames[provider] || "Custom Provider";
+    }
+
+    // Return regular provider name
+    return provider;
+  };
+
   const filteredModels = models
     .filter((model) => {
       const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
+      if (!trimmedSearchModel) return true; // Show all if no search term
+
       const regex = new RegExp(trimmedSearchModel, "gi");
+
+      // Search by model name
       const trimmedModelName = model.name
         .replace(/[^\w\s]/g, "")
         .replace(/\s+/g, "");
-      return trimmedModelName.match(regex);
+
+      // Search by provider name
+      const trimmedProviderName = (model.provider || "")
+        .replace(/[^\w\s]/g, "")
+        .replace(/\s+/g, "");
+
+      // Return true if either model name or provider matches
+      return trimmedModelName.match(regex) || trimmedProviderName.match(regex);
     })
     .sort((a, b) => {
       const nameA = a.name.toUpperCase(); // ignore upper and lowercase
@@ -584,7 +638,6 @@ const Chat_version = forwardRef(({
       }
       return 0; // names must be equal
     });
-
 
   // Load API key from Local Storage
   useEffect(() => {
@@ -736,23 +789,46 @@ const Chat_version = forwardRef(({
               <Listbox value={selected} onChange={handleSelect}>
                 {({ open }) => (
                   <>
-                    <div className="relative">
+                    <div
+                      className={classNames(
+                        columnCount > 2 ? "" : "w-full ",
+                        "Listbox-container"
+                      )}
+                    >
                       <Listbox.Button
-                        className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${columnCount > 2 ? "sm:!w-[130px]" : ""
-                          }`}
+                        className={classNames(
+                          "relative flex items-center w-[220px] h-10 bg-white text-[12px] border-2 border-gray-200 rounded-md py-1 pl-3 pr-10 text-left focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-offset-blue-300 overflow-hidden cursor-pointer",
+                          columnCount > 2 ? "h-8 w-full" : ""
+                        )}
                       >
-                        <span className="flex items-center">
-                          <span className=" block truncate pr-[20px]">
-                            {selected?.name}
-                          </span>
+                        <span
+                          className={classNames(
+                            "block truncate",
+                            columnCount && "text-[10px]"
+                          )}
+                        >
+                          {selected?.name ? (
+                            <div className="flex items-center gap-1 truncate">
+                              <span className={`flex items-center justify-center w-4 h-4 rounded-full ${selected.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
+                                <FaDatabase size={8} />
+                              </span>
+                              <span className="truncate">
+                                {selected.name}
+                              </span>
+
+                              {selected.provider && (
+                                <span className="text-[10px] text-gray-500 ml-1">
+                                  {getProviderDisplayName(selected.provider)}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span>Select a Model</span>
+                          )}
                         </span>
-                        <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                           <MdKeyboardArrowUp
-                            className={
-                              open
-                                ? "h-5 w-5 text-gray-400 rotate-[0]"
-                                : "h-5 w-5 text-gray-400 rotate-[180deg]"
-                            }
+                            className="h-4 w-4 text-gray-400"
                             aria-hidden="true"
                           />
                         </span>
@@ -765,16 +841,14 @@ const Chat_version = forwardRef(({
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                       >
-                        <Listbox.Options className="absolute z-10 w-full bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg xl: w-[180px] max-w-[400px] max-h-[700px] h-[230px] overflow-auto resize">
-                          <div className="bg-white sticky top-0 z-[9] p-1"
-                          >
+                        <Listbox.Options className="absolute z-10 mt-1 bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg w-[280px] max-h-[700px] overflow-auto resize">
+                          <div className="bg-white sticky top-0 z-[9] p-1">
                             <input
                               type="text"
-                              className="border-b border-gray-300 focus:outline-none px-2 py-1 w-[97%] bg-white rounded-[6px] ml-[4px] mt-[3px]"
-                              placeholder="Search..."
+                              className="border-b border-gray-300 focus:outline-none px-2 py-1 w-full bg-white rounded-[6px] text-xs"
+                              placeholder="Search by model or provider..."
                               value={searchModel}
                               onChange={(e) => setSearchModel(e.target.value)}
-
                             />
                           </div>
                           {filteredModels.map((model) => (
@@ -784,9 +858,9 @@ const Chat_version = forwardRef(({
                               className={({ active }) =>
                                 classNames(
                                   active
-                                    ? "bg-[#f0efef]  rounded-[6px]"
+                                    ? "bg-[#f0efef] rounded-[6px]"
                                     : "text-[#000]",
-                                  "relative cursor-default select-none lg:py-2 py-1 px-[10px]"
+                                  "relative cursor-default select-none py-2 px-[8px] border-b border-gray-200 last:border-b-0 hover:bg-[#f0efef]"
                                 )
                               }
                               value={model}
@@ -794,19 +868,41 @@ const Chat_version = forwardRef(({
                               onMouseLeave={() => setTooltipData({})}
                             >
                               <div
-                                className="flex items-center tooltip-main"
+                                className="flex flex-col tooltip-main"
                                 data-tooltip-id={`my-tooltip-${model.model_id}`}
                               >
-                                <span
-                                  className={classNames(
-                                    selected
-                                      ? "text-[#656565] text-[12px] font-Inter font-medium"
-                                      : "font-normal",
-                                    "block truncate"
+                                <div className="flex justify-between items-center w-full">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`flex items-center justify-center w-4 h-4 rounded-full ${model.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
+                                      <FaBrain size={8} />
+                                    </span>
+                                    <span
+                                      className={classNames(
+                                        "text-[13px] font-Inter font-medium",
+                                        "block truncate"
+                                      )}
+                                    >
+                                      {model.name}
+                                    </span>
+                                  </div>
+                                  {model.provider && (
+                                    <span className="text-[10px] text-gray-500 px-1.5 py-0.5 bg-gray-100 rounded-full">
+                                      {getProviderDisplayName(model.provider)}
+                                    </span>
                                   )}
-                                >
-                                  {model.name}
-                                </span>
+                                </div>
+                                {model.model_description && (
+                                  <span className="text-[10px] text-gray-500 mt-0.5 line-clamp-1 ml-5">
+                                    {model.model_description}
+                                  </span>
+                                )}
+                                <div className="flex gap-2 mt-1 ml-5">
+                                  {model.multimodal && (
+                                    <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px]">
+                                      Multimodal
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </Listbox.Option>
                           ))}
