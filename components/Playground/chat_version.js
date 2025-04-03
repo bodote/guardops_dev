@@ -14,7 +14,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
-import { FaRobot, FaBrain, FaServer, FaDatabase, FaCloud } from "react-icons/fa";
+import { FaRobot, FaBrain, FaServer, FaDatabase, FaCloud, FaLock, FaUnlock } from "react-icons/fa";
 import styles from "@/styles/TextHighlighter.module.css";
 import { Tooltip } from "react-tooltip";
 import { AnimatePresence, motion } from "framer-motion";
@@ -28,6 +28,139 @@ import { toast } from "react-toastify";
 const hljs = require('highlight.js/lib/common');
 import { useChat } from 'ai/react';
 import FileSource from "./FileSource";
+
+// Modal component for API key display/input
+const ApiKeyModal = ({ isOpen, onClose, provider, providerNames }) => {
+  if (!isOpen) return null;
+
+  const [showPassword, setShowPassword] = useState(false);
+  const modalRef = useRef(null);
+
+  // Handle clicking outside the modal content
+  const handleOverlayClick = (e) => {
+    // Ensure this is the direct overlay click, not a bubbled event
+    if (e.target === e.currentTarget && modalRef.current && !modalRef.current.contains(e.target)) {
+      onClose();
+    }
+  };
+
+  // Get the key name based on the provider
+  const getKeyName = (provider) => {
+    if (!provider) return null;
+
+    // For custom providers with UUID
+    if (provider.includes('-')) {
+      return provider;
+    }
+
+    // For standard providers
+    const keyMapping = {
+      "openai": "openAIKey",
+      "anthropic": "anthropicKey",
+      "fireworks.ai": "fireworksAIKey",
+      "google": "googleKey",
+      "cohere": "cohereKey",
+      "mistral": "mistralKey",
+      "together.ai": "togetherKey",
+      "perplexity.ai": "perplexityKey",
+      "custom": "customAIKey"
+    };
+
+    return keyMapping[provider.toLowerCase()] || null;
+  };
+
+  // Get display name for the provider
+  const getDisplayName = (provider) => {
+    if (provider?.includes('-')) {
+      return providerNames[provider] || "Custom Provider";
+    }
+    return provider;
+  };
+
+  const keyName = getKeyName(provider);
+  const storedKey = keyName ? localStorage.getItem(keyName) || "" : "";
+  const [inputValue, setInputValue] = useState(storedKey);
+  const displayName = getDisplayName(provider);
+
+  const saveKey = () => {
+    if (keyName) {
+      localStorage.setItem(keyName, inputValue);
+      // Dispatch a storage event so other components know localStorage changed
+      window.dispatchEvent(new Event('storage'));
+      toast.success("API key saved successfully");
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={handleOverlayClick}
+    >
+      <div
+        ref={modalRef}
+        className="bg-white rounded-lg p-6 max-w-md w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-medium">{displayName} API Key</h2>
+          <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="text-gray-500 hover:text-gray-700">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Enter your {displayName} API key
+          </label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              onClick={(e) => { e.stopPropagation(); setShowPassword(!showPassword); }}
+            >
+              {showPassword ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
+                  <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={saveKey}
+            className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -607,6 +740,102 @@ const Chat_version = forwardRef(({
     return provider;
   };
 
+  // Check if API key exists for a provider
+  const hasApiKey = (provider) => {
+    if (!provider) return false;
+
+    // For custom providers with UUID
+    if (provider.includes('-')) {
+      return !!localStorage.getItem(provider);
+    }
+
+    // For standard providers
+    const keyMapping = {
+      "openai": "openAIKey",
+      "anthropic": "anthropicKey",
+      "fireworks.ai": "fireworksAIKey",
+      "google": "googleKey",
+      "cohere": "cohereKey",
+      "mistral": "mistralKey",
+      "together.ai": "togetherKey",
+      "perplexity.ai": "perplexityKey",
+      "custom": "customAIKey"
+    };
+
+    const keyName = keyMapping[provider.toLowerCase()] || null;
+    return keyName ? !!localStorage.getItem(keyName) : false;
+  };
+
+  // State for API key overlay modal
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [storageChanged, setStorageChanged] = useState(0);
+  // State to control dropdown open/close
+  const [forceDropdownOpen, setForceDropdownOpen] = useState(false);
+
+  // Listen for localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setStorageChanged(prev => prev + 1);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Also update storage changed when modal closes (after saving a key)
+  const handleModalClose = () => {
+    setShowKeyModal(false);
+    setForceDropdownOpen(false);
+    setStorageChanged(prev => prev + 1);
+  };
+
+  // Handle click on the lock icon
+  const handleLockClick = (e, provider, fromDropdown = false) => {
+    // Stop all propagation and prevent default behavior
+    e.stopPropagation();
+    e.preventDefault();
+    if (e.nativeEvent) {
+      e.nativeEvent.stopImmediatePropagation();
+    }
+
+    // Schedule the modal to open after event propagation finishes
+    setTimeout(() => {
+      // Set the provider
+      setSelectedProvider(provider);
+
+      // If from dropdown, maintain dropdown state first
+      if (fromDropdown) {
+        setForceDropdownOpen(true);
+
+        // Delay showing modal slightly to ensure dropdown stays open
+        setTimeout(() => {
+          setShowKeyModal(true);
+        }, 50);
+      } else {
+        // If not from dropdown, just show modal
+        setShowKeyModal(true);
+      }
+    }, 0);
+
+    // Return false to prevent further event handling
+    return false;
+  };
+
+  // Navigate to PlaygroundSettings page with the correct tab selected
+  const navigateToPlaygroundSettings = (provider) => {
+    // Construct the URL for the PlaygroundSettings page
+    const url = '/pageprofile?tab=PlaygroundSettings';
+
+    // Use localStorage to pass information about which provider to highlight
+    localStorage.setItem('selectedApiProvider', provider);
+
+    // Navigate to the page
+    window.open(url, '_blank');
+  };
+
   const filteredModels = models
     .filter((model) => {
       const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
@@ -778,6 +1007,7 @@ const Chat_version = forwardRef(({
   useEffect(() => {
     setSystemPrompt(allSystemPrompt);
   }, [allSystemPrompt]);
+
   return (
 
     <div className="flex sm:flex-row flex-col items-start">
@@ -787,130 +1017,248 @@ const Chat_version = forwardRef(({
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative 2xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
             <div className="flex items-center gap-2">
               <Listbox value={selected} onChange={handleSelect}>
-                {({ open }) => (
-                  <>
-                    <div
-                      className={classNames(
-                        columnCount > 2 ? "" : "w-full ",
-                        "Listbox-container"
-                      )}
-                    >
-                      <Listbox.Button
+                {({ open }) => {
+                  // Use either the Headless UI open state or our forced open state
+                  const isOpen = open || forceDropdownOpen;
+
+                  // Special effect to keep dropdown open when API key modal is closed
+                  useEffect(() => {
+                    if (!showKeyModal && forceDropdownOpen) {
+                      // Keep dropdown open for a bit longer when modal closes
+                      const timer = setTimeout(() => {
+                        setForceDropdownOpen(false);
+                      }, 100);
+                      return () => clearTimeout(timer);
+                    }
+                  }, [showKeyModal]);
+
+                  return (
+                    <>
+                      <div
                         className={classNames(
-                          "relative flex items-center w-[220px] h-10 bg-white text-[12px] border-2 border-gray-200 rounded-md py-1 pl-3 pr-10 text-left focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-offset-blue-300 overflow-hidden cursor-pointer",
-                          columnCount > 2 ? "h-8 w-full" : ""
+                          columnCount > 2 ? "" : "w-full ",
+                          "Listbox-container"
                         )}
                       >
-                        <span
+                        <Listbox.Button
                           className={classNames(
-                            "block truncate",
-                            columnCount && "text-[10px]"
+                            "relative flex items-center w-[220px] h-10 bg-white text-[12px] border-2 border-gray-200 rounded-md py-1 pl-3 pr-10 text-left focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-offset-blue-300 overflow-hidden cursor-pointer",
+                            columnCount > 2 ? "h-8 w-full" : ""
                           )}
+                          onClick={(e) => {
+                            // Check if click originated from a lock button
+                            if (e.target.closest('.lock-button-wrapper')) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return false;
+                            }
+                            if (forceDropdownOpen) {
+                              setForceDropdownOpen(false);
+                            }
+                          }}
                         >
-                          {selected?.name ? (
-                            <div className="flex items-center gap-1 truncate">
-                              <span className={`flex items-center justify-center w-4 h-4 rounded-full ${selected.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
-                                <FaDatabase size={8} />
-                              </span>
-                              <span className="truncate">
-                                {selected.name}
-                              </span>
-
-                              {selected.provider && (
-                                <span className="text-[10px] text-gray-500 ml-1">
-                                  {getProviderDisplayName(selected.provider)}
+                          <span
+                            className={classNames(
+                              "block truncate",
+                              columnCount && "text-[10px]"
+                            )}
+                          >
+                            {selected?.name ? (
+                              <div className="flex items-center gap-1 truncate">
+                                <span className={`flex items-center justify-center w-4 h-4 rounded-full ${selected.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
+                                  <FaDatabase size={8} />
                                 </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span>Select a Model</span>
-                          )}
-                        </span>
-                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                          <MdKeyboardArrowUp
-                            className="h-4 w-4 text-gray-400"
-                            aria-hidden="true"
-                          />
-                        </span>
-                      </Listbox.Button>
+                                <span className="font-medium whitespace-nowrap">
+                                  {selected.name}
+                                </span>
 
-                      <Transition
-                        show={open}
-                        as={Fragment}
-                        leave="transition ease-in duration-100"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                      >
-                        <Listbox.Options className="absolute z-10 mt-1 bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg w-[280px] max-h-[700px] overflow-auto resize">
-                          <div className="bg-white sticky top-0 z-[9] p-1">
-                            <input
-                              type="text"
-                              className="border-b border-gray-300 focus:outline-none px-2 py-1 w-full bg-white rounded-[6px] text-xs"
-                              placeholder="Search by model or provider..."
-                              value={searchModel}
-                              onChange={(e) => setSearchModel(e.target.value)}
-                            />
-                          </div>
-                          {filteredModels.map((model) => (
-                            <Listbox.Option
-                              key={model.model_id}
-                              id={model.model_id}
-                              className={({ active }) =>
-                                classNames(
-                                  active
-                                    ? "bg-[#f0efef] rounded-[6px]"
-                                    : "text-[#000]",
-                                  "relative cursor-default select-none py-2 px-[8px] border-b border-gray-200 last:border-b-0 hover:bg-[#f0efef]"
-                                )
-                              }
-                              value={model}
-                              onMouseEnter={() => setTooltipData(model)}
-                              onMouseLeave={() => setTooltipData({})}
-                            >
-                              <div
-                                className="flex flex-col tooltip-main"
-                                data-tooltip-id={`my-tooltip-${model.model_id}`}
-                              >
-                                <div className="flex justify-between items-center w-full">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className={`flex items-center justify-center w-4 h-4 rounded-full ${model.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
-                                      <FaBrain size={8} />
-                                    </span>
-                                    <span
-                                      className={classNames(
-                                        "text-[13px] font-Inter font-medium",
-                                        "block truncate"
-                                      )}
-                                    >
-                                      {model.name}
-                                    </span>
-                                  </div>
-                                  {model.provider && (
-                                    <span className="text-[10px] text-gray-500 px-1.5 py-0.5 bg-gray-100 rounded-full">
-                                      {getProviderDisplayName(model.provider)}
-                                    </span>
-                                  )}
-                                </div>
-                                {model.model_description && (
-                                  <span className="text-[10px] text-gray-500 mt-0.5 line-clamp-1 ml-5">
-                                    {model.model_description}
+                                {selected.provider && (
+                                  <span className="text-[10px] text-gray-500 ml-1 truncate max-w-[60px]">
+                                    {getProviderDisplayName(selected.provider)}
                                   </span>
                                 )}
-                                <div className="flex gap-2 mt-1 ml-5">
-                                  {model.multimodal && (
-                                    <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px]">
-                                      Multimodal
-                                    </span>
-                                  )}
-                                </div>
+
+                                {selected.provider && (
+                                  <div
+                                    className="lock-button-wrapper"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      return false;
+                                    }}
+                                    onMouseDown={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      e.nativeEvent.stopImmediatePropagation();
+                                      return false;
+                                    }}
+                                  >
+                                    <button
+                                      onMouseDown={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        e.nativeEvent.stopImmediatePropagation();
+                                        handleLockClick(e, selected.provider, false);
+                                        return false;
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        e.nativeEvent.stopImmediatePropagation();
+                                        return false;
+                                      }}
+                                      className={`ml-1 ${hasApiKey(selected.provider) ? 'text-green-500 hover:text-green-700' : 'text-red-500 hover:text-red-700'}`}
+                                    >
+                                      {hasApiKey(selected.provider) ? (
+                                        <FaUnlock size={12} />
+                                      ) : (
+                                        <FaLock size={12} />
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
                               </div>
-                            </Listbox.Option>
-                          ))}
-                        </Listbox.Options>
-                      </Transition>
-                    </div>
-                  </>
-                )}
+                            ) : (
+                              <span>Select a Model</span>
+                            )}
+                          </span>
+                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                            <MdKeyboardArrowUp
+                              className="h-4 w-4 text-gray-400"
+                              aria-hidden="true"
+                            />
+                          </span>
+                        </Listbox.Button>
+
+                        <Transition
+                          show={isOpen && !showKeyModal}
+                          as={Fragment}
+                          leave="transition ease-in duration-100"
+                          leaveFrom="opacity-100"
+                          leaveTo="opacity-0"
+                        >
+                          <Listbox.Options className="absolute z-10 mt-1 bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg w-[320px] max-h-[700px] overflow-auto resize"
+                            onClick={(e) => {
+                              // If clicking a lock button, prevent closing
+                              if (e.target.closest('.lock-button-wrapper')) {
+                                e.stopPropagation();
+                                e.preventDefault();
+                              }
+                            }}>
+                            <div className="bg-white sticky top-0 z-[9] p-1">
+                              <input
+                                type="text"
+                                className="border-b border-gray-300 focus:outline-none px-2 py-1 w-full bg-white rounded-[6px] text-xs"
+                                placeholder="Search by model or provider..."
+                                value={searchModel}
+                                onChange={(e) => setSearchModel(e.target.value)}
+                              />
+                            </div>
+                            {filteredModels.map((model) => (
+                              <Listbox.Option
+                                key={model.model_id}
+                                id={model.model_id}
+                                className={({ active }) =>
+                                  classNames(
+                                    active
+                                      ? "bg-[#f0efef] rounded-[6px]"
+                                      : "text-[#000]",
+                                    "relative cursor-default select-none py-2 px-[8px] border-b border-gray-200 last:border-b-0 hover:bg-[#f0efef]"
+                                  )
+                                }
+                                value={model}
+                                onMouseEnter={() => setTooltipData(model)}
+                                onMouseLeave={() => setTooltipData({})}
+                              >
+                                {({ selected, active }) => (
+                                  <div
+                                    className="flex flex-col tooltip-main"
+                                    data-tooltip-id={`my-tooltip-${model.model_id}`}
+                                  >
+                                    <div className="flex justify-between items-center w-full">
+                                      <div
+                                        className="flex items-center gap-1.5 flex-grow"
+                                        onClick={() => handleSelect(model)}
+                                      >
+                                        <span className={`flex items-center justify-center w-4 h-4 rounded-full ${model.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
+                                          <FaDatabase size={8} />
+                                        </span>
+                                        <span
+                                          className={classNames(
+                                            "text-[13px] font-Inter font-medium",
+                                            "block truncate"
+                                          )}
+                                        >
+                                          {model.name}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-1 ml-auto">
+                                        {model.provider && (
+                                          <span
+                                            className="text-[10px] text-gray-500 px-1.5 py-0.5 bg-gray-100 rounded-full"
+                                            onClick={() => handleSelect(model)}
+                                          >
+                                            {getProviderDisplayName(model.provider)}
+                                          </span>
+                                        )}
+                                        {model.provider && (
+                                          <div
+                                            className="lock-button-wrapper inline-block cursor-pointer"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              e.preventDefault();
+                                              handleLockClick(e, model.provider, true);
+                                              return false;
+                                            }}
+                                            onMouseDown={(e) => {
+                                              e.stopPropagation();
+                                              e.preventDefault();
+                                              e.nativeEvent.stopImmediatePropagation();
+                                              return false;
+                                            }}
+                                          >
+                                            <span
+                                              className={`ml-1 inline-flex ${hasApiKey(model.provider) ? 'text-green-500 hover:text-green-700' : 'text-red-500 hover:text-red-700'}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                e.nativeEvent.stopImmediatePropagation();
+                                                handleLockClick(e, model.provider, true);
+                                                return false;
+                                              }}
+                                            >
+                                              {hasApiKey(model.provider) ? (
+                                                <FaUnlock size={12} />
+                                              ) : (
+                                                <FaLock size={12} />
+                                              )}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {model.model_description && (
+                                      <span className="text-[10px] text-gray-500 mt-0.5 line-clamp-1 ml-5">
+                                        {model.model_description}
+                                      </span>
+                                    )}
+                                    <div className="flex gap-2 mt-1 ml-5">
+                                      {model.multimodal && (
+                                        <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px]">
+                                          Multimodal
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </Listbox.Option>
+                            ))}
+                          </Listbox.Options>
+                        </Transition>
+                      </div>
+                    </>
+                  );
+                }}
               </Listbox>
               <button className="text-[#464F60] text-[17px] rotate-[95deg]">
                 <AiOutlineStop />
@@ -1422,6 +1770,14 @@ const Chat_version = forwardRef(({
           </div>
         </Tooltip>
       )}
+
+      {/* API Key Modal */}
+      <ApiKeyModal
+        isOpen={showKeyModal}
+        onClose={handleModalClose}
+        provider={selectedProvider}
+        providerNames={providerNames}
+      />
     </div>
   );
 });
