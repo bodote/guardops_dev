@@ -576,7 +576,7 @@ const Chat_version = forwardRef(({
           );
           lastIndex = annotation.end;
         });
-      elements.push(input.substring(lastIndex));
+      elements.push(input?.substring(lastIndex));
     }
     return elements;
   };
