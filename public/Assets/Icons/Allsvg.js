@@ -520,13 +520,13 @@ export const UserIcon = ({ className }) => {
 export const SaleIcon = ({ className }) => {
   return (
     <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M4 10V6C4 3.79086 5.79086 2 8 2H12H14.0633C14.6568 2 15.2197 2.26365 15.5997 2.71963L19.5364 7.44373C19.836 7.80316 20 8.25623 20 8.7241V12V18C20 20.2091 18.2091 22 16 22H8C5.79086 22 4 20.2091 4 18V15" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-    <path d="M15 2.5V6C15 6.55345 15.2248 7.05439 15.5881 7.4165C15.9498 7.77708 16.4489 8 17 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-    <path d="M8 12H12" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-    <path d="M16 12H15" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-    <path d="M8 17H12" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M4 10V6C4 3.79086 5.79086 2 8 2H12H14.0633C14.6568 2 15.2197 2.26365 15.5997 2.71963L19.5364 7.44373C19.836 7.80316 20 8.25623 20 8.7241V12V18C20 20.2091 18.2091 22 16 22H8C5.79086 22 4 20.2091 4 18V15" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M15 2.5V6C15 6.55345 15.2248 7.05439 15.5881 7.4165C15.9498 7.77708 16.4489 8 17 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M8 12H12" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M16 12H15" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M8 17H12" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
-    
+
   );
 };
 
@@ -1517,7 +1517,7 @@ export const MonitoringIcon = ({ className }) => {
 export const StarIcon = ({ className }) => {
   return (
     <svg
-    className={className}
+      className={className}
       width="18"
       height="19"
       viewBox="0 0 18 19"
@@ -1535,112 +1535,112 @@ export const StarIcon = ({ className }) => {
 };
 
 
-export const HubIcon=({className}) => {
+export const HubIcon = ({ className }) => {
   return (
     <svg className={className} width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M1 10.9504V18.0469C1 18.8446 1.87294 19.2881 2.46223 18.7898L5.00695 16.6379C5.32612 16.368 5.72268 16.221 6.13141 16.221H14.5C16.9853 16.221 19 14.0914 19 11.4644V5.75656C19 3.12958 16.9853 1 14.5 1H5.5C3.01472 1 1 3.12958 1 5.75656V7.29285" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-    <ellipse cx="5.54492" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C"/>
-    <ellipse cx="10.0449" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C"/>
-    <ellipse cx="14.5449" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C"/>
+      <path d="M1 10.9504V18.0469C1 18.8446 1.87294 19.2881 2.46223 18.7898L5.00695 16.6379C5.32612 16.368 5.72268 16.221 6.13141 16.221H14.5C16.9853 16.221 19 14.0914 19 11.4644V5.75656C19 3.12958 16.9853 1 14.5 1H5.5C3.01472 1 1 3.12958 1 5.75656V7.29285" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <ellipse cx="5.54492" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C" />
+      <ellipse cx="10.0449" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C" />
+      <ellipse cx="14.5449" cy="8.65789" rx="1.125" ry="1.18914" fill="#2B3F6C" />
     </svg>
 
   );
 };
 
-export const HubDownloadIcon=({className}) => {
+export const HubDownloadIcon = ({ className }) => {
   return (
     <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M18 18.2003C20.2459 17.9773 22 16.0824 22 13.7778C22 11.1049 19.5452 9.00249 16.9198 9.37847C16.9155 9.37908 16.9113 9.3769 16.9093 9.37305C15.9052 7.37277 13.8351 6 11.4444 6C8.25974 6 5.64402 8.43609 5.35907 11.5465C5.3586 11.5516 5.35421 11.5556 5.34902 11.5556C3.52707 11.554 2 13.0606 2 14.8889C2 16.7298 3.49238 18.2222 5.33333 18.2222H6" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-<path d="M9.5 18.5L11.6464 20.6464C11.8417 20.8417 12.1583 20.8417 12.3535 20.6464L14.5 18.5" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-<path d="M12 20L12 14" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-</svg>
+      <path d="M18 18.2003C20.2459 17.9773 22 16.0824 22 13.7778C22 11.1049 19.5452 9.00249 16.9198 9.37847C16.9155 9.37908 16.9113 9.3769 16.9093 9.37305C15.9052 7.37277 13.8351 6 11.4444 6C8.25974 6 5.64402 8.43609 5.35907 11.5465C5.3586 11.5516 5.35421 11.5556 5.34902 11.5556C3.52707 11.554 2 13.0606 2 14.8889C2 16.7298 3.49238 18.2222 5.33333 18.2222H6" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M9.5 18.5L11.6464 20.6464C11.8417 20.8417 12.1583 20.8417 12.3535 20.6464L14.5 18.5" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12 20L12 14" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
 
   );
 };
 
-export const HubRefreshIcon=({className}) => {
+export const HubRefreshIcon = ({ className }) => {
   return (
     <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="40" height="28" rx="14" fill="#ECFDF3"/>
-<path d="M27.3083 10.7459C26.7082 9.39808 25.7471 8.24245 24.5312 7.40679C23.3153 6.57112 21.892 6.08798 20.4186 6.01076C18.9453 5.93354 17.4793 6.26527 16.1827 6.96926C15.5091 7.33501 14.8948 7.79383 14.3566 8.32947" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-<path d="M11.2318 7.51544L11.9612 10.675C12.0854 11.2131 12.6224 11.5486 13.1605 11.4244L16.3201 10.695" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-<path d="M12.6916 17.2539C13.2917 18.6017 14.2529 19.7574 15.4688 20.593C16.6847 21.4287 18.108 21.9118 19.5813 21.989C21.0547 22.0663 22.5207 21.7345 23.8173 21.0305C24.4318 20.6969 24.9969 20.2858 25.5 19.8095" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-<path d="M28.7682 20.4846L28.0388 17.325C27.9145 16.7869 27.3776 16.4514 26.8395 16.5756L23.6799 17.305" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-</svg>
+      <rect width="40" height="28" rx="14" fill="#ECFDF3" />
+      <path d="M27.3083 10.7459C26.7082 9.39808 25.7471 8.24245 24.5312 7.40679C23.3153 6.57112 21.892 6.08798 20.4186 6.01076C18.9453 5.93354 17.4793 6.26527 16.1827 6.96926C15.5091 7.33501 14.8948 7.79383 14.3566 8.32947" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M11.2318 7.51544L11.9612 10.675C12.0854 11.2131 12.6224 11.5486 13.1605 11.4244L16.3201 10.695" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12.6916 17.2539C13.2917 18.6017 14.2529 19.7574 15.4688 20.593C16.6847 21.4287 18.108 21.9118 19.5813 21.989C21.0547 22.0663 22.5207 21.7345 23.8173 21.0305C24.4318 20.6969 24.9969 20.2858 25.5 19.8095" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M28.7682 20.4846L28.0388 17.325C27.9145 16.7869 27.3776 16.4514 26.8395 16.5756L23.6799 17.305" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
 
 
   );
 };
 
-export const HubDeleteIcon=({className}) => {
-return(
-<svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M13.0506 10.7342C12.2057 9.60763 13.0095 8 14.4177 8H25.5823C26.9905 8 27.7943 9.60763 26.9494 10.7342V10.7342C26.3331 11.5558 26 12.5552 26 13.5823V20C26 22.2091 24.2091 24 22 24H18C15.7909 24 14 22.2091 14 20V13.5823C14 12.5552 13.6669 11.5558 13.0506 10.7342V10.7342Z" stroke="#2B3F6C" strokeWidth="1.5"/>
-<path d="M22 19L22 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-<path d="M18 19L18 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-<path d="M24 8L23.4558 6.36754C23.1836 5.55086 22.4193 5 21.5585 5H18.4415C17.5807 5 16.8164 5.55086 16.5442 6.36754L16 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-</svg>
+export const HubDeleteIcon = ({ className }) => {
+  return (
+    <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.0506 10.7342C12.2057 9.60763 13.0095 8 14.4177 8H25.5823C26.9905 8 27.7943 9.60763 26.9494 10.7342V10.7342C26.3331 11.5558 26 12.5552 26 13.5823V20C26 22.2091 24.2091 24 22 24H18C15.7909 24 14 22.2091 14 20V13.5823C14 12.5552 13.6669 11.5558 13.0506 10.7342V10.7342Z" stroke="#2B3F6C" strokeWidth="1.5" />
+      <path d="M22 19L22 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 19L18 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M24 8L23.4558 6.36754C23.1836 5.55086 22.4193 5 21.5585 5H18.4415C17.5807 5 16.8164 5.55086 16.5442 6.36754L16 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
 
-);
-};
-
-export const HubShareIcon=({className}) => {
-  return(
-<svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M26 20.2003C28.2459 19.9773 30 18.0824 30 15.7778C30 13.1049 27.5452 11.0025 24.9198 11.3785C24.9155 11.3791 24.9113 11.3769 24.9093 11.373C23.9052 9.37277 21.8351 8 19.4444 8C16.2597 8 13.644 10.4361 13.3591 13.5465C13.3586 13.5516 13.3542 13.5556 13.349 13.5556C11.5271 13.554 10 15.0606 10 16.8889C10 18.7298 11.4924 20.2222 13.3333 20.2222H14" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-<path d="M17.5 18.5L19.6464 16.3536C19.8417 16.1583 20.1583 16.1583 20.3535 16.3536L22.5 18.5" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-<path d="M20 17L20 23" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-</svg>
-
-  
   );
-  };
-
-  
-export const HubUnshareIcon=({className}) => {
-  return(
-  <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="20" cy="14" r="10" stroke="#2B3F6C" strokeWidth="1.5"/>
-<path d="M27.0712 6.92871L12.929 21.0708" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-</svg>
- );
 };
 
-export const HubSubscribeIcon=({className}) => {
-  return(
+export const HubShareIcon = ({ className }) => {
+  return (
+    <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M26 20.2003C28.2459 19.9773 30 18.0824 30 15.7778C30 13.1049 27.5452 11.0025 24.9198 11.3785C24.9155 11.3791 24.9113 11.3769 24.9093 11.373C23.9052 9.37277 21.8351 8 19.4444 8C16.2597 8 13.644 10.4361 13.3591 13.5465C13.3586 13.5516 13.3542 13.5556 13.349 13.5556C11.5271 13.554 10 15.0606 10 16.8889C10 18.7298 11.4924 20.2222 13.3333 20.2222H14" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M17.5 18.5L19.6464 16.3536C19.8417 16.1583 20.1583 16.1583 20.3535 16.3536L22.5 18.5" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M20 17L20 23" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
 
-<svg className={className}width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M9 8L7 8C4.79086 8 3 9.79086 3 12L3 17C3 19.2091 4.79086 21 7 21L19 21C21.2091 21 23 19.2091 23 17L23 12C23 9.79086 21.2091 8 19 8L17 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-<path d="M10 13L12.2929 15.2929C12.6834 15.6834 13.3166 15.6834 13.7071 15.2929L16 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-<path d="M13 15L13 3" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round"/>
-</svg>
 
-
-);
+  );
 };
 
-export const KnowledgeIcon=({className}) => {
-  return(
+
+export const HubUnshareIcon = ({ className }) => {
+  return (
+    <svg className={className} width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="14" r="10" stroke="#2B3F6C" strokeWidth="1.5" />
+      <path d="M27.0712 6.92871L12.929 21.0708" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+};
+
+export const HubSubscribeIcon = ({ className }) => {
+  return (
+
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 8L7 8C4.79086 8 3 9.79086 3 12L3 17C3 19.2091 4.79086 21 7 21L19 21C21.2091 21 23 19.2091 23 17L23 12C23 9.79086 21.2091 8 19 8L17 8" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M10 13L12.2929 15.2929C12.6834 15.6834 13.3166 15.6834 13.7071 15.2929L16 13" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M13 15L13 3" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+
+
+  );
+};
+
+export const KnowledgeIcon = ({ className }) => {
+  return (
     <svg className={className} width="20" height="18" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M6.63352 1C8.49267 1 9.99982 2.47306 9.99982 4.29016L9.99973 13.2345C9.99973 15.3141 8.27482 17 6.14703 17C4.01923 17 2.29432 15.3141 2.29432 13.2345C2.29432 13.1279 2.29886 13.0225 2.30774 12.9181C1.50591 12.0762 1 10.4293 1 9.05526C1 7.18289 1.93933 5.36242 3.28678 4.64682C3.27385 4.52967 3.26722 4.41068 3.26722 4.29016C3.26722 2.47306 4.77437 1 6.63352 1Z" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-<path d="M5.06557 6.88301C4.57129 6.77287 3.45122 6.05493 3.28223 4.65527" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-<path d="M7.12915 10.5749C9.14812 10.3546 9.94819 8.27212 10.0002 7.42505" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-<path d="M3.33793 10.944C2.83505 11.332 2.43411 12.2115 2.3042 12.9161" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-<path d="M13.3665 1C11.5074 1 10.0002 2.47306 10.0002 4.29016L10.0003 13.2345C10.0003 15.3141 11.7252 17 13.853 17C15.9808 17 17.7057 15.3141 17.7057 13.2345C17.7057 13.1279 17.7012 13.0225 17.6923 12.9181C18.4941 12.0762 19 10.4293 19 9.05526C19 7.18289 18.0607 5.36242 16.7133 4.64682C16.7262 4.52967 16.7328 4.41068 16.7328 4.29016C16.7328 2.47306 15.2257 1 13.3665 1Z" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-<path d="M14.9343 6.88301C15.4286 6.77287 16.5486 6.05493 16.7177 4.65527" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-<path d="M12.8708 10.5749C10.8519 10.3546 10.0518 8.27212 9.99976 7.42505" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-<path d="M16.6621 10.944C17.1649 11.332 17.5659 12.2115 17.6958 12.9161" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-</svg>
+      <path d="M6.63352 1C8.49267 1 9.99982 2.47306 9.99982 4.29016L9.99973 13.2345C9.99973 15.3141 8.27482 17 6.14703 17C4.01923 17 2.29432 15.3141 2.29432 13.2345C2.29432 13.1279 2.29886 13.0225 2.30774 12.9181C1.50591 12.0762 1 10.4293 1 9.05526C1 7.18289 1.93933 5.36242 3.28678 4.64682C3.27385 4.52967 3.26722 4.41068 3.26722 4.29016C3.26722 2.47306 4.77437 1 6.63352 1Z" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.06557 6.88301C4.57129 6.77287 3.45122 6.05493 3.28223 4.65527" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7.12915 10.5749C9.14812 10.3546 9.94819 8.27212 10.0002 7.42505" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3.33793 10.944C2.83505 11.332 2.43411 12.2115 2.3042 12.9161" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13.3665 1C11.5074 1 10.0002 2.47306 10.0002 4.29016L10.0003 13.2345C10.0003 15.3141 11.7252 17 13.853 17C15.9808 17 17.7057 15.3141 17.7057 13.2345C17.7057 13.1279 17.7012 13.0225 17.6923 12.9181C18.4941 12.0762 19 10.4293 19 9.05526C19 7.18289 18.0607 5.36242 16.7133 4.64682C16.7262 4.52967 16.7328 4.41068 16.7328 4.29016C16.7328 2.47306 15.2257 1 13.3665 1Z" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14.9343 6.88301C15.4286 6.77287 16.5486 6.05493 16.7177 4.65527" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12.8708 10.5749C10.8519 10.3546 10.0518 8.27212 9.99976 7.42505" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16.6621 10.944C17.1649 11.332 17.5659 12.2115 17.6958 12.9161" stroke="#2B3F6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
 
   )
 };
-export const PromptingIcon=({className}) => {
-  return(
-<svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M20.6622 7C21.513 8.47087 22 10.1786 22 12C22 17.5228 17.5228 22 12 22C10.2435 22 8.59274 21.5471 7.15817 20.7518C6.89316 20.6048 6.57856 20.5681 6.29285 20.6691L3.77026 21.5605C2.81913 21.8966 1.90292 20.9804 2.23902 20.0292L3.1673 17.4022C3.26437 17.1275 3.23426 16.8254 3.10104 16.5662C2.39724 15.1974 2 13.6451 2 12C2 6.47715 6.47715 2 12 2C14.2516 2 16.3295 2.74418 18.001 4" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round"/>
-<circle cx="7.05005" cy="12.0498" r="1.25" fill="#2B3F6C"/>
-<circle cx="12.05" cy="12.0498" r="1.25" fill="#2B3F6C"/>
-<circle cx="17.05" cy="12.0498" r="1.25" fill="#2B3F6C"/>
-</svg>
+export const PromptingIcon = ({ className }) => {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20.6622 7C21.513 8.47087 22 10.1786 22 12C22 17.5228 17.5228 22 12 22C10.2435 22 8.59274 21.5471 7.15817 20.7518C6.89316 20.6048 6.57856 20.5681 6.29285 20.6691L3.77026 21.5605C2.81913 21.8966 1.90292 20.9804 2.23902 20.0292L3.1673 17.4022C3.26437 17.1275 3.23426 16.8254 3.10104 16.5662C2.39724 15.1974 2 13.6451 2 12C2 6.47715 6.47715 2 12 2C14.2516 2 16.3295 2.74418 18.001 4" stroke="#2B3F6C" stroke-width="1.5" stroke-linecap="round" />
+      <circle cx="7.05005" cy="12.0498" r="1.25" fill="#2B3F6C" />
+      <circle cx="12.05" cy="12.0498" r="1.25" fill="#2B3F6C" />
+      <circle cx="17.05" cy="12.0498" r="1.25" fill="#2B3F6C" />
+    </svg>
   )
 };

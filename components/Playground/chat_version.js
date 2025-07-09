@@ -1,12 +1,5 @@
 import React, { DragEvent, useState, Fragment, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from "react";
 import {
-  EditIcon,
-  MinusIcon,
-  PlusRectangleIcon,
-  SettingIcon,
-  ShareIcon,
-  LoadingIcon,
-  SaveIcon,
   User2Icon,
   FireIcon,
 } from "@/public/Assets/Icons/Allsvg";
@@ -14,7 +7,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 import { MdKeyboardArrowUp } from "react-icons/md";
 import { MdErrorOutline } from "react-icons/md";
 import { RiEdit2Line } from "react-icons/ri";
-import { FaRobot, FaBrain, FaServer, FaDatabase, FaCloud, FaLock, FaUnlock } from "react-icons/fa";
+import { FaRobot, FaBrain, FaServer, FaDatabase, FaCloud, FaLock, FaUnlock, FaUndo, FaSave, FaEdit, FaMinus, FaPlus, FaShare, FaCog } from "react-icons/fa";
 import styles from "@/styles/TextHighlighter.module.css";
 import { Tooltip } from "react-tooltip";
 import { AnimatePresence, motion } from "framer-motion";
@@ -447,10 +440,16 @@ const Chat_version = forwardRef(({
   const textareaRef = useRef(null);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const chatDivRef = useRef(null);
+  const [expandedReasoning, setExpandedReasoning] = useState({});
 
   const [ragInfo, setRagInfo] = useState([]);
   //the index to make sure that each source gets displayed at the right response
   let assistantIndex = 0;
+
+  // State for smart auto-scroll behavior
+  const [userScrolling, setUserScrolling] = useState(false);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const scrollTimeoutRef = useRef(null);
 
   // useEffect to update the filtered data when `data` changes
   useEffect(() => {
@@ -461,12 +460,53 @@ const Chat_version = forwardRef(({
     }
   }, [data]); // Re-run this effect whenever `data` changes
 
+  // Function to toggle reasoning section expansion
+  const toggleReasoning = (messageId, segmentIndex) => {
+    const key = `${messageId}-${segmentIndex}`;
+    setExpandedReasoning(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  // Handle user scroll detection
+  const handleScroll = () => {
+    if (!chatDivRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = chatDivRef.current;
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
+
+    // If user scrolled away from bottom, disable auto-scroll
+    if (!isAtBottom) {
+      setUserScrolling(true);
+      setAutoScrollEnabled(false);
+    } else {
+      // If user is back at bottom, re-enable auto-scroll after a delay
+      setUserScrolling(false);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      scrollTimeoutRef.current = setTimeout(() => {
+        setAutoScrollEnabled(true);
+      }, 500); // 500ms delay before re-enabling auto-scroll
+    }
+  };
+
+  // Smart auto-scroll effect
   useEffect(() => {
-    if (chatDivRef.current) {
+    if (chatDivRef.current && autoScrollEnabled && !userScrolling) {
       chatDivRef.current.scrollTop = chatDivRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, autoScrollEnabled, userScrolling]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleFileChange = (event) => {
 
@@ -626,25 +666,37 @@ const Chat_version = forwardRef(({
 
   const parseVercelResponse = (apiResponse) => {
     const segments = [];
-    const regex = /```(.*?)```/gs;
+    const codeRegex = /```(.*?)```/gs;
+    const reasoningRegex = /<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>/gs;
     let lastIndex = 0;
-    apiResponse?.replace(regex, (match, codeBlock, index) => {
-      // Add the text segment before the code block
+
+    // Combined regex to match both code and reasoning blocks in order
+    const combinedRegex = /(```(.*?)```)|(<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>)/gs;
+
+    apiResponse?.replace(combinedRegex, (match, codeMatch, codeBlock, reasoningMatch, index) => {
+      // Add the text segment before this block
       if (index > lastIndex) {
         segments.push({
           type: "text",
           content: apiResponse.slice(lastIndex, index),
         });
       }
-      // Add the code block
-      segments.push({ type: "code", content: codeBlock });
+
+      // Add the appropriate block type
+      if (codeMatch) {
+        segments.push({ type: "code", content: codeBlock });
+      } else if (reasoningMatch) {
+        segments.push({ type: "reasoning", content: reasoningMatch });
+      }
+
       lastIndex = index + match.length;
     });
 
-    // Add any remaining text after the last code block
+    // Add any remaining text after the last block
     if (apiResponse && lastIndex < apiResponse.length) {
       segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
     }
+
     return segments;
   };
 
@@ -1066,7 +1118,7 @@ const Chat_version = forwardRef(({
                             {selected?.name ? (
                               <div className="flex items-center gap-1 truncate">
                                 <span className={`flex items-center justify-center w-4 h-4 rounded-full ${selected.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
-                                  <FaDatabase size={8} />
+                                  <FaRobot size={8} />
                                 </span>
                                 <span className="font-medium whitespace-nowrap">
                                   {selected.name}
@@ -1181,7 +1233,7 @@ const Chat_version = forwardRef(({
                                         onClick={() => handleSelect(model)}
                                       >
                                         <span className={`flex items-center justify-center w-4 h-4 rounded-full ${model.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
-                                          <FaDatabase size={8} />
+                                          <FaRobot size={8} />
                                         </span>
                                         <span
                                           className={classNames(
@@ -1286,27 +1338,39 @@ const Chat_version = forwardRef(({
                   setMessages([]);
                 }
                 }
+                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200"
               >
-
-                <LoadingIcon />
+                <FaUndo size={17} />
               </button>
-              <button onClick={handleSave}>
-                <SaveIcon />
+              <button
+                onClick={handleSave}
+                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200"
+              >
+                <FaSave size={17} />
               </button>
-              <button onClick={() => setOpen(!open)}>
-                <EditIcon />
+              <button
+                onClick={() => setOpen(!open)}
+                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200"
+              >
+                <FaEdit size={17} />
               </button>
-              <button disabled={arenaCheck && columnCount <= 2}>
-                <MinusIcon onClick={() => removeChatVersion()} />
+              <button
+                disabled={arenaCheck && columnCount <= 2}
+                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaMinus onClick={() => removeChatVersion()} size={17} />
               </button>
-              <button>
-                <PlusRectangleIcon onClick={() => addChatVersion()} />
+              <button className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200">
+                <FaPlus onClick={() => addChatVersion()} size={17} />
               </button>
-              <button>
-                <ShareIcon />
+              <button className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200">
+                <FaShare size={17} />
               </button>
-              <button onClick={() => setShowSettings(true)}>
-                <SettingIcon />{" "}
+              <button
+                onClick={() => setShowSettings(true)}
+                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200"
+              >
+                <FaCog size={17} />
               </button>
             </div>
 
@@ -1335,8 +1399,9 @@ const Chat_version = forwardRef(({
 
             <div
               ref={chatDivRef}
-              className={`bg-[#F7F7F7] h-[calc(100vh-287px)] overflow-y-auto ${errorOwn ? "pt-[44px]" : ""
+              className={`bg-[#F7F7F7] h-[calc(100vh-320px)] overflow-y-auto ${errorOwn ? "pt-[44px]" : ""
                 }`}
+              onScroll={handleScroll} // Add onScroll handler
             >
               {open && (
                 <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] m-[10px] mt-[16px]">
@@ -1386,8 +1451,121 @@ const Chat_version = forwardRef(({
                 </div>
               )}
               <div
-                className={open ? "h-[calc(100vh-520px)] overflow-auto" : ""}
+                className={open ? "h-[calc(100vh-550px)] overflow-auto" : ""}
               >
+                {/* Model Selection Prompt Card - Only show when no model selected and no messages */}
+                {selected.name === "Select a Model" && messages.length === 0 && (
+                  <div className="flex justify-center mt-8">
+                    <div
+                      className="w-[75%] max-w-md cursor-pointer transform transition-all duration-200 hover:scale-102"
+                      onClick={() => setForceDropdownOpen(true)}
+                    >
+                      <div className="bg-white border-2 border-dashed border-gray-300 hover:border-[#D4DB33] rounded-xl p-8 text-center shadow-sm hover:shadow-md transition-all duration-200">
+                        <div className="mb-4">
+                          <div className="mx-auto w-16 h-16 bg-gray-100 hover:bg-[#D4DB33] rounded-full flex items-center justify-center transition-colors duration-200">
+                            <FaRobot className="w-6 h-6 text-gray-400 hover:text-gray-600" />
+                          </div>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          No Model Selected
+                        </h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                          Please select a model to start chatting
+                        </p>
+                        <div className="inline-flex items-center text-[#D4DB33] hover:text-[#0D859A] font-medium text-sm transition-colors duration-200">
+                          Click here to select a model
+                          <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Model Details Card - Show when model is selected but no messages */}
+                {selected.name !== "Select a Model" && messages.length === 0 && (
+                  <div className="flex justify-center mt-8">
+                    <div className="w-[75%] max-w-lg">
+                      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                        <div className="text-center mb-6">
+                          <div className="mx-auto w-16 h-16 bg-[#D4DB33] rounded-full flex items-center justify-center mb-4">
+                            <FaRobot className="w-6 h-6 text-gray-700" />
+                          </div>
+                          <div className="flex items-center justify-center gap-2 mb-2">
+                            <span className={`flex items-center justify-center w-5 h-5 rounded-full ${selected.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
+                              <FaRobot size={10} />
+                            </span>
+                            <h3 className="text-xl font-medium text-gray-900">
+                              {selected.name}
+                            </h3>
+                          </div>
+                          {selected.provider && (
+                            <div className="flex items-center justify-center gap-2 mb-4">
+                              <span className="text-sm text-gray-500 px-2 py-1 bg-gray-100 rounded-full">
+                                {getProviderDisplayName(selected.provider)}
+                              </span>
+                              {selected.multimodal ? (
+                                <span className="bg-green-50 text-green-700 px-2 py-1 rounded-full text-sm">
+                                  Multimodal
+                                </span>
+                              ) : (
+                                <span className="bg-gray-50 text-gray-600 px-2 py-1 rounded-full text-sm">
+                                  Text Input
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Model Details */}
+                        {(selected.model_description || selected.context || selected.input_price || selected.output_price) && (
+                          <div className="space-y-4">
+                            {selected.model_description && (
+                              <div className="text-center">
+                                <p className="text-sm text-gray-600 leading-relaxed">
+                                  {selected.model_description}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="border-t border-gray-100 pt-4">
+                              <div className="grid grid-cols-1 gap-3">
+                                {selected.context && (
+                                  <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                    <span className="text-sm font-medium text-gray-700">Context length:</span>
+                                    <span className="text-sm text-gray-600">{selected.context} tokens</span>
+                                  </div>
+                                )}
+                                {selected.input_price && (
+                                  <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                    <span className="text-sm font-medium text-gray-700">Input pricing:</span>
+                                    <span className="text-sm text-gray-600">{selected.input_price}</span>
+                                  </div>
+                                )}
+                                {selected.output_price && (
+                                  <div className="flex justify-between items-center py-2">
+                                    <span className="text-sm font-medium text-gray-700">Output pricing:</span>
+                                    <span className="text-sm text-gray-600">{selected.output_price}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="text-center mt-6 pt-4 border-t border-gray-100">
+                          <p className="text-sm text-gray-500 mb-3">
+                            Ready to start chatting with {selected.name}
+                          </p>
+                          <div className="text-[#D4DB33] font-medium text-sm">
+                            Type your message below to begin
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {messages.map((message, index) => {
                   // Keep track of the current assistant message index
@@ -1470,62 +1648,136 @@ const Chat_version = forwardRef(({
                           <div className="mb-2  md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px] rounded-3xl">
                             <FireIcon className="min-w-[16px]" />
                             <div className="w-[calc(100%-35px)]">
-                              {parseVercelResponse(message.content).map((segment, index) =>
-                                segment.type === 'code' ? (
-                                  (() => {
-                                    return (
-                                      <pre className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5">
-                                        <button className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200" onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
-                                          {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
-                                        </button>
-                                        <code>{segment.content}</code>
-                                      </pre>
-                                    );
-                                  })()
-                                ) : (
-                                  <ReactMarkdown
-                                    components={{
-                                      ul: ({ node, ...props }) => (
-                                        <ul
-                                          style={{
-                                            display: 'block',
-                                            listStyleType: 'disc',
-                                            paddingInlineStart: '40px',
-                                          }}
-                                          {...props}
-                                        />
-                                      ),
-                                      ol: ({ node, ...props }) => (
-                                        <ol
-                                          style={{
-                                            display: 'block',
-                                            listStyleType: 'decimal',
-                                            paddingInlineStart: '40px',
-                                          }}
-                                          {...props}
-                                        />
-                                      ),
-                                      h1: ({ node, ...props }) => (
-                                        <h1
-                                          className="font-bold text-6xl"
-                                          {...props}
-                                        />
-                                      ),
-                                      p: ({ node, ...props }) => (
-                                        <p
-                                          style={{
-                                            whiteSpace: 'pre-wrap',
-                                          }}
-                                          {...props}
-                                        />
-                                      ),
-                                    }}
-                                    remarkPlugins={[gfm]}
-                                    key={index}
-                                    children={segment.content}
-                                  />
-                                )
-                              )}
+                              {(() => {
+                                const content = message.content;
+
+                                // Find the first occurrence of <think> tag
+                                const firstThinkIndex = content.indexOf('<think');
+                                const hasFirstThink = firstThinkIndex !== -1;
+
+                                // Check if the first <think> has a proper closing tag
+                                let hasOpenThink = false;
+                                if (hasFirstThink) {
+                                  const contentFromFirstThink = content.substring(firstThinkIndex);
+                                  const hasClosingTag = contentFromFirstThink.match(/<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>/s);
+                                  hasOpenThink = !hasClosingTag;
+                                }
+
+                                // If we have an open thinking block, we need to split the content
+                                let contentToRender = content;
+                                if (hasOpenThink) {
+                                  // Only show content before the first <think> tag
+                                  contentToRender = content.substring(0, firstThinkIndex);
+                                }
+
+                                const segments = parseVercelResponse(contentToRender);
+
+                                return (
+                                  <>
+                                    {segments.map((segment, index) => {
+                                      if (segment.type === 'code') {
+                                        return (
+                                          <pre key={index} className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5">
+                                            <button className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200" onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
+                                              {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
+                                            </button>
+                                            <code>{segment.content}</code>
+                                          </pre>
+                                        );
+                                      } else if (segment.type === 'reasoning') {
+                                        const reasoningKey = `${message.id}-${index}`;
+                                        const isExpanded = expandedReasoning[reasoningKey];
+
+                                        return (
+                                          <div key={index} className="mt-3 mb-3 border border-gray-200 rounded-lg bg-gray-50">
+                                            <button
+                                              onClick={() => toggleReasoning(message.id, index)}
+                                              className="w-full flex items-center gap-2 p-3 text-left hover:bg-gray-100 rounded-lg transition-colors"
+                                            >
+                                              <FaBrain className="text-blue-500 text-sm" />
+                                              <span className="text-sm font-medium text-gray-700">Thinking</span>
+                                              <svg
+                                                className={`ml-auto h-4 w-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                              >
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                              </svg>
+                                            </button>
+                                            {isExpanded && (
+                                              <div className="px-3 pb-3 border-t border-gray-200 bg-white rounded-b-lg">
+                                                <div className="pt-3 text-sm text-gray-600 whitespace-pre-wrap font-mono">
+                                                  {segment.content}
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      } else {
+                                        return (
+                                          <ReactMarkdown
+                                            key={index}
+                                            components={{
+                                              ul: ({ node, ...props }) => (
+                                                <ul
+                                                  style={{
+                                                    display: 'block',
+                                                    listStyleType: 'disc',
+                                                    paddingInlineStart: '40px',
+                                                  }}
+                                                  {...props}
+                                                />
+                                              ),
+                                              ol: ({ node, ...props }) => (
+                                                <ol
+                                                  style={{
+                                                    display: 'block',
+                                                    listStyleType: 'decimal',
+                                                    paddingInlineStart: '40px',
+                                                  }}
+                                                  {...props}
+                                                />
+                                              ),
+                                              h1: ({ node, ...props }) => (
+                                                <h1
+                                                  className="font-bold text-6xl"
+                                                  {...props}
+                                                />
+                                              ),
+                                              p: ({ node, ...props }) => (
+                                                <p
+                                                  style={{
+                                                    whiteSpace: 'pre-wrap',
+                                                  }}
+                                                  {...props}
+                                                />
+                                              ),
+                                            }}
+                                            remarkPlugins={[gfm]}
+                                            children={segment.content}
+                                          />
+                                        );
+                                      }
+                                    })}
+
+                                    {/* Show active thinking indicator for unclosed <think> blocks */}
+                                    {hasOpenThink && isLoading && (
+                                      <div className="mt-3 mb-3 border border-blue-200 rounded-lg bg-blue-50">
+                                        <div className="w-full flex items-center gap-2 p-3">
+                                          <FaBrain className="text-blue-500 text-sm animate-pulse" />
+                                          <span className="text-sm font-medium text-blue-700">Thinking...</span>
+                                          <div className="ml-auto flex space-x-1">
+                                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </>
+                                );
+                              })()}
                               {currentRagInfo && currentRagInfo.context && currentRagInfo.context.length > 0 && (
                                 <div className="mt-4 w-full">
                                   <div className="bg-gray-200 p-4 rounded-lg">
