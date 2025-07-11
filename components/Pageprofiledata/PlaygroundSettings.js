@@ -15,6 +15,7 @@ const PlaygroundSettings = () => {
   const [selectedModel, setSelectedModel] = useState(null);
   const [activeTab, setActiveTab] = useState("supported");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   // API Keys state
   const [openAIKey, setOpenAIKey] = useState("");
@@ -35,6 +36,25 @@ const PlaygroundSettings = () => {
   const [showCustomProviderModal, setShowCustomProviderModal] = useState(false);
   const [editingProvider, setEditingProvider] = useState(null);
 
+  // Helper function to check if model is custom (created by current user)
+  const isCustomModel = (model) => {
+    return currentUserId && model.user_id && model.user_id.toString() === currentUserId.toString();
+  };
+
+  // Helper function to get user ID from cookies
+  const getUserIdFromCookies = () => {
+    if (typeof document !== 'undefined') {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'user_id') {
+          return value;
+        }
+      }
+    }
+    return null;
+  };
+
   const getModels = async () => {
     const response = await fetch(`/api/manageModels`, {
       method: "GET",
@@ -46,7 +66,7 @@ const PlaygroundSettings = () => {
   };
 
   const handleModelEdit = (model) => {
-    if (!open && model.user_id !== 0) {
+    if (!open && isCustomModel(model)) {
       setOpen(true);
       setModelsForEdit(model);
       setCreateModelStatus("existing");
@@ -58,7 +78,7 @@ const PlaygroundSettings = () => {
       const formData = {
         model_id: modelsForEdit.model_id,
       };
-      if (modelsForEdit.user_id == 0) {
+      if (!isCustomModel(modelsForEdit)) {
         toast.error("Default model cannot be deleted");
         return;
       }
@@ -208,6 +228,10 @@ const PlaygroundSettings = () => {
   const filteredModels = filterModels(models, searchQuery);
 
   useEffect(() => {
+    // Get user ID from cookies on component mount
+    const userId = getUserIdFromCookies();
+    setCurrentUserId(userId);
+
     getModels();
     fetchCustomProviders();
 
@@ -487,7 +511,7 @@ const PlaygroundSettings = () => {
                     key={model.model_id}
                     onClick={() => setSelectedModel(model.model_id === selectedModel?.model_id ? null : model)}
                     onDoubleClick={() => {
-                      if (model.user_id !== 0) {
+                      if (isCustomModel(model)) {
                         handleModelEdit(model);
                       }
                     }}
@@ -516,7 +540,7 @@ const PlaygroundSettings = () => {
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        {model.user_id !== 0 && (
+                        {isCustomModel(model) && (
                           <>
                             <button
                               onClick={(e) => {
@@ -554,13 +578,13 @@ const PlaygroundSettings = () => {
                             Multimodal
                           </span>
                         )}
-                        {model.user_id === 0 ? (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                            Default
-                          </span>
-                        ) : (
+                        {isCustomModel(model) ? (
                           <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-[#D4DB33]/10 text-[#D4DB33] border border-[#D4DB33]/20">
                             Custom
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            Default
                           </span>
                         )}
                       </div>
