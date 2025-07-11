@@ -87,25 +87,25 @@ const ApiKeyModal = ({ isOpen, onClose, provider, providerNames }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50"
       onClick={handleOverlayClick}
     >
       <div
         ref={modalRef}
-        className="bg-white rounded-lg p-6 max-w-md w-full"
+        className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-100"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-medium">{displayName} API Key</h2>
-          <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="text-gray-500 hover:text-gray-700">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-900">{displayName} API Key</h2>
+          <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="text-gray-400 hover:text-gray-600 transition-colors">
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Enter your {displayName} API key
           </label>
           <div className="relative">
@@ -113,7 +113,8 @@ const ApiKeyModal = ({ isOpen, onClose, provider, providerNames }) => {
               type={showPassword ? "text" : "password"}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D4DB33] focus:border-transparent transition-all duration-200"
+              placeholder="Enter API key..."
             />
             <button
               type="button"
@@ -135,18 +136,18 @@ const ApiKeyModal = ({ isOpen, onClose, provider, providerNames }) => {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
           >
             Cancel
           </button>
           <button
             onClick={saveKey}
-            className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700"
+            className="px-4 py-2 bg-[#D4DB33] border border-transparent rounded-lg text-sm font-medium text-black hover:bg-[#c4cb2d] transition-colors duration-200"
           >
-            Save
+            Save Key
           </button>
         </div>
       </div>
@@ -343,6 +344,7 @@ const Chat_version = forwardRef(({
     }
     setIsDragging(false);
   };
+
   useEffect(() => {
     const updateFormData = async () => {
       let providerInfo = {
@@ -1062,12 +1064,12 @@ const Chat_version = forwardRef(({
 
   return (
 
-    <div className="flex sm:flex-row flex-col items-start">
+    <div className="flex sm:flex-row flex-col items-start bg-white">
 
       <div className="w-full">
-        <div className="border-r-[#CCCCCC] border-r-[1px]">
-          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative 2xl:p-[9px_27px_10px_11px] p-[9px_11px_10px_11px]">
-            <div className="flex items-center gap-2">
+        <div className="border-r-slate-200 border-r">
+          <div className="flex sm:items-center justify-between sm:flex-row flex-col relative p-4 bg-white border-b border-slate-200">
+            <div className="flex items-center gap-3">
               <Listbox value={selected} onChange={handleSelect}>
                 {({ open }) => {
                   // Use either the Headless UI open state or our forced open state
@@ -1094,8 +1096,8 @@ const Chat_version = forwardRef(({
                       >
                         <Listbox.Button
                           className={classNames(
-                            "relative flex items-center w-[220px] h-10 bg-white text-[12px] border-2 border-gray-200 rounded-md py-1 pl-3 pr-10 text-left focus:outline-none focus:border-blue-300 focus:ring-1 focus:ring-offset-blue-300 overflow-hidden cursor-pointer",
-                            columnCount > 2 ? "h-8 w-full" : ""
+                            "relative flex items-center w-[220px] h-11 bg-white text-sm border-2 border-slate-200 rounded-xl py-2 pl-4 pr-10 text-left focus:outline-none focus:border-[#D4DB33] focus:ring-2 focus:ring-[#D4DB33]/20 hover:border-slate-300 transition-all duration-200 overflow-hidden cursor-pointer shadow-sm",
+                            columnCount > 2 ? "h-9 w-full text-xs" : ""
                           )}
                           onClick={(e) => {
                             // Check if click originated from a lock button
@@ -1112,20 +1114,20 @@ const Chat_version = forwardRef(({
                           <span
                             className={classNames(
                               "block truncate",
-                              columnCount && "text-[10px]"
+                              columnCount && "text-xs"
                             )}
                           >
                             {selected?.name ? (
-                              <div className="flex items-center gap-1 truncate">
-                                <span className={`flex items-center justify-center w-4 h-4 rounded-full ${selected.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
-                                  <FaRobot size={8} />
+                              <div className="flex items-center gap-2 truncate">
+                                <span className={`flex items-center justify-center w-5 h-5 rounded-full ${selected.multimodal ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600"}`}>
+                                  <FaRobot size={10} />
                                 </span>
-                                <span className="font-medium whitespace-nowrap">
+                                <span className="font-medium whitespace-nowrap text-slate-900">
                                   {selected.name}
                                 </span>
 
                                 {selected.provider && (
-                                  <span className="text-[10px] text-gray-500 ml-1 truncate max-w-[60px]">
+                                  <span className="text-xs text-slate-500 ml-1 truncate max-w-[60px]">
                                     {getProviderDisplayName(selected.provider)}
                                   </span>
                                 )}
@@ -1159,7 +1161,7 @@ const Chat_version = forwardRef(({
                                         e.nativeEvent.stopImmediatePropagation();
                                         return false;
                                       }}
-                                      className={`ml-1 ${hasApiKey(selected.provider) ? 'text-green-500 hover:text-green-700' : 'text-red-500 hover:text-red-700'}`}
+                                      className={`ml-1 transition-colors duration-200 ${hasApiKey(selected.provider) ? 'text-emerald-500 hover:text-emerald-700' : 'text-red-500 hover:text-red-700'}`}
                                     >
                                       {hasApiKey(selected.provider) ? (
                                         <FaUnlock size={12} />
@@ -1171,12 +1173,12 @@ const Chat_version = forwardRef(({
                                 )}
                               </div>
                             ) : (
-                              <span>Select a Model</span>
+                              <span className="text-slate-500">Select a Model</span>
                             )}
                           </span>
-                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                             <MdKeyboardArrowUp
-                              className="h-4 w-4 text-gray-400"
+                              className="h-5 w-5 text-slate-400"
                               aria-hidden="true"
                             />
                           </span>
@@ -1189,7 +1191,7 @@ const Chat_version = forwardRef(({
                           leaveFrom="opacity-100"
                           leaveTo="opacity-0"
                         >
-                          <Listbox.Options className="absolute z-10 mt-1 bg-white text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-[#cccccc] rounded-lg w-[320px] max-h-[700px] overflow-auto resize"
+                          <Listbox.Options className="absolute z-10 mt-2 bg-white text-base shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm border border-slate-200 rounded-xl w-[320px] max-h-[700px] overflow-auto resize"
                             onClick={(e) => {
                               // If clicking a lock button, prevent closing
                               if (e.target.closest('.lock-button-wrapper')) {
@@ -1197,10 +1199,10 @@ const Chat_version = forwardRef(({
                                 e.preventDefault();
                               }
                             }}>
-                            <div className="bg-white sticky top-0 z-[9] p-1">
+                            <div className="bg-white sticky top-0 z-[9] p-3 border-b border-slate-100">
                               <input
                                 type="text"
-                                className="border-b border-gray-300 focus:outline-none px-2 py-1 w-full bg-white rounded-[6px] text-xs"
+                                className="border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#D4DB33]/20 focus:border-[#D4DB33] px-3 py-2 w-full bg-white rounded-lg text-sm transition-all duration-200"
                                 placeholder="Search by model or provider..."
                                 value={searchModel}
                                 onChange={(e) => setSearchModel(e.target.value)}
@@ -1213,9 +1215,9 @@ const Chat_version = forwardRef(({
                                 className={({ active }) =>
                                   classNames(
                                     active
-                                      ? "bg-[#f0efef] rounded-[6px]"
-                                      : "text-[#000]",
-                                    "relative cursor-default select-none py-2 px-[8px] border-b border-gray-200 last:border-b-0 hover:bg-[#f0efef]"
+                                      ? "bg-slate-50 rounded-lg"
+                                      : "text-slate-900",
+                                    "relative cursor-default select-none py-3 px-4 border-b border-slate-100 last:border-b-0 hover:bg-slate-50 transition-colors duration-150"
                                   )
                                 }
                                 value={model}
@@ -1229,25 +1231,25 @@ const Chat_version = forwardRef(({
                                   >
                                     <div className="flex justify-between items-center w-full">
                                       <div
-                                        className="flex items-center gap-1.5 flex-grow"
+                                        className="flex items-center gap-2 flex-grow"
                                         onClick={() => handleSelect(model)}
                                       >
-                                        <span className={`flex items-center justify-center w-4 h-4 rounded-full ${model.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
-                                          <FaRobot size={8} />
+                                        <span className={`flex items-center justify-center w-5 h-5 rounded-full ${model.multimodal ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600"}`}>
+                                          <FaRobot size={10} />
                                         </span>
                                         <span
                                           className={classNames(
-                                            "text-[13px] font-Inter font-medium",
-                                            "block truncate"
+                                            "text-sm font-medium",
+                                            "block truncate text-slate-900"
                                           )}
                                         >
                                           {model.name}
                                         </span>
                                       </div>
-                                      <div className="flex items-center gap-1 ml-auto">
+                                      <div className="flex items-center gap-2 ml-auto">
                                         {model.provider && (
                                           <span
-                                            className="text-[10px] text-gray-500 px-1.5 py-0.5 bg-gray-100 rounded-full"
+                                            className="text-xs text-slate-500 px-2 py-1 bg-slate-100 rounded-full"
                                             onClick={() => handleSelect(model)}
                                           >
                                             {getProviderDisplayName(model.provider)}
@@ -1270,7 +1272,7 @@ const Chat_version = forwardRef(({
                                             }}
                                           >
                                             <span
-                                              className={`ml-1 inline-flex ${hasApiKey(model.provider) ? 'text-green-500 hover:text-green-700' : 'text-red-500 hover:text-red-700'}`}
+                                              className={`ml-1 inline-flex transition-colors duration-200 ${hasApiKey(model.provider) ? 'text-emerald-500 hover:text-emerald-700' : 'text-red-500 hover:text-red-700'}`}
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 e.preventDefault();
@@ -1290,13 +1292,13 @@ const Chat_version = forwardRef(({
                                       </div>
                                     </div>
                                     {model.model_description && (
-                                      <span className="text-[10px] text-gray-500 mt-0.5 line-clamp-1 ml-5">
+                                      <span className="text-xs text-slate-500 mt-1 line-clamp-1 ml-7">
                                         {model.model_description}
                                       </span>
                                     )}
-                                    <div className="flex gap-2 mt-1 ml-5">
+                                    <div className="flex gap-2 mt-2 ml-7">
                                       {model.multimodal && (
-                                        <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded text-[9px]">
+                                        <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full text-xs font-medium">
                                           Multimodal
                                         </span>
                                       )}
@@ -1312,12 +1314,10 @@ const Chat_version = forwardRef(({
                   );
                 }}
               </Listbox>
-              <button className="text-[#464F60] text-[17px] rotate-[95deg]">
-                <AiOutlineStop />
-              </button>
+              <div className="h-6 w-px bg-slate-200"></div>
             </div>
             <div
-              className={`flex gap-[17px] sm:mt-0 mt-[20px] ${columnCount > 2 ? "2xl:!gap-[10px] xl:!gap-[6px] !gap-[10px]" : ""
+              className={`flex gap-2 sm:mt-0 mt-4 ${columnCount > 2 ? "gap-1" : ""
                 }`}
             >
               <button
@@ -1338,46 +1338,57 @@ const Chat_version = forwardRef(({
                   setMessages([]);
                 }
                 }
-                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200"
+                className="p-2 text-slate-600 hover:text-[#D4DB33] hover:bg-[#D4DB33]/10 rounded-lg transition-all duration-200"
+                title="Reset chat"
               >
-                <FaUndo size={17} />
+                <FaUndo size={16} />
               </button>
               <button
                 onClick={handleSave}
-                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200"
+                className="p-2 text-slate-600 hover:text-[#D4DB33] hover:bg-[#D4DB33]/10 rounded-lg transition-all duration-200"
+                title="Save chat"
               >
-                <FaSave size={17} />
+                <FaSave size={16} />
               </button>
               <button
                 onClick={() => setOpen(!open)}
-                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200"
+                className="p-2 text-slate-600 hover:text-[#D4DB33] hover:bg-[#D4DB33]/10 rounded-lg transition-all duration-200"
+                title="Edit system prompt"
               >
-                <FaEdit size={17} />
+                <FaEdit size={16} />
               </button>
               <button
                 disabled={arenaCheck && columnCount <= 2}
-                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-slate-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Remove chat version"
               >
-                <FaMinus onClick={() => removeChatVersion()} size={17} />
+                <FaMinus onClick={() => removeChatVersion()} size={16} />
               </button>
-              <button className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200">
-                <FaPlus onClick={() => addChatVersion()} size={17} />
+              <button
+                className="p-2 text-slate-600 hover:text-[#D4DB33] hover:bg-[#D4DB33]/10 rounded-lg transition-all duration-200"
+                title="Add chat version"
+              >
+                <FaPlus onClick={() => addChatVersion()} size={16} />
               </button>
-              <button className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200">
-                <FaShare size={17} />
+              <button
+                className="p-2 text-slate-600 hover:text-[#D4DB33] hover:bg-[#D4DB33]/10 rounded-lg transition-all duration-200"
+                title="Share chat"
+              >
+                <FaShare size={16} />
               </button>
               <button
                 onClick={() => setShowSettings(true)}
-                className="text-[#464F60] hover:text-[#D4DB33] transition-colors duration-200"
+                className="p-2 text-slate-600 hover:text-[#D4DB33] hover:bg-[#D4DB33]/10 rounded-lg transition-all duration-200"
+                title="Settings"
               >
-                <FaCog size={17} />
+                <FaCog size={16} />
               </button>
             </div>
 
             {showSettings && (
               <div
                 ref={modalRef}
-                className="max-w-[285px] w-full mx-auto bg-white shadow-lg rounded-lg absolute sm:top-[40px] top-[80px] right-0 p-[13px_23px_17px_25px] z-[1]"
+                className="max-w-[320px] w-full mx-auto bg-white shadow-2xl rounded-xl absolute sm:top-[60px] top-[100px] right-0 p-6 z-[1] border border-slate-200"
               >
                 <ModelSettings
                   onSettingsChange={handleSettingsChange}
@@ -1389,52 +1400,56 @@ const Chat_version = forwardRef(({
 
           <div className="relative">
             {errorOwn && (
-              <p className="bg-[#ffe1e1bb] text-[red] p-[10px] flex gap-2 items-center absolute top-0 w-full">
-                <MdErrorOutline className="text-[20px]" />
-                {errorOwn}
-              </p>
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 flex gap-3 items-start absolute top-0 w-full z-10">
+                <MdErrorOutline className="text-xl flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium">Error occurred</p>
+                  <p className="text-sm mt-1">{errorOwn}</p>
+                </div>
+              </div>
             )}
-
-
 
             <div
               ref={chatDivRef}
-              className={`bg-[#F7F7F7] h-[calc(100vh-320px)] overflow-y-auto ${errorOwn ? "pt-[44px]" : ""
+              className={`bg-slate-50 h-[calc(100vh-400px)] overflow-y-auto ${errorOwn ? "pt-20" : ""
                 }`}
               onScroll={handleScroll} // Add onScroll handler
             >
               {open && (
-                <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] m-[10px] mt-[16px]">
-                  <p className="text-[#252525] font-medium text-[14px]">
-                    System Prompt
-                  </p>
+                <div className="border border-slate-200 rounded-xl p-6 m-4 mt-6 bg-white shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-[#D4DB33] rounded-full"></div>
+                    <p className="text-slate-900 font-semibold text-base">
+                      System Prompt
+                    </p>
+                  </div>
                   <textarea
-                    placeholder="Your system prompt to the model"
+                    placeholder="Your system prompt to the model..."
                     name="system"
                     id="system"
                     value={systemPrompt}
                     onChange={handleSystemInputChange}
-                    className="border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
+                    className="border border-slate-200 rounded-lg mt-3 placeholder:text-slate-400 text-sm font-medium h-40 w-full resize-none focus:outline-none focus:ring-2 focus:ring-[#D4DB33]/20 focus:border-[#D4DB33] transition-all duration-200 p-4"
                   ></textarea>
-                  <div className="flex justify-between items-center gap-[10px] flex-wrap">
-                    <div className="flex items-center gap-[5px]">
+                  <div className="flex justify-between items-center gap-4 flex-wrap mt-4">
+                    <div className="flex items-center gap-2">
                       <Switch
                         checked={syncAll}
                         onChange={() => setsyncAll(!syncAll)}
                         className={classNames(
-                          syncAll ? "bg-[#0074fb]" : "bg-gray-200",
-                          "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                          syncAll ? "bg-[#D4DB33]" : "bg-slate-300",
+                          "relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#D4DB33]/20"
                         )}
                       >
                         <span
                           aria-hidden="true"
                           className={classNames(
-                            syncAll ? "translate-x-[11px]" : "translate-x-0",
-                            "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                            syncAll ? "translate-x-4" : "translate-x-0",
+                            "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
                           )}
                         />
                       </Switch>
-                      <label className="text-[#252525] text-[12px] font-medium">
+                      <label className="text-slate-700 text-sm font-medium">
                         Sync to all
                       </label>
                     </div>
@@ -1443,7 +1458,7 @@ const Chat_version = forwardRef(({
                         systemPrompt &&
                         toast.success("System prompt saved successfully")
                       }
-                      className=" flex items-center gap-[2px] bg-[#D4DB33] hover:bg-[#0D859A] text-[#000000] font-medium text-[12px] font-Inter py-[6px] px-[14px] rounded-md"
+                      className="flex items-center gap-2 bg-[#D4DB33] hover:bg-[#c4cb2d] text-black font-medium text-sm py-2 px-4 rounded-lg transition-colors duration-200 shadow-sm"
                     >
                       Save System Prompt
                     </button>
@@ -1455,24 +1470,24 @@ const Chat_version = forwardRef(({
               >
                 {/* Model Selection Prompt Card - Only show when no model selected and no messages */}
                 {selected.name === "Select a Model" && messages.length === 0 && (
-                  <div className="flex justify-center mt-8">
+                  <div className="flex justify-center mt-12">
                     <div
-                      className="w-[75%] max-w-md cursor-pointer transform transition-all duration-200 hover:scale-102"
+                      className="w-[75%] max-w-md cursor-pointer transform transition-all duration-200 hover:scale-[1.02]"
                       onClick={() => setForceDropdownOpen(true)}
                     >
-                      <div className="bg-white border-2 border-dashed border-gray-300 hover:border-[#D4DB33] rounded-xl p-8 text-center shadow-sm hover:shadow-md transition-all duration-200">
-                        <div className="mb-4">
-                          <div className="mx-auto w-16 h-16 bg-gray-100 hover:bg-[#D4DB33] rounded-full flex items-center justify-center transition-colors duration-200">
-                            <FaRobot className="w-6 h-6 text-gray-400 hover:text-gray-600" />
+                      <div className="bg-white border-2 border-dashed border-slate-300 hover:border-[#D4DB33] rounded-2xl p-8 text-center shadow-sm hover:shadow-lg transition-all duration-200">
+                        <div className="mb-6">
+                          <div className="mx-auto w-16 h-16 bg-slate-100 hover:bg-[#D4DB33]/10 rounded-full flex items-center justify-center transition-colors duration-200">
+                            <FaRobot className="w-7 h-7 text-slate-400" />
                           </div>
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        <h3 className="text-xl font-semibold text-slate-900 mb-3">
                           No Model Selected
                         </h3>
-                        <p className="text-sm text-gray-500 mb-4">
+                        <p className="text-sm text-slate-500 mb-6">
                           Please select a model to start chatting
                         </p>
-                        <div className="inline-flex items-center text-[#D4DB33] hover:text-[#0D859A] font-medium text-sm transition-colors duration-200">
+                        <div className="inline-flex items-center text-[#D4DB33] hover:text-[#b8c42d] font-medium text-sm transition-colors duration-200">
                           Click here to select a model
                           <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -1485,33 +1500,33 @@ const Chat_version = forwardRef(({
 
                 {/* Model Details Card - Show when model is selected but no messages */}
                 {selected.name !== "Select a Model" && messages.length === 0 && (
-                  <div className="flex justify-center mt-8">
+                  <div className="flex justify-center mt-12">
                     <div className="w-[75%] max-w-lg">
-                      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                        <div className="text-center mb-6">
-                          <div className="mx-auto w-16 h-16 bg-[#D4DB33] rounded-full flex items-center justify-center mb-4">
-                            <FaRobot className="w-6 h-6 text-gray-700" />
+                      <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+                        <div className="text-center mb-8">
+                          <div className="mx-auto w-16 h-16 bg-[#D4DB33] rounded-full flex items-center justify-center mb-4 shadow-lg">
+                            <FaRobot className="w-7 h-7 text-black" />
                           </div>
-                          <div className="flex items-center justify-center gap-2 mb-2">
-                            <span className={`flex items-center justify-center w-5 h-5 rounded-full ${selected.multimodal ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600"}`}>
-                              <FaRobot size={10} />
+                          <div className="flex items-center justify-center gap-3 mb-3">
+                            <span className={`flex items-center justify-center w-6 h-6 rounded-full ${selected.multimodal ? "bg-emerald-100 text-emerald-600" : "bg-blue-100 text-blue-600"}`}>
+                              <FaRobot size={12} />
                             </span>
-                            <h3 className="text-xl font-medium text-gray-900">
+                            <h3 className="text-2xl font-semibold text-slate-900">
                               {selected.name}
                             </h3>
                           </div>
                           {selected.provider && (
-                            <div className="flex items-center justify-center gap-2 mb-4">
-                              <span className="text-sm text-gray-500 px-2 py-1 bg-gray-100 rounded-full">
+                            <div className="flex items-center justify-center gap-3 mb-6">
+                              <span className="text-sm text-slate-600 px-3 py-1 bg-slate-100 rounded-full">
                                 {getProviderDisplayName(selected.provider)}
                               </span>
                               {selected.multimodal ? (
-                                <span className="bg-green-50 text-green-700 px-2 py-1 rounded-full text-sm">
+                                <span className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium">
                                   Multimodal
                                 </span>
                               ) : (
-                                <span className="bg-gray-50 text-gray-600 px-2 py-1 rounded-full text-sm">
-                                  Text Input
+                                <span className="bg-slate-50 text-slate-600 px-3 py-1 rounded-full text-sm">
+                                  Text Only
                                 </span>
                               )}
                             </div>
@@ -1520,33 +1535,33 @@ const Chat_version = forwardRef(({
 
                         {/* Model Details */}
                         {(selected.model_description || selected.context || selected.input_price || selected.output_price) && (
-                          <div className="space-y-4">
+                          <div className="space-y-6">
                             {selected.model_description && (
                               <div className="text-center">
-                                <p className="text-sm text-gray-600 leading-relaxed">
+                                <p className="text-sm text-slate-600 leading-relaxed">
                                   {selected.model_description}
                                 </p>
                               </div>
                             )}
 
-                            <div className="border-t border-gray-100 pt-4">
-                              <div className="grid grid-cols-1 gap-3">
+                            <div className="border-t border-slate-100 pt-6">
+                              <div className="grid grid-cols-1 gap-4">
                                 {selected.context && (
-                                  <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                    <span className="text-sm font-medium text-gray-700">Context length:</span>
-                                    <span className="text-sm text-gray-600">{selected.context} tokens</span>
+                                  <div className="flex justify-between items-center py-3 border-b border-slate-50">
+                                    <span className="text-sm font-medium text-slate-700">Context length:</span>
+                                    <span className="text-sm text-slate-600 font-mono">{selected.context} tokens</span>
                                   </div>
                                 )}
                                 {selected.input_price && (
-                                  <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                    <span className="text-sm font-medium text-gray-700">Input pricing:</span>
-                                    <span className="text-sm text-gray-600">{selected.input_price}</span>
+                                  <div className="flex justify-between items-center py-3 border-b border-slate-50">
+                                    <span className="text-sm font-medium text-slate-700">Input pricing:</span>
+                                    <span className="text-sm text-slate-600 font-mono">{selected.input_price}</span>
                                   </div>
                                 )}
                                 {selected.output_price && (
-                                  <div className="flex justify-between items-center py-2">
-                                    <span className="text-sm font-medium text-gray-700">Output pricing:</span>
-                                    <span className="text-sm text-gray-600">{selected.output_price}</span>
+                                  <div className="flex justify-between items-center py-3">
+                                    <span className="text-sm font-medium text-slate-700">Output pricing:</span>
+                                    <span className="text-sm text-slate-600 font-mono">{selected.output_price}</span>
                                   </div>
                                 )}
                               </div>
@@ -1554,8 +1569,8 @@ const Chat_version = forwardRef(({
                           </div>
                         )}
 
-                        <div className="text-center mt-6 pt-4 border-t border-gray-100">
-                          <p className="text-sm text-gray-500 mb-3">
+                        <div className="text-center mt-8 pt-6 border-t border-slate-100">
+                          <p className="text-sm text-slate-500 mb-3">
                             Ready to start chatting with {selected.name}
                           </p>
                           <div className="text-[#D4DB33] font-medium text-sm">
@@ -1581,35 +1596,37 @@ const Chat_version = forwardRef(({
                       <div className="w-[75%]">
                         {message.role === 'user' ? (
                           <div
-                            className={`mb-2 bg-[#e1e1e1] md:p-[19px_31px] flex flex-col rounded-3xl ${index === 0 ? 'mt-4' : ''}`}
+                            className={`mb-4 bg-white border border-slate-200 shadow-sm p-6 flex flex-col rounded-2xl ${index === 0 ? 'mt-6' : ''}`}
                           >
                             <div className="flex justify-between">
-                              <div className="flex sm:gap-[19px] gap-[8px] flex-col w-full">
+                              <div className="flex gap-4 flex-col w-full">
                                 <div className="flex items-start">
-                                  <User2Icon className="min-w-[16px]" />
+                                  <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <User2Icon className="w-4 h-4 text-slate-600" />
+                                  </div>
                                   {editMessageId === message.id ? (
                                     <textarea
                                       ref={textareaRef}
                                       value={editedMessageContent}
                                       onChange={(e) => setEditedMessageContent(e.target.value)}
-                                      className="ml-5 border-[#EAEBF0] border-[1px] rounded-[6px] mt-2 placeholder:text-[#68727D] text-[15px] font-medium h-[153px] w-full resize-none shadow-[0px_1px_2px_0px_#1018280A]"
+                                      className="ml-4 border border-slate-200 rounded-lg mt-1 placeholder:text-slate-400 text-sm font-medium h-40 w-full resize-none focus:outline-none focus:ring-2 focus:ring-[#D4DB33]/20 focus:border-[#D4DB33] transition-all duration-200 p-3"
                                     />
                                   ) : (
-                                    <p className="ml-5 md:text-[16px] text-[14px]">
+                                    <p className="ml-4 text-slate-800 text-sm leading-relaxed">
                                       {message.content}
                                     </p>
                                   )}
                                 </div>
                                 {editMessageId === message.id && (
-                                  <div className="flex gap-2 mt-2 ml-10">
+                                  <div className="flex gap-3 mt-3 ml-12">
                                     <button
-                                      className="p-1 border-1 rounded-full bg-gray-400 hover:bg-gray-700"
+                                      className="p-2 border border-slate-300 rounded-lg bg-white hover:bg-slate-50 transition-colors duration-200"
                                       onClick={() => cancelEditing()}
                                     >
-                                      <AiOutlineStop className="text-[16px]" />
+                                      <AiOutlineStop className="text-sm" />
                                     </button>
                                     <button
-                                      className="p-1 border-1 rounded-full text-[12px] bg-[#D4DB33] hover:bg-[#0D859A]"
+                                      className="px-4 py-2 text-sm bg-[#D4DB33] hover:bg-[#c4cb2d] text-black font-medium rounded-lg transition-colors duration-200"
                                       onClick={() => saveEditedMessage(message.id)}
                                     >
                                       Save & Resend
@@ -1619,24 +1636,24 @@ const Chat_version = forwardRef(({
                               </div>
                               {editMessageId !== message.id && (
                                 <button
-                                  className="text-[20px] text-[#2B3F6C] group-hover:block"
+                                  className="text-slate-400 hover:text-slate-600 p-1 rounded transition-colors duration-200"
                                   onClick={() => handleEditMessage(message.id, message.content)}
                                 >
-                                  <RiEdit2Line />
+                                  <RiEdit2Line size={16} />
                                 </button>
                               )}
                             </div>
-                            <div className="flex flex-wrap justify-start">
+                            <div className="flex flex-wrap gap-3 mt-4">
                               {message.experimental_attachments?.map((attachment) => (
-                                <div key={attachment.name} className="mb-3 mr-3">
+                                <div key={attachment.name} className="mb-2">
                                   {attachment.contentType?.startsWith("image") ? (
                                     <img
-                                      className="rounded-md h-60"
+                                      className="rounded-lg h-60 border border-slate-200 shadow-sm"
                                       src={attachment.url}
                                       alt={attachment.name}
                                     />
                                   ) : attachment.contentType?.startsWith("text") ? (
-                                    <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
+                                    <div className="text-xs w-40 h-60 overflow-hidden text-slate-500 border border-slate-200 p-3 rounded-lg bg-slate-50">
                                       {getTextFromDataUrl(attachment.url)}
                                     </div>
                                   ) : null}
@@ -1645,9 +1662,11 @@ const Chat_version = forwardRef(({
                             </div>
                           </div>
                         ) : (
-                          <div className="mb-2  md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px] rounded-3xl">
-                            <FireIcon className="min-w-[16px]" />
-                            <div className="w-[calc(100%-35px)]">
+                          <div className="mb-4 p-6 flex gap-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                            <div className="w-8 h-8 bg-[#D4DB33] rounded-full flex items-center justify-center flex-shrink-0">
+                              <FireIcon className="w-4 h-4 text-black" />
+                            </div>
+                            <div className="w-[calc(100%-48px)]">
                               {(() => {
                                 const content = message.content;
 
@@ -1677,11 +1696,17 @@ const Chat_version = forwardRef(({
                                     {segments.map((segment, index) => {
                                       if (segment.type === 'code') {
                                         return (
-                                          <pre key={index} className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5">
-                                            <button className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200" onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
-                                              {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
-                                            </button>
-                                            <code>{segment.content}</code>
+                                          <pre key={index} className="text-sm overflow-hidden border border-slate-200 rounded-lg mt-4 mb-4 bg-slate-900">
+                                            <div className="flex justify-between items-center px-4 py-2 bg-slate-800 border-b border-slate-700">
+                                              <span className="text-slate-300 text-xs">Code</span>
+                                              <button
+                                                className="text-xs px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded transition-colors duration-200"
+                                                onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}
+                                              >
+                                                {copiedIndex === `${segment.content}-${index}` ? 'Copied!' : 'Copy'}
+                                              </button>
+                                            </div>
+                                            <code className="block p-4 text-slate-100">{segment.content}</code>
                                           </pre>
                                         );
                                       } else if (segment.type === 'reasoning') {
@@ -1689,15 +1714,15 @@ const Chat_version = forwardRef(({
                                         const isExpanded = expandedReasoning[reasoningKey];
 
                                         return (
-                                          <div key={index} className="mt-3 mb-3 border border-gray-200 rounded-lg bg-gray-50">
+                                          <div key={index} className="mt-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
                                             <button
                                               onClick={() => toggleReasoning(message.id, index)}
-                                              className="w-full flex items-center gap-2 p-3 text-left hover:bg-gray-100 rounded-lg transition-colors"
+                                              className="w-full flex items-center gap-3 p-4 text-left hover:bg-blue-100 rounded-lg transition-colors duration-200"
                                             >
-                                              <FaBrain className="text-blue-500 text-sm" />
-                                              <span className="text-sm font-medium text-gray-700">Thinking</span>
+                                              <FaBrain className="text-blue-600 text-sm" />
+                                              <span className="text-sm font-medium text-blue-800">Thinking Process</span>
                                               <svg
-                                                className={`ml-auto h-4 w-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                                className={`ml-auto h-4 w-4 text-blue-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                                                 fill="none"
                                                 viewBox="0 0 24 24"
                                                 stroke="currentColor"
@@ -1706,8 +1731,8 @@ const Chat_version = forwardRef(({
                                               </svg>
                                             </button>
                                             {isExpanded && (
-                                              <div className="px-3 pb-3 border-t border-gray-200 bg-white rounded-b-lg">
-                                                <div className="pt-3 text-sm text-gray-600 whitespace-pre-wrap font-mono">
+                                              <div className="px-4 pb-4 border-t border-blue-200 bg-white rounded-b-lg">
+                                                <div className="pt-4 text-sm text-slate-700 whitespace-pre-wrap font-mono">
                                                   {segment.content}
                                                 </div>
                                               </div>
@@ -1721,35 +1746,46 @@ const Chat_version = forwardRef(({
                                             components={{
                                               ul: ({ node, ...props }) => (
                                                 <ul
-                                                  style={{
-                                                    display: 'block',
-                                                    listStyleType: 'disc',
-                                                    paddingInlineStart: '40px',
-                                                  }}
+                                                  className="list-disc list-inside space-y-1 my-3"
                                                   {...props}
                                                 />
                                               ),
                                               ol: ({ node, ...props }) => (
                                                 <ol
-                                                  style={{
-                                                    display: 'block',
-                                                    listStyleType: 'decimal',
-                                                    paddingInlineStart: '40px',
-                                                  }}
+                                                  className="list-decimal list-inside space-y-1 my-3"
                                                   {...props}
                                                 />
                                               ),
                                               h1: ({ node, ...props }) => (
                                                 <h1
-                                                  className="font-bold text-6xl"
+                                                  className="font-bold text-2xl text-slate-900 my-4"
+                                                  {...props}
+                                                />
+                                              ),
+                                              h2: ({ node, ...props }) => (
+                                                <h2
+                                                  className="font-bold text-xl text-slate-900 my-3"
+                                                  {...props}
+                                                />
+                                              ),
+                                              h3: ({ node, ...props }) => (
+                                                <h3
+                                                  className="font-bold text-lg text-slate-900 my-2"
                                                   {...props}
                                                 />
                                               ),
                                               p: ({ node, ...props }) => (
                                                 <p
+                                                  className="text-slate-700 leading-relaxed my-2"
                                                   style={{
                                                     whiteSpace: 'pre-wrap',
                                                   }}
+                                                  {...props}
+                                                />
+                                              ),
+                                              code: ({ node, ...props }) => (
+                                                <code
+                                                  className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm"
                                                   {...props}
                                                 />
                                               ),
@@ -1763,14 +1799,14 @@ const Chat_version = forwardRef(({
 
                                     {/* Show active thinking indicator for unclosed <think> blocks */}
                                     {hasOpenThink && isLoading && (
-                                      <div className="mt-3 mb-3 border border-blue-200 rounded-lg bg-blue-50">
-                                        <div className="w-full flex items-center gap-2 p-3">
-                                          <FaBrain className="text-blue-500 text-sm animate-pulse" />
-                                          <span className="text-sm font-medium text-blue-700">Thinking...</span>
+                                      <div className="mt-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
+                                        <div className="w-full flex items-center gap-3 p-4">
+                                          <FaBrain className="text-blue-600 text-sm animate-pulse" />
+                                          <span className="text-sm font-medium text-blue-800">Thinking...</span>
                                           <div className="ml-auto flex space-x-1">
-                                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                                           </div>
                                         </div>
                                       </div>
@@ -1779,9 +1815,9 @@ const Chat_version = forwardRef(({
                                 );
                               })()}
                               {currentRagInfo && currentRagInfo.context && currentRagInfo.context.length > 0 && (
-                                <div className="mt-4 w-full">
-                                  <div className="bg-gray-200 p-4 rounded-lg">
-                                    <p className="text-sm font-medium mb-2">Relevant documents</p>
+                                <div className="mt-6 w-full">
+                                  <div className="bg-slate-100 border border-slate-200 p-4 rounded-lg">
+                                    <p className="text-sm font-medium mb-3 text-slate-700">Relevant documents</p>
                                     {currentRagInfo.context.map((item, index) => (
                                       <FileSource
                                         key={index}
@@ -1789,7 +1825,7 @@ const Chat_version = forwardRef(({
                                         content={item.pageContent}
                                       />
                                     ))}
-                                    <p className="text-xs text-gray-500 mt-2">Run ID: {currentRagInfo.runId}</p>
+                                    <p className="text-xs text-slate-500 mt-3">Run ID: {currentRagInfo.runId}</p>
                                   </div>
                                 </div>
                               )}
@@ -1803,49 +1839,49 @@ const Chat_version = forwardRef(({
 
               </div>
             </div>
-            <div className="p-[10px_14px_12px_20px] border-b-[#CCC] border-b-[1px]">
-              <div className="flex">
+            <div className="p-6 bg-white border-t border-slate-200">
+              <div className="flex gap-4">
                 {/* Left Side (Input Area) */}
                 <div className={`flex-grow ${piiCheck ? "w-1/2" : "w-full"}`}>
-                  <div className={`rounded-md bg-[#e1e1e1] ${arenaCheck ? 'border-black border' : ''}`}
+                  <div className={`rounded-xl bg-white border-2 border-slate-200 focus-within:border-[#D4DB33] transition-all duration-200 shadow-sm ${arenaCheck ? 'ring-2 ring-black' : ''}`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}>
                     <AnimatePresence>
                       {isDragging && (
                         <motion.div
-                          className="absolute pointer-events-none dark:bg-zinc-900/90  z-10 flex flex-row justify-center items-center flex flex-col gap-1 bg-zinc-100/90 top-0 left-0 right-0 bottom-0"
+                          className="absolute pointer-events-none bg-white/95 backdrop-blur-sm z-10 flex flex-row justify-center items-center flex flex-col gap-2 top-0 left-0 right-0 bottom-0 border-2 border-dashed border-[#D4DB33] rounded-xl"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                         >
-                          <div>Drag and drop files here</div>
-                          <div className="text-sm dark:text-zinc-400 text-zinc-500">
-                            {"(images and text)"}
+                          <div className="text-[#D4DB33] font-medium">Drop files here</div>
+                          <div className="text-sm text-slate-500">
+                            {"(images and text files)"}
                           </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
                     <textarea
-                      placeholder="Send a message"
+                      placeholder="Type your message..."
                       value={input}
                       onChange={handleMessageInputChange}
                       onPaste={handlePaste}
-                      className={`border-0 resize-y bg-[#e1e1e1] focus:ring-0 focus:shadow-none w-full rounded-md}`}
+                      className="border-0 resize-y bg-transparent focus:ring-0 focus:outline-none w-full rounded-xl p-4 text-sm placeholder:text-slate-400 min-h-[80px]"
                     />
-                    <div className="pl-2 pb-2 flex items-center gap-[5px]">
-                      <label htmlFor="fileInput" className="bg-gray-600 hover:bg-gray-800 text-white rounded-full cursor-pointer">
+                    <div className="px-4 pb-4 flex items-center gap-3">
+                      <label htmlFor="fileInput" className="bg-slate-600 hover:bg-slate-700 text-white rounded-full cursor-pointer p-2 transition-colors duration-200 shadow-sm">
                         <svg
-                          className="cursor-pointer hover:text-gray-700 border rounded-full p-1 h-8"
+                          className="w-5 h-5"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
-                          stroke="white"
+                          stroke="currentColor"
                         >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            strokeWidth="1"
+                            strokeWidth="2"
                             d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
                           />
                         </svg>
@@ -1861,14 +1897,14 @@ const Chat_version = forwardRef(({
                       </label>
                       <AnimatePresence>
                         {files && files.length > 0 && (
-                          <div className="flex items-center bottom-12 px-4 w-full md:w-[500px] md:px-0">
+                          <div className="flex items-center gap-2 flex-wrap">
                             {Array.from(files).map((file) =>
                               file.type.startsWith("image") ? (
-                                <div key={file.name} className="ml-2">
+                                <div key={file.name} className="relative">
                                   <motion.img
                                     src={URL.createObjectURL(file)}
                                     alt={file.name}
-                                    className="rounded-md w-24"
+                                    className="rounded-lg w-16 h-16 object-cover border border-slate-200 shadow-sm"
                                     initial={{ scale: 0.8, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
                                     exit={{
@@ -1880,10 +1916,10 @@ const Chat_version = forwardRef(({
                                   />
                                 </div>
                               ) : file.type.startsWith("text") ? (
-                                <div key={file.name} className="ml-2">
+                                <div key={file.name} className="relative">
                                   <motion.div
                                     key={file.name}
-                                    className="text-[8px] leading-1 w-28 h-16 overflow-hidden text-zinc-500 border p-2 rounded-lg bg-white dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-400"
+                                    className="text-xs w-16 h-16 overflow-hidden text-slate-500 border border-slate-200 p-2 rounded-lg bg-slate-50 shadow-sm"
                                     initial={{ scale: 0.8, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
                                     exit={{
@@ -1907,74 +1943,78 @@ const Chat_version = forwardRef(({
 
                 {/* Right Side (PII Check Area) */}
                 {piiCheck && (
-                  <div className="w-1/2 text-[16px] font-normal placeholder:text-[#CCCCCC] shadow-none ml-2 mt-[5px] focus:ring-0 focus:outline-none lg:border-l lg:border-l-[#CCCCCC] lg:border-t-0 border-t border-t-[#CCCCCC] p-[8px_12px] max-h-[100px] overflow-y-auto flex-grow">
-                    {getParsedText()}
+                  <div className="w-1/2 text-sm bg-slate-50 border border-slate-200 rounded-xl p-4 max-h-[120px] overflow-y-auto">
+                    <div className="text-slate-600">
+                      {getParsedText()}
+                    </div>
                   </div>
                 )}
 
               </div>
 
-              <div className="flex justify-end gap-[10px] pr-[13px] pb-2 mt-2">
-                <div className="flex items-center gap-[5px]">
+              <div className="flex justify-between items-center mt-4">
+                <div className="flex items-center gap-3">
                   <Switch
                     checked={syncAllMsg}
                     onChange={() => setSyncAllMsg(!syncAllMsg)}
                     className={classNames(
-                      syncAllMsg ? "bg-[#0074fb]" : "bg-[#898989]",
-                      "relative inline-flex h-[16px] w-[27px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                      syncAllMsg ? "bg-[#D4DB33]" : "bg-slate-300",
+                      "relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#D4DB33]/20"
                     )}
                   >
                     <span
                       aria-hidden="true"
                       className={classNames(
-                        syncAllMsg ? "translate-x-[11px]" : "translate-x-0",
-                        "pointer-events-none inline-block h-[12px] w-[12px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                        syncAllMsg ? "translate-x-4" : "translate-x-0",
+                        "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
                       )}
                     />
                   </Switch>
-                  <label className="text-[#252525] text-[12px] font-medium">
+                  <label className="text-slate-700 text-sm font-medium">
                     Sync to all
                   </label>
                 </div>
-                <button
-                  onClick={event => {
-                    if (!isLoading) {
-                      setErrorOwn(null);
-                      handleSubmit(event, {
-                        experimental_attachments: files,
-                      });
+                <div className="flex gap-3">
+                  <button
+                    onClick={event => {
+                      if (!isLoading) {
+                        setErrorOwn(null);
+                        handleSubmit(event, {
+                          experimental_attachments: files,
+                        });
 
-                      setFiles(undefined);
+                        setFiles(undefined);
 
-                      if (fileInputRef.current) {
-                        fileInputRef.current.value = '';
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = '';
+                        }
                       }
-                    }
-                  }}
-                  className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
-                    }`}
-                  disabled={isLoading}
-                  value={input}
-                  onChange={handleInputChange}
-                >
-                  Send
-                </button>
-                <button
-                  onClick={stop}
-                  className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${!isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
-                    }`}
-                  disabled={!isLoading}
-                >
-                  Stop
-                </button>
-                <button
-                  onClick={() => { setErrorOwn(null); reload(); }}
-                  className={`text-black text-[12px] w-[54px] h-[22px] rounded-[6px] ${isLoading ? "bg-[#CCCCCC]" : "bg-[#D4DB33] hover:bg-[#0D859A]"
-                    }`}
-                  disabled={isLoading}
-                >
-                  Reload
-                </button>
+                    }}
+                    className={`text-black text-sm px-6 py-2 rounded-lg font-medium transition-all duration-200 ${isLoading ? "bg-slate-300 cursor-not-allowed" : "bg-[#D4DB33] hover:bg-[#c4cb2d] shadow-sm"
+                      }`}
+                    disabled={isLoading}
+                    value={input}
+                    onChange={handleInputChange}
+                  >
+                    Send
+                  </button>
+                  <button
+                    onClick={stop}
+                    className={`text-black text-sm px-6 py-2 rounded-lg font-medium transition-all duration-200 ${!isLoading ? "bg-slate-300 cursor-not-allowed" : "bg-red-500 hover:bg-red-600 text-white shadow-sm"
+                      }`}
+                    disabled={!isLoading}
+                  >
+                    Stop
+                  </button>
+                  <button
+                    onClick={() => { setErrorOwn(null); reload(); }}
+                    className={`text-black text-sm px-6 py-2 rounded-lg font-medium transition-all duration-200 ${isLoading ? "bg-slate-300 cursor-not-allowed" : "bg-slate-200 hover:bg-slate-300 shadow-sm"
+                      }`}
+                    disabled={isLoading}
+                  >
+                    Reload
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1986,35 +2026,35 @@ const Chat_version = forwardRef(({
           id={`my-tooltip-${tooltipData.model_id}`}
           place="right"
         >
-          <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[9] ml-[10px] 2xl:!w-[270px] w-[230px opacity-100">
-            <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
+          <div className="p-5 bg-white text-base border border-slate-200 rounded-xl shadow-xl z-[9] ml-3 max-w-[300px] w-[280px]">
+            <h1 className="text-slate-700 text-sm font-semibold mb-2">
               {tooltipData.name}
             </h1>
-            <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#aaa] leading-normal mt-[5px]">
+            <p className="text-xs text-slate-500 leading-relaxed mb-4">
               {tooltipData.model_description}
             </p>
-            <div className="my-[10px]">
-              <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                <p className="text-slate-800 text-xs font-medium">
                   Context length:
                 </p>
-                <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                <p className="text-slate-600 text-xs font-mono">
                   {tooltipData.context} tokens
                 </p>
               </div>
-              <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+              <div className="flex justify-between items-center py-2 border-b border-slate-100">
+                <p className="text-slate-800 text-xs font-medium">
                   Input pricing:
                 </p>
-                <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                <p className="text-slate-600 text-xs font-mono">
                   {tooltipData.input_price}
                 </p>
               </div>
-              <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
-                <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                  Output princing:
+              <div className="flex justify-between items-center py-2">
+                <p className="text-slate-800 text-xs font-medium">
+                  Output pricing:
                 </p>
-                <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+                <p className="text-slate-600 text-xs font-mono">
                   {tooltipData.output_price}
                 </p>
               </div>
