@@ -70,10 +70,16 @@ const projects = () => {
               </div>
               <Logout />
             </div>
-            <div className="">
-              <ProjectSection />
-              <DatasetSection />
-              <EvaluationSection />
+            <div className="bg-slate-50 min-h-screen">
+              <div className="bg-white border-b border-slate-200">
+                <ProjectSection />
+              </div>
+              <div className="bg-slate-50 border-b border-slate-200">
+                <DatasetSection />
+              </div>
+              <div className="bg-white">
+                <EvaluationSection />
+              </div>
             </div>
           </div>
         </div>

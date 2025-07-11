@@ -5,20 +5,40 @@ import {
 
 const EvaluationSection = () => {
   return (
-    <div className=" lg:my-[142px] sm:my-[70px] my-0 sm:px-[55px] px-[16px]">
-      <h1 className="font-Archivo sm:text-[32px] text-[28px] font-thin text-[#000] sm:py-[26px] py-[20px]">
-        Evaluations
-      </h1>
-      <div className=" hover:border-[#000] hover:bg-[#0D859A] group xl:w-[calc(34%_-_45px)] sm:w-[calc(50%_-_15px)] w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]">
-        <div className="flex items-center gap-[8px]">
-          <PlusIcon className="stroke-[#12131A] group-hover:stroke-white" />
-          <h2 className="group-hover:text-white font-Archivo lg:text-[24px] sm:text-[20px] text-[18px] font-thin text-[#000]">
-            New Evaluation
-          </h2>
+    <div className="sm:px-[55px] px-[16px] pb-8">
+      <div className="space-y-6">
+        {/* Header Section */}
+        <div className="max-w-7xl mx-auto space-y-4">
+          <p className="text-slate-600 text-sm">Create runs for evaluating your models using datasets</p>
+          <div className="flex items-center justify-between">
+            <h1 className="font-Archivo text-[32px] font-thin text-slate-900">Evaluations</h1>
+            <div className="flex gap-3">
+              <button
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#D4DB33] hover:bg-[#0D859A] text-black hover:text-white rounded-xl font-Archivo text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:scale-[1.02] transform"
+              >
+                <PlusIcon className="w-4 h-4 stroke-current" />
+                New Evaluation
+              </button>
+            </div>
+          </div>
         </div>
-        <p className="group-hover:text-white font-Archivo lg:text-[13px] text-[11px] font-light text-[#000] mt-[10px]">
-          Create a Run for Evaluation your model using a Dataset
-        </p>
+
+        {/* Empty State */}
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-20 max-w-md mx-auto">
+            <div className="mx-auto w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+              <PlusIcon className="w-10 h-10 stroke-slate-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-slate-900 mb-3">No evaluations yet</h3>
+            <p className="text-slate-600 mb-6 leading-relaxed">Get started by creating your first evaluation run to test your models</p>
+            <button
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#D4DB33] hover:bg-[#0D859A] text-black hover:text-white rounded-xl font-Archivo text-sm font-medium transition-all duration-200"
+            >
+              <PlusIcon className="w-4 h-4 stroke-current" />
+              Create Evaluation
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -54,13 +54,13 @@ const DatasetSection = () => {
             const nameA = a.name.toUpperCase(); // ignore upper and lowercase
             const nameB = b.name.toUpperCase(); // ignore upper and lowercase
             if (nameA < nameB) {
-                return -1;
+              return -1;
             }
             if (nameA > nameB) {
-                return 1;
+              return 1;
             }
             return 0; // names must be equal
-        });
+          });
           setDatasetList(sortedDatasets);
         }
       } else {
@@ -121,132 +121,193 @@ const DatasetSection = () => {
   }, []);
 
   return (
-    <div className="sm:px-[55px] px-[16px]">
-      <div>
-        <h1 className="font-Archivo sm:text-[32px] text-[28px] font-thin text-[#000] sm:py-[26px] py-[20px]">
-          Datasets
-        </h1>
-        <div className="grid xl:grid-cols-3 md:grid-cols-2 xl:gap-[45px] sm:gap-[30px] gap-[10px] w-full items-center">
-          <div
-            onClick={() => {
-              setCreateDatasetStatus("new");
-              setIsModalOpen(true);
-            }}
-            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
-          >
-            <div className="flex items-center gap-[8px]">
-              <PlusIcon className="stroke-[#12131A] group-hover:stroke-white" />
-              <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
+    <div className="sm:px-[55px] px-[16px] pb-8">
+      <div className="space-y-6">
+        {/* Header Section */}
+        <div className="max-w-7xl mx-auto space-y-4">
+          <p className="text-slate-600 text-sm">Manage datasets for finetuning, evaluation and curation</p>
+          <div className="flex items-center justify-between">
+            <h1 className="font-Archivo text-[32px] font-thin text-slate-900">Datasets</h1>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setCreateDatasetStatus("new");
+                  setIsModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#D4DB33] hover:bg-[#0D859A] text-black hover:text-white rounded-xl font-Archivo text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md hover:scale-[1.02] transform"
+              >
+                <PlusIcon className="w-4 h-4 stroke-current" />
                 New Dataset
-              </h2>
+              </button>
+              <button
+                onClick={() => setImportShare(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-[#D4DB33] rounded-xl font-Archivo text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <ImportIcon className="w-4 h-4 stroke-current" />
+                Import
+              </button>
             </div>
-            <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
-              Create a Dataset for Finetuning, Evaluation and Curation
-            </p>
           </div>
-          <div
-            onClick={() => setImportShare(true)}
-            className="cursor-pointer hover:border-[#000] hover:bg-[#0D859A] group w-full border rounded-2xl border-[#ccc] bg-[#D4DB33] px-[17px] pt-[12px] sm:pb-[31px] pb-[8px]"
-          >
-            <div className="flex items-center gap-[8px]">
-              <ImportIcon className="stroke-[#12131A] group-hover:stroke-white" />
-              <h2 className="font-Archivo lg:text-[24px] sm:text-[20px] group-hover:text-white text-[18px] font-thin text-[#000] ">
-                Import Dataset
-              </h2>
-            </div>
-            <p className="font-Archivo lg:text-[13px] text-[11px] group-hover:text-white font-light text-[#000] mt-[10px]">
-              Import an existing dataset from a share code
-            </p>
-          </div>
+        </div>
+
+        {/* Datasets Grid */}
+        <div>
           {!loader ? (
-            datasetList.map((ele, i) => {
-              return (
-                <div
-                  key={i}
-                  className="hover:border-[#000] hover:bg-[#f2f2f2] w-full border rounded-2xl border-[#ccc] bg-[#fff] px-[17px] pt-[12px] pb-[22px]"
-                >
-                  <div className="flex items-center justify-between">
-                    <div
-                      className="flex items-center gap-[8px]"
-                      onClick={() =>
-                        handleDataSetClick(ele.dataset_id, ele.name)
-                      }
-                    >
-                      <img
-                        src="/Assets/Images/Union.png"
-                        alt=""
-                        className="w-[23px]"
+            datasetList.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                {datasetList.map((ele, i) => (
+                  <div
+                    key={i}
+                    className="group bg-white border border-slate-200 hover:border-slate-300 rounded-2xl p-6 transition-all duration-300 hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-2 min-h-[200px] flex flex-col"
+                  >
+                    {/* Dataset Header */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div
+                        className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
+                        onClick={() => handleDataSetClick(ele.dataset_id, ele.name)}
+                      >
+                        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#D4DB33] to-[#D4DB33]/80 rounded-xl flex items-center justify-center shadow-sm">
+                          <img
+                            src="/Assets/Images/Union.png"
+                            alt=""
+                            className="w-6 h-6"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-Archivo text-lg font-semibold text-slate-900 group-hover:text-[#0D859A] transition-colors duration-200 truncate mb-1">
+                            {ele.name}
+                          </h3>
+                          <p className="text-sm text-slate-500">Dataset</p>
+                        </div>
+                      </div>
+
+                      {/* Action Menu */}
+                      <div className="relative opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="flex items-center gap-1">
+                          <button
+                            id="dataset_share"
+                            onClick={() => handleGenerateShareCode(ele.dataset_id)}
+                            className="p-2 rounded-lg hover:bg-slate-100 transition-colors duration-200"
+                            title="Share dataset"
+                          >
+                            <Share2Icon className="w-4 h-4 stroke-slate-500 hover:stroke-[#0D859A]" />
+                          </button>
+                          <button
+                            id="dataset_code"
+                            onClick={() => {
+                              setActive(true);
+                              setSelectedDatasetID(ele.dataset_id);
+                            }}
+                            className="p-2 rounded-lg hover:bg-slate-100 transition-colors duration-200"
+                            title="View details"
+                          >
+                            <LightIcon className="w-4 h-4 stroke-slate-500 hover:stroke-[#0D859A]" />
+                          </button>
+                          <button
+                            id="dataset_edit"
+                            onClick={() => handleDatasetEdit(ele)}
+                            className="p-2 rounded-lg hover:bg-slate-100 transition-colors duration-200"
+                            title="Edit dataset"
+                          >
+                            <EditBlackIcon className="w-4 h-4 stroke-slate-500 hover:stroke-[#0D859A]" />
+                          </button>
+                          <button
+                            id="dataset_delete"
+                            onClick={() => {
+                              setSelectedDatasetForDelete(ele);
+                              setOpen(true);
+                            }}
+                            className="p-2 rounded-lg hover:bg-red-50 transition-colors duration-200"
+                            title="Delete dataset"
+                          >
+                            <DeleteBlackIcon className="w-4 h-4 stroke-slate-500 hover:stroke-red-600" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Shared Badge */}
+                    {ele.shared && (
+                      <div className="mb-4">
+                        <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-[#0D859A]/10 text-[#0D859A] border border-[#0D859A]/20">
+                          Shared Dataset
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Dataset Stats */}
+                    <div className="mt-auto">
+                      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${ele.shared ? 'bg-[#0D859A]' : 'bg-[#D4DB33]'}`}></div>
+                          <span className="text-sm font-medium text-slate-700 font-Archivo">
+                            Traces
+                          </span>
+                        </div>
+                        <span className="text-lg font-semibold text-slate-900">
+                          {ele.stats.trace_count}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Delete Modal */}
+                    {open && (
+                      <DeleteModal
+                        open={open}
+                        setOpen={setOpen}
+                        selectedDataForDelete={selectedDatasetForDelete}
+                        handleDeleteData={handleDatasetDelete}
+                        name="dataset"
                       />
-                      <h2 className="font-Archivo lg:text-[24px] cursor-pointer sm:text-[20px] text-[18px] font-thin text-[#000] hover:text-[#0D859A]">
-                        {ele.name}
-                      </h2>
-                    </div>
-                    <div className="flex gap-4">
-                      <button id="dataset_share"
-                        onClick={() => handleGenerateShareCode(ele.dataset_id)}
-                      >
-                        <Share2Icon className="stroke-[#000] hover:stroke-[#0D859A]" />
-                      </button>
-                      <button id="dataset_code"
-                        onClick={() => {
-                          setActive(true);
-                          setSelectedDatasetID(ele.dataset_id);
-                        }}
-                      >
-                        <LightIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
-                      </button>
-                      <button id="dataset_edit" onClick={() => handleDatasetEdit(ele)}>
-                        <EditBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
-                      </button>
-                      <button id="dataset_delete"
-                        onClick={() => {
-                          setSelectedDatasetForDelete(ele);
-                          setOpen(true);
-                        }}
-                      >
-                        <DeleteBlackIcon className="stroke-[#000] hover:stroke-[#0D859A]" />
-                      </button>
-                      {open && (
-                        <DeleteModal
-                          open={open}
-                          setOpen={setOpen}
-                          selectedDataForDelete={selectedDatasetForDelete}
-                          handleDeleteData={handleDatasetDelete}
-                          name="dataset"
-                        />
-                      )}
-                    </div>
+                    )}
                   </div>
-                  <div className="flex gap-[14px] pt-[8px] pb-[6px]">
-                  <p className={`font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal ${ele.shared ? 'text-[#0D859A]' : 'text-[#D4DB33]'} `}>
-                      Traces: {ele.shared ? `${ele.stats.trace_count} - Shared Project` : ele.stats.trace_count}
-                    </p>
-                    {/* <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
-                      -Latenz: 0,25
-                    </p>
-                    <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
-                      Errors: 59
-                    </p> */}
-                  </div>
-                  {/* <p className="font-Archivo lg:text-[16px] sm:text-[14px] text-[12px] font-normal text-[#D4DB33]">
-                    Used Token: 2.425.453
-                  </p> */}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 max-w-md mx-auto">
+                <div className="mx-auto w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                  <PlusIcon className="w-10 h-10 stroke-slate-400" />
                 </div>
-              );
-            })
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">No datasets yet</h3>
+                <p className="text-slate-600 mb-6 leading-relaxed">Get started by creating your first dataset or importing a shared one</p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={() => {
+                      setCreateDatasetStatus("new");
+                      setIsModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#D4DB33] hover:bg-[#0D859A] text-black hover:text-white rounded-xl font-Archivo text-sm font-medium transition-all duration-200"
+                  >
+                    <PlusIcon className="w-4 h-4 stroke-current" />
+                    Create Dataset
+                  </button>
+                  <button
+                    onClick={() => setImportShare(true)}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-[#D4DB33] rounded-xl font-Archivo text-sm font-medium transition-all duration-200"
+                  >
+                    <ImportIcon className="w-4 h-4 stroke-current" />
+                    Import Dataset
+                  </button>
+                </div>
+              </div>
+            )
           ) : (
-            <div className="flex">
-              <div className="dot-loader"></div>
-              <div className="dot-loader dot-loader--2"></div>
-              <div className="dot-loader dot-loader--3"></div>
+            <div className="flex justify-center items-center py-20">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-[#D4DB33] rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-[#D4DB33] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-[#D4DB33] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <span className="ml-3 text-slate-600 font-Archivo">Loading datasets...</span>
+              </div>
             </div>
           )}
+        </div>
 
-          {isModalOpen && (
-            <div
-              ref={modalRef}
-              className="modal sm:w-[600px] w-auto absolute bg-white right-0 top-0 border-l border-[#CCCCCC] h-screen overflow-y-auto"
-            >
+        {/* Modals */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+            <div ref={modalRef} className="absolute right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl">
               <AddDatasetModal
                 updateProjectList={getDatasetList}
                 isModalOpen={setIsModalOpen}
@@ -256,30 +317,30 @@ const DatasetSection = () => {
                 }
               />
             </div>
-          )}
-          {active && (
-            <DeveloperInfo
-              active={active}
-              setActive={setActive}
-              name="dataset"
-              selectedID={selectedDatasetID}
-            />
-          )}
-          {shareModal && (
-            <GenerateShareModal
-              shareModal={shareModal}
-              setShareModal={setShareModal}
-              selectedDatasetID={selectedDatasetID}
-            />
-          )}
-          {importShare && (
-            <ImportShareCode
-              importShare={importShare}
-              setImportShare={setImportShare}
-              name="dataset"
-            />
-          )}
-        </div>
+          </div>
+        )}
+        {active && (
+          <DeveloperInfo
+            active={active}
+            setActive={setActive}
+            name="dataset"
+            selectedID={selectedDatasetID}
+          />
+        )}
+        {shareModal && (
+          <GenerateShareModal
+            shareModal={shareModal}
+            setShareModal={setShareModal}
+            selectedDatasetID={selectedDatasetID}
+          />
+        )}
+        {importShare && (
+          <ImportShareCode
+            importShare={importShare}
+            setImportShare={setImportShare}
+            name="dataset"
+          />
+        )}
       </div>
     </div>
   );
