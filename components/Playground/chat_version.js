@@ -668,35 +668,72 @@ const Chat_version = forwardRef(({
 
   const parseVercelResponse = (apiResponse) => {
     const segments = [];
-    const codeRegex = /```(.*?)```/gs;
-    const reasoningRegex = /<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>/gs;
     let lastIndex = 0;
 
-    // Combined regex to match both code and reasoning blocks in order
-    const combinedRegex = /(```(.*?)```)|(<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>)/gs;
+    // Process content sequentially, looking for both code and reasoning blocks
+    const patterns = [
+      { regex: /```(.*?)```/gs, type: 'code' },
+      { regex: /<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>/gs, type: 'reasoning' }
+    ];
 
-    apiResponse?.replace(combinedRegex, (match, codeMatch, codeBlock, reasoningMatch, index) => {
-      // Add the text segment before this block
-      if (index > lastIndex) {
-        segments.push({
-          type: "text",
-          content: apiResponse.slice(lastIndex, index),
+    // Find all matches and their positions
+    const allMatches = [];
+    patterns.forEach(pattern => {
+      let match;
+      pattern.regex.lastIndex = 0; // Reset regex
+      while ((match = pattern.regex.exec(apiResponse)) !== null) {
+        allMatches.push({
+          type: pattern.type,
+          content: pattern.type === 'code' ? match[1] : match[0],
+          start: match.index,
+          end: match.index + match[0].length,
+          fullMatch: match[0]
         });
       }
-
-      // Add the appropriate block type
-      if (codeMatch) {
-        segments.push({ type: "code", content: codeBlock });
-      } else if (reasoningMatch) {
-        segments.push({ type: "reasoning", content: reasoningMatch });
-      }
-
-      lastIndex = index + match.length;
     });
 
-    // Add any remaining text after the last block
-    if (apiResponse && lastIndex < apiResponse.length) {
-      segments.push({ type: "text", content: apiResponse.slice(lastIndex) });
+    // Sort matches by position
+    allMatches.sort((a, b) => a.start - b.start);
+
+    // Process content with all matches in order
+    allMatches.forEach(match => {
+      // Add text before this match
+      if (match.start > lastIndex) {
+        const textContent = apiResponse.slice(lastIndex, match.start);
+        if (textContent.trim()) {
+          segments.push({
+            type: "text",
+            content: textContent
+          });
+        }
+      }
+
+      // Add the match
+      segments.push({
+        type: match.type,
+        content: match.content
+      });
+
+      lastIndex = match.end;
+    });
+
+    // Add remaining text
+    if (lastIndex < apiResponse.length) {
+      const remainingText = apiResponse.slice(lastIndex);
+      if (remainingText.trim()) {
+        segments.push({
+          type: "text",
+          content: remainingText
+        });
+      }
+    }
+
+    // If no matches found, treat entire content as text
+    if (segments.length === 0 && apiResponse) {
+      segments.push({
+        type: "text",
+        content: apiResponse
+      });
     }
 
     return segments;
