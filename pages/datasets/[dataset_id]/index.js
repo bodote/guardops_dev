@@ -7,7 +7,7 @@ import {
 } from "@/public/Assets/Icons/Allsvg";
 import React, { useEffect, useRef, useState } from "react";
 import Projectstabledata from "@/components/Projectsdetails/Projectstabledata";
-import { RiFilter2Fill } from "react-icons/ri";
+import { RiFilter2Fill, RiAddLine, RiBarChartLine, RiTimeLine, RiShieldLine, RiAlertLine, RiPauseLine, RiCheckLine, RiArchiveLine, RiDatabaseLine } from "react-icons/ri";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import DonutChart from "@/components/Projectsdetails/DonutChart";
 import BarChart from "@/components/Projectsdetails/BarChart";
@@ -24,13 +24,13 @@ const DatasetDetails = () => {
   const [searchTrace, setSearchTrace] = useState("");
   const [selectedTrace, setSelectedTrace] = useState([]);
   const [traceList, setTraceList] = useState([]);
+  const [activeTab, setActiveTab] = useState("All");
   const modalRef = useRef();
   const searchParams = useSearchParams();
   const datasetName = searchParams.get("name");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-
 
   const handleOutsideClick = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -119,6 +119,7 @@ const DatasetDetails = () => {
   useEffect(() => {
     getDatasetDetails();
   }, []);
+
   useEffect(() => {
     const loadNextPage = async () => {
       if (!loading && hasMore) {
@@ -138,6 +139,7 @@ const DatasetDetails = () => {
   useEffect(() => {
     getDatasetDetails(1);
   }, []);
+
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
 
@@ -154,237 +156,258 @@ const DatasetDetails = () => {
     });
   }
 
+  const tabs = [
+    { name: "All", count: 27, icon: RiBarChartLine },
+    { name: "Risk", count: 4, icon: RiAlertLine },
+    { name: "On hold", count: 4, icon: RiPauseLine },
+    { name: "Potential risk", count: 7, icon: RiShieldLine },
+    { name: "On track", count: 12, icon: RiCheckLine },
+    { name: "Archived", count: 9, icon: RiArchiveLine, separated: true },
+  ];
+
   return (
-    <>
-      <div className="flex">
-        <Sidebar />
-        <div className="w-full h-screen overflow-y-auto  sm:ml-[96px] ml-[72px]">
-          <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
-            <div className="flex items-center gap-[5px]">
-              <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                COAI
-              </h1>
-              <RightIcon />
-              <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                Datasets
-              </h1>
-              <RightIcon />
-              <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-                {datasetName}
-              </h1>
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar />
+      <div className="flex-1 sm:ml-[96px] ml-[72px]">
+        {/* Top Navigation */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="font-Archivo text-sm font-medium text-gray-600">COAI</span>
+              <RightIcon className="w-3 h-3 text-gray-400" />
+              <span className="font-Archivo text-sm font-medium text-gray-600">Datasets</span>
+              <RightIcon className="w-3 h-3 text-gray-400" />
+              <span className="font-Archivo text-sm font-medium text-[#0D859A]">{datasetName}</span>
             </div>
-            {/* <LockIcon /> */}
             <Logout />
           </div>
+        </div>
 
-          <div className="flex lg:flex-row flex-col my-[14px] sm:pl-[22px] pl-[16px] sm:pr-[35px] pr-[16px] xl:gap-[52px] gap-[20px]">
-            <div className="grid sm:grid-cols-2 grid-cols-1 bg-[#f5f5f5] sm:p-[8px_16px_8px_0] p-[0_10px_10px_10px] rounded-xl xl:min-w-[350px] sm:min-w-[230px]">
+        {/* Main Content */}
+        <div className="p-6">
+          {/* Header Section */}
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-br from-[#0D859A] to-[#0A6B7A] rounded-lg">
+                <RiDatabaseLine className="w-5 h-5 text-white" />
+              </div>
               <div>
-                <h1 className="font-Inter text-[14px] text-center font-normal text-[#000000] ">
-                  Critical Traces
+                <h1 className="text-2xl font-Archivo font-light text-gray-900">
+                  {datasetName}
                 </h1>
-                <DonutChart />
-              </div>
-              <div>
-                <div className="grid grid-cols-2 gap-[10px]">
-                  <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
-                    Pass Trough
-                  </h1>
-                  <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
-                    23.456
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 my-[10px]">
-                  <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
-                    Filtered
-                  </h1>
-                  <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#0D859A] ">
-                    2
-                  </button>
-                </div>
-                <div className="grid grid-cols-2">
-                  <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
-                    Blocked
-                  </h1>
-                  <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
-                    1
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="bg-[#f5f5f5] rounded-xl w-full">
-              <h1 className="font-Inter text-[12px]  font-normal text-[#000000] ">
-                Traces per month
-              </h1>
-              {tracesNumber && <BarChart tracesNumber={tracesNumber} />}
-            </div>
-            <div className="bg-[#f5f5f5] p-[2px_16px_15px_8px] rounded-xl lg:min-w-[285px]">
-              <h1 className="font-Inter text-[14px] font-normal text-[#000000] ">
-                Latenztime & Tokens
-              </h1>
-              <div className="">
-                <div className="flex sm:flex-nowrap flex-wrap pl-[8px] gap-[20px] mt-[11px] mb-[15px]">
-                  <div className="flex items-center gap-[20px] ">
-                    <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
-                      Inputtokens
-                    </h1>
-                    <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
-                      {totalInputTokens} T
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-[10px] ">
-                    <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
-                      P55
-                    </h1>
-                    <button className="w-[56px] py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#0D859A] ">
-                      2,55
-                    </button>
-                  </div>
-                </div>
-                <div className="flex sm:flex-nowrap flex-wrap pl-[8px] gap-[20px]">
-                  <div className="flex items-center gap-[10px]">
-                    <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
-                      Outputtokens
-                    </h1>
-                    <button className=" py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#D4DB33] ">
-                      {totalOutputTokens} T
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-[10px]">
-                    <h1 className=" font-Rubik text-[12px] font-normal text-[#000000] ">
-                      P99
-                    </h1>
-                    <button className="w-[56px] py-[3px] px-[10px] rounded-xl font-Inter text-[10px] font-bold text-[#2F2C53] bg-[#0D859A] ">
-                      2,55
-                    </button>
-                  </div>
-                </div>
+                <p className="text-gray-600 text-sm">
+                  Curated dataset for model training and evaluation
+                </p>
               </div>
             </div>
           </div>
 
-          <div className=" sm:px-[22px] px-[16px] py-[9px] flex items-center justify-between flex-wrap gap-[20px]">
-            <div className="flex gap-[40px] ">
-              <div className="flex sm:w-[370px] w-auto">
-                <button
-                  id="dropdown-button-2"
-                  data-dropdown-toggle="dropdown-search-city"
-                  className="gap-[8px] flex-shrink-0 inline-flex items-center py-2.5 px-4  text-[#464F60] border border-gray-300 rounded-s-lg "
-                  type="button"
-                >
-                  <RiFilter2Fill />
-                  <h1 className="text-[14px] font-medium font-Inter ">All</h1>
-                  <DownIcon />
-                </button>
-                <div className="relative w-full">
-                  <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                    <SearchIcon />
-                  </div>
-                  <input
-                    type="text"
-                    id="voice-search"
-                    value={searchTrace}
-                    onChange={(e) => setSearchTrace(e.target.value)}
-                    className="focus:ring-0 focus:outline-none focus:!border-gray-300  border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0]  block w-full sm:ps-10 ps-7 p-[12px]  border-s-gray-50   "
-                    placeholder="Search"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 end-0 flex me-3 bg-[#E9EDF5] w-[16px] h-[16px] rounded justify-center items-center translate-y-[-50%] top-[50%]"
-                  >
-                    <DivisionIcon className="" />
-                  </button>
+          {/* Analytics Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+            {/* Critical Traces Card */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-gray-900">Critical Traces</h3>
+                <div className="p-1.5 bg-red-100 rounded-md">
+                  <RiAlertLine className="w-4 h-4 text-red-600" />
                 </div>
               </div>
-              <div className="relative">
-                <button
-                  onClick={() => setActive(!active)}
-                  className="bg-[#cce037] hover:bg-[#0D859A] text-white rounded-lg flex gap-2 items-center p-[10px_14px]"
-                >
-                  <MdOutlineAdd className="text-[26px] text-white" />
-                  Add to Dataset
-                </button>
-                {active && (
-                  <SelectDatasetModal
-                    setIsDatasetModelOpen={setActive}
-                    selectedTrace={selectedTrace}
-                  />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center">
+                  <div className="h-20">
+                    <DonutChart />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">Pass Through</span>
+                    <span className="px-1.5 py-0.5 bg-[#D4DB33] text-gray-900 text-xs font-semibold rounded">
+                      23,456
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">Filtered</span>
+                    <span className="px-1.5 py-0.5 bg-[#0D859A] text-white text-xs font-semibold rounded">
+                      2
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-600">Blocked</span>
+                    <span className="px-1.5 py-0.5 bg-[#D4DB33] text-gray-900 text-xs font-semibold rounded">
+                      1
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Traces per Month Card */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-gray-900">Traces per Month</h3>
+                <div className="p-1.5 bg-blue-100 rounded-md">
+                  <RiBarChartLine className="w-4 h-4 text-blue-600" />
+                </div>
+              </div>
+              <div className="h-24">
+                {tracesNumber ? (
+                  <BarChart tracesNumber={tracesNumber} />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="w-6 h-6 border-2 border-[#0D859A] border-t-transparent rounded-full animate-spin mx-auto mb-1"></div>
+                      <span className="text-xs text-gray-500">Loading...</span>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-            <div className="flex gap-[48px] flex-wrap sm:mt-0 mt-[10px]">
-              <div className="flex gap-[24px] flex-wrap sm:mt-0 mt-[10px]">
-                <div className=" border-b-2 border-[#0D859A] ">
-                  <div className="mb-[8px] flex gap-[6px] ">
-                    <h1 className="text-[14px] font-bold font-Inter text-[#0D859A]">
-                      All
-                    </h1>
-                    <p className="text-[10px] font-medium font-Inter text-[#0D859A] px-[6px] py-[3px] bg-[#EDEDFC] rounded-full">
-                      27
-                    </p>
-                  </div>
-                </div>
-                <div className=" hover:border-b-2 border-[#000] group">
-                  <div className="mb-[8px] flex gap-[6px] ">
-                    <h1 className=" text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
-                      Risk
-                    </h1>
-                    <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                      4
-                    </p>
-                  </div>
-                </div>
-                <div className=" hover:border-b-2 border-[#000] group">
-                  <div className="mb-[8px] flex gap-[6px]">
-                    <h1 className="text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
-                      On hold
-                    </h1>
-                    <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                      4
-                    </p>
-                  </div>
-                </div>
-                <div className=" hover:border-b-2 border-[#000] group">
-                  <div className="mb-[8px] flex gap-[6px]">
-                    <h1 className="text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
-                      Potential risk
-                    </h1>
-                    <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                      7
-                    </p>
-                  </div>
-                </div>
-                <div className=" hover:border-b-2 border-[#000] group">
-                  <div className="mb-[8px] flex gap-[6px] ">
-                    <h1 className="text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
-                      On track
-                    </h1>
-                    <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                      12
-                    </p>
-                  </div>
+
+            {/* Latency & Tokens Card */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-gray-900">Latency & Tokens</h3>
+                <div className="p-1.5 bg-green-100 rounded-md">
+                  <RiTimeLine className="w-4 h-4 text-green-600" />
                 </div>
               </div>
-              <div className=" hover:border-b-2 border-[#000] group relative after:content-[''] after:h-[16px] after:w-[1px] after:absolute after:bg-[#D5DBE5] after:top-[3px] after:left-[-24px]">
-                <div className="mb-[8px] flex gap-[6px]">
-                  <h1 className="text-[14px] font-bold font-Inter text-[#464F60] group-hover:text-[#000]">
-                    Archived
-                  </h1>
-                  <p className="text-[10px] font-medium font-Inter text-[#5A6376] px-[6px] py-[3px] bg-[#E9EDF5] rounded-full">
-                    9
-                  </p>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">Input Tokens</span>
+                      <span className="px-1.5 py-0.5 bg-[#D4DB33] text-gray-900 text-xs font-semibold rounded">
+                        {totalInputTokens.toLocaleString()} T
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">P55</span>
+                      <span className="px-1.5 py-0.5 bg-[#0D859A] text-white text-xs font-semibold rounded">
+                        2.55
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">Output Tokens</span>
+                      <span className="px-1.5 py-0.5 bg-[#D4DB33] text-gray-900 text-xs font-semibold rounded">
+                        {totalOutputTokens.toLocaleString()} T
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">P99</span>
+                      <span className="px-1.5 py-0.5 bg-[#0D859A] text-white text-xs font-semibold rounded">
+                        2.55
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <div>
+
+          {/* Controls Section */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              {/* Search and Filter */}
+              <div className="flex gap-3">
+                <div className="flex max-w-md">
+                  <button className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-l-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                    <RiFilter2Fill className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700">All</span>
+                    <DownIcon className="w-3 h-3 text-gray-400" />
+                  </button>
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <SearchIcon className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      value={searchTrace}
+                      onChange={(e) => setSearchTrace(e.target.value)}
+                      className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-[#0D859A] focus:border-transparent transition-all duration-200"
+                      placeholder="Search traces..."
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                      <div className="bg-gray-100 rounded px-1.5 py-0.5">
+                        <DivisionIcon className="h-3 w-3 text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Add to Dataset Button */}
+                {selectedTrace.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setActive(!active)}
+                      className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-[#D4DB33] to-[#B8C42A] hover:from-[#0D859A] hover:to-[#0A6B7A] text-gray-900 hover:text-white rounded-lg transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                    >
+                      <RiAddLine className="w-4 h-4" />
+                      Add to Dataset ({selectedTrace.length})
+                    </button>
+                    {active && (
+                      <SelectDatasetModal
+                        setIsDatasetModelOpen={setActive}
+                        selectedTrace={selectedTrace}
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Status Tabs */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-4">
+            <div className="border-b border-gray-200">
+              <nav className="flex">
+                {tabs.map((tab, index) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.name;
+
+                  return (
+                    <div key={tab.name} className="flex">
+                      {tab.separated && (
+                        <div className="w-px bg-gray-200 my-2"></div>
+                      )}
+                      <button
+                        onClick={() => setActiveTab(tab.name)}
+                        className={`relative px-4 py-3 text-sm font-medium transition-all duration-200 ${isActive
+                          ? 'text-[#0D859A] bg-blue-50 border-b-2 border-[#0D859A]'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                          }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-4 h-4" />
+                          <span>{tab.name}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${isActive
+                            ? 'bg-[#0D859A] text-white'
+                            : 'bg-gray-100 text-gray-600'
+                            }`}>
+                            {tab.count}
+                          </span>
+                        </div>
+                      </button>
+                    </div>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          {/* Traces Table */}
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
             <div
-              id="scrollableDiv"
               style={{
-                height: 'calc(100vh - 300px)',
+                height: 'calc(100vh - 520px)',
                 overflow: 'auto',
-                marginTop: '20px'
               }}
             >
               <InfiniteScroll
@@ -392,8 +415,11 @@ const DatasetDetails = () => {
                 next={() => { }} // Empty function since we're loading automatically
                 hasMore={hasMore}
                 loader={
-                  <div className="text-center py-4">
-                    <h4>Loading more traces...</h4>
+                  <div className="text-center py-6">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-[#0D859A] border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-gray-600">Loading more traces...</span>
+                    </div>
                   </div>
                 }
                 scrollableTarget="scrollableDiv"
@@ -401,6 +427,7 @@ const DatasetDetails = () => {
                 <Projectstabledata
                   searchTrace={searchTrace}
                   setSelectedTrace={setSelectedTrace}
+                  selectedTrace={selectedTrace}
                   traceList={traceList}
                   setTraceList={setTraceList}
                 />
@@ -409,7 +436,7 @@ const DatasetDetails = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

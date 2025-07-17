@@ -3,7 +3,7 @@ import React, { useEffect, useState, Fragment } from "react";
 import { getCookie } from "cookies-next";
 import { Listbox, Transition } from "@headlessui/react";
 import { MdKeyboardArrowUp } from "react-icons/md";
-import { RiBarChartLine, RiCheckCircleLine, RiFlaskLine, RiArrowRightLine, RiLoader4Line, RiFolderLine, RiDatabaseLine } from "react-icons/ri";
+import { RiBarChartLine, RiCheckLine, RiFlaskLine, RiArrowRightLine, RiLoader4Line, RiFolderLine, RiDatabaseLine } from "react-icons/ri";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -434,7 +434,7 @@ const TopicGPT = ({ searchPrompt }) => {
                                 active ? "text-white" : "text-[#0D859A]",
                                 "absolute inset-y-0 right-0 flex items-center pr-4"
                               )}>
-                                <RiCheckCircleLine className="h-5 w-5" />
+                                <RiCheckLine className="h-5 w-5" />
                               </span>
                             )}
                           </>
@@ -505,7 +505,7 @@ const TopicGPT = ({ searchPrompt }) => {
                                 active ? "text-white" : "text-[#0D859A]",
                                 "absolute inset-y-0 right-0 flex items-center pr-4"
                               )}>
-                                <RiCheckCircleLine className="h-5 w-5" />
+                                <RiCheckLine className="h-5 w-5" />
                               </span>
                             )}
                           </>

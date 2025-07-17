@@ -1,11 +1,13 @@
 import { ThreeDotsIcon, UpDownIcon } from "@/public/Assets/Icons/Allsvg";
 import React, { useEffect, useState, useRef } from "react";
 import { IoChevronForwardCircleOutline } from "react-icons/io5";
+import { RiCheckboxLine, RiArrowUpDownLine, RiMoreLine, RiPlayCircleLine, RiTimeLine, RiCpuLine, RiShieldCheckLine, RiAlertLine } from "react-icons/ri";
 import TraceDetails from "./TraceDetails";
 
 const Projectstabledata = ({
   searchTrace,
   setSelectedTrace,
+  selectedTrace,
   traceList,
   setTraceList,
 }) => {
@@ -15,6 +17,7 @@ const Projectstabledata = ({
   const [option, setOption] = useState(false);
   const [minWidth, maxWidth, defaultWidth] = [20, 95, 80];
   const [width, setWidth] = useState(defaultWidth);
+  const [lastClickedIndex, setLastClickedIndex] = useState(null);
   const isResized = useRef(false);
   const modalRef = useRef();
 
@@ -38,7 +41,6 @@ const Projectstabledata = ({
       year: "numeric",
     });
 
-    // Format time
     const formattedTime = startDate.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
@@ -48,16 +50,112 @@ const Projectstabledata = ({
     return FormatedTime;
   };
 
-  const handleSelectTraces = (e, data) => {
-    if (e.target.checked) {
-      // If checked, add the data to the selectedRows state
-      setSelectedTrace((prevSelectedTrace) => [...prevSelectedTrace, data]);
+  const handleSelectTraces = (e, data, currentIndex) => {
+    const isShiftHeld = e.shiftKey;
+    // Since we're using onClick, we need to determine the new state
+    const currentlySelected = isTraceSelected(data);
+    const isChecked = !currentlySelected; // Toggle the current state
+
+    console.log('handleSelectTraces called:', { isShiftHeld, isChecked, currentIndex, lastClickedIndex, currentlySelected });
+
+    if (isShiftHeld && lastClickedIndex !== null) {
+      // Shift-click: select range between last clicked and current
+      const startIndex = Math.min(lastClickedIndex, currentIndex);
+      const endIndex = Math.max(lastClickedIndex, currentIndex);
+
+      console.log('Shift-click range:', { startIndex, endIndex });
+
+      const rangeTraces = [];
+      for (let i = startIndex; i <= endIndex; i++) {
+        const rootSpan = filteredProjects[i]?.find(span => span.parent_id === null);
+        if (rootSpan) {
+          rangeTraces.push(rootSpan);
+        }
+      }
+
+      console.log('Range traces found:', rangeTraces.length);
+
+      if (isChecked) {
+        // Add all traces in range to selection
+        setSelectedTrace((prevSelected) => {
+          const current = prevSelected || [];
+          const newTraces = rangeTraces.filter(trace => !current.includes(trace));
+          console.log('Adding traces:', newTraces.length);
+          return [...current, ...newTraces];
+        });
+      } else {
+        // Remove all traces in range from selection
+        setSelectedTrace((prevSelected) => {
+          const current = prevSelected || [];
+          const filtered = current.filter(trace => !rangeTraces.includes(trace));
+          console.log('Removing traces, before:', current.length, 'after:', filtered.length);
+          return filtered;
+        });
+      }
     } else {
-      // If unchecked, remove the data from the selectedRows state
-      setSelectedTrace((prevSelectedTrace) =>
-        prevSelectedTrace.filter((row) => row !== data)
-      );
+      // Normal click: toggle just this item
+      console.log('Normal click');
+      if (isChecked) {
+        setSelectedTrace((prevSelected) => {
+          const current = prevSelected || [];
+          if (!current.includes(data)) {
+            console.log('Adding single trace');
+            return [...current, data];
+          }
+          return current;
+        });
+      } else {
+        setSelectedTrace((prevSelected) => {
+          const current = prevSelected || [];
+          const filtered = current.filter(trace => trace !== data);
+          console.log('Removing single trace, before:', current.length, 'after:', filtered.length);
+          return filtered;
+        });
+      }
+      // Remember this index for future shift-clicks
+      setLastClickedIndex(currentIndex);
+      console.log('Set lastClickedIndex to:', currentIndex);
     }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      // Select all visible traces
+      const allRootSpans = filteredProjects.map(project =>
+        project.find(span => span.parent_id === null)
+      ).filter(Boolean);
+
+      setSelectedTrace(allRootSpans);
+    } else {
+      // Deselect all
+      setSelectedTrace([]);
+    }
+    setLastClickedIndex(null);
+  };
+
+  const isTraceSelected = (trace) => {
+    return selectedTrace?.some(selectedItem => selectedItem === trace) || false;
+  };
+
+  const isAllSelected = () => {
+    if (filteredProjects.length === 0 || !selectedTrace) return false;
+
+    const allRootSpans = filteredProjects.map(project =>
+      project.find(span => span.parent_id === null)
+    ).filter(Boolean);
+
+    return allRootSpans.length > 0 && allRootSpans.every(span => isTraceSelected(span));
+  };
+
+  const isIndeterminate = () => {
+    if (filteredProjects.length === 0 || !selectedTrace) return false;
+
+    const allRootSpans = filteredProjects.map(project =>
+      project.find(span => span.parent_id === null)
+    ).filter(Boolean);
+
+    const selectedCount = allRootSpans.filter(span => isTraceSelected(span)).length;
+    return selectedCount > 0 && selectedCount < allRootSpans.length;
   };
 
   const sortData = () => {
@@ -82,7 +180,6 @@ const Projectstabledata = ({
     });
 
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-
     setTraceList(sortedProjectList);
   };
 
@@ -103,9 +200,7 @@ const Projectstabledata = ({
     )
   );
 
-  // Function to find the best content from a trace, prioritizing output
   const findBestContent = (trace) => {
-    // First, find a span with output
     const spanWithOutput = trace.find(span =>
       span.attributes?.output && span.attributes.output.trim() !== ""
     ) || trace.find(span =>
@@ -116,7 +211,6 @@ const Projectstabledata = ({
       span.attributes?.llm_completions_0_content && span.attributes.llm_completions_0_content.trim() !== ""
     );
 
-    // If we found a span with output, use it
     if (spanWithOutput) {
       let output = "";
       if (spanWithOutput.attributes?.output) {
@@ -129,7 +223,6 @@ const Projectstabledata = ({
         output = spanWithOutput.attributes.llm_completions_0_content;
       }
 
-      // Get the prompt from the same span if available
       let prompt = "";
       if (spanWithOutput.attributes?.prompt) {
         prompt = spanWithOutput.attributes.prompt;
@@ -140,176 +233,263 @@ const Projectstabledata = ({
       return { prompt, output, span: spanWithOutput };
     }
 
-    // If no span has output, just return empty strings
     return { prompt: "", output: "", span: null };
   };
 
+  const getStatusBadge = (statusCode) => {
+    const status = statusCode?.toString();
+    if (status === "1" || status === "OK") {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <RiShieldCheckLine className="w-3 h-3 mr-1" />
+          Success
+        </span>
+      );
+    } else if (status === "2" || status?.startsWith("4") || status?.startsWith("5")) {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          <RiAlertLine className="w-3 h-3 mr-1" />
+          Error
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <RiCpuLine className="w-3 h-3 mr-1" />
+          {status || "Unknown"}
+        </span>
+      );
+    }
+  };
+
+  const getLatencyBadge = (latency) => {
+    const latencyMs = latency * 1000;
+    let bgColor = "bg-green-100 text-green-800";
+    if (latencyMs > 2000) {
+      bgColor = "bg-red-100 text-red-800";
+    } else if (latencyMs > 1000) {
+      bgColor = "bg-yellow-100 text-yellow-800";
+    }
+
+    return (
+      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${bgColor}`}>
+        <RiTimeLine className="w-3 h-3 mr-1" />
+        {latency}s
+      </span>
+    );
+  };
+
+  const getTokensBadge = (tokens) => {
+    return (
+      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        <RiCpuLine className="w-3 h-3 mr-1" />
+        {tokens || 0}
+      </span>
+    );
+  };
+
+  const truncateText = (text, maxLength = 100) => {
+    if (!text) return "";
+    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+  };
+
   return (
-    <>
-      <div className="overflow-auto">
-        <table className="xl:w-full w-[1240px]">
-          <thead>
-            <tr className="border-b border-[#334851] border-opacity-[0.1]">
-              <th className="py-[8px] text-[12px] font-medium font-Inter text-[#171C26]">
+    <div className="overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 border border-[#334851] border-opacity-[0.3] rounded focus:ring-0 focus:outline-none focus:!border-[#334851]"
+                  checked={isAllSelected()}
+                  ref={(el) => {
+                    if (el) el.indeterminate = isIndeterminate();
+                  }}
+                  onChange={handleSelectAll}
+                  className="h-4 w-4 text-[#0D859A] focus:ring-[#0D859A] border-gray-300 rounded"
                 />
               </th>
-              <th></th>
-              <th className="py-[8px] text-[12px] font-medium font-Inter text-[#171C26] ">
-                <div className="flex items-center justify-center">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                <RiPlayCircleLine className="w-4 h-4 text-gray-400" />
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center justify-center gap-1">
                   #
-                  <a href="">
-                    <UpDownIcon />
-                  </a>
+                  <button className="p-1 hover:bg-gray-200 rounded">
+                    <RiArrowUpDownLine className="w-3 h-3" />
+                  </button>
                 </div>
               </th>
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] ">
-                <div className="flex items-center justify-center">
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center justify-center gap-1">
                   Kind
-                  <a href="">
-                    <UpDownIcon />
-                  </a>
+                  <button className="p-1 hover:bg-gray-200 rounded">
+                    <RiArrowUpDownLine className="w-3 h-3" />
+                  </button>
                 </div>
               </th>
-
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] ">
-                input
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">
+                Input
               </th>
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] ">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">
                 Output
               </th>
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] ">
-                <div className="flex items-center justify-center">
-                  start Time
-                  <div onClick={sortData} className="cursor-pointer">
-                    <UpDownIcon />
-                  </div>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center justify-center gap-1">
+                  Start Time
+                  <button onClick={sortData} className="p-1 hover:bg-gray-200 rounded">
+                    <RiArrowUpDownLine className="w-3 h-3" />
+                  </button>
                 </div>
               </th>
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] min-w-[100px]">
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Latency
               </th>
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] min-w-[100px]">
-                total tokens
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total Tokens
               </th>
-              <th className="uppercase py-[8px] text-[12px] font-medium font-Inter text-[#687182] min-w-[100px]">
-                status
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                Actions
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="bg-white divide-y divide-gray-200">
             {filteredProjects.map((data, index) => {
-              // Check if any of the vals in the data array are flagged
               const isAnyFlagged = data.some(
                 (val) =>
                   (val.attributes?.prompt_moderation?.flagged ?? false) ||
                   (val.attributes?.output_moderation?.flagged ?? false)
               );
 
-              const textColorClass = isAnyFlagged ? "text-red-700" : "text-[#0D859A]";
-
-              // Find the root span
               const rootSpan = data.find(span => span.parent_id === null);
-
-              // Find the best content from any span in the trace, prioritizing output
               const { prompt, output, span: bestSpan } = findBestContent(data);
-
-              // Use the best span for display if available, otherwise fall back to root span
               const displaySpan = bestSpan || rootSpan;
+              const latency = handleLatency(rootSpan.start_time, rootSpan.end_time);
 
               return (
                 rootSpan && (
                   <tr
                     key={index}
-                    className="hover:bg-[#fffbeb] align-middle border-b border-[#334851] border-opacity-[0.1]"
+                    className={`hover:bg-gray-50 transition-colors duration-200 ${isAnyFlagged ? 'bg-red-50 border-l-4 border-l-red-500' : ''
+                      }`}
                   >
-                    <td className="py-[14px] px-[10px] text-center">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <input
                         type="checkbox"
-                        onChange={(e) => handleSelectTraces(e, rootSpan)}
-                        className="w-4 h-4 border border-[#334851] border-opacity-[0.3] rounded focus:ring-0 focus:outline-none focus:!border-[#334851]"
+                        onClick={(e) => handleSelectTraces(e, rootSpan, index)}
+                        checked={isTraceSelected(rootSpan)}
+                        className="h-4 w-4 text-[#0D859A] focus:ring-[#0D859A] border-gray-300 rounded"
                       />
                     </td>
-                    <td className="text-[#bbbbbb]">
-                      <IoChevronForwardCircleOutline />
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <button
+                        onClick={() => openModal(data)}
+                        className="text-gray-400 hover:text-[#0D859A] transition-colors duration-200"
+                      >
+                        <RiPlayCircleLine className="w-4 h-4" />
+                      </button>
                     </td>
-                    <td className="py-[14px] px-[10px] text-[14px] text-[#171C26] font-medium font-Inter text-center">
-                      {index}
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <span className="text-sm font-medium text-gray-900">
+                        {index + 1}
+                      </span>
                     </td>
-                    <td
-                      onClick={() => openModal(data)}
-                      className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center ${textColorClass}`}
-                    >
-                      <p className="hover:underline cursor-pointer">
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <button
+                        onClick={() => openModal(data)}
+                        className={`text-sm font-medium hover:underline transition-colors duration-200 ${isAnyFlagged ? 'text-red-700' : 'text-[#0D859A] hover:text-[#0A6B7A]'
+                          }`}
+                      >
                         {rootSpan.kind}
-                      </p>
+                      </button>
                     </td>
-                    <td className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px] ${textColorClass}`}>
-                      <p className="line-clamp">{prompt}</p>
-                    </td>
-                    <td className={`py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center ${textColorClass}`}>
-                      <p className="line-clamp">
-                        {output}
-                      </p>
-                    </td>
-                    <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center min-w-[300px]">
-                      {handleSpanStartTime(rootSpan.start_time)}
-                      <br />
-                    </td>
-                    <td className="py-[14px] px-[10px] text-[14px] font-normal font-Inter text-[#464F60] text-center">
-                      <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
-                        {handleLatency(rootSpan.start_time, rootSpan.end_time)}s
-                      </p>
-                    </td>
-                    <td className="py-[14px] px-[10px] text-[12px] font-medium font-Inter text-[#464F60] text-center">
-                      <p className="py-[5px] px-[10px] rounded-lg bg-[#E9EDF5]">
-                        {rootSpan.attributes?.total_tokens}
-                      </p>
-                    </td>
-                    <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter text-center">
-                      {rootSpan?.status.status_code}
-                    </td>
-                    <td className="py-[14px] px-[10px] text-[14px] font-medium font-Inter">
-                      <div className="flex gap-[5px] items-center relative">
-                        <div onClick={() => setOption(!option)}>
-                          <ThreeDotsIcon />
-                        </div>
+                    <td className="px-4 py-3 max-w-xs">
+                      <div className={`text-sm ${isAnyFlagged ? 'text-red-700' : 'text-gray-900'}`}>
+                        <p className="line-clamp-2 leading-5">
+                          {truncateText(prompt, 100)}
+                        </p>
                       </div>
+                    </td>
+                    <td className="px-4 py-3 max-w-xs">
+                      <div className={`text-sm ${isAnyFlagged ? 'text-red-700' : 'text-gray-900'}`}>
+                        <p className="line-clamp-2 leading-5">
+                          {truncateText(output, 100)}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <div className="text-xs text-gray-900">
+                        {handleSpanStartTime(rootSpan.start_time)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      {getLatencyBadge(latency)}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      {getTokensBadge(rootSpan.attributes?.total_tokens)}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      {getStatusBadge(rootSpan?.status.status_code)}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <button
+                        onClick={() => setOption(!option)}
+                        className="text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-100 transition-colors duration-200"
+                      >
+                        <RiMoreLine className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 )
               );
             })}
-
-            {isModalOpen && (
-              <div
-                style={{ width: `${width}%` }}
-                className="modal overflow-x-auto flex absolute bg-white right-0 top-0 border-l border-[#CCCCCC] overflow-y-auto z-20 lg:flex-row flex-col h-screen trace-modal-main"
-              >
-                <div
-                  className="after:content-[''] after:absolute after:h-screen after:left-0 after:w-2 after:cursor-col-resize"
-                  onMouseDown={() => {
-                    isResized.current = true;
-                  }}
-                ></div>
-                <TraceDetails
-                  traceProject={traceProject}
-                  isModalOpen={isModalOpen}
-                  setIsModalOpen={setIsModalOpen}
-                  width={width}
-                  setWidth={setWidth}
-                  minWidth={minWidth}
-                  maxWidth={maxWidth}
-                  isResized={isResized}
-                />
-              </div>
-            )}
           </tbody>
         </table>
       </div>
-    </>
+
+      {filteredProjects.length === 0 && (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <RiCpuLine className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No traces found</h3>
+          <p className="text-gray-600">
+            {searchTrace ?
+              `No traces match your search "${searchTrace}"` :
+              "No traces available yet. Start using your AI models to see traces here."
+            }
+          </p>
+        </div>
+      )}
+
+      {isModalOpen && (
+        <div
+          style={{ width: `${width}%` }}
+          className="modal overflow-x-auto flex absolute bg-white right-0 top-0 border-l border-gray-200 overflow-y-auto z-20 lg:flex-row flex-col h-screen shadow-xl"
+        >
+          <div
+            className="after:content-[''] after:absolute after:h-screen after:left-0 after:w-2 after:cursor-col-resize after:bg-gray-300 after:hover:bg-gray-400 after:transition-colors"
+            onMouseDown={() => {
+              isResized.current = true;
+            }}
+          ></div>
+          <TraceDetails
+            traceProject={traceProject}
+            isModalOpen={isModalOpen}
+            setIsModalOpen={setIsModalOpen}
+            width={width}
+            setWidth={setWidth}
+            minWidth={minWidth}
+            maxWidth={maxWidth}
+            isResized={isResized}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 
