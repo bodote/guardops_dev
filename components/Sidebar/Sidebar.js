@@ -19,11 +19,26 @@ import Cookies from "js-cookie";
 import { getUserRole } from "@/helper/getRole";
 
 const Sidebar = () => {
-  const [open, setOpen] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const { user } = useUser();
   const [role, setRole] = useState("");
   const [currentPath, setCurrentPath] = useState("");
+
+  // Load pinned state from localStorage on component mount
+  useEffect(() => {
+    const savedPinnedState = localStorage.getItem('sidebarPinned');
+    if (savedPinnedState !== null) {
+      setIsPinned(JSON.parse(savedPinnedState));
+    }
+  }, []);
+
+  // Save pinned state to localStorage whenever it changes
+  const togglePinned = () => {
+    const newPinnedState = !isPinned;
+    setIsPinned(newPinnedState);
+    localStorage.setItem('sidebarPinned', JSON.stringify(newPinnedState));
+  };
 
   // Get current path on client side
   useEffect(() => {
@@ -60,7 +75,9 @@ const Sidebar = () => {
     getRole();
   }, []);
 
-  const dynamicClassName = `trans ${isHovered ? "hovered-class" : ""}`;
+  const isExpanded = isPinned || isHovered;
+  const dynamicClassName = `trans ${isExpanded ? "hovered-class" : ""}`;
+
   return (
     <div>
       <div className="sm:p-[12px] p-[6px] flex flex-col justify-between gap-[40px] h-screen overflow-auto border-r-[#CCCCCC] border-r-[1px] w-fit cursor-pointer trans absolute left-0 bg-[#fff] z-10">
@@ -75,21 +92,22 @@ const Sidebar = () => {
             className="sm:w-auto w-[60px]"
           />
           <div className=" trans group">
-            <div
-              className={
-                open
-                  ? "sm:pl-[21px] pl-[12px] group-hover:pr-[45px] trans opened"
-                  : "sm:px-[21px] px-[12px] group-hover:pr-[45px] trans"
-              }
-            >
+            <div className="sm:px-[21px] px-[12px] group-hover:pr-[45px] trans">
               <button
-                onClick={() => setOpen(!open)}
-                className="flex gap-[10px] items-center mt-[27px]"
+                onClick={togglePinned}
+                className={`flex gap-[10px] items-center mt-[27px] p-2 rounded-lg transition-all duration-200 ${isPinned
+                  ? "bg-[#D4DB33]/20 text-[#0D859A]"
+                  : "hover:bg-slate-100 text-slate-600"
+                  }`}
+                title={isPinned ? "Release sidebar" : "Fixate sidebar"}
               >
-                <LeftIcon className="w-[24px] rotate-[180deg] group-hover:hidden trans" />
-                <LeftIcon className="w-[24px] rotate-[0] group-hover:block hidden" />
+                {isPinned ? (
+                  <LeftIcon className="w-[24px] rotate-[0deg] transition-all duration-200" />
+                ) : (
+                  <LeftIcon className="w-[24px] rotate-[180deg] transition-all duration-200" />
+                )}
                 <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
-                  Close
+                  {isPinned ? "Release" : "Fixate"}
                 </p>
               </button>
               <div>
@@ -225,13 +243,7 @@ const Sidebar = () => {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <div
-            className={
-              open
-                ? "mb-[50px] sm:px-[21px] px-[16px] group-hover:pr-[45px] trans opened"
-                : "mb-[50px] sm:px-[21px] px-[16px] group-hover:pr-[45px] trans"
-            }
-          >
+          <div className="mb-[50px] sm:px-[21px] px-[16px] group-hover:pr-[45px] trans">
             <a href="/pageprofile" className={`${getMenuItemClasses("/pageprofile")} py-2 px-3 rounded-r-lg -mr-3`}>
               <UserIcon className={`w-[24px] ${isActive("/pageprofile") ? "text-[#0D859A]" : ""}`} />
               <p className="text-[12px] font-Archivo font-normal leading-[normal] hidden">
