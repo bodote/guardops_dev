@@ -404,21 +404,22 @@ const PlaygroundSettings = () => {
                             );
                           }}
                           label={provider.name}
+                          hasActionButtons={true}
                         />
-                        <div className="absolute right-2 top-2 flex gap-1">
+                        <div className="absolute right-2 top-2 flex gap-1 z-10">
                           <button
                             onClick={() => {
                               setEditingProvider(provider);
                               setShowCustomProviderModal(true);
                             }}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-200"
+                            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors duration-200 bg-white shadow-sm border border-slate-200"
                             title="Edit provider"
                           >
                             <EditBlackIcon className="w-3 h-3 stroke-slate-500 hover:stroke-[#0D859A]" />
                           </button>
                           <button
                             onClick={() => handleDeleteCustomProvider(provider.provider_id)}
-                            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors duration-200"
+                            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors duration-200 bg-white shadow-sm border border-slate-200"
                             title="Delete provider"
                           >
                             <DeleteBlackIcon className="w-3 h-3 stroke-slate-500 hover:stroke-red-600" />

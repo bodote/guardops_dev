@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FiPlus, FiEye, FiEyeOff, FiLock, FiUnlock } from "react-icons/fi";
 import { toast } from "react-toastify";
 
-const APIKeyInput = ({ apiKey, setApiKey, saveApiKey, label }) => {
+const APIKeyInput = ({ apiKey, setApiKey, saveApiKey, label, hasActionButtons = false }) => {
   const [isKeyVisible, setIsKeyVisible] = useState(false);
   const hasKey = apiKey && apiKey.trim().length > 0;
 
@@ -37,7 +37,7 @@ const APIKeyInput = ({ apiKey, setApiKey, saveApiKey, label }) => {
           }`}>
           {label}
         </label>
-        <div className={`ml-auto px-2 py-0.5 rounded-full text-xs font-medium ${hasKey
+        <div className={`${hasActionButtons ? 'mr-16' : 'ml-auto'} px-2 py-0.5 rounded-full text-xs font-medium ${hasKey
           ? 'bg-[#D4DB33]/20 text-[#D4DB33] border border-[#D4DB33]/30'
           : 'bg-slate-100 text-slate-500 border border-slate-200'
           }`}>
