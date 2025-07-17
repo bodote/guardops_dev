@@ -11,103 +11,148 @@ import {
   RightIcon,
   SearchIcon
 } from "@/public/Assets/Icons/Allsvg";
-import { RiFilter2Fill } from "react-icons/ri";
+import { RiFilter2Fill, RiShareLine, RiDownloadLine, RiBarChartLine } from "react-icons/ri";
 
 const Index = () => {
   const [tab, setTab] = useState("PublicPrompts");
   const [searchPrompt, setSearchPrompt] = useState("");
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <div className="w-full h-screen overflow-y-auto sm:ml-[96px] ml-[72px]">
-        <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
-          <div className="flex items-center gap-[5px]">
-            <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-              COAI
-            </h1>
-            <RightIcon />
-            <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
-              Monitoring
-            </h1>
-          </div>
-          <Logout />
-        </div>
-        <div className="sm:px-[55px] px-[16px] mt-[24px]">
-          <h1 className="font-Archivo lg:text-[32px] text-[22px] text-black font-thin">
-            COAI Prompt Hub
-          </h1>
-          <div className="sm:px-[22px] px-[16px]">
-            <div className="mt-[18px] flex gap-[10px] items-center sm:justify-start justify-between flex-wrap">
-              <button
-                onClick={() => setTab("PublicPrompts")}
-                className={`${
-                  tab === "PublicPrompts"
-                    ? "font-bold border-[#0D859A] sm:text-[14px] text-[12px] text-[#0D859A]"
-                    : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
-                } pb-3  border-b-2`}
-              >
-                Discover Prompts
-              </button>
-              <div ></div>
-              <button
-                onClick={() => setTab("MyPrompts")}
-                className={`${
-                  tab === "MyPrompts"
-                    ? "font-bold border-[#0D859A] sm:text-[14px] text-[12px] text-[#0D859A]"
-                    : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
-                } pb-3  border-b-2`}
-              >
-                My Prompts
-              </button>
-              <button
-                onClick={() => setTab("TopicGPT")}
-                className={`${
-                  tab === "TopicGPT"
-                    ? "font-bold border-[#0D859A] sm:text-[14px] text-[12px] text-[#0D859A]"
-                    : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
-                } pb-3  border-b-2`}
-              >
-                Analyze Prompts
-              </button>
+      <div className="flex-1 sm:ml-[96px] ml-[72px]">
+        {/* Top Navigation */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="font-Archivo text-sm font-medium text-gray-600">COAI</span>
+              <RightIcon className="w-3 h-3 text-gray-400" />
+              <span className="font-Archivo text-sm font-medium text-gray-600">Monitoring</span>
+              <RightIcon className="w-3 h-3 text-gray-400" />
+              <span className="font-Archivo text-sm font-medium text-[#0D859A]">Prompt Hub</span>
             </div>
-            <div className="flex sm:w-[370px] w-auto">
-              <button
-                id="dropdown-button-2"
-                data-dropdown-toggle="dropdown-search-city"
-                className="gap-[8px] flex-shrink-0 inline-flex items-center py-2.5 px-4  text-[#464F60] border border-gray-300 rounded-s-lg "
-                type="button"
-              >
-                <RiFilter2Fill />
-                <h1 className="text-[14px] font-medium font-Inter">All</h1>
-                <DownIcon />
-              </button>
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                  <SearchIcon />
+            <Logout />
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-8">
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-Archivo font-light text-gray-900 mb-2">
+                  Prompt Hub
+                </h1>
+                <p className="text-gray-600 text-base">
+                  Discover, share, and manage AI prompts with your team
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="bg-white rounded-lg px-4 py-2 border border-gray-200 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm text-gray-600">Community Active</span>
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  id="voice-search"
-                  value={searchPrompt}
-                  onChange={(e) => setSearchPrompt(e.target.value)}
-                  className="focus:ring-0 focus:outline-none focus:!border-gray-300 border border-gray-300 text-gray-900 text-sm rounded-[0_8px_8px_0] block w-full sm:ps-10 ps-7 p-[12px] border-s-gray-50"
-                  placeholder="Search"
-                  required
-                />
+              </div>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="border-b border-gray-200">
+              <nav className="flex gap-8">
                 <button
-                  type="button"
-                  className="absolute inset-y-0 end-0 flex me-3 bg-[#E9EDF5] w-[16px] h-[16px] rounded justify-center items-center translate-y-[-50%] top-[50%]"
+                  onClick={() => setTab("PublicPrompts")}
+                  className={`relative pb-4 px-1 transition-all duration-200 ${tab === "PublicPrompts"
+                    ? "text-[#0D859A] font-medium"
+                    : "text-gray-500 hover:text-gray-700"
+                    }`}
                 >
-                  <DivisionIcon className="" />
+                  <div className="flex items-center gap-2">
+                    <RiDownloadLine className="w-4 h-4" />
+                    <span>Discover Prompts</span>
+                  </div>
+                  {tab === "PublicPrompts" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0D859A] rounded-t-full"></div>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setTab("MyPrompts")}
+                  className={`relative pb-4 px-1 transition-all duration-200 ${tab === "MyPrompts"
+                    ? "text-[#0D859A] font-medium"
+                    : "text-gray-500 hover:text-gray-700"
+                    }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <RiShareLine className="w-4 h-4" />
+                    <span>My Prompts</span>
+                  </div>
+                  {tab === "MyPrompts" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0D859A] rounded-t-full"></div>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setTab("TopicGPT")}
+                  className={`relative pb-4 px-1 transition-all duration-200 ${tab === "TopicGPT"
+                    ? "text-[#0D859A] font-medium"
+                    : "text-gray-500 hover:text-gray-700"
+                    }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <RiBarChartLine className="w-4 h-4" />
+                    <span>Analyze Prompts</span>
+                    <span className="ml-1 px-2 py-0.5 bg-orange-100 text-orange-600 text-xs rounded-full font-medium">
+                      Beta
+                    </span>
+                  </div>
+                  {tab === "TopicGPT" && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0D859A] rounded-t-full"></div>
+                  )}
+                </button>
+              </nav>
+            </div>
+          </div>
+
+          {/* Search and Filters */}
+          <div className="mb-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchPrompt}
+                    onChange={(e) => setSearchPrompt(e.target.value)}
+                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0D859A] focus:border-transparent transition-all duration-200"
+                    placeholder="Search prompts..."
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <div className="bg-gray-100 rounded px-2 py-1">
+                      <DivisionIcon className="h-3 w-3 text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors duration-200">
+                  <RiFilter2Fill className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-700 font-medium">All Categories</span>
+                  <DownIcon className="w-3 h-3 text-gray-400" />
                 </button>
               </div>
             </div>
-            <div className="w-full overflow-x-auto">
-              {tab === "MyPrompts" && <MyPrompts searchPrompt={searchPrompt} />}
-              {tab === "PublicPrompts" && <PublicPrompts searchPrompt={searchPrompt}/>}
-              {tab === "TopicGPT" && <TopicGPT searchPrompt={searchPrompt}/>}
-            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            {tab === "PublicPrompts" && <PublicPrompts searchPrompt={searchPrompt} />}
+            {tab === "MyPrompts" && <MyPrompts searchPrompt={searchPrompt} />}
+            {tab === "TopicGPT" && <TopicGPT searchPrompt={searchPrompt} />}
           </div>
         </div>
       </div>
