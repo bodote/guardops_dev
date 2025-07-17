@@ -19,6 +19,7 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { FaSync, FaSearch, FaSortAlphaDown, FaSortAlphaUp, FaTrashAlt } from "react-icons/fa";
+import { FiFolderPlus, FiUpload, FiFile, FiCheckCircle } from "react-icons/fi";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { HubShareIcon } from "@/public/Assets/Icons/Allsvg";
@@ -525,87 +526,134 @@ const FileManagement = () => {
       }
     }
   };
+
+  const selectedFolderName = folders.find(f => f.folder_id === currentFolder)?.name;
+
   return (
-    <div className="file-management p-4">
+    <div className="p-6 space-y-8">
       {/* Folders Section */}
-      <div className="folders grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 max-h-[23vh] overflow-y-auto">
-        <div
-          className="folder-card border border-dashed border-gray-400 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-300"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <FaPlus className="text-gray-500 text-4xl mb-2" />
-          <p className="text-gray-500">New Folder</p>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-Archivo text-xl font-semibold text-slate-900 flex items-center gap-2">
+            <FiFolderPlus className="w-5 h-5 text-[#D4DB33]" />
+            Folders
+          </h2>
+          <span className="text-sm text-slate-500">
+            {folders.length} {folders.length === 1 ? 'folder' : 'folders'}
+          </span>
         </div>
 
-        {folders.map((folder, index) => (
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 max-h-[300px] overflow-y-auto p-1">
+          {/* New Folder Card */}
           <div
-            key={folder.folder_id}
-            className={`relative folder-card border border-gray-200 rounded-lg p-4 flex flex-col items-center cursor-pointer ${folder.folder_id === currentFolder
-              ? "bg-gray-400 text-white"
-              : "hover:bg-gray-300"
-              }`}
-            onClick={() => setCurrentFolder(folder.folder_id)}
-            ref={folderNameRef}
-            onDoubleClick={() => renameFolder(folder)}
+            className="group border-2 border-dashed border-slate-300 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-[#D4DB33] hover:bg-[#D4DB33]/5 transition-all duration-200"
+            onClick={() => setIsModalOpen(true)}
           >
-            <FaFolder className="text-coai-blue text-4xl mb-2" />
-            {editingFolder === folder.folder_id ? (
-              <input
-                type="text"
-                value={editFolderName}
-                onChange={handleInputChange}
-                onKeyDown={(e) => handleKeyPress(e, folder)}
-                autoFocus
-                ref={editInputRef}
-                className="text-center text-gray-700 w-full"
-              />
-            ) : (
-              <p className="text-center text-gray-700">{folder.name}</p>
-            )}
-            <FaEllipsisV
-              className="absolute top-2 right-2 text-gray-500 cursor-pointer rounded hover:bg-gray-200"
-              onClick={() => setShowMenu(showMenu === index ? null : index)}
-            />
-            {showMenu === index && (
-              <div
-                className="absolute top-8 right-2 bg-white shadow-lg rounded-lg py-2 z-10"
-                ref={menuRef}
-              >
-                <button
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left hover:bg-gray-200"
-                  onClick={() => renameFolder(folder)}
-                >
-                  <FaEdit className="inline mr-2" /> Rename
-                </button>
-                <button
-                  className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 w-full text-left hover:bg-gray-200"
-                  onClick={() => deleteFolder(folder.folder_id)}
-                >
-                  <FaTrash className="inline mr-2" /> Delete
-                </button>
-              </div>
-            )}
+            <div className="w-12 h-12 bg-slate-100 group-hover:bg-[#D4DB33]/10 rounded-lg flex items-center justify-center mb-2 transition-colors duration-200">
+              <FaPlus className="text-slate-400 group-hover:text-[#D4DB33] text-xl transition-colors duration-200" />
+            </div>
+            <p className="text-slate-500 group-hover:text-[#D4DB33] font-Archivo text-sm font-medium transition-colors duration-200">New Folder</p>
           </div>
-        ))}
+
+          {/* Folder Cards */}
+          {folders.map((folder, index) => (
+            <div
+              key={folder.folder_id}
+              className={`relative group border-2 rounded-xl p-4 flex flex-col items-center cursor-pointer transition-all duration-200 ${folder.folder_id === currentFolder
+                  ? "border-[#D4DB33] bg-[#D4DB33]/10 shadow-lg shadow-[#D4DB33]/20"
+                  : "border-slate-200 hover:border-slate-300 hover:shadow-md"
+                }`}
+              onClick={() => setCurrentFolder(folder.folder_id)}
+              ref={folderNameRef}
+              onDoubleClick={() => renameFolder(folder)}
+            >
+              <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-3 transition-colors duration-200 ${folder.folder_id === currentFolder
+                  ? "bg-[#D4DB33]/20"
+                  : "bg-[#0D859A]/10 group-hover:bg-[#0D859A]/20"
+                }`}>
+                <FaFolder className={`text-2xl transition-colors duration-200 ${folder.folder_id === currentFolder
+                    ? "text-[#D4DB33]"
+                    : "text-[#0D859A]"
+                  }`} />
+              </div>
+
+              {editingFolder === folder.folder_id ? (
+                <input
+                  type="text"
+                  value={editFolderName}
+                  onChange={handleInputChange}
+                  onKeyDown={(e) => handleKeyPress(e, folder)}
+                  autoFocus
+                  ref={editInputRef}
+                  className="text-center text-slate-700 w-full bg-transparent border-b border-[#D4DB33] focus:outline-none font-Archivo text-sm"
+                />
+              ) : (
+                <p className="text-center text-slate-700 font-Archivo text-sm font-medium truncate w-full">{folder.name}</p>
+              )}
+
+              <button
+                className="absolute top-2 right-2 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-white/80 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(showMenu === index ? null : index);
+                }}
+              >
+                <FaEllipsisV className="w-3 h-3" />
+              </button>
+
+              {showMenu === index && (
+                <div
+                  className="absolute top-8 right-2 bg-white shadow-xl rounded-lg py-2 z-20 min-w-[120px] border border-slate-200"
+                  ref={menuRef}
+                >
+                  <button
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 w-full text-left transition-colors duration-200"
+                    onClick={() => renameFolder(folder)}
+                  >
+                    <FaEdit className="w-3 h-3" /> Rename
+                  </button>
+                  <button
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left transition-colors duration-200"
+                    onClick={() => deleteFolder(folder.folder_id)}
+                  >
+                    <FaTrash className="w-3 h-3" /> Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Files Section */}
       {currentFolder && (
-        <div className="files mt-8">
-          {/* Header with Reload Button */}
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Files</h2>
+        <div className="space-y-6">
+          {/* Files Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-Archivo text-xl font-semibold text-slate-900 flex items-center gap-2">
+                <FiFile className="w-5 h-5 text-[#0D859A]" />
+                Files in "{selectedFolderName}"
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                {currentFolderFiles?.length || 0} {currentFolderFiles?.length === 1 ? 'file' : 'files'}
+              </p>
+            </div>
             <button
               onClick={() => fetchFiles(currentFolder)}
-              className="p-2 rounded-lg transition-all duration-200 hover:bg-gray-200 group"
-              title="Reload files"
+              className="p-2 rounded-lg text-slate-500 hover:text-[#0D859A] hover:bg-slate-100 transition-all duration-200"
+              title="Refresh files"
             >
-              <FaSync className="text-gray-600 group-hover:text-coai-blue transition-colors duration-200 w-5 h-5" />
+              <FaSync className="w-4 h-4" />
             </button>
           </div>
+
           {/* Upload Area */}
           <div
-            className="file-upload-area border border-dashed border-gray-400 rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-300"
+            className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${isDragging
+                ? "border-[#D4DB33] bg-[#D4DB33]/10"
+                : "border-slate-300 hover:border-[#D4DB33] hover:bg-slate-50"
+              }`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -614,20 +662,29 @@ const FileManagement = () => {
             <AnimatePresence>
               {isDragging && (
                 <motion.div
-                  className="absolute pointer-events-none dark:bg-zinc-900/90 z-10 flex flex-row justify-center items-center flex flex-col gap-1 bg-zinc-100/90 top-0 left-0 right-0 bottom-0"
+                  className="absolute inset-0 bg-[#D4DB33]/20 backdrop-blur-sm z-10 flex flex-col justify-center items-center rounded-xl"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  <div>Drag and drop files here</div>
-                  <div className="text-sm dark:text-zinc-400 text-zinc-500">
-                    Supported file types include PDF, Word Documents, Excel Sheets, Mails and more
+                  <FiUpload className="w-12 h-12 text-[#D4DB33] mb-2" />
+                  <div className="text-lg font-semibold text-[#D4DB33]">Drop files here</div>
+                  <div className="text-sm text-slate-600 mt-1">
+                    PDF, Word, Excel, PowerPoint, Images and more
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-            <HubShareIcon className="text-gray-500 text-4xl mb-2" />
-            <p className="text-gray-500">Drag and Drop Files Here</p>
+
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+              <FiUpload className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="font-Archivo text-lg font-semibold text-slate-900 mb-2">Upload Files</h3>
+            <p className="text-slate-600 text-center font-Archivo text-sm leading-relaxed">
+              Drag and drop files here or click to browse<br />
+              <span className="text-xs text-slate-500">Supports PDF, Word, Excel, PowerPoint, Images and more</span>
+            </p>
+
             <input
               type="file"
               accept=".bmp,.csv,.doc,.docx,.eml,.epub,.heic,.html,.jpeg,.jpg,.png,.md,.msg,.odt,.org,.p7s,.pdf,.png,.ppt,.pptx,.rst,.rtf,.tiff,.txt,.tsv,.xls,.xlsx,.xml"
@@ -639,33 +696,35 @@ const FileManagement = () => {
           </div>
 
           {/* Search and Sort Controls */}
-          <div className="mt-4 space-y-4">
-            <div className="flex items-center space-x-4">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
               <div className="flex-1 relative">
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search files (supports regex)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-coai-blue"
+                  className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D4DB33]/20 focus:border-[#D4DB33] font-Archivo text-sm transition-all duration-200"
                 />
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setSortConfig({
                     key: 'name',
                     direction: sortConfig.key === 'name' && sortConfig.direction === 'asc' ? 'desc' : 'asc'
                   })}
-                  className={`p-2 rounded hover:bg-gray-200 transition-colors duration-200 flex items-center gap-1 ${sortConfig.key === 'name' ? 'bg-gray-100' : ''
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all duration-200 font-Archivo text-sm ${sortConfig.key === 'name'
+                      ? 'border-[#D4DB33] bg-[#D4DB33]/10 text-[#D4DB33]'
+                      : 'border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   title="Sort by name"
                 >
-                  <span className="text-sm text-gray-600">Name</span>
+                  <span>Name</span>
                   {sortConfig.key === 'name' && (
                     sortConfig.direction === 'asc'
-                      ? <FaSortAlphaDown className="text-coai-blue" />
-                      : <FaSortAlphaUp className="text-coai-blue" />
+                      ? <FaSortAlphaDown className="w-4 h-4" />
+                      : <FaSortAlphaUp className="w-4 h-4" />
                   )}
                 </button>
                 <button
@@ -673,44 +732,45 @@ const FileManagement = () => {
                     key: 'type',
                     direction: sortConfig.key === 'type' && sortConfig.direction === 'asc' ? 'desc' : 'asc'
                   })}
-                  className={`p-2 rounded hover:bg-gray-200 transition-colors duration-200 flex items-center gap-1 ${sortConfig.key === 'type' ? 'bg-gray-100' : ''
+                  className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all duration-200 font-Archivo text-sm ${sortConfig.key === 'type'
+                      ? 'border-[#D4DB33] bg-[#D4DB33]/10 text-[#D4DB33]'
+                      : 'border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   title="Sort by type"
                 >
-                  <span className="text-sm text-gray-600">Type</span>
+                  <span>Type</span>
                   {sortConfig.key === 'type' && (
                     sortConfig.direction === 'asc'
-                      ? <FaSortAlphaDown className="text-coai-blue" />
-                      : <FaSortAlphaUp className="text-coai-blue" />
+                      ? <FaSortAlphaDown className="w-4 h-4" />
+                      : <FaSortAlphaUp className="w-4 h-4" />
                   )}
                 </button>
               </div>
             </div>
 
-
             {/* Bulk Delete Bar */}
             {selectedFiles.length > 0 && (
-              <div className="flex items-center justify-between bg-red-50 p-2 rounded-lg">
-                <span className="text-sm text-red-600">
-                  {selectedFiles.length} files selected
+              <div className="flex items-center justify-between bg-red-50 border border-red-200 p-4 rounded-xl">
+                <span className="text-red-700 font-Archivo text-sm font-medium">
+                  {selectedFiles.length} {selectedFiles.length === 1 ? 'file' : 'files'} selected
                 </span>
                 <button
                   onClick={handleBulkDelete}
-                  className="flex items-center space-x-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-Archivo text-sm font-medium transition-colors duration-200"
                 >
-                  <FaTrashAlt />
-                  <span>Delete Selected</span>
+                  <FaTrashAlt className="w-4 h-4" />
+                  Delete Selected
                 </button>
               </div>
             )}
           </div>
 
           {/* Files Grid */}
-          <div className="files grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
             {sortFiles(filterFiles(currentFolderFiles))?.map((file) => {
               const fileExtension = file.name.split(".").pop().toLowerCase();
               let FileIcon = FaFileAlt;
-              let iconColor = "text-blue-500";
+              let iconColor = "text-slate-500";
 
               // Parse the file.file content if it's a string
               let fileContent;
@@ -781,53 +841,57 @@ const FileManagement = () => {
                     break;
                   default:
                     FileIcon = FaFileAlt;
-                    iconColor = "text-gray-500";
+                    iconColor = "text-slate-500";
                 }
               }
 
               return (
                 <div
                   key={file.file_id}
-                  className={`relative file-card border border-gray-300 rounded-lg p-4 flex flex-col items-center cursor-pointer transition-all duration-200
-          ${selectedFiles.includes(file.file_id)
-                      ? 'bg-blue-50 border-blue-300 hover:bg-blue-100'
-                      : 'hover:bg-gray-200'
+                  className={`group relative border-2 rounded-xl p-4 flex flex-col items-center cursor-pointer transition-all duration-200 ${selectedFiles.includes(file.file_id)
+                      ? 'border-[#D4DB33] bg-[#D4DB33]/10 shadow-lg'
+                      : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
                     }`}
                   onClick={() => openFileContentModal(file.file, file.name)}
                 >
-                  <div className="absolute top-2 left-2">
+                  <div className="absolute top-3 left-3">
                     <input
                       type="checkbox"
                       checked={selectedFiles.includes(file.file_id)}
                       onChange={(e) => toggleFileSelection(e, file.file_id)}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-slate-300 text-[#D4DB33] focus:ring-[#D4DB33]/20"
                     />
                   </div>
 
                   {/* Icon with processing state */}
-                  <div className="relative">
+                  <div className="w-12 h-12 flex items-center justify-center mb-3">
                     {isProcessing ? (
-                      <div className="flex flex-col items-center">
-                        <FaSpinner className="text-4xl mb-2 text-coai-blue animate-spin" />
-                      </div>
+                      <FaSpinner className="w-8 h-8 text-[#D4DB33] animate-spin" />
                     ) : (
-                      <FileIcon className={`${iconColor} text-4xl mb-2`} />
+                      <FileIcon className={`w-8 h-8 ${iconColor}`} />
                     )}
                   </div>
 
-                  <p className="text-center text-gray-700 text-sm truncate w-full overflow-hidden text-ellipsis whitespace-nowrap mt-2">
+                  <p className="text-center text-slate-700 font-Archivo text-sm font-medium truncate w-full px-2">
                     {file.name}
                   </p>
 
-                  {!selectedFiles.includes(file.file_id) && (
-                    <FaTrash
-                      className="absolute text-gray-800 top-2 right-2 cursor-pointer hover:text-gray-500"
+                  {isProcessing && (
+                    <span className="text-xs text-[#D4DB33] font-medium mt-1">Processing...</span>
+                  )}
+
+                  {!selectedFiles.includes(file.file_id) && !isProcessing && (
+                    <button
+                      className="absolute top-3 right-3 p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all duration-200"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteFile(file.file_id);
                       }}
-                    />
+                      title="Delete file"
+                    >
+                      <FaTrash className="w-3 h-3" />
+                    </button>
                   )}
                 </div>
               );
@@ -838,30 +902,33 @@ const FileManagement = () => {
 
       {/* Modals and Overlays */}
       {showUploadingOverlay && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-96 overflow-y-auto">
-            <h3 className="text-lg font-medium mb-4">Uploading Files</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-96 overflow-y-auto shadow-2xl">
+            <h3 className="font-Archivo text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+              <FiUpload className="w-5 h-5 text-[#D4DB33]" />
+              Uploading Files
+            </h3>
             <div className="space-y-3">
               {uploadingFiles.map((file, index) => (
-                <div key={index} className="flex items-center">
-                  <div className="mr-3">
+                <div key={index} className="flex items-center gap-3">
+                  <div className="flex-shrink-0">
                     {file.status === "pending" && (
-                      <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
+                      <div className="w-5 h-5 rounded-full border-2 border-slate-300" />
                     )}
                     {file.status === "processing" && (
-                      <FaSpinner className="w-5 h-5 text-blue-500 animate-spin" />
+                      <FaSpinner className="w-5 h-5 text-[#D4DB33] animate-spin" />
                     )}
                     {file.status === "completed" && (
-                      <div className="w-5 h-5 bg-green-500 rounded-full" />
+                      <FiCheckCircle className="w-5 h-5 text-green-500" />
                     )}
                     {file.status === "error" && (
                       <div className="w-5 h-5 bg-red-500 rounded-full" />
                     )}
                   </div>
-                  <div className="flex-1 truncate">
-                    <p className="truncate">{file.name}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-Archivo text-sm font-medium text-slate-900 truncate">{file.name}</p>
                     {file.status === "error" && (
-                      <p className="text-xs text-red-500">
+                      <p className="text-xs text-red-500 mt-1">
                         {file.error || "Upload failed"}
                       </p>
                     )}

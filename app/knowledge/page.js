@@ -13,6 +13,7 @@ import {
   SearchIcon
 } from "@/public/Assets/Icons/Allsvg";
 import { RiFilter2Fill } from "react-icons/ri";
+import { FiDatabase, FiFolderPlus, FiCpu } from "react-icons/fi";
 
 const Index = () => {
   const [tab, setTab] = useState("FileManagement");
@@ -21,53 +22,68 @@ const Index = () => {
   return (
     <div className="flex">
       <Sidebar />
-      <div className="w-full h-screen overflow-y-auto sm:ml-[96px] ml-[72px]">
-        <div className="flex justify-between sm:px-[22px] px-[16px] py-[11px] border-b border-[#CCCCCC]">
-          <div className="flex items-center gap-[5px]">
-            <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
+      <div className="w-full h-screen overflow-y-auto sm:ml-[96px] ml-[72px] bg-slate-50">
+        {/* Header */}
+        <div className="flex justify-between items-center bg-white shadow-sm border-b border-slate-200 sm:px-[22px] px-[16px] py-4">
+          <div className="flex items-center gap-2">
+            <h1 className="font-Archivo text-sm font-medium text-slate-600">
               COAI
             </h1>
-            <RightIcon />
-            <h1 className="font-Archivo text-[12px] font-normal text-[#000]">
+            <RightIcon className="w-3 h-3 text-slate-400" />
+            <h1 className="font-Archivo text-sm font-semibold text-slate-900">
               Knowledge
             </h1>
           </div>
           <Logout />
         </div>
-        <div className="sm:px-[55px] px-[16px] mt-[24px]">
-          <h1 className="font-Archivo lg:text-[32px] text-[22px] text-black font-thin">
-            Knowledge Base Management
-          </h1>
-          <div className="sm:px-[22px] px-[16px]">
-            <div className="mt-[18px] flex gap-[10px] items-center sm:justify-start justify-between flex-wrap">
-              <button
-                onClick={() => setTab("FileManagement")}
-                className={`${
-                  tab === "FileManagement"
-                    ? "font-bold border-coai-blue sm:text-[14px] text-[12px] text-coai-blue"
-                    : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
-                } pb-3  border-b-2`}
-              >
-                File Management
-              </button>
-              <div ></div>
-              <button
-                onClick={() => setTab("MemoryManagement")}
-                className={`${
-                  tab === "MemoryManagement"
-                    ? "font-bold border-coai-blue sm:text-[14px] text-[12px] text-coai-blue"
-                    : "sm:text-[14px] text-[12px] font-medium font-Inter text-[#464F60] border-transparent"
-                } pb-3  border-b-2`}
-              >
-                Memory Management
-              </button>
-            
+
+        {/* Main Content Container */}
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {/* Compact Header */}
+          <div className="text-center mb-6">
+            <h1 className="font-Archivo text-2xl font-bold text-slate-900 mb-1 flex items-center justify-center gap-2">
+              <FiDatabase className="w-6 h-6 text-[#D4DB33]" />
+              Knowledge Base Management
+            </h1>
+            <p className="text-slate-600 text-sm">
+              Organize files and create intelligent vector databases for AI interactions
+            </p>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 mb-6">
+            <div className="px-6 py-4">
+              <div className="flex justify-center items-center">
+                <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setTab("FileManagement")}
+                    className={`px-6 py-2.5 rounded-lg font-Archivo text-sm font-medium transition-all duration-200 flex items-center gap-2 ${tab === "FileManagement"
+                      ? "bg-[#D4DB33] text-black shadow-sm"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                      }`}
+                  >
+                    <FiFolderPlus className="w-4 h-4" />
+                    File Management
+                  </button>
+                  <button
+                    onClick={() => setTab("MemoryManagement")}
+                    className={`px-6 py-2.5 rounded-lg font-Archivo text-sm font-medium transition-all duration-200 flex items-center gap-2 ${tab === "MemoryManagement"
+                      ? "bg-[#D4DB33] text-black shadow-sm"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white"
+                      }`}
+                  >
+                    <FiCpu className="w-4 h-4" />
+                    Memory Management
+                  </button>
+                </div>
+              </div>
             </div>
-           
-            <div className="w-full overflow-x-auto">
-              {tab === "FileManagement" && <FileManagement  />}
-              {tab === "MemoryManagement" && <MemoryManagement />}
-            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            {tab === "FileManagement" && <FileManagement />}
+            {tab === "MemoryManagement" && <MemoryManagement />}
           </div>
         </div>
       </div>
