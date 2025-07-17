@@ -146,8 +146,8 @@ const MyPrompts = ({ searchPrompt }) => {
       <div
         onClick={() => toggleExpand(template.template_id)}
         className={`group bg-white border rounded-xl p-4 transition-all duration-300 hover:shadow-lg hover:shadow-slate-100 cursor-pointer ${isExpanded
-            ? 'border-[#D4DB33] ring-2 ring-[#D4DB33]/20'
-            : 'border-gray-200 hover:border-gray-300'
+          ? 'border-[#D4DB33] ring-2 ring-[#D4DB33]/20'
+          : 'border-gray-200 hover:border-gray-300'
           } overflow-hidden`}
       >
         <div className="mb-3">
