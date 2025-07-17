@@ -201,11 +201,11 @@ const ProjectSection = () => {
                         className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
                         onClick={() => handleProjectClick(ele.project_id, ele.name)}
                       >
-                        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#D4DB33] to-[#D4DB33]/80 rounded-xl flex items-center justify-center shadow-sm">
+                        <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#D4DB33]/20 to-[#D4DB33]/10 border border-[#D4DB33]/30 rounded-xl flex items-center justify-center shadow-sm">
                           <img
                             src="/Assets/Images/Union.png"
                             alt=""
-                            className="w-6 h-6"
+                            className="w-6 h-6 opacity-80"
                           />
                         </div>
                         <div className="min-w-0 flex-1">
