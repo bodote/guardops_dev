@@ -12,7 +12,8 @@ import {
   TraceIcon,
   UserIcon,
   KnowledgeIcon,
-  PromptingIcon
+  PromptingIcon,
+  InterpretabilityIcon
 } from "@/public/Assets/Icons/Allsvg";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Cookies from "js-cookie";
@@ -171,6 +172,18 @@ const Sidebar = () => {
                       <PromptingIcon className={`w-[20px] ${isActive("/prompting") ? "text-[#0D859A]" : ""}`} />
                       <p className="text-[11px] font-Archivo font-normal leading-[normal] hidden">
                         Prompting
+                      </p>
+                    </a>
+                  )}
+                {(role?.includes("Playground") ||
+                  role?.includes("Full_Access")) && (
+                    <a
+                      href="/interp"
+                      className={`${getMenuItemClasses("/interp")} mt-[25px] py-1 px-2 rounded-r-lg -mr-2`}
+                    >
+                      <InterpretabilityIcon className={`w-[20px] ${isActive("/interp") ? "text-[#0D859A]" : ""}`} />
+                      <p className="text-[11px] font-Archivo font-normal leading-[normal] hidden">
+                        Interpretability
                       </p>
                     </a>
                   )}

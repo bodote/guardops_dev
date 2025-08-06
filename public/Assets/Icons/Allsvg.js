@@ -1644,3 +1644,56 @@ export const PromptingIcon = ({ className }) => {
     </svg>
   )
 };
+
+export const InterpretabilityIcon = ({ className }) => {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle
+        cx="8.5"
+        cy="8.5"
+        r="6.5"
+        stroke="#2B3F6C"
+        strokeWidth="1.5"
+        fill="none"
+      />
+      <path
+        d="M14 14l4 4"
+        stroke="#2B3F6C"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle
+        cx="8.5"
+        cy="6"
+        r="1"
+        fill="#2B3F6C"
+      />
+      <circle
+        cx="6.5"
+        cy="9.5"
+        r="1"
+        fill="#2B3F6C"
+      />
+      <circle
+        cx="10.5"
+        cy="9.5"
+        r="1"
+        fill="#2B3F6C"
+      />
+      <path
+        d="M6 6l5 5M11 6l-5 5"
+        stroke="#2B3F6C"
+        strokeWidth="0.8"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
+    </svg>
+  );
+};
