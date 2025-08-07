@@ -1,10 +1,19 @@
 'use client'
 import { useState } from "react";
 
-const SubtleTokenDisplay = ({ text, tokens, large = false, quoted = false, onTokenClick = null }) => {
+const SubtleTokenDisplay = ({
+    text,
+    tokens,
+    large = false,
+    quoted = false,
+    onTokenClick = null,
+    selectedTokenIndex = null,
+    globalSelectedPosition = null,
+    tokenStartOffset = 0,
+    isPrompt = false
+}) => {
     const [hoveredTokenIndex, setHoveredTokenIndex] = useState(null);
     const [isHovering, setIsHovering] = useState(false);
-    const [clickedTokenIndex, setClickedTokenIndex] = useState(null);
 
     if (!tokens || tokens.length === 0) {
         return <div className="text-slate-500">No tokens available</div>;
@@ -31,8 +40,8 @@ const SubtleTokenDisplay = ({ text, tokens, large = false, quoted = false, onTok
             }}
         >
             <div className="relative">
-                <div className={`${textClass} ${isHovering ? 'break-words overflow-wrap-anywhere' : ''}`}>
-                    {!isHovering ? (
+                <div className={`${textClass} ${(isHovering || selectedTokenIndex !== null || globalSelectedPosition !== null) ? 'break-words overflow-wrap-anywhere' : ''}`}>
+                    {!(isHovering || selectedTokenIndex !== null || globalSelectedPosition !== null) ? (
                         // Fluid text display - no token boundaries visible
                         <span className="cursor-pointer break-words">
                             {displayText}
@@ -41,32 +50,49 @@ const SubtleTokenDisplay = ({ text, tokens, large = false, quoted = false, onTok
                         // Tokenized display on hover - with proper wrapping
                         <div className="flex flex-wrap gap-0 leading-relaxed">
                             {quoted && <span className="text-slate-600">"</span>}
-                            {tokens.map((token, index) => (
-                                <span
-                                    key={index}
-                                    className={`transition-all duration-150 cursor-pointer inline-block ${clickedTokenIndex === index
-                                        ? 'bg-purple-200 text-purple-900 px-1 py-0.5 rounded-sm shadow-md border border-purple-300'
-                                        : hoveredTokenIndex === index
-                                            ? 'bg-[#D4DB33]/30 text-slate-900 px-1 py-0.5 rounded-sm shadow-sm'
-                                            : 'hover:bg-slate-100/60 px-0.5 py-0.5 rounded-sm'
-                                        }`}
-                                    onMouseEnter={() => setHoveredTokenIndex(index)}
-                                    onMouseLeave={() => setHoveredTokenIndex(null)}
-                                    onClick={() => {
-                                        setClickedTokenIndex(index);
-                                        if (onTokenClick) {
-                                            onTokenClick(index, token);
+                            {tokens.map((token, index) => {
+                                const globalPosition = tokenStartOffset + index;
+                                const isSelected = selectedTokenIndex === index;
+                                const isInContext = globalSelectedPosition !== null && globalPosition < globalSelectedPosition;
+                                const isHovered = hoveredTokenIndex === index;
+
+                                let className = 'transition-all duration-150 cursor-pointer inline-block ';
+
+                                if (isSelected) {
+                                    // Selected token - prominent highlight
+                                    className += 'bg-purple-500 text-white px-1 py-0.5 rounded-sm shadow-md border border-purple-600 font-medium';
+                                } else if (isInContext) {
+                                    // Context tokens - lighter highlight
+                                    className += 'bg-purple-200 text-purple-900 px-1 py-0.5 rounded-sm border border-purple-300';
+                                } else if (isHovered) {
+                                    // Hovered token
+                                    className += 'bg-[#D4DB33]/30 text-slate-900 px-1 py-0.5 rounded-sm shadow-sm';
+                                } else {
+                                    // Default token
+                                    className += 'hover:bg-slate-100/60 px-0.5 py-0.5 rounded-sm';
+                                }
+
+                                return (
+                                    <span
+                                        key={index}
+                                        className={className}
+                                        onMouseEnter={() => setHoveredTokenIndex(index)}
+                                        onMouseLeave={() => setHoveredTokenIndex(null)}
+                                        onClick={() => {
+                                            if (onTokenClick) {
+                                                onTokenClick(index, token);
+                                            }
+                                        }}
+                                        title={onTokenClick
+                                            ? `Click to analyze: Token ${globalPosition + 1}: "${token}"${isInContext ? ' (Context)' : isSelected ? ' (Selected)' : ''}`
+                                            : `Token ${globalPosition + 1}: "${token}"`
                                         }
-                                    }}
-                                    title={onTokenClick
-                                        ? `Click to analyze: Token ${index + 1}: "${token}"`
-                                        : `Token ${index + 1}: "${token}"`
-                                    }
-                                    style={{ wordBreak: 'break-word' }}
-                                >
-                                    {token}
-                                </span>
-                            ))}
+                                        style={{ wordBreak: 'break-word' }}
+                                    >
+                                        {token}
+                                    </span>
+                                );
+                            })}
                             {quoted && <span className="text-slate-600">"</span>}
                         </div>
                     )}
@@ -79,8 +105,8 @@ const SubtleTokenDisplay = ({ text, tokens, large = false, quoted = false, onTok
                         </span>
                         <span className="text-slate-400">•</span>
                         <span>
-                            {isHovering
-                                ? (onTokenClick ? 'Hover to highlight, click to analyze' : 'Hover over individual tokens to highlight')
+                            {(isHovering || selectedTokenIndex !== null || globalSelectedPosition !== null)
+                                ? (onTokenClick ? 'Click tokens to analyze. Purple = selected, light purple = context.' : 'Individual tokens are highlighted')
                                 : (onTokenClick ? 'Hover over text to see tokens, then click to analyze' : 'Hover over text to see token breakdown')
                             }
                         </span>

@@ -1,12 +1,16 @@
 // Model utility functions
 
-export const getModelDisplayName = (model_id) => {
+export const getModelDisplayName = (model) => {
+    const model_id = typeof model === 'string' ? model : model?.model_id;
+    if (!model_id) return 'Unknown Model';
     const parts = model_id.split('/');
     const modelName = parts[parts.length - 1];
     return modelName.replace(/-/g, ' ');
 };
 
-export const getHuggingFaceUrl = (model_id) => {
+export const getHuggingFaceUrl = (model) => {
+    const model_id = typeof model === 'string' ? model : model?.model_id;
+    if (!model_id) return '#';
     return `https://huggingface.co/${model_id}`;
 };
 
@@ -25,7 +29,10 @@ export const formatModelConfig = (config) => {
     };
 };
 
-export const getModelArchitectureSummary = (config) => {
+export const getModelArchitectureSummary = (model) => {
+    const config = typeof model === 'object' && model?.config ? model.config : model;
+    if (!config) return 'Unknown Architecture';
+
     const layers = config.num_hidden_layers || 0;
     const heads = config.num_attention_heads || 0;
     const hiddenSize = config.hidden_size || 0;
