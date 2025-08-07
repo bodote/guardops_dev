@@ -1,5 +1,5 @@
 'use client'
-import { FiLayers, FiTarget, FiZap, FiHelpCircle, FiArrowRight, FiXCircle } from "react-icons/fi";
+import { FiLayers, FiTarget, FiZap, FiHelpCircle, FiArrowRight, FiXCircle, FiRefreshCw } from "react-icons/fi";
 import { FaMicroscope } from "react-icons/fa";
 
 const TokenAnalysisMenu = ({ selectedToken, position, onSelectAnalysis, onClose }) => {
@@ -29,6 +29,15 @@ const TokenAnalysisMenu = ({ selectedToken, position, onSelectAnalysis, onClose 
             detail: 'Selectively disable layers or neurons and regenerate to see their causal impact on the output.',
             icon: FiXCircle,
             color: 'red',
+            available: true
+        },
+        {
+            id: 'activation_patching',
+            title: 'Activation Patching',
+            description: 'What if we inject activations from elsewhere?',
+            detail: 'Extract activations from a different context and patch them into this position to see causal effects.',
+            icon: FiRefreshCw,
+            color: 'orange',
             available: true
         },
         {

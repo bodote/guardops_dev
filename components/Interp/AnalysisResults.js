@@ -6,6 +6,8 @@ import LogitLensAnalysis from './LogitLensAnalysis';
 import TokenAnalysisMenu from './TokenAnalysisMenu';
 import AblationStudy from './AblationStudy';
 import AblationComparison from './AblationComparison';
+import ActivationPatching from './ActivationPatching';
+import ActivationPatchingComparison from './ActivationPatchingComparison';
 
 const AnalysisResults = ({ response, selectedModel }) => {
     const [logitLensData, setLogitLensData] = useState(null);
@@ -15,6 +17,9 @@ const AnalysisResults = ({ response, selectedModel }) => {
     const [showAblationStudy, setShowAblationStudy] = useState(false);
     const [ablationResults, setAblationResults] = useState(null);
     const [isRunningAblation, setIsRunningAblation] = useState(false);
+    const [showActivationPatching, setShowActivationPatching] = useState(false);
+    const [activationPatchingResults, setActivationPatchingResults] = useState(null);
+    const [isRunningActivationPatching, setIsRunningActivationPatching] = useState(false);
 
     if (!response) return null;
 
@@ -29,7 +34,11 @@ const AnalysisResults = ({ response, selectedModel }) => {
         if (analysisType === 'logit_lens') {
             await performLogitLensAnalysis();
         } else if (analysisType === 'ablation_study') {
+            setAblationResults(null); // Clear previous results
             setShowAblationStudy(true);
+        } else if (analysisType === 'activation_patching') {
+            setActivationPatchingResults(null); // Clear previous results
+            setShowActivationPatching(true);
         }
         // Other analysis types will be handled here later
     };
@@ -97,6 +106,32 @@ const AnalysisResults = ({ response, selectedModel }) => {
             console.error('Error during ablation study:', error);
         } finally {
             setIsRunningAblation(false);
+        }
+    };
+
+    const handleRunActivationPatching = async (patchingData) => {
+        setIsRunningActivationPatching(true);
+
+        try {
+            const patchingResponse = await fetch('/api/interpretability/activation_patching', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(patchingData)
+            });
+
+            if (patchingResponse.ok) {
+                const data = await patchingResponse.json();
+                setActivationPatchingResults(data);
+                setShowActivationPatching(false); // Close the setup modal
+            } else {
+                console.error('Failed to run activation patching');
+            }
+        } catch (error) {
+            console.error('Error during activation patching:', error);
+        } finally {
+            setIsRunningActivationPatching(false);
         }
     };
 
@@ -285,7 +320,7 @@ const AnalysisResults = ({ response, selectedModel }) => {
                     onRunAblation={handleRunAblation}
                     onClose={() => {
                         setShowAblationStudy(false);
-                        setSelectedTokenInfo(null);
+                        // Don't clear selectedTokenInfo here - preserve it for results display
                     }}
                 />
             )}
@@ -321,6 +356,55 @@ const AnalysisResults = ({ response, selectedModel }) => {
                     position={selectedTokenInfo.position}
                     onClose={() => {
                         setAblationResults(null);
+                        setSelectedTokenInfo(null);
+                    }}
+                />
+            )}
+
+            {/* Activation Patching Setup Modal */}
+            {showActivationPatching && selectedTokenInfo && (
+                <ActivationPatching
+                    selectedToken={selectedTokenInfo.token}
+                    position={selectedTokenInfo.position}
+                    originalPrompt={response.prompt.text}
+                    selectedModel={selectedModel}
+                    onClose={() => {
+                        setShowActivationPatching(false);
+                        // Don't clear selectedTokenInfo here - preserve it for results display
+                    }}
+                    onRunPatching={handleRunActivationPatching}
+                />
+            )}
+
+            {/* Activation Patching Running Loading Overlay */}
+            {isRunningActivationPatching && selectedTokenInfo && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl p-8 shadow-2xl border border-slate-200 max-w-md w-full mx-4">
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <FiLoader className="w-8 h-8 text-orange-500 animate-spin" />
+                            </div>
+                            <h3 className="font-Archivo text-xl font-bold text-slate-900 mb-2">
+                                Running Activation Patching
+                            </h3>
+                            <p className="text-slate-600 mb-4">
+                                Extracting activations and patching into target context...
+                            </p>
+                            <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700">
+                                <p>Target token: "<span className="font-medium text-orange-700">{selectedTokenInfo?.token}</span>"</p>
+                                <p>Position: {selectedTokenInfo?.position}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Activation Patching Results Comparison Modal */}
+            {activationPatchingResults && selectedTokenInfo && (
+                <ActivationPatchingComparison
+                    patchingData={activationPatchingResults}
+                    onClose={() => {
+                        setActivationPatchingResults(null);
                         setSelectedTokenInfo(null);
                     }}
                 />
