@@ -23,7 +23,7 @@ const AblationConfigPanel = ({ selectedToken, selectedModel, response, isRunning
             if (!prev.includes(layer)) {
                 setLayerNeurons(prevNeurons => ({
                     ...prevNeurons,
-                    [layer]: { entire_layer: true, neurons: [] }
+                    [layer]: { entire_layer: true, neurons: [], rawInput: '' }
                 }));
             } else {
                 // Remove neurons for removed layer
@@ -50,15 +50,15 @@ const AblationConfigPanel = ({ selectedToken, selectedModel, response, isRunning
     };
 
     const handleNeuronsChange = (layer, value) => {
-        const neurons = value.split(',')
-            .map(id => parseInt(id.trim()))
-            .filter(id => !isNaN(id) && id >= 0 && id < hiddenSize);
-
+        // Allow the raw input value to be stored temporarily
         setLayerNeurons(prev => ({
             ...prev,
             [layer]: {
                 ...prev[layer],
-                neurons: neurons
+                rawInput: value,
+                neurons: value.split(',')
+                    .map(id => parseInt(id.trim()))
+                    .filter(id => !isNaN(id) && id >= 0 && id < hiddenSize)
             }
         }));
     };
@@ -81,7 +81,7 @@ const AblationConfigPanel = ({ selectedToken, selectedModel, response, isRunning
         setSelectedLayers([...availableLayers]);
         const newNeurons = {};
         availableLayers.forEach(layer => {
-            newNeurons[layer] = { entire_layer: true, neurons: [] };
+            newNeurons[layer] = { entire_layer: true, neurons: [], rawInput: '' };
         });
         setLayerNeurons(newNeurons);
     };
@@ -194,7 +194,7 @@ const AblationConfigPanel = ({ selectedToken, selectedModel, response, isRunning
                                             <input
                                                 type="text"
                                                 placeholder="Neuron IDs (e.g., 0,15,42)"
-                                                value={layerNeurons[layer]?.neurons?.join(',') || ''}
+                                                value={layerNeurons[layer]?.rawInput || ''}
                                                 onChange={(e) => handleNeuronsChange(layer, e.target.value)}
                                                 className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-red-500 focus:border-red-500"
                                             />

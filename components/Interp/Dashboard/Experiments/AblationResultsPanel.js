@@ -67,11 +67,7 @@ const AblationResultsPanel = ({ selectedToken, isRunning, results }) => {
                             <div className="p-4 bg-slate-50 border-b border-slate-200">
                                 <h5 className="font-medium text-slate-800 mb-3">Configuration Used</h5>
                                 <div className="space-y-2">
-                                    <div className="text-sm">
-                                        <span className="font-medium text-slate-700">Target Token:</span>
-                                        <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">"{selectedToken.token}"</span>
-                                        <span className="ml-2 text-slate-500">(position {selectedToken.position})</span>
-                                    </div>
+
 
                                     {results.ablation_config?.ablations && (
                                         <div className="text-sm">
