@@ -88,13 +88,13 @@ export async function POST(req) {
       custom: {
         create: createOpenAI,
         apiKey: api_keys.customKey,
-        baseURL: 'https://lm3.hs-ansbach.de/worker2/v1',
+        baseURL: 'https://demo6.ki-ansbach.de/hostedmodels/v1 ',
         compatibility: 'compatible'
       },
       custom_h: {
         create: createOpenAI,
         apiKey: api_keys.customKey,
-        baseURL: 'http://159.69.166.67:55504/v1',
+        baseURL: 'https://demo6.ki-ansbach.de/hostedmodels/v1 ',
         compatibility: 'compatible'
       }
     };
