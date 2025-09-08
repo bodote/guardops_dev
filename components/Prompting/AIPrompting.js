@@ -9,7 +9,7 @@ import { Switch } from '@headlessui/react';
 import HistoryItem from './HistoryItem';
 
 import { v4 as uuidv4 } from 'uuid';
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
 import TestModel from './TestModel';
 
 const AIPrompting = ({ onBack, initialData = null, hideBackToMenu = false }) => {

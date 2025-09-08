@@ -11,7 +11,7 @@ export default function ModelSettings({ settings, onSettingsChange }) {
             <div className="flex justify-between items-center mb-[6px]">
               <p className="text-[#5D6574] text-[12px]">Max Tokens</p>
               <span className="text-[#5D6574] text-[12px]">
-                {settings.maxTokens ? settings.maxTokens : 0}
+                {settings.maxOutputTokens ? settings.maxOutputTokens : 0}
               </span>
             </div>
             <input
@@ -19,11 +19,11 @@ export default function ModelSettings({ settings, onSettingsChange }) {
               min="0"
               max="4096"
               className="slider-main"
-              value={settings.maxTokens ? settings.maxTokens : 0}
+              value={settings.maxOutputTokens ? settings.maxOutputTokens : 0}
               id="max-tokens"
               onChange={(e) => onSettingsChange("maxTokens", e.target.value)}
               style={{
-                background: calculateSliderBackground(settings.maxTokens, 4096),
+                background: calculateSliderBackground(settings.maxOutputTokens, 4096),
               }}
             />
           </div>

@@ -19,7 +19,7 @@ import { AiOutlineStop } from "react-icons/ai";
 import ModelSettings from "./modelSettings";
 import { toast } from "react-toastify";
 const hljs = require('highlight.js/lib/common');
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
 import FileSource from "./FileSource";
 
 // Modal component for API key display/input
@@ -277,7 +277,7 @@ const Chat_version = forwardRef(({
 
   // State for settings values
   const [settings, setSettings] = useState({
-    maxTokens: 2500,
+    maxOutputTokens: 2500,
     temperature: 0.6,
     topP: 0.2,
     topK: 50,
@@ -285,7 +285,7 @@ const Chat_version = forwardRef(({
     presencePenalty: 0.3,
   });
   const [formData, setFormData] = useState({
-    max_tokens: Number(settings.maxTokens),
+    max_tokens: Number(settings.maxOutputTokens),
     model: selected.id1,
     systemPrompt: systemPrompt,
     type: "chat",
@@ -368,7 +368,7 @@ const Chat_version = forwardRef(({
       }
 
       setFormData({
-        max_tokens: Number(settings.maxTokens),
+        max_tokens: Number(settings.maxOutputTokens),
         model: selected.id1,
         systemPrompt: systemPrompt,
         type: "chat",
@@ -407,7 +407,8 @@ const Chat_version = forwardRef(({
     mistralKey,
     perplexityKey,
   ]);
-  const { id, messages, input, stop, handleInputChange, isLoading, handleSubmit, reload, setInput, setMessages, error, data } = useChat({
+  const [input, setInput] = useState('');
+  const { id, messages, stop, handleInputChange, isLoading, regenerate, setMessages, sendMessage, error, data } = useChat({
     body: formData,
 
     onError: error => {
@@ -718,8 +719,8 @@ const Chat_version = forwardRef(({
     });
 
     // Add remaining text
-    if (lastIndex < apiResponse.length) {
-      const remainingText = apiResponse.slice(lastIndex);
+    if (lastIndex < apiResponse?.length) {
+      const remainingText = apiResponse?.slice(lastIndex);
       if (remainingText.trim()) {
         segments.push({
           type: "text",
@@ -786,7 +787,7 @@ const Chat_version = forwardRef(({
     // Reset editing state and reload
     setEditMessageId(null);
     setEditedMessageContent('');
-    reload(); // Call reload to update the component if necessary
+    regenerate(); // Call reload to update the component if necessary
   };
 
   const cancelEditing = () => {
@@ -1026,14 +1027,21 @@ const Chat_version = forwardRef(({
         if (!isLoading) {
           setErrorOwn(null);
 
-          handleSubmit(event, {
-            experimental_attachments: files,
+          /* FIXME(@ai-sdk-upgrade-v5): The `experimental_attachments` property has been replaced with the parts array. Please manually migrate following https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0#attachments--file-parts */
+          // handleSubmit(event, {
+          //   experimental_attachments: files,
+          // });
+          sendMessage({
+            body: formData,
+            role: 'user',
+            parts: [{ type: 'text', text: input }],
           });
-
+          setInput('');
           setFiles(undefined);
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
           }
+          console.log("messages so far:", messages)
         }
       }
     };
@@ -1100,9 +1108,7 @@ const Chat_version = forwardRef(({
   }, [allSystemPrompt]);
 
   return (
-
     <div className="flex sm:flex-row flex-col items-start bg-white">
-
       <div className="w-full">
         <div className="border-r-slate-200 border-r">
           <div className="flex sm:items-center justify-between sm:flex-row flex-col relative p-4 bg-white border-b border-slate-200">
@@ -1370,6 +1376,7 @@ const Chat_version = forwardRef(({
                   } else {
                     setInput("");
                     setFiles(undefined);
+                    setErrorOwn(null);
 
                   }
                   setMessages([]);
@@ -1628,6 +1635,7 @@ const Chat_version = forwardRef(({
                   if (isAssistant) {
                     assistantIndex++;
                   }
+                  /* FIXME(@ai-sdk-upgrade-v5): The `experimental_attachments` property has been replaced with the parts array. Please manually migrate following https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0#attachments--file-parts */
                   return (
                     <div key={message.id} className="flex justify-center">
                       <div className="w-[75%]">
@@ -1650,8 +1658,7 @@ const Chat_version = forwardRef(({
                                     />
                                   ) : (
                                     <p className="ml-4 text-slate-800 text-sm leading-relaxed">
-                                      {message.content}
-                                    </p>
+                                      {message.parts?.find(part => part.type === 'text')?.text || ''}                                    </p>
                                   )}
                                 </div>
                                 {editMessageId === message.id && (
@@ -1674,8 +1681,7 @@ const Chat_version = forwardRef(({
                               {editMessageId !== message.id && (
                                 <button
                                   className="text-slate-400 hover:text-slate-600 p-1 rounded transition-colors duration-200"
-                                  onClick={() => handleEditMessage(message.id, message.content)}
-                                >
+                                  onClick={() => handleEditMessage(message.id, message.parts?.find(part => part.type === 'text')?.text || '')}                                >
                                   <RiEdit2Line size={16} />
                                 </button>
                               )}
@@ -1705,17 +1711,16 @@ const Chat_version = forwardRef(({
                             </div>
                             <div className="w-[calc(100%-48px)]">
                               {(() => {
-                                const content = message.content;
-
+                                const content = message.parts?.find(part => part.type === 'text')?.text || '';
                                 // Find the first occurrence of <think> tag
-                                const firstThinkIndex = content.indexOf('<think');
+                                const firstThinkIndex = content?.indexOf('<think');
                                 const hasFirstThink = firstThinkIndex !== -1;
 
                                 // Check if the first <think> has a proper closing tag
                                 let hasOpenThink = false;
                                 if (hasFirstThink) {
-                                  const contentFromFirstThink = content.substring(firstThinkIndex);
-                                  const hasClosingTag = contentFromFirstThink.match(/<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>/s);
+                                  const contentFromFirstThink = content?.substring(firstThinkIndex);
+                                  const hasClosingTag = contentFromFirstThink?.match(/<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>/s);
                                   hasOpenThink = !hasClosingTag;
                                 }
 
@@ -1723,7 +1728,7 @@ const Chat_version = forwardRef(({
                                 let contentToRender = content;
                                 if (hasOpenThink) {
                                   // Only show content before the first <think> tag
-                                  contentToRender = content.substring(0, firstThinkIndex);
+                                  contentToRender = content?.substring(0, firstThinkIndex);
                                 }
 
                                 const segments = parseVercelResponse(contentToRender);
@@ -2016,10 +2021,16 @@ const Chat_version = forwardRef(({
                     onClick={event => {
                       if (!isLoading) {
                         setErrorOwn(null);
-                        handleSubmit(event, {
-                          experimental_attachments: files,
+                        /* FIXME(@ai-sdk-upgrade-v5): The `experimental_attachments` property has been replaced with the parts array. Please manually migrate following https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0#attachments--file-parts */
+                        // handleSubmit(event, {
+                        //   experimental_attachments: files,
+                        // });
+                        sendMessage({
+                          body: formData,
+                          role: 'user',
+                          parts: [{ type: 'text', text: input }],
                         });
-
+                        setInput('');
                         setFiles(undefined);
 
                         if (fileInputRef.current) {
@@ -2044,7 +2055,7 @@ const Chat_version = forwardRef(({
                     Stop
                   </button>
                   <button
-                    onClick={() => { setErrorOwn(null); reload(); }}
+                    onClick={() => { setErrorOwn(null); regenerate(); }}
                     className={`text-black text-sm px-6 py-2 rounded-lg font-medium transition-all duration-200 ${isLoading ? "bg-slate-300 cursor-not-allowed" : "bg-slate-200 hover:bg-slate-300 shadow-sm"
                       }`}
                     disabled={isLoading}
@@ -2099,7 +2110,6 @@ const Chat_version = forwardRef(({
           </div>
         </Tooltip>
       )}
-
       {/* API Key Modal */}
       <ApiKeyModal
         isOpen={showKeyModal}

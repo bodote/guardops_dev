@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   const baseUrl = process.env.BackendBaseUrl;
 
   const { method } = req;
-//warning: This is actually disgusting and seperating two different post requests in here should be changed to two api routes. Holy fck
+  //warning: This is actually disgusting and seperating two different post requests in here should be changed to two api routes. Holy fck
   try {
     const token = await getToken();
     if (!token) {
@@ -68,7 +68,6 @@ export default async function handler(req, res) {
           Url = `${baseUrl}api/detect_pii`;
 
           try {
-            console.log("i am in here detecting pii")
             const response = await fetch(Url, {
               method: "POST",
               headers: new Headers({

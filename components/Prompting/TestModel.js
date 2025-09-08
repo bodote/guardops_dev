@@ -1,5 +1,5 @@
 import React, { useImperativeHandle, forwardRef, useEffect, useState } from 'react';
-import { useCompletion } from 'ai/react';
+import { useCompletion } from '@ai-sdk/react';
 import ReactMarkdown from 'react-markdown';
 import { FaStop } from 'react-icons/fa';
 
@@ -79,7 +79,7 @@ const TestModel = forwardRef(({ model, prompt, testContext, onLoadingChange, set
                 model: model.id1,
                 ...providerInfo,
                 settings: {
-                    maxTokens: 2500,
+                    maxOutputTokens: 2500,
                     temperature: 0.6,
                 },
                 api_keys: {

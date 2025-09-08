@@ -57,7 +57,7 @@ export async function ModalAIStream(payload) {
                 messages,
               }),
           stream: true,
-          max_tokens: Number(payload?.settings.maxTokens),
+          max_tokens: Number(payload?.settings.maxOutputTokens),
           temperature: Number(payload?.settings.temperature),
           top_p: Number(payload?.settings.topP),
         }),

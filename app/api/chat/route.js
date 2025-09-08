@@ -1,43 +1,22 @@
-import { createOpenAI, openai } from '@ai-sdk/openai';
-import { convertToCoreMessages, LangChainAdapter, streamText, StreamData } from 'ai';
-import { anthropic } from '@ai-sdk/anthropic';
+import { createOpenAI } from '@ai-sdk/openai';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { google } from '@ai-sdk/google';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { mistral } from '@ai-sdk/mistral';
 import { createMistral } from '@ai-sdk/mistral';
-import { cohere } from '@ai-sdk/cohere';
 import { createCohere } from '@ai-sdk/cohere';
 import { NextResponse } from 'next/server';
 import { ChromaClient } from 'chromadb';
-import { tool } from 'ai';
-import { z } from 'zod';
-import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/hf_transformers';
-import { Chroma } from "@langchain/community/vectorstores/chroma";
-import { ChatOpenAI } from "@langchain/openai";
-import { Fireworks } from "@langchain/community/llms/fireworks"
-import {
-  RunnableMap,
-  RunnableSequence,
-  RunnablePassthrough,
-} from "@langchain/core/runnables";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import {
-  ChatPromptTemplate,
-  MessagesPlaceholder,
-} from "@langchain/core/prompts";
-import { AIMessage, HumanMessage } from "@langchain/core/messages";
-import { formatDocumentsAsString } from "langchain/util/document";
-import { TransformStream } from 'stream/web';
-import { ScoreThresholdRetriever } from "langchain/retrievers/score_threshold";
+import { streamText, convertToModelMessages } from 'ai';
 
+import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/hf_transformers';
 
 
 export async function POST(req) {
   const body = await req.json()
   try {
+    const requestBody = body.messages[0].body;
+    var messages = body.messages;
+    var { model, settings, systemPrompt, provider, customProvider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = requestBody;
 
-    var { model, messages, prompt, settings, systemPrompt, provider, customProvider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = body;
     const providerConfig = {
       openai: {
         create: createOpenAI,
@@ -88,13 +67,13 @@ export async function POST(req) {
       custom: {
         create: createOpenAI,
         apiKey: api_keys.customKey,
-        baseURL: 'https://demo6.ki-ansbach.de/hostedmodels/v1 ',
+        baseURL: 'https://demo6.ki-ansbach.de/hostedmodels/v1',
         compatibility: 'compatible'
       },
       custom_h: {
         create: createOpenAI,
         apiKey: api_keys.customKey,
-        baseURL: 'https://demo6.ki-ansbach.de/hostedmodels/v1 ',
+        baseURL: 'https://demo6.ki-ansbach.de/hostedmodels/v1',
         compatibility: 'compatible'
       }
     };
@@ -132,7 +111,7 @@ export async function POST(req) {
     //only convert images to message if model is multimodal
     var messagesToSend = messages;
     if (multimodal) {
-      messagesToSend = convertToCoreMessages(messages);
+      messagesToSend = convertToModelMessages(messages);
     }
 
     /*     if (rag) {
@@ -382,12 +361,12 @@ Keep your answer concise, using three sentences maximum. Always respond in the l
         // Stream the response
         const response = await streamText({
           model: target_model,
-          messages: enrichedMessages,
-          maxTokens: Number(settings.maxTokens),
+          messages: convertToModelMessages(enrichedMessages),
+          maxOutputTokens: Number(settings.maxOutputTokens),
           temperature: 0
         });
 
-        return response.toDataStreamResponse();
+        return response.toUIMessageStreamResponse();
 
       } catch (error) {
         console.error("Error in RAG:", error);
@@ -397,15 +376,14 @@ Keep your answer concise, using three sentences maximum. Always respond in the l
 
     const response = await streamText({
       model: target_model,
-      prompt: prompt,
       system: systemPrompt,
-      maxTokens: Number(settings.maxTokens),
+      maxOutputTokens: Number(settings.maxOutputTokens),
       temperature: Number(settings.temperature),
-      messages: messagesToSend,
+      messages: convertToModelMessages(messagesToSend),
 
     })
 
-    return response.toDataStreamResponse();
+    return response.toUIMessageStreamResponse();
   } catch (error) {
     console.log("actual error ", error)
     let errorData;

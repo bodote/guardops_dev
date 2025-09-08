@@ -109,14 +109,14 @@ export async function POST(req) {
         }).chat?.(model);
 
         // Stream the completion
-        const response = await streamText({
+        const response = streamText({
             model: target_model,
             prompt: prompt,
-            maxTokens: Number(settings?.maxTokens) || 2500,
+            maxOutputTokens: Number(settings?.maxOutputTokens) || 2500,
             temperature: Number(settings?.temperature) || 0.6,
         });
 
-        return response.toDataStreamResponse();
+        return response.toUIMessageStreamResponse();
 
     } catch (error) {
         console.error("Error in completion:", error);

@@ -9,7 +9,7 @@ import { Switch } from '@headlessui/react';
 import HistoryItem from './HistoryItem';
 import { BiBrain } from "react-icons/bi";
 import { v4 as uuidv4 } from 'uuid';
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
 import TestModel from './TestModel';
 import { MdKeyboardArrowUp } from "react-icons/md";
 
