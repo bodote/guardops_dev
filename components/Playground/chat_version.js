@@ -408,7 +408,7 @@ const Chat_version = forwardRef(({
     perplexityKey,
   ]);
   const [input, setInput] = useState('');
-  const { id, messages, stop, handleInputChange, isLoading, regenerate, setMessages, sendMessage, error, data } = useChat({
+  const { id, messages, stop, handleInputChange, status, regenerate, setMessages, sendMessage, error, data } = useChat({
     body: formData,
 
     onError: error => {
@@ -436,6 +436,7 @@ const Chat_version = forwardRef(({
       console.error("FULL ERROR DATA", errorData);
     }
   });
+  const isLoading = status === "streaming";
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
   const [editMessageId, setEditMessageId] = useState(null);

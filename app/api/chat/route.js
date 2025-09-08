@@ -15,7 +15,7 @@ export async function POST(req) {
   try {
     const requestBody = body.messages[body.messages.length - 1].body;
     var messages = body.messages;
-    var { model, settings, systemPrompt, provider, customProvider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = requestBody;
+    var { model, settings, systemPrompt, provider, customProvider, api_keys, rag, chromaCollectionName } = requestBody;
 
     const providerConfig = {
       openai: {
@@ -108,7 +108,6 @@ export async function POST(req) {
     let base_url_for_rag = baseURL || undefined;
     let api_key_for_rag = apiKey || undefined;
 
-    //only convert images to message if model is multimodal
     var messagesToSend = messages;
 
 
