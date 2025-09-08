@@ -13,7 +13,7 @@ import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddin
 export async function POST(req) {
   const body = await req.json()
   try {
-    const requestBody = body.messages[0].body;
+    const requestBody = body.messages[body.messages.length - 1].body;
     var messages = body.messages;
     var { model, settings, systemPrompt, provider, customProvider, api_keys, multimodal, rag, selectedRag, chromaCollectionName } = requestBody;
 
@@ -110,9 +110,7 @@ export async function POST(req) {
 
     //only convert images to message if model is multimodal
     var messagesToSend = messages;
-    if (multimodal) {
-      messagesToSend = convertToModelMessages(messages);
-    }
+
 
     /*     if (rag) {
           if (!openAiModelSelected) {
