@@ -164,6 +164,27 @@ const getTextFromDataUrl = (dataUrl) => {
   return window.atob(base64);
 };
 
+async function convertFilesToDataURLs(files) {
+  return Promise.all(
+    Array.from(files).map(
+      file =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({
+              type: 'file',
+              mediaType: file.type,
+              url: reader.result,
+              name: file.name,
+            });
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        }),
+    ),
+  );
+}
+
 function TextFilePreview({ file }) {
   const [content, setContent] = useState("");
 
@@ -599,7 +620,6 @@ const Chat_version = forwardRef(({
         ],
       },
     ]);
-
 
     if (model) {
       setSelected(model);
@@ -1041,19 +1061,19 @@ const Chat_version = forwardRef(({
     };
   }, [editMessageId]);
   useEffect(() => {
-    const handleKeyDown = (event) => {
+    const handleKeyDown = async (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
         if (!isLoading) {
           setErrorOwn(null);
 
-          /* FIXME(@ai-sdk-upgrade-v5): The `experimental_attachments` property has been replaced with the parts array. Please manually migrate following https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0#attachments--file-parts */
-          // handleSubmit(event, {
-          //   experimental_attachments: files,
-          // });
+          const fileParts = files && files.length > 0
+            ? await convertFilesToDataURLs(files)
+            : [];
+
           sendMessage({
             body: formData,
             role: 'user',
-            parts: [{ type: 'text', text: input }],
+            parts: [{ type: 'text', text: input }, ...fileParts],
           });
           setInput('');
           setFiles(undefined);
@@ -2046,17 +2066,18 @@ const Chat_version = forwardRef(({
                 </div>
                 <div className="flex gap-3">
                   <button
-                    onClick={event => {
+                    onClick={async (event) => {
                       if (!isLoading) {
                         setErrorOwn(null);
-                        /* FIXME(@ai-sdk-upgrade-v5): The `experimental_attachments` property has been replaced with the parts array. Please manually migrate following https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0#attachments--file-parts */
-                        // handleSubmit(event, {
-                        //   experimental_attachments: files,
-                        // });
+
+                        const fileParts = files && files.length > 0
+                          ? await convertFilesToDataURLs(files)
+                          : [];
+
                         sendMessage({
                           body: formData,
                           role: 'user',
-                          parts: [{ type: 'text', text: input }],
+                          parts: [{ type: 'text', text: input }, ...fileParts],
                         });
                         setInput('');
                         setFiles(undefined);
