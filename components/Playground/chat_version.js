@@ -185,6 +185,115 @@ async function convertFilesToDataURLs(files) {
   );
 }
 
+// Smooth streaming markdown component with fade-in animations
+const SmoothStreamingMarkdown = ({
+  content,
+  isStreaming,
+  messageId,
+  segmentIndex,
+  components,
+  remarkPlugins,
+  ...props
+}) => {
+  const contentKey = `${messageId}-${segmentIndex}`;
+
+  return (
+    <motion.div
+      key={contentKey}
+      initial={isStreaming ? { opacity: 0.2, y: 3 } : { opacity: 1, y: 0 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 1, ease: "easeOut" }}
+      {...props}
+    >
+      <ReactMarkdown
+        components={{
+          p: ({ children, ...props }) => (
+            <motion.p
+              initial={isStreaming ? { opacity: 0.2 } : { opacity: 1 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="text-slate-700 leading-relaxed my-2"
+              style={{ whiteSpace: 'pre-wrap' }}
+              {...props}
+            >
+              {children}
+            </motion.p>
+          ),
+          ul: ({ children, ...props }) => (
+            <motion.ul
+              initial={isStreaming ? { opacity: 0.2 } : { opacity: 1 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="list-disc list-inside space-y-1 my-3"
+              {...props}
+            >
+              {children}
+            </motion.ul>
+          ),
+          ol: ({ children, ...props }) => (
+            <motion.ol
+              initial={isStreaming ? { opacity: 0.2 } : { opacity: 1 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="list-decimal list-inside space-y-1 my-3"
+              {...props}
+            >
+              {children}
+            </motion.ol>
+          ),
+          h1: ({ children, ...props }) => (
+            <motion.h1
+              initial={isStreaming ? { opacity: 0.2 } : { opacity: 1 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="font-bold text-2xl text-slate-900 my-4"
+              {...props}
+            >
+              {children}
+            </motion.h1>
+          ),
+          h2: ({ children, ...props }) => (
+            <motion.h2
+              initial={isStreaming ? { opacity: 0.2 } : { opacity: 1 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="font-bold text-xl text-slate-900 my-3"
+              {...props}
+            >
+              {children}
+            </motion.h2>
+          ),
+          h3: ({ children, ...props }) => (
+            <motion.h3
+              initial={isStreaming ? { opacity: 0.2 } : { opacity: 1 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="font-bold text-lg text-slate-900 my-2"
+              {...props}
+            >
+              {children}
+            </motion.h3>
+          ),
+          code: ({ children, ...props }) => (
+            <motion.code
+              initial={isStreaming ? { opacity: 0.2 } : { opacity: 1 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 0.25 }}
+              className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm"
+              {...props}
+            >
+              {children}
+            </motion.code>
+          ),
+          ...components,
+        }}
+        remarkPlugins={remarkPlugins}
+        children={content}
+      />
+    </motion.div>
+  );
+};
+
 function TextFilePreview({ file }) {
   const [content, setContent] = useState("");
 
@@ -1808,9 +1917,19 @@ const Chat_version = forwardRef(({
                                               </div>
                                             );
                                           } else {
+                                            // Check if this is the last assistant message and currently streaming
+                                            const isLastAssistantMessage = message.parts.findIndex(p => p === part) === message.parts.length - 1 &&
+                                              message.role === 'assistant' &&
+                                              index === messages.length - 1;
+                                            const isCurrentlyStreaming = isLastAssistantMessage && isLoading;
+
                                             return (
-                                              <ReactMarkdown
+                                              <SmoothStreamingMarkdown
                                                 key={segmentIndex}
+                                                content={segment.content}
+                                                isStreaming={isCurrentlyStreaming}
+                                                messageId={message.id}
+                                                segmentIndex={segmentIndex}
                                                 components={{
                                                   ul: ({ node, ...props }) => (
                                                     <ul
@@ -1859,7 +1978,6 @@ const Chat_version = forwardRef(({
                                                   ),
                                                 }}
                                                 remarkPlugins={[gfm]}
-                                                children={segment.content}
                                               />
                                             );
                                           }
