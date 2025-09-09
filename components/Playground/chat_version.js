@@ -582,11 +582,21 @@ const Chat_version = forwardRef(({
     const newMessages = traceChatHistory.flatMap((pair) => [
       {
         role: "user",
-        content: pair.attributes.prompt || "",
+        parts: [
+          {
+            type: "text",
+            text: pair.attributes.prompt || "",
+          }
+        ],
       },
       {
         role: "assistant",
-        content: pair.attributes.output || "",
+        parts: [
+          {
+            type: "text",
+            text: pair.attributes.output || "",
+          }
+        ],
       },
     ]);
 
@@ -776,11 +786,19 @@ const Chat_version = forwardRef(({
 
       const updatedMessages = prevMessages
         .slice(0, editIndex + 1)
-        .map((message, index) =>
-          index === editIndex
-            ? { ...message, content: editedMessageContent } // Update the edited message
-            : message
-        );
+        .map((message, index) => {
+          if (index === editIndex) {
+            // Update the text part in the parts array
+            const updatedParts = message.parts?.map(part =>
+              part.type === 'text'
+                ? { ...part, text: editedMessageContent }
+                : part
+            ) || [{ type: 'text', text: editedMessageContent }];
+
+            return { ...message, parts: updatedParts };
+          }
+          return message;
+        });
 
       return updatedMessages;
     });
@@ -1632,249 +1650,258 @@ const Chat_version = forwardRef(({
                   const isAssistant = message.role === 'assistant';
                   const currentRagInfo = isAssistant ? ragInfo[assistantIndex] : null;
 
-
                   if (isAssistant) {
                     assistantIndex++;
                   }
-                  /* FIXME(@ai-sdk-upgrade-v5): The `experimental_attachments` property has been replaced with the parts array. Please manually migrate following https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0#attachments--file-parts */
+
                   return (
                     <div key={message.id} className="flex justify-center">
-                      <div className="w-[75%]">
-                        {message.role === 'user' ? (
-                          <div
-                            className={`mb-4 bg-white border border-slate-200 shadow-sm p-6 flex flex-col rounded-2xl ${index === 0 ? 'mt-6' : ''}`}
-                          >
-                            <div className="flex justify-between">
-                              <div className="flex gap-4 flex-col w-full">
-                                <div className="flex items-start">
-                                  <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <User2Icon className="w-4 h-4 text-slate-600" />
+                      <div className="w-[60%]">
+                        {message.parts?.map((part, partIndex) => {
+                          if (part.type === 'text') {
+                            return message.role === 'user' ? (
+                              <div
+                                key={partIndex}
+                                className={`mb-4 bg-white border border-slate-200 shadow-sm p-6 flex flex-col rounded-2xl ${index === 0 ? 'mt-6' : ''}`}
+                              >
+                                <div className="flex justify-between">
+                                  <div className="flex gap-4 flex-col w-full">
+                                    <div className="flex items-start">
+                                      <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <User2Icon className="w-4 h-4 text-slate-600" />
+                                      </div>
+                                      {editMessageId === message.id ? (
+                                        <textarea
+                                          ref={textareaRef}
+                                          value={editedMessageContent}
+                                          onChange={(e) => setEditedMessageContent(e.target.value)}
+                                          className="ml-4 border border-slate-200 rounded-lg mt-1 placeholder:text-slate-400 text-sm font-medium h-40 w-full resize-none focus:outline-none focus:ring-2 focus:ring-[#D4DB33]/20 focus:border-[#D4DB33] transition-all duration-200 p-3"
+                                        />
+                                      ) : (
+                                        <p className="ml-4 text-slate-800 text-sm leading-relaxed">
+                                          {part.text}
+                                        </p>
+                                      )}
+                                    </div>
+                                    {editMessageId === message.id && (
+                                      <div className="flex gap-3 mt-3 ml-12">
+                                        <button
+                                          className="p-2 border border-slate-300 rounded-lg bg-white hover:bg-slate-50 transition-colors duration-200"
+                                          onClick={() => cancelEditing()}
+                                        >
+                                          <AiOutlineStop className="text-sm" />
+                                        </button>
+                                        <button
+                                          className="px-4 py-2 text-sm bg-[#D4DB33] hover:bg-[#c4cb2d] text-black font-medium rounded-lg transition-colors duration-200"
+                                          onClick={() => saveEditedMessage(message.id)}
+                                        >
+                                          Save & Resend
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                  {editMessageId === message.id ? (
-                                    <textarea
-                                      ref={textareaRef}
-                                      value={editedMessageContent}
-                                      onChange={(e) => setEditedMessageContent(e.target.value)}
-                                      className="ml-4 border border-slate-200 rounded-lg mt-1 placeholder:text-slate-400 text-sm font-medium h-40 w-full resize-none focus:outline-none focus:ring-2 focus:ring-[#D4DB33]/20 focus:border-[#D4DB33] transition-all duration-200 p-3"
-                                    />
-                                  ) : (
-                                    <p className="ml-4 text-slate-800 text-sm leading-relaxed">
-                                      {message.parts?.find(part => part.type === 'text')?.text || ''}                                    </p>
+                                  {editMessageId !== message.id && (
+                                    <button
+                                      className="text-slate-400 hover:text-slate-600 p-1 rounded transition-colors duration-200"
+                                      onClick={() => handleEditMessage(message.id, part.text)}
+                                    >
+                                      <RiEdit2Line size={16} />
+                                    </button>
                                   )}
                                 </div>
-                                {editMessageId === message.id && (
-                                  <div className="flex gap-3 mt-3 ml-12">
-                                    <button
-                                      className="p-2 border border-slate-300 rounded-lg bg-white hover:bg-slate-50 transition-colors duration-200"
-                                      onClick={() => cancelEditing()}
-                                    >
-                                      <AiOutlineStop className="text-sm" />
-                                    </button>
-                                    <button
-                                      className="px-4 py-2 text-sm bg-[#D4DB33] hover:bg-[#c4cb2d] text-black font-medium rounded-lg transition-colors duration-200"
-                                      onClick={() => saveEditedMessage(message.id)}
-                                    >
-                                      Save & Resend
-                                    </button>
-                                  </div>
-                                )}
                               </div>
-                              {editMessageId !== message.id && (
-                                <button
-                                  className="text-slate-400 hover:text-slate-600 p-1 rounded transition-colors duration-200"
-                                  onClick={() => handleEditMessage(message.id, message.parts?.find(part => part.type === 'text')?.text || '')}                                >
-                                  <RiEdit2Line size={16} />
-                                </button>
-                              )}
-                            </div>
-                            <div className="flex flex-wrap gap-3 mt-4">
-                              {message.experimental_attachments?.map((attachment) => (
-                                <div key={attachment.name} className="mb-2">
-                                  {attachment.contentType?.startsWith("image") ? (
+                            ) : (
+                              <div key={partIndex} className="mb-4 p-6 flex gap-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
+                                <div className="w-8 h-8 bg-[#D4DB33] rounded-full flex items-center justify-center flex-shrink-0">
+                                  <FireIcon className="w-4 h-4 text-black" />
+                                </div>
+                                <div className="w-[calc(100%-48px)]">
+                                  {(() => {
+                                    const content = part.text || '';
+                                    // Find the first occurrence of <think> tag
+                                    const firstThinkIndex = content?.indexOf('<think');
+                                    const hasFirstThink = firstThinkIndex !== -1;
+
+                                    // Check if the first <think> has a proper closing tag
+                                    let hasOpenThink = false;
+                                    if (hasFirstThink) {
+                                      const contentFromFirstThink = content?.substring(firstThinkIndex);
+                                      const hasClosingTag = contentFromFirstThink?.match(/<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>/s);
+                                      hasOpenThink = !hasClosingTag;
+                                    }
+
+                                    // If we have an open thinking block, we need to split the content
+                                    let contentToRender = content;
+                                    if (hasOpenThink) {
+                                      // Only show content before the first <think> tag
+                                      contentToRender = content?.substring(0, firstThinkIndex);
+                                    }
+
+                                    const segments = parseVercelResponse(contentToRender);
+
+                                    return (
+                                      <>
+                                        {segments.map((segment, segmentIndex) => {
+                                          if (segment.type === 'code') {
+                                            return (
+                                              <pre key={segmentIndex} className="text-sm overflow-hidden border border-slate-200 rounded-lg mt-4 mb-4 bg-slate-900">
+                                                <div className="flex justify-between items-center px-4 py-2 bg-slate-800 border-b border-slate-700">
+                                                  <span className="text-slate-300 text-xs">Code</span>
+                                                  <button
+                                                    className="text-xs px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded transition-colors duration-200"
+                                                    onClick={() => copyToClipboard(segment.content, `${segment.content}-${segmentIndex}`)}
+                                                  >
+                                                    {copiedIndex === `${segment.content}-${segmentIndex}` ? 'Copied!' : 'Copy'}
+                                                  </button>
+                                                </div>
+                                                <code className="block p-4 text-slate-100">{segment.content}</code>
+                                              </pre>
+                                            );
+                                          } else if (segment.type === 'reasoning') {
+                                            const reasoningKey = `${message.id}-${partIndex}-${segmentIndex}`;
+                                            const isExpanded = expandedReasoning[reasoningKey];
+
+                                            return (
+                                              <div key={segmentIndex} className="mt-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
+                                                <button
+                                                  onClick={() => toggleReasoning(message.id, `${partIndex}-${segmentIndex}`)}
+                                                  className="w-full flex items-center gap-3 p-4 text-left hover:bg-blue-100 rounded-lg transition-colors duration-200"
+                                                >
+                                                  <FaBrain className="text-blue-600 text-sm" />
+                                                  <span className="text-sm font-medium text-blue-800">Thinking Process</span>
+                                                  <svg
+                                                    className={`ml-auto h-4 w-4 text-blue-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
+                                                  >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                  </svg>
+                                                </button>
+                                                {isExpanded && (
+                                                  <div className="px-4 pb-4 border-t border-blue-200 bg-white rounded-b-lg">
+                                                    <div className="pt-4 text-sm text-slate-700 whitespace-pre-wrap font-mono">
+                                                      {segment.content}
+                                                    </div>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          } else {
+                                            return (
+                                              <ReactMarkdown
+                                                key={segmentIndex}
+                                                components={{
+                                                  ul: ({ node, ...props }) => (
+                                                    <ul
+                                                      className="list-disc list-inside space-y-1 my-3"
+                                                      {...props}
+                                                    />
+                                                  ),
+                                                  ol: ({ node, ...props }) => (
+                                                    <ol
+                                                      className="list-decimal list-inside space-y-1 my-3"
+                                                      {...props}
+                                                    />
+                                                  ),
+                                                  h1: ({ node, ...props }) => (
+                                                    <h1
+                                                      className="font-bold text-2xl text-slate-900 my-4"
+                                                      {...props}
+                                                    />
+                                                  ),
+                                                  h2: ({ node, ...props }) => (
+                                                    <h2
+                                                      className="font-bold text-xl text-slate-900 my-3"
+                                                      {...props}
+                                                    />
+                                                  ),
+                                                  h3: ({ node, ...props }) => (
+                                                    <h3
+                                                      className="font-bold text-lg text-slate-900 my-2"
+                                                      {...props}
+                                                    />
+                                                  ),
+                                                  p: ({ node, ...props }) => (
+                                                    <p
+                                                      className="text-slate-700 leading-relaxed my-2"
+                                                      style={{
+                                                        whiteSpace: 'pre-wrap',
+                                                      }}
+                                                      {...props}
+                                                    />
+                                                  ),
+                                                  code: ({ node, ...props }) => (
+                                                    <code
+                                                      className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm"
+                                                      {...props}
+                                                    />
+                                                  ),
+                                                }}
+                                                remarkPlugins={[gfm]}
+                                                children={segment.content}
+                                              />
+                                            );
+                                          }
+                                        })}
+
+                                        {/* Show active thinking indicator for unclosed <think> blocks */}
+                                        {hasOpenThink && isLoading && (
+                                          <div className="mt-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
+                                            <div className="w-full flex items-center gap-3 p-4">
+                                              <FaBrain className="text-blue-600 text-sm animate-pulse" />
+                                              <span className="text-sm font-medium text-blue-800">Thinking...</span>
+                                              <div className="ml-auto flex space-x-1">
+                                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </>
+                                    );
+                                  })()}
+                                  {currentRagInfo && currentRagInfo.context && currentRagInfo.context.length > 0 && (
+                                    <div className="mt-6 w-full">
+                                      <div className="bg-slate-100 border border-slate-200 p-4 rounded-lg">
+                                        <p className="text-sm font-medium mb-3 text-slate-700">Relevant documents</p>
+                                        {currentRagInfo.context.map((item, contextIndex) => (
+                                          <FileSource
+                                            key={contextIndex}
+                                            source={item.metadata.source}
+                                            content={item.pageContent}
+                                          />
+                                        ))}
+                                        <p className="text-xs text-slate-500 mt-3">Run ID: {currentRagInfo.runId}</p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          } else if (part.type === 'file') {
+                            return (
+                              <div key={partIndex} className={`flex flex-wrap gap-3 mt-4 ${message.role === 'user' ? 'ml-12' : ''}`}>
+                                <div className="mb-2">
+                                  {part.mediaType?.startsWith("image/") ? (
                                     <img
                                       className="rounded-lg h-60 border border-slate-200 shadow-sm"
-                                      src={attachment.url}
-                                      alt={attachment.name}
+                                      src={part.url}
+                                      alt={part.name || 'Image'}
                                     />
-                                  ) : attachment.contentType?.startsWith("text") ? (
+                                  ) : part.mediaType?.startsWith("text/") ? (
                                     <div className="text-xs w-40 h-60 overflow-hidden text-slate-500 border border-slate-200 p-3 rounded-lg bg-slate-50">
-                                      {getTextFromDataUrl(attachment.url)}
+                                      {getTextFromDataUrl(part.url)}
                                     </div>
                                   ) : null}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="mb-4 p-6 flex gap-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-                            <div className="w-8 h-8 bg-[#D4DB33] rounded-full flex items-center justify-center flex-shrink-0">
-                              <FireIcon className="w-4 h-4 text-black" />
-                            </div>
-                            <div className="w-[calc(100%-48px)]">
-                              {(() => {
-                                const content = message.parts?.find(part => part.type === 'text')?.text || '';
-                                // Find the first occurrence of <think> tag
-                                const firstThinkIndex = content?.indexOf('<think');
-                                const hasFirstThink = firstThinkIndex !== -1;
+                              </div>
+                            );
+                          }
 
-                                // Check if the first <think> has a proper closing tag
-                                let hasOpenThink = false;
-                                if (hasFirstThink) {
-                                  const contentFromFirstThink = content?.substring(firstThinkIndex);
-                                  const hasClosingTag = contentFromFirstThink?.match(/<think(?:ing)?\b[^>]*>.*?<\/think(?:ing)?\b[^>]*>/s);
-                                  hasOpenThink = !hasClosingTag;
-                                }
-
-                                // If we have an open thinking block, we need to split the content
-                                let contentToRender = content;
-                                if (hasOpenThink) {
-                                  // Only show content before the first <think> tag
-                                  contentToRender = content?.substring(0, firstThinkIndex);
-                                }
-
-                                const segments = parseVercelResponse(contentToRender);
-
-                                return (
-                                  <>
-                                    {segments.map((segment, index) => {
-                                      if (segment.type === 'code') {
-                                        return (
-                                          <pre key={index} className="text-sm overflow-hidden border border-slate-200 rounded-lg mt-4 mb-4 bg-slate-900">
-                                            <div className="flex justify-between items-center px-4 py-2 bg-slate-800 border-b border-slate-700">
-                                              <span className="text-slate-300 text-xs">Code</span>
-                                              <button
-                                                className="text-xs px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded transition-colors duration-200"
-                                                onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}
-                                              >
-                                                {copiedIndex === `${segment.content}-${index}` ? 'Copied!' : 'Copy'}
-                                              </button>
-                                            </div>
-                                            <code className="block p-4 text-slate-100">{segment.content}</code>
-                                          </pre>
-                                        );
-                                      } else if (segment.type === 'reasoning') {
-                                        const reasoningKey = `${message.id}-${index}`;
-                                        const isExpanded = expandedReasoning[reasoningKey];
-
-                                        return (
-                                          <div key={index} className="mt-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
-                                            <button
-                                              onClick={() => toggleReasoning(message.id, index)}
-                                              className="w-full flex items-center gap-3 p-4 text-left hover:bg-blue-100 rounded-lg transition-colors duration-200"
-                                            >
-                                              <FaBrain className="text-blue-600 text-sm" />
-                                              <span className="text-sm font-medium text-blue-800">Thinking Process</span>
-                                              <svg
-                                                className={`ml-auto h-4 w-4 text-blue-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                              >
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                              </svg>
-                                            </button>
-                                            {isExpanded && (
-                                              <div className="px-4 pb-4 border-t border-blue-200 bg-white rounded-b-lg">
-                                                <div className="pt-4 text-sm text-slate-700 whitespace-pre-wrap font-mono">
-                                                  {segment.content}
-                                                </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        );
-                                      } else {
-                                        return (
-                                          <ReactMarkdown
-                                            key={index}
-                                            components={{
-                                              ul: ({ node, ...props }) => (
-                                                <ul
-                                                  className="list-disc list-inside space-y-1 my-3"
-                                                  {...props}
-                                                />
-                                              ),
-                                              ol: ({ node, ...props }) => (
-                                                <ol
-                                                  className="list-decimal list-inside space-y-1 my-3"
-                                                  {...props}
-                                                />
-                                              ),
-                                              h1: ({ node, ...props }) => (
-                                                <h1
-                                                  className="font-bold text-2xl text-slate-900 my-4"
-                                                  {...props}
-                                                />
-                                              ),
-                                              h2: ({ node, ...props }) => (
-                                                <h2
-                                                  className="font-bold text-xl text-slate-900 my-3"
-                                                  {...props}
-                                                />
-                                              ),
-                                              h3: ({ node, ...props }) => (
-                                                <h3
-                                                  className="font-bold text-lg text-slate-900 my-2"
-                                                  {...props}
-                                                />
-                                              ),
-                                              p: ({ node, ...props }) => (
-                                                <p
-                                                  className="text-slate-700 leading-relaxed my-2"
-                                                  style={{
-                                                    whiteSpace: 'pre-wrap',
-                                                  }}
-                                                  {...props}
-                                                />
-                                              ),
-                                              code: ({ node, ...props }) => (
-                                                <code
-                                                  className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm"
-                                                  {...props}
-                                                />
-                                              ),
-                                            }}
-                                            remarkPlugins={[gfm]}
-                                            children={segment.content}
-                                          />
-                                        );
-                                      }
-                                    })}
-
-                                    {/* Show active thinking indicator for unclosed <think> blocks */}
-                                    {hasOpenThink && isLoading && (
-                                      <div className="mt-4 mb-4 border border-blue-200 rounded-lg bg-blue-50">
-                                        <div className="w-full flex items-center gap-3 p-4">
-                                          <FaBrain className="text-blue-600 text-sm animate-pulse" />
-                                          <span className="text-sm font-medium text-blue-800">Thinking...</span>
-                                          <div className="ml-auto flex space-x-1">
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </>
-                                );
-                              })()}
-                              {currentRagInfo && currentRagInfo.context && currentRagInfo.context.length > 0 && (
-                                <div className="mt-6 w-full">
-                                  <div className="bg-slate-100 border border-slate-200 p-4 rounded-lg">
-                                    <p className="text-sm font-medium mb-3 text-slate-700">Relevant documents</p>
-                                    {currentRagInfo.context.map((item, index) => (
-                                      <FileSource
-                                        key={index}
-                                        source={item.metadata.source}
-                                        content={item.pageContent}
-                                      />
-                                    ))}
-                                    <p className="text-xs text-slate-500 mt-3">Run ID: {currentRagInfo.runId}</p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                          return null;
+                        })}
                       </div>
                     </div>
                   );
