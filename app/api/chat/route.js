@@ -5,7 +5,7 @@ import { createMistral } from '@ai-sdk/mistral';
 import { createCohere } from '@ai-sdk/cohere';
 import { NextResponse } from 'next/server';
 import { ChromaClient } from 'chromadb';
-import { streamText, convertToModelMessages } from 'ai';
+import { streamText, convertToModelMessages, createUIMessageStream, createUIMessageStreamResponse } from 'ai';
 
 import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/hf_transformers';
 
@@ -109,6 +109,7 @@ export async function POST(req) {
     var messagesToSend = messages;
 
 
+
     if (rag) {
       // commenting this out for now since RAG is replaced with a rudimentary similarity search without any framework usage
       // if (!openAiModelSelected) {
@@ -180,6 +181,8 @@ export async function POST(req) {
 
         // Format the context from the results
         const relevantDocs = results.documents?.[0] || [];
+
+
         const context = relevantDocs.length > 0
           ? `Relevant information:\n${relevantDocs.join('\n\n')}`
           : "No relevant information found.";
@@ -224,15 +227,36 @@ Keep your answer concise, using three sentences maximum. Always respond in the l
         ];
 
 
-        // Stream the response - try without convertToModelMessages first
-        const response = await streamText({
-          model: target_model,
-          messages: enrichedMessages,
-          maxOutputTokens: Number(settings.maxOutputTokens),
-          temperature: 0
+
+        // Use the proper AI SDK UI streaming approach
+        const stream = createUIMessageStream({
+          execute: ({ writer }) => {
+            // Send sources for RAG use cases using correct AI SDK format
+            relevantDocs.forEach((doc, index) => {
+              writer.write({
+                type: 'source-url',
+                sourceId: `source-${index}`,
+                url: doc,
+                title: `Document ${index + 1}`,
+              });
+            });
+
+
+            // Stream the text response
+            const result = streamText({
+              model: target_model,
+              messages: enrichedMessages,
+              maxOutputTokens: Number(settings.maxOutputTokens),
+              temperature: 0
+            });
+
+            // Merge the text stream with our custom stream
+            writer.merge(result.toUIMessageStream());
+          },
         });
 
-        return response.toUIMessageStreamResponse();
+
+        return createUIMessageStreamResponse({ stream });
 
       } catch (error) {
         console.error("Error in RAG:", error);

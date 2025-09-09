@@ -306,7 +306,6 @@ const index = () => {
   const updateAllMessages = useCallback(() => {
     const updatedMessages = componentRefs.current.map(ref => ref?.getMessages() || []);
     setAllMessages(updatedMessages);
-    console.log('All Messages:', updatedMessages); // Log all messages when updated
   }, [updateTrigger]);
 
   // Update allMessages when chatVersions change
@@ -328,7 +327,6 @@ const index = () => {
 
   // Log allMessages whenever it changes
   useEffect(() => {
-    console.log('All Messages:', allMessages);
   }, [allMessages]);
 
   useEffect(() => {

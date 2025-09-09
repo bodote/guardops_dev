@@ -20,7 +20,7 @@ import ModelSettings from "./modelSettings";
 import { toast } from "react-toastify";
 const hljs = require('highlight.js/lib/common');
 import { useChat } from '@ai-sdk/react';
-import FileSource from "./FileSource";
+
 
 // Modal component for API key display/input
 const ApiKeyModal = ({ isOpen, onClose, provider, providerNames }) => {
@@ -538,7 +538,24 @@ const Chat_version = forwardRef(({
     perplexityKey,
   ]);
   const [input, setInput] = useState('');
-  const { id, messages, stop, handleInputChange, status, regenerate, setMessages, sendMessage, error, data } = useChat({
+  // Sources now come directly from AI SDK UI streaming in message.parts
+  const [expandedSources, setExpandedSources] = useState(new Set());
+
+  // Toggle individual source expansion
+  const toggleSourceExpansion = (messageId, sourceIndex) => {
+    const sourceKey = `${messageId}-${sourceIndex}`;
+    setExpandedSources(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sourceKey)) {
+        newSet.delete(sourceKey);
+      } else {
+        newSet.add(sourceKey);
+      }
+      return newSet;
+    });
+  };
+
+  const chatResponse = useChat({
     body: formData,
 
     onError: error => {
@@ -564,8 +581,42 @@ const Chat_version = forwardRef(({
 
       // Log the full error data for debugging purposes
       console.error("FULL ERROR DATA", errorData);
-    }
+    },
+
+    // Handle streaming finish (sources should come via message parts now)
+    onFinish: (message, options) => {
+      console.log('🔍 Frontend: onFinish called with:', {
+        message,
+        messageKeys: message ? Object.keys(message) : null,
+        messageId: message?.id,
+        hasExperimentalAttachments: !!message?.experimental_attachments,
+        experimentalAttachments: message?.experimental_attachments,
+        messageParts: message?.parts,
+        options,
+        fullMessage: JSON.stringify(message, null, 2)
+      });
+
+      // Sources should now come directly in message.parts from AI SDK
+    },
+
+    // IMPORTANT: Handle data stream which should contain our sources
+    experimental_streamData: true
   });
+
+  // Destructure all properties and log them for debugging  
+  const { id, messages, stop, handleInputChange, status, regenerate, setMessages, sendMessage, error, data } = chatResponse;
+
+
+  // Debug: Log messages array for AI SDK UI sources
+  console.log('🔍 Frontend: Messages with AI SDK UI sources:', messages.map(m => ({
+    id: m.id,
+    role: m.role,
+    parts: m.parts?.map(p => ({ type: p.type, hasUrl: !!p.url, hasTitle: !!p.title, sourceId: p.sourceId }))
+  })));
+
+  // SIMPLE: Just log the entire messages array
+  console.log('🔍 SIMPLE: Complete messages array:', JSON.stringify(messages, null, 2));
+
   const isLoading = status === "streaming";
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
@@ -576,23 +627,13 @@ const Chat_version = forwardRef(({
   const chatDivRef = useRef(null);
   const [expandedReasoning, setExpandedReasoning] = useState({});
 
-  const [ragInfo, setRagInfo] = useState([]);
-  //the index to make sure that each source gets displayed at the right response
-  let assistantIndex = 0;
+  // State for RAG context data - maps message IDs to their context
 
   // State for smart auto-scroll behavior
   const [userScrolling, setUserScrolling] = useState(false);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const scrollTimeoutRef = useRef(null);
 
-  // useEffect to update the filtered data when `data` changes
-  useEffect(() => {
-    if (data && Array.isArray(data)) { // Check if data exists and is an array
-      // Filter out elements that do not have `parentRunId`
-      const filteredData = data.filter(item => !item.parentRunId);
-      setRagInfo(filteredData);
-    }
-  }, [data]); // Re-run this effect whenever `data` changes
 
   // Function to toggle reasoning section expansion
   const toggleReasoning = (messageId, segmentIndex) => {
@@ -1189,7 +1230,6 @@ const Chat_version = forwardRef(({
           if (fileInputRef.current) {
             fileInputRef.current.value = '';
           }
-          console.log("messages so far:", messages)
         }
       }
     };
@@ -1775,12 +1815,13 @@ const Chat_version = forwardRef(({
                 )}
 
                 {messages.map((message, index) => {
-                  // Keep track of the current assistant message index
                   const isAssistant = message.role === 'assistant';
-                  const currentRagInfo = isAssistant ? ragInfo[assistantIndex] : null;
 
-                  if (isAssistant) {
-                    assistantIndex++;
+                  // Look for source-url parts from AI SDK UI streaming
+                  const sourceParts = message.parts?.filter(part => part.type === 'source-url') || [];
+
+                  if (sourceParts.length > 0) {
+                    console.log(`🔍 Frontend: Found AI SDK UI source-url parts in message ${index}:`, sourceParts);
                   }
 
                   return (
@@ -2000,18 +2041,88 @@ const Chat_version = forwardRef(({
                                       </>
                                     );
                                   })()}
-                                  {currentRagInfo && currentRagInfo.context && currentRagInfo.context.length > 0 && (
-                                    <div className="mt-6 w-full">
-                                      <div className="bg-slate-100 border border-slate-200 p-4 rounded-lg">
-                                        <p className="text-sm font-medium mb-3 text-slate-700">Relevant documents</p>
-                                        {currentRagInfo.context.map((item, contextIndex) => (
-                                          <FileSource
-                                            key={contextIndex}
-                                            source={item.metadata.source}
-                                            content={item.pageContent}
-                                          />
-                                        ))}
-                                        <p className="text-xs text-slate-500 mt-3">Run ID: {currentRagInfo.runId}</p>
+                                  {sourceParts.length > 0 && (
+                                    <div className="mt-3 w-full">
+                                      <div className="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+                                        {/* Compact Header */}
+                                        <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 border-b border-slate-200">
+                                          <svg className="w-3 h-3 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                                          </svg>
+                                          <p className="text-xs font-medium text-slate-700">
+                                            Sources ({sourceParts.length})
+                                          </p>
+                                        </div>
+
+                                        {/* Compact Individual Sources */}
+                                        <div className="p-2 space-y-1">
+                                          {sourceParts.map((source, sourceIndex) => {
+                                            console.log(`🎯 Frontend: Rendering source ${sourceIndex}:`, source);
+
+                                            // Extract actual filename from the source content
+                                            let displayName = source.title || `Document ${sourceIndex + 1}`;
+                                            let sourceContent = source.content || source.url || '';
+
+                                            // Try to extract filename from JSON metadata if it's a ChromaDB document
+                                            try {
+                                              const parsed = JSON.parse(sourceContent);
+                                              if (parsed.metadata && parsed.metadata.filename) {
+                                                // Remove UUID prefix from filename (uuid_actualfilename.ext)
+                                                const filename = parsed.metadata.filename;
+                                                const actualFilename = filename.includes('_') ?
+                                                  filename.substring(filename.indexOf('_') + 1) : filename;
+                                                displayName = actualFilename;
+
+                                                // Get the actual content text if available
+                                                if (parsed.other_content && parsed.other_content.length > 0) {
+                                                  sourceContent = parsed.other_content[0].text || sourceContent;
+                                                }
+                                              }
+                                            } catch (e) {
+                                              // If not JSON, use as-is
+                                            }
+
+                                            const sourceKey = `${message.id}-${sourceIndex}`;
+                                            const isExpanded = expandedSources.has(sourceKey);
+
+                                            return (
+                                              <div key={sourceIndex} className="bg-white border border-slate-200 rounded-md overflow-hidden">
+                                                {/* Compact Source Header */}
+                                                <div
+                                                  className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-slate-50 transition-colors"
+                                                  onClick={() => toggleSourceExpansion(message.id, sourceIndex)}
+                                                >
+                                                  <div className="flex items-center gap-2">
+                                                    <div className="flex-shrink-0 w-4 h-4 bg-slate-200 rounded-full flex items-center justify-center">
+                                                      <span className="text-xs font-medium text-slate-600">{sourceIndex + 1}</span>
+                                                    </div>
+                                                    <h4 className="text-xs font-medium text-slate-800 truncate">{displayName}</h4>
+                                                  </div>
+
+                                                  {/* Small Expand Icon */}
+                                                  <svg
+                                                    className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''
+                                                      }`}
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                  >
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                  </svg>
+                                                </div>
+
+                                                {/* Compact Expanded Content */}
+                                                {isExpanded && (
+                                                  <div className="px-3 pb-2 border-t border-slate-200">
+                                                    <div className="bg-slate-50 border border-slate-200 rounded text-xs text-slate-700 max-h-20 overflow-y-auto mt-2 p-2">
+                                                      {sourceContent}
+                                                    </div>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
                                       </div>
                                     </div>
                                   )}
@@ -2040,6 +2151,7 @@ const Chat_version = forwardRef(({
 
                           return null;
                         })}
+
                       </div>
                     </div>
                   );
