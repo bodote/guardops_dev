@@ -105,213 +105,55 @@ export async function POST(req) {
       ...(baseURL ? { baseURL } : {})
     }).chat?.(model);
 
-    let base_url_for_rag = baseURL || undefined;
-    let api_key_for_rag = apiKey || undefined;
 
     var messagesToSend = messages;
 
 
-    /*     if (rag) {
-          if (!openAiModelSelected) {
-            return NextResponse.json(
-              { error: "Only OpenAI API-based models support RAG. Select a compatible model." },
-              { status: 400 }
-              // Or another appropriate status code
-            );
-          }
-          try {
-            const lastUserMessageIndex = messages.map(msg => msg.role).lastIndexOf("user");
-            const question = messages[lastUserMessageIndex].content;
-    
-            const chat_history = messages
-              .filter((_, index) => index !== lastUserMessageIndex)  // Exclude the last User message
-              .map((element) => {
-                if (element.role === "assistant") {
-                  return new AIMessage(element.content);
-                } else if (element.role === "user") {
-                  return new HumanMessage(element.content);
-                }
-              });
-    
-            const embeddings = new HuggingFaceTransformersEmbeddings({ model: "Xenova/all-MiniLM-L6-v2" })
-            const vectorStore = new Chroma(embeddings, {
-              collectionName: chromaCollectionName,
-              url: process.env.CHROMA_HOST,
-              clientParams: {
-                auth: {
-                  provider: "token",
-                  credentials: process.env.CHROMA_CLIENT_AUTH_CREDENTIALS,
-                }
-              }
-            })
-            // ... existing code ...
-    
-            const retriever = ScoreThresholdRetriever.fromVectorStore(vectorStore, {
-              minSimilarityScore: 0.85,  // Required parameter
-              maxK: 2,                   // Optional parameter
-              kIncrement: 2              // Optional parameter - defaults to maxK if not specified
-            });
-    
-            // ... existing code ...
-            let llm;
-    
-            if (provider === "fireworks") {
-              llm = new Fireworks({
-                model: model,
-                apiKey: api_key_for_rag,
-                temperature: 0,
-                ...(base_url_for_rag ? { configuration: { baseURL: base_url_for_rag } } : {})
-              });
-            } else {
-              llm = new ChatOpenAI({
-                model: model,
-                apiKey: api_key_for_rag,
-                temperature: 0,
-                ...(base_url_for_rag ? { configuration: { baseURL: base_url_for_rag } } : {})
-              });
-            }
-    
-    
-    
-    
-            const contextualizeQSystemPrompt = `Given a chat history and the latest user question
-    which might reference context in the chat history, formulate a standalone question
-    which can be understood without the chat history. Do NOT answer the question,
-    just reformulate it if needed and otherwise return it as is.`;
-    
-    
-            const contextualizeQPrompt = ChatPromptTemplate.fromMessages([
-              ["system", contextualizeQSystemPrompt],
-              new MessagesPlaceholder("chat_history"),
-              ["human", "{question}"],
-            ]);
-            const contextualizeQChain = contextualizeQPrompt
-              .pipe(llm)
-              .pipe(new StringOutputParser());
-    
-    
-            const qaSystemPrompt = `You are an assistant for question-answering tasks.
-      Use the following pieces of retrieved context to answer the question.
-      If you don't know the answer, just say that you don't know.
-      Use three sentences maximum and keep the answer concise.
-      
-      {context}`;
-    
-            const qaPrompt = ChatPromptTemplate.fromMessages([
-              ["system", qaSystemPrompt],
-              new MessagesPlaceholder("chat_history"),
-              ["human", "{question}"],
-            ]);
-    
-            const contextualizedQuestion = (input) => {
-              if ("chat_history" in input) {
-                return contextualizeQChain;
-              }
-              return input.question;
-            };
-    
-    
-            const ragChainWithSources = RunnableSequence.from([
-              RunnablePassthrough.assign({
-                contextualized_question: async (input) => {
-                  if (input.chat_history && input.chat_history.length > 0) {
-                    return contextualizeQChain.invoke({
-                      chat_history: input.chat_history,
-                      question: input.question,
-                    });
-                  }
-                  return input.question;
-                }
-              }),
-              RunnableMap.from({
-                context: async (input) => {
-                  const docs = await retriever.getRelevantDocuments(input.contextualized_question);
-                  // Add error handling and ensure docs is not undefined
-                  return docs || [];
-                },
-                question: (input) => input.contextualized_question,
-                chat_history: (input) => input.chat_history,
-              }),
-              RunnablePassthrough.assign({
-                answer: RunnableSequence.from([
-                  (input) => {
-                    // Add null check before formatting documents
-                    const formattedContext = input.context && input.context.length > 0
-                      ? formatDocumentsAsString(input.context)
-                      : "No relevant context found.";
-    
-                    return {
-                      context: formattedContext,
-                      question: input.question,
-                      chat_history: input.chat_history,
-                    };
-                  },
-                  qaPrompt,
-                  llm,
-                  new StringOutputParser(),
-                ]),
-              }),
-            ]);
-            const data = new StreamData()
-            const customHandler = {
-              handleChainEnd: async (outputs, runId, parentRunId) => {
-                if (outputs.context && Array.isArray(outputs.context)) {
-                  data.append({ context: outputs.context, runId: runId, parentRunId: parentRunId });
-                }
-              },
-            };
-    
-            const ragResponse = await ragChainWithSources.stream({ question, chat_history }, { callbacks: [customHandler] });
-    
-            //Here follows some needed code to make it work with the langchainadapter 
-            //This basically extracts the ragResponse.answer and assigns it to the extractedAnswerStream
-            let accumulatedResponse = {};
-            const extractAnswerStream = new TransformStream({
-              transform(chunk, controller) {
-    
-                accumulatedResponse = { ...accumulatedResponse, ...chunk };
-    
-                if (accumulatedResponse.answer) {
-                  controller.enqueue(accumulatedResponse.answer);
-                  accumulatedResponse = {};
-                }
-              },
-              flush(controller) {
-                if (accumulatedResponse.answer) {
-                  controller.enqueue(accumulatedResponse.answer);
-                }
-              }
-            });
-            const answerStream = ragResponse.pipeThrough(extractAnswerStream);
-    
-    
-            return LangChainAdapter.toDataStreamResponse(answerStream, { data, callbacks: { onFinal() { data.close() } } });
-    
-          } catch (error) {
-            console.error("Error in rag:", error);
-          }
-    
-        } */
-
-
-
     if (rag) {
-      if (!openAiModelSelected) {
-        return NextResponse.json(
-          { error: "Only OpenAI API-based models support RAG. Select a compatible model." },
-          { status: 400 }
-        );
-      }
+      // commenting this out for now since RAG is replaced with a rudimentary similarity search without any framework usage
+      // if (!openAiModelSelected) {
+      //   return NextResponse.json(
+      //     { error: "Only OpenAI API-based models support RAG. Select a compatible model." },
+      //     { status: 400 }
+      //   );
+      // }
 
       try {
         // Get the last user question
         const lastUserMessageIndex = messages.map(msg => msg.role).lastIndexOf("user");
-        const question = messages[lastUserMessageIndex].content;
+
+        if (lastUserMessageIndex === -1) {
+          throw new Error('No user message found in conversation');
+        }
+
+        const lastUserMessage = messages[lastUserMessageIndex];
+
+        if (!lastUserMessage) {
+          throw new Error('Last user message is undefined');
+        }
+
+        // Extract question from either content property or parts array
+        let question;
+        if (lastUserMessage.content) {
+          question = lastUserMessage.content;
+        } else if (lastUserMessage.parts && lastUserMessage.parts.length > 0) {
+          // Find the text part
+          const textPart = lastUserMessage.parts.find(part => part.type === 'text');
+          question = textPart ? textPart.text : '';
+        } else {
+          question = '';
+        }
+
+        // Ensure question is not undefined or null
+        if (!question || typeof question !== 'string') {
+          throw new Error('Unable to extract question from user message');
+        }
 
         // Initialize embeddings model
         const embeddings = new HuggingFaceTransformersEmbeddings({
           model: "Xenova/all-MiniLM-L6-v2"
         });
+
 
         // Embed the user's question
         const queryEmbedding = await embeddings.embedQuery(question);
@@ -342,6 +184,32 @@ export async function POST(req) {
           ? `Relevant information:\n${relevantDocs.join('\n\n')}`
           : "No relevant information found.";
 
+        // Convert messages to proper format for convertToModelMessages
+        const convertedMessages = messages.map(msg => {
+          if (msg.parts && msg.parts.length > 0) {
+            // Extract text content from parts array
+            const textContent = msg.parts
+              .filter(part => part.type === 'text')
+              .map(part => part.text)
+              .join('\n');
+
+            return {
+              role: msg.role,
+              content: textContent
+            };
+          } else if (msg.content) {
+            // Already has content property
+            return msg;
+          } else {
+            // Fallback
+            return {
+              role: msg.role,
+              content: ''
+            };
+          }
+        });
+
+
         // Create messages array with context
         const enrichedMessages = [
           {
@@ -352,13 +220,14 @@ ${context}
 If you don't find relevant information in the context, just say you don't know.
 Keep your answer concise, using three sentences maximum. Always respond in the language of the question regardless of the language of the context.`
           },
-          ...messages
+          ...convertedMessages
         ];
 
-        // Stream the response
+
+        // Stream the response - try without convertToModelMessages first
         const response = await streamText({
           model: target_model,
-          messages: convertToModelMessages(enrichedMessages),
+          messages: enrichedMessages,
           maxOutputTokens: Number(settings.maxOutputTokens),
           temperature: 0
         });
@@ -382,7 +251,6 @@ Keep your answer concise, using three sentences maximum. Always respond in the l
 
     return response.toUIMessageStreamResponse();
   } catch (error) {
-    console.log("actual error ", error)
     let errorData;
 
     try {

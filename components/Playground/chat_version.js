@@ -1592,7 +1592,7 @@ const Chat_version = forwardRef(({
 
           <div className="relative">
             {errorOwn && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 flex gap-3 items-start absolute top-0 w-full z-10">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 flex gap-3 items-start absolute top-0 w-full z-1">
                 <MdErrorOutline className="text-xl flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-medium">Error occurred</p>
