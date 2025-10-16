@@ -29,7 +29,7 @@ const InterpretabilityPage = () => {
         <>
             {loader ? (
                 <Loader />
-            ) : role.includes("Playground") || role.includes("Full_Access") ? (
+            ) : role.includes("Full_Access") ? (
                 <div className="flex">
                     <Sidebar />
                     <div className="w-full h-screen overflow-hidden sm:ml-[96px] ml-[72px]">

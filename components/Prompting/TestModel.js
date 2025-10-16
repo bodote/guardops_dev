@@ -38,6 +38,8 @@ const TestModel = forwardRef(({ model, prompt, testContext, onLoadingChange, set
         setPerplexityKey(key9);
         const key10 = localStorage.getItem("groqKey") || "";
         setGroqKey(key10);
+        const key11 = localStorage.getItem("openRouterKey") || "";
+        setOpenRouterKey(key11);
     }, []);
 
     const fetchProviderDetails = async (providerId) => {
@@ -92,7 +94,8 @@ const TestModel = forwardRef(({ model, prompt, testContext, onLoadingChange, set
                     mistralKey,
                     perplexityKey,
                     groqKey,
-                    togetherKey
+                    togetherKey,
+                    openRouterKey
                 }
             });
         };

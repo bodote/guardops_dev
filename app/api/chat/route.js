@@ -75,6 +75,12 @@ export async function POST(req) {
         apiKey: api_keys.customKey,
         baseURL: 'https://demo6.ki-ansbach.de/hostedmodels/v1',
         compatibility: 'compatible'
+      },
+      openrouter: {
+        create: createOpenAI,
+        apiKey: api_keys.openRouterKey,
+        baseURL: 'https://openrouter.ai/api/v1',
+        compatibility: 'compatible'
       }
     };
     let openAiModelSelected = false;

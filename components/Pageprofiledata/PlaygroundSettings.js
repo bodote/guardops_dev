@@ -29,7 +29,7 @@ const PlaygroundSettings = () => {
   const [perplexityKey, setPerplexityKey] = useState("");
   const [customAIKey, setCustomAIKey] = useState("");
   const [tracingKey, setTracingKey] = useState("");
-
+  const [openRouterKey, setOpenRouterKey] = useState("");
   // Custom providers state
   const [customProviders, setCustomProviders] = useState([]);
   const [customProviderKeys, setCustomProviderKeys] = useState({});
@@ -247,6 +247,7 @@ const PlaygroundSettings = () => {
     setTogetherKey(localStorage.getItem("togetherKey") || "");
     setPerplexityKey(localStorage.getItem("perplexityKey") || "");
     setTracingKey(localStorage.getItem("tracingKey") || "");
+    setOpenRouterKey(localStorage.getItem("openRouterKey") || "");
   }, []);
 
   return (
@@ -360,6 +361,12 @@ const PlaygroundSettings = () => {
                   setApiKey={setCustomAIKey}
                   saveApiKey={() => saveApiKey("customAIKey", customAIKey)}
                   label="Custom Provider"
+                />
+                <APIKeyInput
+                  apiKey={openRouterKey}
+                  setApiKey={setOpenRouterKey}
+                  saveApiKey={() => saveApiKey("openRouterKey", openRouterKey)}
+                  label="Open Router"
                 />
                 <APIKeyInput
                   apiKey={tracingKey}

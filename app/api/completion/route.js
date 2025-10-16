@@ -72,6 +72,12 @@ export async function POST(req) {
                 apiKey: api_keys.customKey,
                 baseURL: 'http://159.69.166.67:55504/v1',
                 compatibility: 'compatible'
+            },
+            openrouter: {
+                create: createOpenAI,
+                apiKey: api_keys.openRouterKey,
+                baseURL: 'https://openrouter.ai/api/v1',
+                compatibility: 'compatible'
             }
         };
 

@@ -13,7 +13,8 @@ const DEFAULT_PROVIDERS = [
   { id: 7, name: "openai" },
   { id: 8, name: "perplexity" },
   { id: 9, name: "together" },
-  { id: 10, name: "custom_h" }
+  { id: 10, name: "custom_h" },
+  { id: 11, name: "openrouter" }
 ];
 
 

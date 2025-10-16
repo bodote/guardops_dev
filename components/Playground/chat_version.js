@@ -56,7 +56,8 @@ const ApiKeyModal = ({ isOpen, onClose, provider, providerNames }) => {
       "mistral": "mistralKey",
       "together.ai": "togetherKey",
       "perplexity.ai": "perplexityKey",
-      "custom": "customAIKey"
+      "custom": "customAIKey",
+      "openrouter": "openRouterKey"
     };
 
     return keyMapping[provider.toLowerCase()] || null;
@@ -394,6 +395,7 @@ const Chat_version = forwardRef(({
   const [openaiKey, setOpenaiKey] = useState("");
   const [togetherKey, setTogetherKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState("");
+  const [openRouterKey, setOpenRouterKey] = useState("");
   // vercel keys
   const [anthropicKey, setAnthropicKey] = useState("");
   const [cohereKey, setCohereKey] = useState("");
@@ -434,7 +436,8 @@ const Chat_version = forwardRef(({
       googleKey: googleKey,
       mistralKey: mistralKey,
       perplexityKey: perplexityKey,
-      togetherKey: togetherKey
+      togetherKey: togetherKey,
+      openRouterKey: openRouterKey
 
     }
   });
@@ -517,7 +520,8 @@ const Chat_version = forwardRef(({
           googleKey: googleKey,
           mistralKey: mistralKey,
           perplexityKey: perplexityKey,
-          togetherKey: togetherKey
+          togetherKey: togetherKey,
+          openRouterKey: openRouterKey,
         },
       });
     };
@@ -1040,7 +1044,8 @@ const Chat_version = forwardRef(({
       "mistral": "mistralKey",
       "together.ai": "togetherKey",
       "perplexity.ai": "perplexityKey",
-      "custom": "customAIKey"
+      "custom": "customAIKey",
+      "openrouter": "openRouterKey"
     };
 
     const keyName = keyMapping[provider.toLowerCase()] || null;
@@ -1171,6 +1176,8 @@ const Chat_version = forwardRef(({
     setMistralKey(key8);
     const key9 = localStorage.getItem("perplexityKey") || "";
     setPerplexityKey(key9);
+    const key10 = localStorage.getItem("openRouterKey") || "";
+    setOpenRouterKey(key10);
   }, []);
 
   useEffect(() => {

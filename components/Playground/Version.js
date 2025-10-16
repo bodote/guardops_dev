@@ -95,12 +95,12 @@ const Version = ({
     selectedModel
       ? selectedModel
       : {
-          name: "Select a Model",
-        }
+        name: "Select a Model",
+      }
   );
 
   hljs.highlightAll();
-  
+
   const [error, setError] = useState(null);
   const [totalTokens, setTotalTokens] = useState();
   const [inputTokens, setInputTokens] = useState();
@@ -111,11 +111,11 @@ const Version = ({
   const [togetherKey, setTogetherKey] = useState(""); // State for the API key
   const [customAIKey, setCustomAIKey] = useState(""); // State for the API key
   // vercel keys
-  const [anthropicKey, setAnthropicKey] = useState(""); 
-  const [cohereKey, setCohereKey] = useState(""); 
-  const [googleKey, setGoogleKey] = useState(""); 
-  const [mistralKey, setMistralKey] = useState(""); 
-  const [perplexityKey, setPerplexityKey] = useState(""); 
+  const [anthropicKey, setAnthropicKey] = useState("");
+  const [cohereKey, setCohereKey] = useState("");
+  const [googleKey, setGoogleKey] = useState("");
+  const [mistralKey, setMistralKey] = useState("");
+  const [perplexityKey, setPerplexityKey] = useState("");
 
   //
   const modalRef = useRef();
@@ -138,16 +138,16 @@ const Version = ({
     }
   };
 
-    // State for settings values
-    const [settings, setSettings] = useState({
-      maxTokens: 2500,
-      temperature: 0.6,
-      topP: 0.2,
-      topK: 50,
-      frequencyPenalty: 0.3,
-      presencePenalty: 0.3,
-    });
-  
+  // State for settings values
+  const [settings, setSettings] = useState({
+    maxTokens: 2500,
+    temperature: 0.6,
+    topP: 0.2,
+    topK: 50,
+    frequencyPenalty: 0.3,
+    presencePenalty: 0.3,
+  });
+
   // Load API key from Local Storage
   useEffect(() => {
     getModels();
@@ -190,6 +190,8 @@ const Version = ({
         googleKey: googleKey,
         mistralKey: mistralKey,
         perplexityKey: perplexityKey,
+        togetherKey: togetherKey,
+        openRouterKey: openRouterKey,
       },
     });
   }, [
@@ -209,7 +211,7 @@ const Version = ({
 
   console.log("i have this formdata", formData);
 
-  const chatDivRef= useRef(null);
+  const chatDivRef = useRef(null);
 
 
   useEffect(() => {
@@ -217,16 +219,16 @@ const Version = ({
       chatDivRef.current.scrollTop = chatDivRef.current.scrollHeight;
     }
   }, [completion]);
-  
-  
+
+
   const handleFileChange = (event) => {
-   
+
     if (event.target.files) {
       setFiles(event.target.files);
-      if(syncAllMsg){
+      if (syncAllMsg) {
         setAllFiles(event.target.files);
       }
-      
+
     }
   };
   const reconstructConversation = (traces) => {
@@ -264,13 +266,13 @@ const Version = ({
         content: pair.attributes.output || "",
       },
     ]);
-    
+
 
     if (model) {
       setSelected(model);
     }
-    
-     setMessages(newMessages);
+
+    setMessages(newMessages);
   };
 
   // FROM HERE IDK
@@ -380,25 +382,25 @@ const Version = ({
   };
 
   const filteredModels = models
-  .filter((model) => {
-    const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
-    const regex = new RegExp(trimmedSearchModel, "gi");
-    const trimmedModelName = model.name
-      .replace(/[^\w\s]/g, "")
-      .replace(/\s+/g, "");
-    return trimmedModelName.match(regex);
-  })
-  .sort((a, b) => {
-    const nameA = a.name.toUpperCase(); // ignore upper and lowercase
-    const nameB = b.name.toUpperCase(); // ignore upper and lowercase
-    if (nameA < nameB) {
-      return -1;
-    }
-    if (nameA > nameB) {
-      return 1;
-    }
-    return 0; // names must be equal
-  });
+    .filter((model) => {
+      const trimmedSearchModel = searchModel.replace(/[^\w\s]/g, "").trim();
+      const regex = new RegExp(trimmedSearchModel, "gi");
+      const trimmedModelName = model.name
+        .replace(/[^\w\s]/g, "")
+        .replace(/\s+/g, "");
+      return trimmedModelName.match(regex);
+    })
+    .sort((a, b) => {
+      const nameA = a.name.toUpperCase(); // ignore upper and lowercase
+      const nameB = b.name.toUpperCase(); // ignore upper and lowercase
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+      return 0; // names must be equal
+    });
   const getModelLabel = () => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const index = allVersions.findIndex((version) => version.id === versionId);
@@ -435,10 +437,10 @@ const Version = ({
 
 
     if (input && isValidModelSelected && runPressed) {
-      handleSubmit( {
+      handleSubmit({
         experimental_attachments: files,
       });
-      
+
     } else if (runPressed) {
       let missingItems = [];
       if (!input) missingItems.push("message");
@@ -447,9 +449,9 @@ const Version = ({
       setCompletion(
         `Please provide the following: ${missingItems.join(", ")}.`
       ); // Set error message in vercelResponse
-    setRunPressed(false)
+      setRunPressed(false)
 
-}
+    }
   }, [input, selected?.id1, runPressed]);
   // useEffect(() => {
   //   if (showSettings) {
@@ -465,15 +467,13 @@ const Version = ({
   return (
     <>
       <div
-        className={`py-[16px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px] lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[calc(100vh-434px)] !min-h-[calc(100vh-396px)] overflow-auto relative ${
-          versions > 4
+        className={`py-[16px] sm:pl-[12px] pl-[16px] sm:pr-[27px] pr-[16px] lg:border-r lg:border-r-[#CCCCCC] border-b-[1px] border-b-[#CCCCCC] bg-[#F7F7F7] flex justify-between flex-col xl:!mih-h-0 sm:!min-h-[calc(100vh-434px)] !min-h-[calc(100vh-396px)] overflow-auto relative ${versions > 4
             ? "sm:min-h-0 !min-h-[464px] sm:h-auto h-[464px] sm:!pr-[10px]"
             : ""
-        } ${
-          versions < 5
+          } ${versions < 5
             ? "!h-full 3xl:!min-h-[700px] xl:!min-h-[calc(100vh-434px)] sm:!min-h-[363px]"
             : ""
-        }`}
+          }`}
       >
         {arenaCheck && (
           <div className="bg-[#D9D9D9] w-[66px] h-[16px] text-[10px] font-inter rounded-[0_0_12px_12px] flex justify-center p-[1px_0_3px_0] absolute top-0 left-[50%] translate-x-[-50%]">
@@ -488,9 +488,8 @@ const Version = ({
                   <>
                     <div className="relative">
                       <Listbox.Button
-                        className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${
-                          versions > 2 ? "sm:!w-[140px]" : ""
-                        }`}
+                        className={`relative w-full cursor-default border border-[#CCCCCC] rounded-[6px] block font-Inter text-[12px] text-[#464F60] font-normal sm:w-[179px] px-[8px] py-[3px] ${versions > 2 ? "sm:!w-[140px]" : ""
+                          }`}
                       >
                         <span className="flex items-center">
                           <span className=" block truncate pr-[20px]">
@@ -570,9 +569,8 @@ const Version = ({
               </button>
             </div>
             <div
-              className={`flex gap-[17px] sm:mt-0 mt-[20px] ${
-                versions > 2 ? "!gap-[10px]" : ""
-              }`}
+              className={`flex gap-[17px] sm:mt-0 mt-[20px] ${versions > 2 ? "!gap-[10px]" : ""
+                }`}
             >
 
 
@@ -623,11 +621,10 @@ const Version = ({
             )}
           </div>
           <div
-            className={`overflow-auto ${
-              totalTokens
+            className={`overflow-auto ${totalTokens
                 ? "h-[calc(100vh-555px)]"
                 : "sm:h-[calc(100vh-527px)] h-[calc(100vh-607px)]"
-            }`}
+              }`}
           >
             {open && (
               <div className="border-[#CCCCCC] border-[1px] rounded-[12px] p-[7px_10px_10px_14px] mt-[16px]">
@@ -677,67 +674,66 @@ const Version = ({
               </div>
             )}
             <div
-              className={`response-output justify-center mt-[20px]  overflow-auto ${
-                open && "2xl:h-[calc(100vh-822px)] h-[calc(100vh-778px)]"
-              } ${versions > 4 && "sm:max-h-auto"}`}
+              className={`response-output justify-center mt-[20px]  overflow-auto ${open && "2xl:h-[calc(100vh-822px)] h-[calc(100vh-778px)]"
+                } ${versions > 4 && "sm:max-h-auto"}`}
             >
               {console.log("these messages", completion)}
-            {completion && (
-              <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
-                <div className="w-[calc(100%-35px)]">
-                  <div className="flex flex-wrap justify-start">
-                    {completion.experimental_attachments?.map((attachment) => (
-                      <div key={attachment.name} className="mb-3 mr-3">
-                        {attachment.contentType?.startsWith("image") ? (
-                          <img
-                            className="rounded-md h-60"
-                            src={attachment.url}
-                            alt={attachment.name}
-                          />
-                        ) : attachment.contentType?.startsWith("text") ? (
-                          <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
-                            {getTextFromDataUrl(attachment.url)}
-                          </div>
-                        ) : null}
-                      </div>
-                    ))}
+              {completion && (
+                <div className="md:p-[19px_31px] p-[8px_10px] flex sm:gap-[19px] gap-[8px]">
+                  <div className="w-[calc(100%-35px)]">
+                    <div className="flex flex-wrap justify-start">
+                      {completion.experimental_attachments?.map((attachment) => (
+                        <div key={attachment.name} className="mb-3 mr-3">
+                          {attachment.contentType?.startsWith("image") ? (
+                            <img
+                              className="rounded-md h-60"
+                              src={attachment.url}
+                              alt={attachment.name}
+                            />
+                          ) : attachment.contentType?.startsWith("text") ? (
+                            <div className="text-xs w-40 h-60 overflow-hidden text-zinc-400 border p-2 rounded-md dark:bg-zinc-800 dark:border-zinc-700">
+                              {getTextFromDataUrl(attachment.url)}
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+
+                    {parseVercelResponse(completion).map((segment, index) =>
+                      segment.type === 'code' ? (
+                        <pre className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5">
+                          <button className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200" onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
+                            {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
+                          </button>
+                          <code>{segment.content}</code>
+                        </pre>
+                      ) : (
+                        <ReactMarkdown
+                          components={{
+                            ul: ({ node, ...props }) => (
+                              <ul style={{ display: 'block', listStyleType: 'disc', paddingInlineStart: '40px' }} {...props} />
+                            ),
+                            ol: ({ node, ...props }) => (
+                              <ol style={{ display: 'block', listStyleType: 'decimal', paddingInlineStart: '40px' }} {...props} />
+                            ),
+                            h1: ({ node, ...props }) => <h1 className="font-bold text-6xl" {...props} />,
+                            p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-wrap' }} {...props} />,
+                          }}
+                          remarkPlugins={[gfm]}
+                          key={index}
+                          children={segment.content}
+                        />
+                      )
+                    )}
                   </div>
-            
-                  {parseVercelResponse(completion).map((segment, index) =>
-                    segment.type === 'code' ? (
-                      <pre className="text-sm overflow-hidden border-t rounded-lg mt-5 mb-5">
-                        <button className="w-full text-right pr-5 pb-0.5 pt-1.5 bg-gray-700 text-neutral-200" onClick={() => copyToClipboard(segment.content, `${segment.content}-${index}`)}>
-                          {copiedIndex === `${segment.content}-${index}` ? 'Copied' : 'Copy'}
-                        </button>
-                        <code>{segment.content}</code>
-                      </pre>
-                    ) : (
-                      <ReactMarkdown
-                        components={{
-                          ul: ({ node, ...props }) => (
-                            <ul style={{ display: 'block', listStyleType: 'disc', paddingInlineStart: '40px' }} {...props} />
-                          ),
-                          ol: ({ node, ...props }) => (
-                            <ol style={{ display: 'block', listStyleType: 'decimal', paddingInlineStart: '40px' }} {...props} />
-                          ),
-                          h1: ({ node, ...props }) => <h1 className="font-bold text-6xl" {...props} />,
-                          p: ({ node, ...props }) => <p style={{ whiteSpace: 'pre-wrap' }} {...props} />,
-                        }}
-                        remarkPlugins={[gfm]}
-                        key={index}
-                        children={segment.content}
-                      />
-                    )
-                  )}
                 </div>
-              </div>
-            )}
-            
-              
+              )}
+
+
             </div>
           </div>
           <div className="flex gap-[10px] justify-center mt-[17px]">
-            <CopyIcon/>
+            <CopyIcon />
             <DownArrowIcon />
             <UpArrowIcon />
             <PenIcon />
@@ -784,85 +780,85 @@ const Version = ({
               </table>
             </div>
           )}
-            </div>
-          </div>
-          
-          <div className="flex gap-[10px] justify-center mt-[17px]">
-            <CopyIcon onClick={handleCopyClick} />
-            <DownArrowIcon />
-            <UpArrowIcon />
-            <PenIcon />
-          </div>
-         
         </div>
-        <div className="flex justify-center">
-  {inputTokens && (
-    <div className="mx-4">
-      <p className="text-[12px] text-black text-center font-bold">
-        Input Tokens: {inputTokens}
-      </p>
-    </div>
-  )}
-  {outputTokens && (
-    <div className="mx-4">
-      <p className="text-[12px] text-black text-center font-bold">
-        Output Tokens: {outputTokens}
-      </p>
-    </div>
-  )}
-  {/* {totalTokens && (
+      </div>
+
+      <div className="flex gap-[10px] justify-center mt-[17px]">
+        <CopyIcon onClick={handleCopyClick} />
+        <DownArrowIcon />
+        <UpArrowIcon />
+        <PenIcon />
+      </div>
+
+    </div >
+      <div className="flex justify-center">
+        {inputTokens && (
+          <div className="mx-4">
+            <p className="text-[12px] text-black text-center font-bold">
+              Input Tokens: {inputTokens}
+            </p>
+          </div>
+        )}
+        {outputTokens && (
+          <div className="mx-4">
+            <p className="text-[12px] text-black text-center font-bold">
+              Output Tokens: {outputTokens}
+            </p>
+          </div>
+        )}
+        {/* {totalTokens && (
     <div className="mx-4">
       <p className="text-[12px] text-black text-center font-bold">
         Total Tokens: {totalTokens}
       </p>
     </div>
   )} */}
-</div>
-
       </div>
-      {tooltipData && (
-        <Tooltip
-          className="tooltip-show-data"
-          id={`my-tooltip-${tooltipData.model_id}`}
-          place="right"
-        >
-          <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[9] ml-[10px] 2xl:!w-[270px] w-[230px opacity-100">
-            <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
-              {tooltipData.name}
-            </h1>
-            <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#aaa] leading-normal mt-[5px]">
-              {tooltipData.model_description}
+
+      </div >
+  { tooltipData && (
+    <Tooltip
+      className="tooltip-show-data"
+      id={`my-tooltip-${tooltipData.model_id}`}
+      place="right"
+    >
+      <div className="p-[16px] bg-white text-base border border-[#cccccc] rounded-lg  z-[9] ml-[10px] 2xl:!w-[270px] w-[230px opacity-100">
+        <h1 className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium ">
+          {tooltipData.name}
+        </h1>
+        <p className="font-Archivo sm:text-[12px] text-[10px] font-normal text-[#aaa] leading-normal mt-[5px]">
+          {tooltipData.model_description}
+        </p>
+        <div className="my-[10px]">
+          <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+            <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+              Context length:
             </p>
-            <div className="my-[10px]">
-              <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                  Context length:
-                </p>
-                <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                  {tooltipData.context} tokens
-                </p>
-              </div>
-              <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
-                <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                  Input pricing:
-                </p>
-                <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                  {tooltipData.input_price}
-                </p>
-              </div>
-              <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
-                <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                  Output princing:
-                </p>
-                <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
-                  {tooltipData.output_price}
-                </p>
-              </div>
-            </div>
+            <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+              {tooltipData.context} tokens
+            </p>
           </div>
-        </Tooltip>
-      )}
-      <Tooltip id="my-tooltip" />
+          <div className="grid grid-cols-2 border-b border-b-[#ccc] sm:py-[5px] py-[10px]">
+            <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+              Input pricing:
+            </p>
+            <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+              {tooltipData.input_price}
+            </p>
+          </div>
+          <div className="grid grid-cols-2  sm:py-[5px] py-[10px]">
+            <p className="text-[#000] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+              Output princing:
+            </p>
+            <p className="text-[#656565] sm:text-[12px] text-[10px] font-Inter font-medium leading-normal">
+              {tooltipData.output_price}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Tooltip>
+  )}
+<Tooltip id="my-tooltip" />
     </>
   );
 };
