@@ -163,30 +163,28 @@ const Sidebar = () => {
                     </a>
                   )}
 
-                {(role?.includes("Playground") ||
-                  role?.includes("Full_Access")) && (
-                    <a
-                      href="/prompting"
-                      className={`${getMenuItemClasses("/prompting")} mt-[25px] py-1 px-2 rounded-r-lg -mr-2`}
-                    >
-                      <PromptingIcon className={`w-[20px] ${isActive("/prompting") ? "text-[#0D859A]" : ""}`} />
-                      <p className="text-[11px] font-Archivo font-normal leading-[normal] hidden">
-                        Prompting
-                      </p>
-                    </a>
-                  )}
-                {(role?.includes("Playground") ||
-                  role?.includes("Full_Access")) && (
-                    <a
-                      href="/interp"
-                      className={`${getMenuItemClasses("/interp")} mt-[25px] py-1 px-2 rounded-r-lg -mr-2`}
-                    >
-                      <InterpretabilityIcon className={`w-[20px] ${isActive("/interp") ? "text-[#0D859A]" : ""}`} />
-                      <p className="text-[11px] font-Archivo font-normal leading-[normal] hidden">
-                        Interpretability
-                      </p>
-                    </a>
-                  )}
+                {role?.includes("Full_Access") && (
+                  <a
+                    href="/prompting"
+                    className={`${getMenuItemClasses("/prompting")} mt-[25px] py-1 px-2 rounded-r-lg -mr-2`}
+                  >
+                    <PromptingIcon className={`w-[20px] ${isActive("/prompting") ? "text-[#0D859A]" : ""}`} />
+                    <p className="text-[11px] font-Archivo font-normal leading-[normal] hidden">
+                      Prompting
+                    </p>
+                  </a>
+                )}
+                {role?.includes("Full_Access") && (
+                  <a
+                    href="/interp"
+                    className={`${getMenuItemClasses("/interp")} mt-[25px] py-1 px-2 rounded-r-lg -mr-2`}
+                  >
+                    <InterpretabilityIcon className={`w-[20px] ${isActive("/interp") ? "text-[#0D859A]" : ""}`} />
+                    <p className="text-[11px] font-Archivo font-normal leading-[normal] hidden">
+                      Interpretability
+                    </p>
+                  </a>
+                )}
                 {(role?.includes("Evaluation") ||
                   role?.includes("Full_Access")) && (
                     <a
