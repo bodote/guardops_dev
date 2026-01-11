@@ -5,10 +5,8 @@ const nextConfig = {
     ignoreDuringBuilds: true
   },
   reactStrictMode: false,
+  serverExternalPackages: ['sharp', 'onnxruntime-node'],
   experimental: {
-    serverComponentsExternalPackages: ['sharp', 'onnxruntime-node'],
-    missingSuspenseWithCSRBailout: false,
-
   },
 
   webpack: (config) => {

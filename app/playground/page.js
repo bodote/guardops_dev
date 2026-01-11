@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import {
   DeleteBlackIcon,
@@ -25,7 +25,7 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
-const index = () => {
+const PlaygroundContent = () => {
   // Add state to manage text area content
 
   const [projectList, setProjectList] = useState([]);
@@ -1089,4 +1089,12 @@ const index = () => {
   );
 };
 
-export default index;
+const Page = () => {
+  return (
+    <Suspense fallback={<Loader />}>
+      <PlaygroundContent />
+    </Suspense>
+  );
+};
+
+export default Page;
