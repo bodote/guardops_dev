@@ -1,40 +1,85 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# GuardOps Dev: Local Startup Guide
 
-## Getting Started
+This project is a Next.js application using Auth0 for login.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js `20`
+- npm `10.9.2`
+
+The repository currently runs with newer versions too, but npm will print engine warnings.
+
+## 1. Install dependencies
+
+```bash
+npm install
+```
+
+## 2. Create local environment config
+
+Create `/Users/bodo.teichmann/dev/guardops_dev/.env.local`:
+
+```bash
+AUTH0_SECRET=<random-32-byte-hex-or-long-random-string>
+AUTH0_BASE_URL=http://localhost:3000
+AUTH0_ISSUER_BASE_URL=https://<your-tenant>.us.auth0.com
+AUTH0_CLIENT_ID=<your-auth0-app-client-id>
+AUTH0_CLIENT_SECRET=<your-auth0-app-client-secret>
+
+# Used by role/token endpoints in this app
+AUTH0_TRACEAPI=https://<your-tenant>.us.auth0.com/oauth/token
+AUTH0_MANAGEMENT_CLIENT_ID=<your-auth0-app-client-id-or-m2m-client-id>
+AUTH0_MANAGEMENT_CLIENT_SECRET=<matching-client-secret>
+MANAGEMENT_AUDIENCE=https://<your-tenant>.us.auth0.com/api/v2/
+```
+
+Generate `AUTH0_SECRET`:
+
+```bash
+openssl rand -hex 32
+```
+
+## 3. Configure Auth0 application
+
+Use a **Regular Web Application** (technology: **Next.js**).
+
+In Auth0 application settings:
+
+- `Allowed Callback URLs`: `http://localhost:3000/api/auth/callback`
+- `Allowed Logout URLs`: `http://localhost:3000`
+- `Allowed Web Origins`: `http://localhost:3000`
+- `Initiate Login URI`: leave empty for local `http` development
+
+## 4. Configure Management API access (for user roles)
+
+Without this, `/api/manageRole` cannot fetch roles.
+
+In Auth0:
+
+1. Go to `APIs` -> `Auth0 Management API` -> `Machine to Machine Applications`.
+2. Authorize your app.
+3. Grant scopes needed for reading user roles (at least `read:users` and `read:roles`).
+
+## 5. Start the server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## Known behavior and troubleshooting
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+- `GET /api/auth/login 500` with `"secret" is required`:
+  - `AUTH0_SECRET` is missing.
+- Auth0 error `Callback URL mismatch`:
+  - `Allowed Callback URLs` does not include `http://localhost:3000/api/auth/callback`.
+- `GET /api/manageRole 500`:
+  - Usually missing/invalid Management API token config.
+  - Current code now degrades to `401` instead of crashing when role token fetch fails.
+- Profile page showing `User Role: Loading...` forever:
+  - Current code now falls back to `No role assigned` if roles cannot be fetched.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+## Security note
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Do not commit `.env.local`. If credentials were shared in chat or logs, rotate secrets in Auth0.

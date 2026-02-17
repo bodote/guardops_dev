@@ -11,14 +11,20 @@ const Profile = () => {
     contact: "",
   });
   const [role, setRole] = useState("");
+  const [isRoleLoading, setIsRoleLoading] = useState(true);
 
   const handleOnChange = (event) => {
     setUserInfo({ ...userInfo, [event.target.name]: event.target.value });
   };
 
   const getRole = async () => {
-    const roles = await getUserRole();
-    setRole(roles?.join(", "));
+    setIsRoleLoading(true);
+    try {
+      const roles = await getUserRole();
+      setRole(Array.isArray(roles) && roles.length ? roles.join(", ") : "No role assigned");
+    } finally {
+      setIsRoleLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -142,7 +148,7 @@ const Profile = () => {
           <div className="flex items-center gap-2">
             <span className="text-slate-600 font-Archivo text-sm">User Role:</span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#D4DB33]/10 text-[#D4DB33] border border-[#D4DB33]/20">
-              {role || "Loading..."}
+              {isRoleLoading ? "Loading..." : role}
             </span>
           </div>
         </div>

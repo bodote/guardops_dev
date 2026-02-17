@@ -1,11 +1,16 @@
 export const getUserRole = async () => {
-  const response = await fetch(`/api/manageRole`, {
-    method: "GET",
-  });
-  if (response.ok) {
+  try {
+    const response = await fetch(`/api/manageRole`, {
+      method: "GET",
+    });
+
+    if (!response.ok) return [];
+
     const responseData = await response.json();
-    if (responseData) {
-      return responseData.map((rsp) => rsp.name);
-    }
+    if (!Array.isArray(responseData)) return [];
+
+    return responseData.map((rsp) => rsp.name);
+  } catch {
+    return [];
   }
 };
