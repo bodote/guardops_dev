@@ -17,7 +17,7 @@ npm install
 
 ## 2. Create local environment config
 
-Create `/Users/bodo.teichmann/dev/guardops_dev/.env.local`:
+Create `/Users/user/dev/guardops_dev/.env.local`:
 
 ```bash
 AUTH0_SECRET=<random-32-byte-hex-or-long-random-string>
