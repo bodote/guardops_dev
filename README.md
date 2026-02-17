@@ -28,9 +28,13 @@ AUTH0_CLIENT_SECRET=<your-auth0-app-client-secret>
 
 # Used by role/token endpoints in this app
 AUTH0_TRACEAPI=https://<your-tenant>.us.auth0.com/oauth/token
+AUTH0_TRACEAPI_CLIENT_ID=<client-id-for-trace-api-token>
+AUTH0_TRACEAPI_CLIENT_SECRET=<client-secret-for-trace-api-token>
+TRACEAPI_AUDIENCE=<auth0-api-audience-for-backend>
 AUTH0_MANAGEMENT_CLIENT_ID=<your-auth0-app-client-id-or-m2m-client-id>
 AUTH0_MANAGEMENT_CLIENT_SECRET=<matching-client-secret>
 MANAGEMENT_AUDIENCE=https://<your-tenant>.us.auth0.com/api/v2/
+BackendBaseUrl=<backend-base-url-with-trailing-slash>
 ```
 
 Generate `AUTH0_SECRET`:
@@ -77,6 +81,9 @@ Open [http://localhost:3000](http://localhost:3000).
 - `GET /api/manageRole 500`:
   - Usually missing/invalid Management API token config.
   - Current code now degrades to `401` instead of crashing when role token fetch fails.
+- `GET /api/manageModels 401` or `GET /api/customProviders 401`:
+  - `AUTH0_TRACEAPI_CLIENT_ID`, `AUTH0_TRACEAPI_CLIENT_SECRET`, or `TRACEAPI_AUDIENCE` is missing/invalid.
+  - `BackendBaseUrl` may also be missing/invalid.
 - Profile page showing `User Role: Loading...` forever:
   - Current code now falls back to `No role assigned` if roles cannot be fetched.
 
